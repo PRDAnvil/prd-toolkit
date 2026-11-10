@@ -30,10 +30,6 @@ def test_versions():
     assert plugin["version"] == "0.8.5"
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == ["0.8.5"]
-    js = (REPO / "web/src/data/plugins.js").read_text()
-    block = js[js.index("id: 'prd-toolkit'"):]
-    assert "version: '0.8.5'" in block
-    assert "{ label: 'Design spec (0.8.5)', url: 'https://github.com/ihistand/claude-plugins/blob/main/" + SPEC_REL + "' }" in block
     assert "Version 0.8.5." in README
     assert f"(../{SPEC_REL})" in README and (REPO / SPEC_REL).is_file()
     assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.5"

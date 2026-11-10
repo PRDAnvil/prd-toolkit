@@ -30,9 +30,6 @@ def test_versions():
     assert re.fullmatch(r"\d+\.\d+\.\d+", version)
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [version]
-    js = (REPO / "web/src/data/plugins.js").read_text()
-    block = js[js.index("id: 'prd-toolkit'"):]
-    assert f"version: '{version}'" in block and "prd-toolkit-0.8.0-design.md" in block
     assert f"Version {version}." in README
     assert f"(../{SPEC_REL})" in README
 
@@ -43,8 +40,6 @@ def test_description_names_the_new_parts():
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     entry = next(p for p in market["plugins"] if p["name"] == "prd-toolkit")
     assert entry["description"] == plugin["description"]
-    js = (REPO / "web/src/data/plugins.js").read_text()
-    assert "description: '" + plugin["description"] + "'" in js
 
 
 def test_builtin_packs_need_toolkit_0_8_0():

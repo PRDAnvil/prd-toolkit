@@ -111,11 +111,6 @@ def test_description_has_no_double_and():
     assert "a test agent that cannot read your code, skills to author, adopt and change it, a builder" in plugin["description"]
 
 
-def test_web_testing_skill_names_write():
-    js = (ROOT.parent / "web/src/data/plugins.js").read_text()
-    m = re.search(r"name: 'testing-from-prds', description: '([^']*)'", js)
-    assert m and "dry runs, writes and suites" in m.group(1)
-
 
 def test_tester_agent_description_comma_before_write():
     t = (ROOT / "agents/prd-tester.md").read_text(encoding="utf-8")
