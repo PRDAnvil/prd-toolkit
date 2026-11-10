@@ -34,7 +34,7 @@
 | Environment | Purpose | Access | Base URL | Database | Logs |
 |---|---|---|---|---|---|
 | local | a checkout of the repository where the tests run | anyone with a clone | none | none | the command's stdout and stderr |
-| production | the `ihistand` marketplace (GitHub `main`) that users install from | the maintainer merges; users install | none | none | none |
+| production | the `prdanvil` marketplace (GitHub `main` of PRDAnvil/prd-toolkit) that users install from | the maintainer merges; users install | none | none | none |
 
 ## Leak checks
 

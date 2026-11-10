@@ -7,7 +7,7 @@
 | Environment | URL | Production |
 |---|---|---|
 | local | none | no |
-| production | https://github.com/ihistand/claude-plugins | yes |
+| production | https://github.com/PRDAnvil/prd-toolkit | yes |
 
 ## Runbook
 
@@ -15,10 +15,10 @@
    Do: review the release pull request on GitHub and merge it into `main`
    Check: the pull request shows as merged
 2. Update the marketplace (actor: agent) (env: production)
-   Run: `claude plugin marketplace update ihistand`
+   Run: `claude plugin marketplace update prdanvil`
    Check: `claude plugin marketplace list`
 3. Update the plugin at each installed scope (actor: agent) (env: production)
-   Run: `claude plugin update prd-toolkit@ihistand --scope user`
+   Run: `claude plugin update prd-toolkit@prdanvil --scope user`
    Check: `claude plugin list`
 4. Reload open sessions (actor: human) (env: production)
    Do: run /reload-plugins in each open Claude Code session
