@@ -12,7 +12,7 @@ Traces: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006
 
 ### FR-001 Lint a PRD folder and print its findings
 Status: verified
-Source: prd-toolkit/scripts/prd_lint.py:116 @daea95a
+Source: prd-toolkit/scripts/prd_lint.py:116 @a197581
 Flow: 1. load the folder (prdlint.model.load) → 2. run every registered rule (prdlint.registry.run)
       → 3. print the loader's and the rules' findings, sorted → 4. exit 1 when any is an error, else 0
 Acceptance (EARS):
@@ -35,7 +35,7 @@ Traces: cli:prd_lint; `prdlint/registry.py` run (lines 25-36); `prdlint/findings
 
 ### FR-002 Name each finding's file from the working directory
 Status: live (since 1.0.0)
-Source: prd-toolkit/scripts/prd_lint.py:23 @d1a4146
+Source: prd-toolkit/scripts/prd_lint.py:23 @1cde4cc
 Acceptance (EARS):
 - AC-002.1 When the PRD folder is below the working directory, the lint command shall print a
   finding's path as the folder's path relative to the working directory joined to the file's path
@@ -51,7 +51,7 @@ Traces: cli:prd_lint
 
 ### FR-003 List the rules
 Status: verified
-Source: prd-toolkit/scripts/prd_lint.py:54 @6e9f685
+Source: prd-toolkit/scripts/prd_lint.py:54 @6054b28
 Acceptance (EARS):
 - AC-003.1 When run with `--list-rules`, the lint command shall print every registered rule as
   `<name> <severity>`, the severity `error` or `warn`, one per line sorted by name, and exit 0,
@@ -63,7 +63,7 @@ Traces: cli:prd_lint; `prdlint/registry.py` RULES
 
 ### FR-004 Reject a bad command line
 Status: verified
-Source: prd-toolkit/scripts/prd_lint.py:59 @daea95a
+Source: prd-toolkit/scripts/prd_lint.py:59 @a197581
 Acceptance (EARS):
 - AC-004.1 If none of a folder argument, `--list-rules`, `--list-packs` and `--interface` is given,
   the lint command shall print its usage on one line to stderr,
@@ -81,7 +81,7 @@ Traces: cli:prd_lint
 
 ### FR-005 Refuse a folder without prd.md
 Status: verified
-Source: prd-toolkit/scripts/prdlint/model.py:721 @97c04e1
+Source: prd-toolkit/scripts/prdlint/model.py:721 @735b620
 Acceptance (EARS):
 - AC-005.1 If the folder argument names no directory, or a directory with no regular file named
   exactly `prd.md`, the lint command shall print `prd_lint: <resolved folder>: no prd.md` to stderr
@@ -99,7 +99,7 @@ Traces: cli:prd_lint; `prdlint/model.py` NotAPrd
 
 ### FR-006 Report an internal error without a traceback
 Status: verified
-Source: prd-toolkit/scripts/prdlint/model.py:889 @1ce0f93
+Source: prd-toolkit/scripts/prdlint/model.py:889 @34f0f39
 Acceptance (EARS):
 - AC-006.1 If loading the folder raises an error other than a missing prd.md, the lint command shall
   print `prd_lint: internal error: <exception type>: <message>` to stderr, print no traceback and
@@ -119,7 +119,7 @@ Traces: cli:prd_lint; `prdlint/registry.py` RuleCrash
 
 ### FR-007 Sample T-ids for the dry run
 Status: verified
-Source: prd-toolkit/scripts/prd_lint.py:67 @97c04e1
+Source: prd-toolkit/scripts/prd_lint.py:67 @735b620
 Acceptance (EARS):
 - AC-007.1 When run with `--sample-tids N`, the lint command shall print min(N, M) distinct test
   cases chosen at random from the M loaded cases whose `level` value, as text with surrounding
@@ -138,7 +138,7 @@ Traces: cli:prd_lint
 
 ### FR-008 Mark a CI run for the rules
 Status: live (since 1.0.0)
-Source: prd-toolkit/scripts/prd_lint.py:76 @d1a4146
+Source: prd-toolkit/scripts/prd_lint.py:76 @1cde4cc
 Acceptance (EARS):
 - AC-008.1 When run with `--ci`, the lint command shall set the environment variable `PRD_LINT_CI`
   to `1` before the rules run.
@@ -152,7 +152,7 @@ Traces: cli:prd_lint; setting PRD_LINT_CI (contracts/config.yaml)
 
 ### FR-009 Write UTF-8 in any locale
 Status: live (since 1.0.0)
-Source: prd-toolkit/scripts/prd_lint.py:93 @d1a4146
+Source: prd-toolkit/scripts/prd_lint.py:93 @1cde4cc
 Acceptance (EARS):
 - AC-009.1 When prd_lint.py runs as a script, it shall write stdout and stderr as UTF-8 whatever the
   locale.
@@ -162,7 +162,7 @@ Traces: cli:prd_lint
 
 ### FR-010 Name a missing dependency
 Status: verified
-Source: prd-toolkit/scripts/prdlint/deps.py:12 @5a3bc3d
+Source: prd-toolkit/scripts/prdlint/deps.py:12 @5a91255
 Acceptance (EARS):
 - AC-010.1 If `pyyaml`, `sqlglot` or `openapi-spec-validator` cannot be imported, the lint command
   shall print, for the first one missing in that order,
@@ -180,7 +180,7 @@ Traces: cli:prd_lint; cli:prd_publish; `prdlint/deps.py` require
 
 ### FR-011 Load the test-case files
 Status: verified
-Source: prd-toolkit/scripts/prdlint/yamlload.py:40 @97c04e1
+Source: prd-toolkit/scripts/prdlint/yamlload.py:40 @735b620
 Acceptance (EARS):
 - AC-011.1 When a `test-cases/*.yaml` file repeats a key in a mapping, the loader shall keep the
   first value and report `id-unique` at the repeat's line with
@@ -203,7 +203,7 @@ Traces: cli:prd_lint
 
 ### FR-012 Load the contract YAML files
 Status: verified
-Source: prd-toolkit/scripts/prdlint/model.py:711 @97c04e1
+Source: prd-toolkit/scripts/prdlint/model.py:711 @735b620
 Acceptance (EARS):
 - AC-012.1 When a `.yaml` file under `contracts/`, outside `contracts/fixtures/`, repeats a key, does
   not parse, has a mapping key that is a list or a mapping, or has a top level that is not a
@@ -220,8 +220,8 @@ Traces: cli:prd_lint
 
 ### FR-013 List the packs
 Status: verified
-Source: prd-toolkit/scripts/prd_lint.py:60 @2244187
-  prd-toolkit/scripts/prdlint/packs.py:373 @2244187
+Source: prd-toolkit/scripts/prd_lint.py:60 @43c76bd
+  prd-toolkit/scripts/prdlint/packs.py:373 @43c76bd
 Acceptance (EARS):
 - AC-013.1 When the plugin's lint command (`prd-toolkit/scripts/prd_lint.py`) is run with
   `--list-packs`, it shall print every pack on the machine, one
@@ -248,7 +248,7 @@ Traces: cli:prd_lint; setting PRD_PLUGINS_FILE (contracts/config.yaml); `.prd-to
 
 ### FR-014 Print the lint result as a JSON document
 Status: verified
-Source: prd-toolkit/scripts/prd_lint.py:42 @daea95a
+Source: prd-toolkit/scripts/prd_lint.py:42 @a197581
 Acceptance (EARS):
 - AC-014.1 When prd_lint.py is run with `--json` on a PRD folder, the lint command shall print on
   stdout one JSON object on one line, ending in a newline, and nothing else,
@@ -282,7 +282,7 @@ Traces: cli:prd_lint; `prdlint/interface.py`
 
 ### FR-015 Leave the PRD folder's root README out of the lint
 Status: verified
-Source: prd-toolkit/scripts/prdlint/model.py:832 @22fa357
+Source: prd-toolkit/scripts/prdlint/model.py:832 @6b69af0
 Flow: 1. load the folder → 2. leave out the file `README.md` directly in the folder, which `prd_block.py`
       generates from the PRD → 3. run the rules on everything else, other `README.md` files included
 Acceptance (EARS):
@@ -296,7 +296,7 @@ Traces: cli:prd_lint; `prd_block.py` (the README's writer, status area)
 
 ### FR-016 Report a Levels Timeout that is not a whole number of seconds
 Status: verified
-Source: prd-toolkit/scripts/prdlint/rules/registries.py:237 @1c773e4
+Source: prd-toolkit/scripts/prdlint/rules/registries.py:237 @d2d9acb
 Flow: 1. load testing.md → 2. read the Levels table's optional `Timeout` column, found by its header
       name → 3. report each cell that is neither empty nor a whole number of seconds of at least 1
 Acceptance (EARS):
@@ -312,7 +312,7 @@ Traces: cli:prd_lint; testing.md Levels
 
 ### FR-017 Report an Environments Branch that git refuses
 Status: verified
-Source: prd-toolkit/scripts/prdlint/rules/registries.py:177 @1c773e4
+Source: prd-toolkit/scripts/prdlint/rules/registries.py:177 @d2d9acb
 Flow: 1. load operations.md → 2. read the Environments table's optional `Branch` column, found by its
       header name → 3. report each cell that is not empty and that git refuses as a branch name
 Acceptance (EARS):
@@ -329,7 +329,7 @@ Traces: cli:prd_lint; operations.md Environments; git on the runner (testing.md 
 
 ### FR-018 Check a runbook Check's matches pattern
 Status: verified
-Source: prd-toolkit/scripts/prdlint/rules/registries.py:165 @1c773e4
+Source: prd-toolkit/scripts/prdlint/rules/registries.py:165 @d2d9acb
 Flow: 1. load operations.md → 2. read each agent step's `Check:`: one backticked command, then
       optionally `prints` and one backticked text, or `matches` and one backticked pattern → 3. report
       a pattern that does not compile, and a Check that holds both forms

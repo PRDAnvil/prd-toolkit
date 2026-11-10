@@ -4,7 +4,7 @@
 
 ### FR-020 Check the prd.md frontmatter
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:101 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:101 @ae00c13
 Flow: 1. read the frontmatter the loader parsed → 2. check `prd`, `version`, `status`, `owner`, `updated`, and `language` when present
       → 3. while `contracts/schema.sql` is a file, check `sql-dialect` against sqlglot
 Acceptance (EARS):
@@ -21,7 +21,7 @@ Traces: UJ-01; cli:prd_lint; `prdlint/markdown.py` frontmatter
 
 ### FR-021 Report a PRD language with no table
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:131 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:131 @ae00c13
 Acceptance (EARS):
 - AC-021.1 When the frontmatter's `language` value fully matches `[a-z]{2,3}`, neither the toolkit's `references/languages/` nor a pack the PRD names has a table for it, and the toolkit's `en` table loads, the lint command shall report `language-table` at the `language:` line with `language '<code>' has no table`.
 - AC-021.2 When the toolkit or a pack the PRD names has a table for the PRD's language that loads, the lint command shall report no `language-table` finding.
@@ -32,7 +32,7 @@ Traces: UJ-01; cli:prd_lint; `prdlint/languages.py` problem
 
 ### FR-022 Require prd.md's fourteen sections in order
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:138 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:138 @ae00c13
 Acceptance (EARS):
 - AC-022.1 If prd.md has no level-2 heading `## <n>. <title>` for one of the fourteen sections of prd-format.md (`1. Metadata & stack` to `14. Changelog`), the lint command shall report `prd.md:1: sections: missing section '## <n>. <title>'` for each one missing.
 - AC-022.2 When the fourteen sections that prd.md has do not appear in their numbered order, once each repeated section's later headings are set aside, the lint command shall report `prd.md:1: sections: sections are out of order`, once however many are out of place.
@@ -45,7 +45,7 @@ Traces: UJ-01; cli:prd_lint
 
 ### FR-023 Require the mandatory files and account for the optional ones
 Status: live (since 6.2.0)
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:152 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:152 @ae00c13
 Flow: 1. read section 1's `- Not applicable:` lines → 2. check each mandatory entry → 3. check each optional slot
 Acceptance (EARS):
 - AC-023.1 If a mandatory entry is absent and section 1 does not list it as not applicable, the lint command shall report `<entry without a trailing />:0: sections: mandatory '<entry>' is missing`, the mandatory entries being `features/` (present when `features/*.md` matches), `test-cases/` (present when `test-cases/*.yaml` matches) and the regular files `nfr.md`, `testing.md`, `operations.md`, `errors.md` and `contracts/errors.yaml`.
@@ -59,7 +59,7 @@ Traces: UJ-01; cli:prd_lint
 
 ### FR-024 Check section 8 and adoption.md
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:167 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:167 @ae00c13
 Acceptance (EARS):
 - AC-024.1 If section 8 of prd.md holds a pipe table, the lint command shall report `sections` at the section 8 heading's line with `section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave "See adoption.md."`.
 - AC-024.2 If section 8's body, its surrounding whitespace and one final `.` removed, is `See adoption.md` and the PRD folder has no `adoption.md`, the lint command shall report `sections` at the section 8 heading's line with `section 8 points at adoption.md but adoption.md does not exist`.
@@ -77,7 +77,7 @@ Traces: UJ-01; cli:prd_lint; adoption.md
 
 ### FR-025 Check testing.md's Harness slots
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:199 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:199 @ae00c13
 Acceptance (EARS):
 - AC-025.1 If testing.md has no level-2 section titled `Harness` (in any case) that holds a slot bullet `- **<Slot>.**`, the lint command shall report `testing.md:1: sections: testing.md has no '## Harness' section with its slots`.
 - AC-025.2 If one of the fifteen slots Lifecycle, Environment switch, Database access, Tools on the runner, Clean state, Persistent environments, Layout, HTTP requests, Fixtures, Browser identity, Assertions, Waits, Effects, Leaks and Acceptance has no bullet, the lint command shall report `sections` at the first slot bullet's line with `Harness slot '<slot>' is missing`, once per absent slot.
@@ -95,7 +95,7 @@ Traces: UJ-01; cli:prd_lint; testing.md Harness; the prd-tester guard reads Test
 
 ### FR-026 Read prose without code and errors.md quotations
 Status: live (since 6.2.0)
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:36 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:36 @ae00c13
 Acceptance (EARS):
 - AC-026.1 The lint command's prose rules (placeholder, glossary-synonym, and the Markdown part of markers-open and assumption-indexed) shall read each Markdown file the loader reads with its fenced code blocks and inline code spans blanked, keeping every line number.
 - AC-026.2 The prose rules shall blank, in errors.md only, each line that starts with `Evidence:` together with the two-space-indented lines that follow it, and each line that starts with `Confirmed:`.
@@ -107,7 +107,7 @@ Traces: UJ-01; cli:prd_lint; `prdlint/markdown.py` strip_code, mask_quoted
 
 ### FR-027 Report an unfilled placeholder
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:241 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:241 @ae00c13
 Acceptance (EARS):
 - AC-027.1 When a prose line (FR-026) holds `TBD` or `TODO` as a whole word, `???`, one of the template slots `{{project}}`, `{{owner}}`, `{{date}}` and `{{sql_dialect}}`, or text from `<` and a letter to the next `>` with no `<` or `>` between that does not start `<http://` or `<https://`, the lint command shall report `placeholder` at that line with `placeholder '<the first such text on the line>' in prose; if this is literal text, put it in backticks`.
 - AC-027.2 The lint command shall not report `placeholder` for a double-brace name other than the four template slots, for `todo` or `tbd` in lowercase, for an autolink `<https://…>`, or for text in a code span.
@@ -121,7 +121,7 @@ Traces: UJ-01; cli:prd_lint
 
 ### FR-028 Report a vague word without a number
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:273 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:273 @ae00c13
 Acceptance (EARS):
 - AC-028.1 When the text of an AC of an FR block that is not removed, its continuation lines joined, holds outside any code span a word of the PRD language table's `vague` list as a whole word in any case, and holds no digit anywhere once every AC, FR, NFR, UJ and T ID is taken out, the lint command shall report `vague-word` at the AC's first line with `'<the first such word, as written>' with no measurable number on the line`.
 - AC-028.2 When such an AC holds a digit outside any code span and outside those IDs, the lint command shall report no `vague-word` finding for it.
@@ -134,8 +134,8 @@ Traces: UJ-01; cli:prd_lint; `references/languages/en.yaml` vague
 
 ### FR-029 Report clarification markers left open once the PRD is in review
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:298 @5824ed1
-  prd-toolkit/scripts/prdlint/rules/structure.py:52 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:298 @ae00c13
+  prd-toolkit/scripts/prdlint/rules/structure.py:52 @ae00c13
 Acceptance (EARS):
 - AC-029.1 While prd.md's status is `In review` or `Approved`, the lint command shall report `markers-open` once at each line of a scanned file (AC-029.2 to AC-029.4) that holds `[NEEDS CLARIFICATION`, with `[NEEDS CLARIFICATION] left open while status is <status> (markers count in every text file, comments included; delete a template hint once its slot is answered)`.
 - AC-029.2 The markers-open and assumption-indexed rules shall scan each Markdown file the loader reads whose path has no part starting with `.`, as FR-026 reads it, and each file under the PRD folder whose suffix is `.yaml`, `.yml`, `.sql` or `.json`, read raw so that values and comments count.
@@ -149,7 +149,7 @@ Traces: UJ-01; cli:prd_lint
 
 ### FR-030 Index every assumption marker
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:312 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:312 @ae00c13
 Acceptance (EARS):
 - AC-030.1 When a line of a scanned file (AC-029.2 to AC-029.4) holds `[ASSUMPTION` as a whole word not followed by a space, `A-` digits and a colon, the lint command shall report `assumption-indexed` at that line with `[ASSUMPTION] marker has no A-nn id`, whatever the PRD's status.
 - AC-030.2 When a line of a scanned file holds `[ASSUMPTION A-<n>:` and no row of a table in prd.md's section 12 has `A-<n>`, backticks removed, as its first cell, the lint command shall report `assumption-indexed` at that line with `A-<n> has no row in section 12`, whatever the PRD's status, and shall report nothing for a marker whose ID has a row.
@@ -163,7 +163,7 @@ Traces: UJ-01; cli:prd_lint; prd.md section 12
 
 ### FR-031 Require no open question once the PRD is Approved
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:329 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:329 @ae00c13
 Acceptance (EARS):
 - AC-031.1 While prd.md's status is `Approved`, the lint command shall report `open-questions-empty` at the first line of section 13's body whose text, stripped, is neither empty nor `None.`, with `section 13 must be 'None.' when the PRD is Approved`, and no finding for any later line.
 - AC-031.2 While prd.md's status is not `Approved`, the lint command shall report no `open-questions-empty` finding.
@@ -175,7 +175,7 @@ Traces: UJ-01; cli:prd_lint; prd.md section 13
 
 ### FR-032 Report a banned glossary synonym
 Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:340 @5824ed1
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:340 @ae00c13
 Acceptance (EARS):
 - AC-032.1 When a prose line (FR-026) outside prd.md's section 3 holds a banned synonym of section 3's glossary as a whole word in any case, optionally followed by `s`, the lint command shall report `glossary-synonym` at that line with `'<the text as written>' is a banned synonym; use '<the row's Term cell>'`, once per banned synonym per line, the banned synonyms being the comma-separated parts of the third cell of each section 3 table row with at least three cells, each part trimmed and its backticks removed.
 - AC-032.2 The lint command shall report no `glossary-synonym` finding on section 3's heading or body lines, nor for a synonym inside a code span or fenced block.

@@ -4,7 +4,7 @@
 
 ### NFR-019 A test run leaves no cached uv environments behind
 Status: verified
-Source: prd-toolkit/tests/conftest.py:15 @b1e24cc
+Source: prd-toolkit/tests/conftest.py:15 @c7aa72a
 Flow: 1. the test session starts and points `UV_CACHE_DIR` at its test cache → 2. tests run uv
       scripts and git hooks, whose environments land in the test cache → 3. the session ends and
       deletes the test cache's `environments-v2` folder, keeping the downloaded packages
