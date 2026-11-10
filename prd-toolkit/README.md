@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. Version 0.8.5.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. Version 0.8.6.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -21,16 +21,17 @@ for 0.8.1 [docs/superpowers/specs/2026-11-03-prd-toolkit-0.8.1-design.md](../doc
 for 0.8.2 [docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.2-decision-inbox-design.md](../docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.2-decision-inbox-design.md),
 for 0.8.3 [docs/superpowers/specs/2026-11-06-prd-toolkit-0.8.3-backlog-design.md](../docs/superpowers/specs/2026-11-06-prd-toolkit-0.8.3-backlog-design.md),
 for 0.8.4 [docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.4-prd-readmes-design.md](../docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.4-prd-readmes-design.md),
-and for 0.8.5 [docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md](../docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md).
+for 0.8.5 [docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md](../docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md),
+and for 0.8.6, the move to PRDAnvil, the plan [docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md](../docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md).
 
 ## Install
 
 ```
-/plugin marketplace add ihistand/claude-plugins
-/plugin install prd-toolkit@ihistand
+/plugin marketplace add PRDAnvil/prd-toolkit
+/plugin install prd-toolkit@prdanvil
 ```
 
-Restart Claude Code. To update an installed copy, run `claude plugin update prd-toolkit@ihistand`,
+Restart Claude Code. To update an installed copy, run `claude plugin update prd-toolkit@prdanvil`,
 then `/reload-plugins` (or restart). The scripts run with `uv` (https://docs.astral.sh/uv/); each declares its own
 dependencies (`pyyaml`, `sqlglot`, `openapi-spec-validator`) inline. A missing dependency prints an
 install hint and exits 2.
@@ -62,9 +63,9 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 - **Which copy to run.** A person's shell does not set `${CLAUDE_PLUGIN_ROOT}`, so the commands here
   name a path. In a repo whose hooks are installed, run the vendored copy,
   `.prd-toolkit/<script>.py`. Before the first install (no `.prd-toolkit/` yet) run the plugin's
-  install path, `~/.claude/plugins/cache/ihistand/prd-toolkit/<version>/scripts/<script>.py`, where `ihistand` is this marketplace's name and
+  install path, `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/<script>.py`, where `prdanvil` is this marketplace's name and
   `<version>` is the installed version (`claude plugin list` shows it, and so does
-  `ls ~/.claude/plugins/cache/ihistand/prd-toolkit/`). A checkout of this repo works too, as the
+  `ls ~/.claude/plugins/cache/prdanvil/prd-toolkit/`). A checkout of this repo works too, as the
   other two lines do.
 - Output is one line per violation: `<file>:<line>: <rule>: <message>`.
 - Exit 0 when clean, 1 on violations, 2 on usage, dependency or internal error.
@@ -187,7 +188,7 @@ The first install runs from the plugin's install path (see Lint CLI for how to f
 clone and CI run the same copy:
 
 ```
-uv run --script ~/.claude/plugins/cache/ihistand/prd-toolkit/<version>/scripts/prd_hooks.py install docs/prd/<slug>
+uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_hooks.py install docs/prd/<slug>
 ```
 
 Git does not clone hooks, so each other clone runs the vendored copy once (the managed CLAUDE.md
@@ -209,8 +210,8 @@ Outside a git checkout `check --ci` exits 2 (`prd_hooks: <path> is not inside a 
 `/prd-status`'s CI part says the same.
 
 ```
-uv run --script ~/.claude/plugins/cache/ihistand/prd-toolkit/<version>/scripts/prd_hooks.py ci --github docs/prd/<slug>
-uv run --script ~/.claude/plugins/cache/ihistand/prd-toolkit/<version>/scripts/prd_hooks.py ci --gitlab docs/prd/<slug>
+uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_hooks.py ci --github docs/prd/<slug>
+uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_hooks.py ci --gitlab docs/prd/<slug>
 ```
 
 After a plugin upgrade, `check` names every vendored file that differs from the plugin (exit 1);
@@ -219,7 +220,7 @@ plugin itself, `vendor` refreshes the copy instead (see below). `uninstall` remo
 the hooks it wrote and leaves `.prd-toolkit/`:
 
 ```
-uv run --script ~/.claude/plugins/cache/ihistand/prd-toolkit/<version>/scripts/prd_hooks.py check docs/prd/<slug>
+uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_hooks.py check docs/prd/<slug>
 uv run --script .prd-toolkit/prd_hooks.py uninstall docs/prd/<slug>
 ```
 
@@ -480,7 +481,7 @@ decline, it gives you the file path.
 `prd_publish.py` is not vendored into `.prd-toolkit/`; it runs from the plugin (see Lint CLI for the install path).
 
 ```
-uv run --script ~/.claude/plugins/cache/ihistand/prd-toolkit/<version>/scripts/prd_publish.py render docs/prd/<slug> --out <file> [--summaries <json>]
+uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_publish.py render docs/prd/<slug> --out <file> [--summaries <json>]
 ```
 
 **What `prd_publish.py` refuses.** Exit 1 (`refused`): an `--out` inside the PRD folder; a summary
@@ -849,6 +850,8 @@ the user cannot state.
 
 ## Changelog
 
+- **0.8.6:** prd-toolkit moved, with its history, from `ihistand/claude-plugins` to its own public repository, [PRDAnvil/prd-toolkit](https://github.com/PRDAnvil/prd-toolkit), and its own marketplace, `prdanvil`. It is MIT-licensed: `LICENSE` ships in the plugin, and `prd_hooks.py install` and `vendor` copy it into `.prd-toolkit/LICENSE`. Nothing else changes in the scripts or skills. The toolkit's own PRD is 6.2.1. See the [plan](../docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md).
+  - **Upgrade:** run `claude plugin uninstall prd-toolkit@ihistand` at each scope it is installed at, then `/plugin marketplace add PRDAnvil/prd-toolkit` and `/plugin install prd-toolkit@prdanvil`, then `/reload-plugins`. The plugin's install path becomes `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/`. In each repository with a vendored copy, re-run `install` from that path at its next upgrade; it writes the new HOMEPAGE and the LICENSE.
 - **0.8.5:** The deploy, pack and check fixes from the first private-pack loop, the published page's diagrams, and a stricter tester guard. See the [design spec](../docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md).
   - Item 1: `prd_deploy.py confirm` takes repeated `--step N --reply TEXT` pairs, one record per step, all or nothing; the skill adds a later step only when the owner's reply names it.
   - Item 2: `prd_error.py new` may record an entry while a run is stopped; it stays uncommitted through `resume` and the close commits it.
@@ -1111,6 +1114,10 @@ pypi grants let `prd_lint.py` fetch its dependencies under the Bash sandbox:
 claude plugin eval ./prd-toolkit --runs 3 --model sonnet --scaffold --trust-plugin --no-publish -j 4 --keep-temp \
   --json <out>.json --allow-tools Write Edit Bash Agent "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)"
 ```
+
+## License
+
+MIT; see [LICENSE](./LICENSE). A vendored `.prd-toolkit/` carries a copy of it.
 
 ## Credits
 

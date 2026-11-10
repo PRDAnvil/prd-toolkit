@@ -19,7 +19,7 @@ step with its code. Code implements its PRD; a change in behaviour starts in the
 
 ## Getting started
 
-- Install the prd-toolkit plugin for Claude Code: https://github.com/ihistand/claude-plugins/tree/main/prd-toolkit
+- Install the prd-toolkit plugin for Claude Code: https://github.com/PRDAnvil/prd-toolkit/tree/main/prd-toolkit
 - Once per clone: `uv run --script .prd-toolkit/prd_hooks.py install docs/prd/<slug>`
 - Then see each PRD's README.
 <!-- prd-toolkit:end -->
