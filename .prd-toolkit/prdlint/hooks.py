@@ -27,6 +27,7 @@ RECORD_DIR = ".prd-judge/"
 REVIEW_FILE = ".prd-review.json"  # the review verdict review mode or the changing-prds skill writes; never committed
 BLOCK_TEMPLATE_DIR = "templates"  # .prd-toolkit/templates/claude-block.md
 HOMEPAGE_FILE = "HOMEPAGE"  # .prd-toolkit/HOMEPAGE: the plugin's `homepage`, one line, read by a vendored prd_block.py
+LICENSE_FILE = "LICENSE"  # .prd-toolkit/LICENSE: the plugin's LICENSE, byte for byte
 VENDORED_TEMPLATES = "hooks"  # the shim templates, vendored as .prd-toolkit/hooks/
 
 SCRIPTS = Path(__file__).resolve().parent.parent
@@ -86,6 +87,8 @@ def _source_files(scripts: Path, templates: Path) -> dict[str, Path]:
             files[f"{JUDGE_DIR}/{f.relative_to(templates.parent / JUDGE_DIR).as_posix()}"] = f
     for f in sorted((scripts.parent / "references" / LANGUAGES_DIR).glob("*.yaml")):
         files[f"{LANGUAGES_DIR}/{f.name}"] = f
+    if (scripts.parent / LICENSE_FILE).is_file():  # the vendored copy carries the plugin's license notice
+        files[LICENSE_FILE] = scripts.parent / LICENSE_FILE
     return files
 
 
