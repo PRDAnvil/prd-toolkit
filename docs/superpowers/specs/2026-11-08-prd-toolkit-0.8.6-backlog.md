@@ -1,8 +1,8 @@
-# prd-toolkit 0.8.6: best-practice sources, and the next adopted area — backlog
+# prd-toolkit 0.8.7: best-practice sources, and the next adopted area — backlog
 
 > **Date:** 2026-11-08
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.6's own
+> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.7's own
 > brainstorm, or moves to a later release.
 > **Extends:** `2026-11-08-prd-toolkit-0.8.5-design.md` and the specs it extends, under
 > `2026-11-03-prd-toolkit-0.8-umbrella.md`.
@@ -10,12 +10,15 @@
 >
 > **Revisions.**
 > - Created (owner, 2026-11-08): item 2 joins the umbrella's best-practice sources (item 1).
+> - Renumbered (owner, 2026-11-10): 0.8.6 is the move to PRDAnvil/prd-toolkit, so this backlog is
+>   0.8.7's; the file keeps its name. Item 2 is done: `lint-structure` was adopted, its Boundary
+>   narrowed to `structure.py`, as PRD 6.2.0 (PR #29 in ihistand/claude-plugins).
 > - Owner, 2026-11-09: items 3 (the rest of issue #24) and 4 (the changelog's PRD version), after
 >   PR #26 merged.
 
 ## 1. Backlog
 
-1. **Best-practice sources.** As the umbrella's 0.8.6 row says: sources found by Claude and approved
+1. **Best-practice sources.** As the umbrella's 0.8.7 row says: sources found by Claude and approved
    by the user, or added by the user; recorded per pack or per PRD; turned into §5 rows or checklist
    items; finding, installing or writing a skill or a pack when a PRD needs one, recorded in §6.
 2. **Adopt `lint-structure` in the toolkit's own PRD.** The second adopted area, after `lint-cli`,
@@ -50,4 +53,4 @@
    - References: issue #24 and its comments; E-008 in `docs/prd/prd-toolkit/errors.md`.
 4. **The changelog's PRD version.** The 0.8.5 changelog says "The toolkit's own PRD is at 6.0.0
    (approved b99cfac)". PR #26 moved the PRD to 6.1.0 (approved 7ed632f) after 0.8.5 shipped. The
-   0.8.6 changelog names the PRD version it reaches: 6.1.0, or later if 0.8.6 changes it.
+   0.8.7 changelog names the PRD version it reaches: 6.2.1 (the move), or later if 0.8.7 changes it.
