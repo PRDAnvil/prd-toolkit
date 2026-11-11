@@ -168,3 +168,15 @@ Evidence: User report (/prd-error), 2026-11-11: test_builtin_packs.py::test_vali
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-018 `prd_error.py check` reports `Detected: changed` on entries whose only change is the move's SHA remap (c8f48cf)
+Detected: 2026-11-11, user report (/prd-error)
+Classification: unclassified
+Evidence: User report (/prd-error), 2026-11-11: prd_error.py check over a range that includes c8f48cf
+  reports `Detected: changed` on E-001..E-006 and E-009..E-013.
+  c8f48cf is the move's filter-repo SHA remap (0.8.6): it rewrote old-repo SHAs in docs/prd to the new ones, provenance only.
+  Seen on the E-009 close (check over the whole loop exited 1, every finding from an older commit) and on the E-010 close (95d26dd, check over ae00c13..HEAD failing on c8f48cf findings).
+  A check started after c8f48cf (c8f48cf..HEAD) exits 0.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
