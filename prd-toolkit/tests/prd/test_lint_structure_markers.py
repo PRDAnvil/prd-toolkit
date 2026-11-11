@@ -114,9 +114,8 @@ def test_marker_draft(tmp_path, monkeypatch):
     check(o.run(), not_contains="markers-open", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-011")
 def test_marker_hidden_markdown(tmp_path, monkeypatch):
-    """@prd T-029.11 known-failing E-011"""
+    """@prd T-029.11"""
     t = texts()
     o = Orders(tmp_path, monkeypatch)
     assert o.lines("prd.md").line(4) == "status: Approved"
@@ -209,9 +208,8 @@ def test_assumption_open_in_review(tmp_path, monkeypatch):
     check(o.run(), not_contains="assumption-indexed", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-011")
 def test_assumption_hidden_markdown(tmp_path, monkeypatch):
-    """@prd T-030.10 known-failing E-011"""
+    """@prd T-030.10"""
     t = texts()
     o = Orders(tmp_path, monkeypatch)
     o.write(".notes.md", t["a_a09_line"] + "\n")
