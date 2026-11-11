@@ -370,6 +370,8 @@ def open_questions_empty(prd: Prd):
         if text.strip() and text.strip() != "None.":
             yield Finding("prd.md", n, "open-questions-empty", "section 13 must be 'None.' when the PRD is Approved")
             return
+    if sec and not any(text.strip() for _, text in sec.body):
+        yield Finding("prd.md", sec.line, "open-questions-empty", "section 13 must be 'None.' when the PRD is Approved")
 
 
 @rule("glossary-synonym")
