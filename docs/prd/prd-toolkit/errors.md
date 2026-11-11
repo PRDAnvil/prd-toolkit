@@ -173,6 +173,7 @@ Recurrence of: -
 ### E-018 `prd_error.py check` reports `Detected: changed` on entries whose only change is the move's SHA remap (c8f48cf)
 Detected: 2026-11-11, user report (/prd-error)
 Classification: code bug
+Confirmed: 2026-11-11, "Confirm the class (form)"
 Evidence: User report (/prd-error), 2026-11-11: prd_error.py check over a range that includes c8f48cf
   reports `Detected: changed` on E-001..E-006 and E-009..E-013.
   c8f48cf is the move's filter-repo SHA remap (0.8.6): it rewrote old-repo SHAs in docs/prd to the new ones, provenance only.
