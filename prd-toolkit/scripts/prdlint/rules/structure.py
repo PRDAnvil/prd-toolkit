@@ -143,7 +143,16 @@ def sections(prd: Prd):
         if (num, title) not in actual:
             yield Finding("prd.md", 1, "sections", f"missing section '## {num}. {title}'")
     present = [e for e in expected if e in actual]
-    if [a for a in actual if a in expected] != present:
+    firsts = []  # each expected section at its first heading; a later one is a duplicate
+    for s in prd.sections:
+        key = (s.number, s.title)
+        if key not in expected:
+            continue
+        if key in firsts:
+            yield Finding("prd.md", s.line, "sections", f"duplicate section '## {key[0]}. {key[1]}'")
+        else:
+            firsts.append(key)
+    if firsts != present:
         yield Finding("prd.md", 1, "sections", "sections are out of order")
     for a in actual:
         if a not in expected:
@@ -208,7 +217,15 @@ def _harness_findings(prd: Prd) -> Iterator[Finding]:
     for slot in HARNESS_SLOTS:
         if slot not in names:
             yield Finding("testing.md", h.slots[0][1], "sections", f"Harness slot '{slot}' is missing")
-    if [n for n in names if n in HARNESS_SLOTS] != [n for n in HARNESS_SLOTS if n in names]:
+    firsts = []  # each known slot at its first bullet; a later one is a duplicate
+    for name, line in h.slots:
+        if name not in HARNESS_SLOTS:
+            continue
+        if name in firsts:
+            yield Finding("testing.md", line, "sections", f"Harness slot '{name}' appears twice")
+        else:
+            firsts.append(name)
+    if firsts != [n for n in HARNESS_SLOTS if n in names]:
         yield Finding("testing.md", h.slots[0][1], "sections", f"Harness slots are out of order; the order is {', '.join(HARNESS_SLOTS)}")
     layout = next((n for name, n in h.slots if name == "Layout"), None)
     if layout and h.test_roots is None:
