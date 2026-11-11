@@ -153,6 +153,7 @@ Recurrence of: -
 ### E-016 The adoption.md header finding is reported at line 1, not at the header's line
 Detected: 2026-11-10, confirmation of Q-03 (FR-024)
 Classification: code bug
+Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-024
 Diagnosis: The header-mismatch finding is built with line 1 (structure.py:193) although the table's own line is known (the parsed table's line). Every other adoption.md finding points at the line to fix, a row at its own line, so this one sends the author to the file's heading instead of the header row.
 Resolution: open, intended: the adoption.md header finding is reported at the table's header line (the owner, 2026-11-10)
