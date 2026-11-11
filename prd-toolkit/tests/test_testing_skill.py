@@ -67,7 +67,7 @@ def test_04_spec_limit_revised():
 
 def test_r21_tester_unmarks_a_deploy_gate_regression_test_too():
     t = " ".join((ROOT / "skills/testing-from-prds/SKILL.md").read_text(encoding="utf-8").split())
-    assert "a deploy-gate regression test too (it is run at `/prd-deploy`" in t
+    assert "a deploy-gate regression test too (it is run at `/prd-toolkit:prd-deploy`" in t
 
 
 R1 = ("In a write or a suite you may read the vendored pack's files under `.prd-toolkit/packs/`; "

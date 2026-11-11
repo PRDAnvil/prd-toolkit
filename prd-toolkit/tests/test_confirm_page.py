@@ -359,7 +359,7 @@ def test_the_choice_labels_say_what_they_do():
 
 def test_a_confirmed_bug_shows_its_reply_and_no_choice_keys():
     js = scripts()
-    assert "Confirmed in errors.md; change it through /prd-error" in js
+    assert "Confirmed in errors.md; change it through /prd-toolkit:prd-error" in js
     assert "it.confirmed" in js
 
 

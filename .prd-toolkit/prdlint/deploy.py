@@ -79,7 +79,7 @@ def preflight(prd: Prd, repo_root: Path, until: str | None = None, notes: list[s
         reasons.append("prd_trace has findings")
     for b in prd.blocks:
         if b.status == "built":
-            reasons.append(f"{b.id} is built; its tests have not passed (run /prd-build)")
+            reasons.append(f"{b.id} is built; its tests have not passed (run /prd-toolkit:prd-build)")
     if prd.links is not None:
         from . import links  # lazy: links imports git machinery a plain deploy does not need
         lines = links.check(prd)

@@ -90,15 +90,15 @@ def _adopted_areas(prd: model.Prd) -> str:
 
 
 # The change rule; with links.md it also names the coordination role, and the skill name gives way to keep the block small.
-CHANGE_RULE = "`/prd-change` (`prd-toolkit:changing-prds`), before code"
-CHANGE_RULE_SHORT = "`/prd-change`, before code"
-CHANGE_RULE_LINKED = ("`/prd-change`, before code; one to a cited item,\n"
-                      "  with `/prd-change-set`")
+CHANGE_RULE = "`/prd-toolkit:prd-change` (`prd-toolkit:changing-prds`), before code"
+CHANGE_RULE_SHORT = "`/prd-toolkit:prd-change`, before code"
+CHANGE_RULE_LINKED = ("`/prd-toolkit:prd-change`, before code;\n"
+                      "  one to a cited item, with `/prd-toolkit:prd-change-set`")
 
 
 def change_line(prd: model.Prd) -> str:
     """The block's change sentence (no bullet, no trailing newline); on an adopted PRD it covers only the adopted areas.
-    An adopted PRD's line is short (no skill name) and wrapped at 100 columns, to keep the block under 1,536 bytes."""
+    An adopted PRD's line is short (no skill name) and wrapped at 100 columns, to keep the block under 1,792 bytes."""
     if prd.adoption is None:
         return f"Every behaviour change starts with {CHANGE_RULE_LINKED if prd.links is not None else CHANGE_RULE}."
     rule = CHANGE_RULE_LINKED if prd.links is not None else CHANGE_RULE_SHORT

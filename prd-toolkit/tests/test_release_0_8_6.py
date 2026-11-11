@@ -1,6 +1,7 @@
 """Pins for the 0.8.6 release: the toolkit published from PRDAnvil/prd-toolkit, its marketplace, its license and its upgrade note."""
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
@@ -30,11 +31,11 @@ def entry(ver: str, nxt: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.6"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
-    assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == ["0.8.6"]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.6"
-    assert "Version 0.8.6." in README
+    assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in README
 
 
 def test_marketplace():
@@ -74,9 +75,11 @@ def test_root_readme_install_names_the_uninstall():
 
 def test_no_old_marketplace_names():
     hits = []
-    for f in sorted(ROOT.rglob("*")):
-        rel = f.relative_to(ROOT).as_posix()
-        if not f.is_file() or rel == "README.md" or rel.startswith("tests/") or "__pycache__" in f.parts or ".uv-test-cache" in f.parts:
+    # Tracked files only: a clone's ignored folders (.venv, caches) are not the plugin's text.
+    tracked = subprocess.run(["git", "-C", str(ROOT), "ls-files", "-z", "."], capture_output=True, text=True, check=True)
+    for rel in sorted(p for p in tracked.stdout.split("\0") if p):
+        f = ROOT / rel
+        if not f.is_file() or rel == "README.md" or rel.startswith("tests/"):
             continue
         text = f.read_text(encoding="utf-8", errors="replace")
         hits += [f"{rel}: {o}" for o in OLD if o in text]

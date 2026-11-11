@@ -4,9 +4,9 @@
 report: run every step, in order. The turn ends before it only to wait for the user's reply to a
 human step or to the rollback question (step 2).
 
-For the caller: `/prd-deploy`, or any session asked to deploy, release to production, ship to
-staging, carry on with a stopped or failed deploy run, roll one back, or record a deploy in the
-PRD. The `deploying-from-prds` Red Flags are yours.
+For the caller: `/prd-toolkit:prd-deploy`, or any session asked to deploy, release to production,
+ship to staging, carry on with a stopped or failed deploy run, roll one back, or record a deploy in
+the PRD. The `deploying-from-prds` Red Flags are yours.
 
 **`prd_deploy.py` runs the runbook; you never do.** Never run a runbook command yourself: not a
 step's `Run:`, `Check:` or `Rollback:`, not a `tests` step's harness command, not the deploy
@@ -31,8 +31,8 @@ while one is still working; the script refuses it.
 **Code, tests and the runbook are never edited during a deploy**, nor the PRD outside the close
 (step 3), except the `prd_error.py new` entry of an error found while the run is stopped (step 2),
 even when the user says "fix it and carry on". A failed step is a defect to record (step 2); its fix
-is a change that goes through `prd-toolkit:changing-prds`, then `/prd-build`, then a new deploy. A
-runbook that is wrong (a bad command, a `Check:` that tests the wrong thing) is a gap for
+is a change that goes through `prd-toolkit:changing-prds`, then `/prd-toolkit:prd-build`, then a new
+deploy. A runbook that is wrong (a bad command, a `Check:` that tests the wrong thing) is a gap for
 `prd-toolkit:changing-prds`, never a line you correct to get the run through. Say in one line which
 rule a request to edit breaks, and go on with the procedure without the edit.
 
@@ -114,13 +114,13 @@ step 3 for a finished run they ask you to record.
    block is `built`. Keep the run id from `run: <id>`. Act on the exit:
 
    - **0, done.** Go to step 3.
-   - **1, refused.** Report each `refused:` line and stop. A `built` block goes to `/prd-build`;
-     a dirty tree or a lint or trace finding is the user's to settle. A run that reaches
-     production is refused for a `verified` block's deploy-gate T-id that no test cites
-     (`<ID>: <T-id> (deploy gate) has no citing test; it cannot go live`): the missing test goes to
-     `/prd-build <area> <IDs>` with that block's ID, whose tester-only round writes it without a
-     builder or a status change. A refused `run` ran nothing (`run=none`): there is no
-     close.
+   - **1, refused.** Report each `refused:` line and stop. A `built` block goes to
+     `/prd-toolkit:prd-build`; a dirty tree or a lint or trace finding is the user's to settle. A
+     run that reaches production is refused for a `verified` block's deploy-gate T-id that no test
+     cites (`<ID>: <T-id> (deploy gate) has no citing test; it cannot go live`): the missing test
+     goes to `/prd-toolkit:prd-build <area> <IDs>` with that block's ID, whose tester-only round
+     writes it without a builder or a status change. A refused `run` ran nothing (`run=none`): there
+     is no close.
    - **3, human step.** Read step N's `Do:` and `Check:` in the `## Runbook` of
      `docs/prd/<slug>/operations.md`, show them to the user with the run id, and wait for the user's
      reply: ask through the decision inbox, as `deploying-from-prds` **The decision inbox** says,
@@ -189,11 +189,11 @@ step 3 for a finished run they ask you to record.
      uv run --script <scripts>/prd_error.py new docs/prd/<slug> --title "<the error in one line>" --source "deploy run <run id>, step <N>"; echo "prd-error-exit=$?"
      ```
 
-     Do not commit it, then resume as above: `resume` accepts an `errors.md` that only gained
-     open, unclassified entries naming this run and a step, and the close commit carries it (step
-     3; its `Refs:` names the `E-<nnn>`). Its diagnosis follows through `/prd-error E-<nnn>` after
-     the close, never during the run. Any other tracked change still refuses `resume` with "the
-     tracked tree has changes", and a committed entry with "HEAD moved since the run started".
+     Do not commit it, then resume as above: `resume` accepts an `errors.md` that only gained open,
+     unclassified entries naming this run and a step, and the close commit carries it (step 3; its
+     `Refs:` names the `E-<nnn>`). Its diagnosis follows through `/prd-toolkit:prd-error E-<nnn>`
+     after the close, never during the run. Any other tracked change still refuses `resume` with
+     "the tracked tree has changes", and a committed entry with "HEAD moved since the run started".
 
      A run stopped at a human step is not closed: a close commit moves HEAD, and `resume` then
      refuses with "HEAD moved since the run started". Close it (step 3) only when the user
@@ -240,7 +240,7 @@ step 3 for a finished run they ask you to record.
 
      Diagnosing it is not part of the deploy: the entry stays open and unclassified. Go to
      step 3; the close commit carries the entry, and after the close offer the user
-     `/prd-error E-<nnn>` as the next step: it diagnoses and resolves the entry.
+     `/prd-toolkit:prd-error E-<nnn>` as the next step: it diagnoses and resolves the entry.
      A failed run ends, and `resume` refuses it.
      Start a new run only when the user asks for one after seeing the failure, and tell them
      first whether anything changed: a new run on the same commit runs the same commands. A new
@@ -360,5 +360,5 @@ step 3 for a finished run they ask you to record.
    ```
 
    and for each `confirmed` entry whose `Touches:` names a block the run's `tests` step passed, name
-   `/prd-error E-nnn` as the next step: it resolves the entry from this run's log (a deploy-gate
-   regression T-id's entry resolves only from a run that passed it).
+   `/prd-toolkit:prd-error E-nnn` as the next step: it resolves the entry from this run's log (a
+   deploy-gate regression T-id's entry resolves only from a run that passed it).

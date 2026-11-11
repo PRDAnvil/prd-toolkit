@@ -1,22 +1,22 @@
 # Running an error
 
-**Steps:** 1 Record, 2 Reproduce, 3 Propose, 4 Confirm, 5 Fix, 6 Close. An error is not done
-until step 6's check: run every step, in order. The turn ends before it only to wait for the
-user's reply to the proposal (step 4), or for a reply that `/prd-change` or `/prd-deploy` asks for
-in step 5.
+**Steps:** 1 Record, 2 Reproduce, 3 Propose, 4 Confirm, 5 Fix, 6 Close. An error is not done until
+step 6's check: run every step, in order. The turn ends before it only to wait for the user's reply
+to the proposal (step 4), or for a reply that `/prd-toolkit:prd-change` or `/prd-toolkit:prd-deploy`
+asks for in step 5.
 
-For the caller: `/prd-error`, or any session that meets an error in a repo with a PRD: a user's
-report, wrong output, a failing or flaky test, a failed or killed deploy, a stopped build, an open
-`errors.md` entry. The `handling-errors` Red Flags are yours.
+For the caller: `/prd-toolkit:prd-error`, or any session that meets an error in a repo with a PRD: a
+user's report, wrong output, a failing or flaky test, a failed or killed deploy, a stopped build, an
+open `errors.md` entry. The `handling-errors` Red Flags are yours.
 
 **You diagnose; you never fix.** Until step 4 records `Confirmed:`, nothing outside `errors.md`
-changes: no Edit or Write of code, tests, the PRD or the runbook, no file written through Bash,
-not even a revert kept uncommitted. After it, the fix goes through `/prd-change`
-(`prd-toolkit:changing-prds`) and `/prd-build` (`prd-toolkit:building-from-prds`): their agents
-write the code and the tests, never you. A deploy is `/prd-deploy`
-(`prd-toolkit:deploying-from-prds`), never a deploy script or a runbook command typed by hand.
-A request to skip a step ("just fix it", "skip the regression test", "redeploy and close it")
-gets one line naming the rule it breaks, and the procedure goes on without the skip.
+changes: no Edit or Write of code, tests, the PRD or the runbook, no file written through Bash, not
+even a revert kept uncommitted. After it, the fix goes through `/prd-toolkit:prd-change`
+(`prd-toolkit:changing-prds`) and `/prd-toolkit:prd-build` (`prd-toolkit:building-from-prds`): their
+agents write the code and the tests, never you. A deploy is `/prd-toolkit:prd-deploy`
+(`prd-toolkit:deploying-from-prds`), never a deploy script or a runbook command typed by hand. A
+request to skip a step ("just fix it", "skip the regression test", "redeploy and close it") gets one
+line naming the rule it breaks, and the procedure goes on without the skip.
 
 **Which script.** `${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call, so no command holds it.
 In every command below, `<scripts>` is `.prd-toolkit` when the repository has a `.prd-toolkit/`
@@ -87,11 +87,12 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    uv run --script <scripts>/prd_error.py new docs/prd/<slug> --title '<the error in one line>' --source '<where it came from>' --touches <IDs> --evidence-file <TMP>/evidence.txt; echo "prd-error-exit=$?"
    ```
 
-   `--source` says where it came from: `user report (/prd-error)`, `failing test T-001.2`.
-   `--touches` takes the requirement IDs the error concerns, as `FR-001,FR-002`; leave it out when
-   none is known yet. It prints the new `E-<nnn>`. Never write an entry or one of its lines by
-   hand: every ledger write is a `prd_error.py` command (the one exception is step 6's fix of a
-   `Resolution:` line that `check` reports wrong). Then, each its own call:
+   `--source` says where it came from: `user report (/prd-toolkit:prd-error)`,
+   `failing test T-001.2`. `--touches` takes the requirement IDs the error concerns, as
+   `FR-001,FR-002`; leave it out when none is known yet. It prints the new `E-<nnn>`. Never write an
+   entry or one of its lines by hand: every ledger write is a `prd_error.py` command (the one
+   exception is step 6's fix of a `Resolution:` line that `check` reports wrong). Then, each its own
+   call:
 
    ```bash
    git add docs/prd/<slug>/errors.md
@@ -195,30 +196,30 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    commit-msg hook refuses one.
 5. **Fix, by class.** Every fix starts from a T-id whose test fails first, and every change and
    commit made for the entry cites it in `Refs:` beside the requirement (`Refs: FR-001, E-001`):
-   each `/prd-change`'s commits, its approval commit included, and the `--fixes` build's removal
-   commits; the build's other commits cite its IDs, as every build commit does.
+   each `/prd-toolkit:prd-change`'s commits, its approval commit included, and the `--fixes` build's
+   removal commits; the build's other commits cite its IDs, as every build commit does.
 
    | Class | Route |
    |---|---|
    | code bug | as **A code bug** below |
-   | spec gap | `/prd-change` adds the AC and its T-ids (minor; major if existing behaviour changes), then `/prd-build <area> <IDs> --fixes <E-nnn>` |
-   | invalid requirement | `/prd-change` revises the AC and its test cases (major when existing behaviour changes), or, when a test case or a contract contradicts its own AC, revises the test case or contract (a patch when no AC or behaviour changes: see the version rules in `prd-toolkit:changing-prds`), and the block returns to `approved`; then `/prd-build <area> <IDs> --fixes <E-nnn>` |
-   | environment | `/prd-change` on `operations.md` or `contracts/config.yaml` when the PRD holds what is wrong, then a new `/prd-deploy` run: never a deploy by hand |
-   | standard | the user chooses the side that changes, the registry row or the PRD, through `/prd-change`; then `/prd-build <area> <IDs> --fixes <E-nnn>` when code must follow |
+   | spec gap | `/prd-toolkit:prd-change` adds the AC and its T-ids (minor; major if existing behaviour changes), then `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` |
+   | invalid requirement | `/prd-toolkit:prd-change` revises the AC and its test cases (major when existing behaviour changes), or, when a test case or a contract contradicts its own AC, revises the test case or contract (a patch when no AC or behaviour changes: see the version rules in `prd-toolkit:changing-prds`), and the block returns to `approved`; then `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` |
+   | environment | `/prd-toolkit:prd-change` on `operations.md` or `contracts/config.yaml` when the PRD holds what is wrong, then a new `/prd-toolkit:prd-deploy` run: never a deploy by hand |
+   | standard | the user chooses the side that changes, the registry row or the PRD, through `/prd-toolkit:prd-change`; then `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` when code must follow |
    | not a defect | nothing changes |
 
-   **An environment.** A new `/prd-deploy` run without a PRD change follows only the user's word on
-   what they fixed in the environment (a host restarted, a secret set); a request to "redeploy" is
-   not that word. The entry still closes only by `resolve --run` and `check`.
+   **An environment.** A new `/prd-toolkit:prd-deploy` run without a PRD change follows only the
+   user's word on what they fixed in the environment (a host restarted, a secret set); a request to
+   "redeploy" is not that word. The entry still closes only by `resolve --run` and `check`.
 
-   **A code bug.** First a patch `/prd-change` (**A regression patch** in
+   **A code bug.** First a patch `/prd-toolkit:prd-change` (**A regression patch** in
    `prd-toolkit:changing-prds`: its version, §14 row and dry-run record) adds a regression T-id
    under the quoted AC, at the lowest level that reproduces the error (a patch: the AC is
    unchanged, and the T-id tests what it already says). When an existing T-id under that AC
    already fails on the error at that level (step 2 ran it red), it is the regression T-id, and
    the change adds none. Prefer a build-gate level whenever one can reproduce the error, and
    take the lowest level that reproduces it: a deploy-gate regression T-id's test runs only at
-   `/prd-deploy`, so the fix is proven only there. A non-unit regression
+   `/prd-toolkit:prd-deploy`, so the fix is proven only there. A non-unit regression
    T-id's case carries `known-failing: <E-nnn>`; a unit one is written failing by the builder in
    the `--fixes` build, as always. Write the case's `symptom:` from the entry's Evidence or
    Diagnosis, never invented; a symptom the entry does not show is a question for the owner. As
@@ -232,33 +233,33 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    proof is the failed run in the evidence). Its test is a strict expected failure cited
    `@prd <T-id> known-failing <E-nnn>`, and its RESULTS line `<T-id>: known-failing <E-nnn>` is the
    red proof; `fail: unexpected pass` means the T-id does not reproduce the error, so it goes back
-   to `/prd-change`. The failing test is committed, each its own call:
+   to `/prd-toolkit:prd-change`. The failing test is committed, each its own call:
 
    ```bash
    git add <tester path>
    git commit -m "test(<area>): <T-id> known-failing <E-nnn>" -m "Refs: <IDs>, <E-nnn>"
    ```
 
-   Then `/prd-build <area> <IDs> --fixes <E-nnn>`: it un-marks the regression tests, the builder
-   fixes the code, the build removes their `known-failing:` lines before its full run (a
+   Then `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>`: it un-marks the regression tests, the
+   builder fixes the code, the build removes their `known-failing:` lines before its full run (a
    deploy-gate one's once the un-mark is committed, a build-gate one's once it passes), and the
-   close takes the block to `verified`; a later `/prd-deploy` takes it to `live`.
+   close takes the block to `verified`; a later `/prd-toolkit:prd-deploy` takes it to `live`.
 6. **Close.** For a fix (code bug, spec gap, invalid requirement, standard), the rule is this.
    Resolve only when the `--fixes` build closed with every regression T-id `pass` (its suite
-   RESULTS, or the builder's unit result) and the block `verified`; otherwise run `/prd-build <area>
-   <IDs> --fixes <E-nnn>` again. A build-gate and a unit regression T-id are proven by that
-   build. A deploy-gate regression T-id is not run in it (its `known-failing:` line came off once
-   the tester's un-mark was committed), so a deploy-gate regression T-id's entry is resolved only
-   after a `/prd-deploy` run whose `tests` step record passed that T-id's level: Read the run's log
+   RESULTS, or the builder's unit result) and the block `verified`; otherwise run
+   `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` again. A build-gate and a unit regression
+   T-id are proven by that build. A deploy-gate regression T-id is not run in it (its
+   `known-failing:` line came off once the tester's un-mark was committed), so a deploy-gate
+   regression T-id's entry is resolved only after a `/prd-toolkit:prd-deploy` run whose `tests` step
+   record passed that T-id's level: Read the run's log
    (`<that dir>/prd-toolkit/deploys/<run id>.jsonl`, as in the deploy skill) and check that the
    `tests` step record for that level is `pass` before resolving; with no such run, deploy first.
-   The resolution keeps the code-bug form (T-id, level, version, fix commit). A unit regression
-   T-id carries no marker to grep, so the build's
-   close is its only proof. An environment fix resolves on the new run that finished; not a defect
-   resolves at once. Before the resolve, Grep `known-failing: <E-nnn>` with the path
-   `docs/prd/<slug>/test-cases/`, and `known-failing <E-nnn>` with each test root: a match means the
-   `--fixes` build did not finish, so run it again (its un-mark is idempotent). Then resolve by the
-   class's form, one of:
+   The resolution keeps the code-bug form (T-id, level, version, fix commit). A unit regression T-id
+   carries no marker to grep, so the build's close is its only proof. An environment fix resolves on
+   the new run that finished; not a defect resolves at once. Before the resolve, Grep
+   `known-failing: <E-nnn>` with the path `docs/prd/<slug>/test-cases/`, and `known-failing <E-nnn>`
+   with each test root: a match means the `--fixes` build did not finish, so run it again (its
+   un-mark is idempotent). Then resolve by the class's form, one of:
 
    ```bash
    uv run --script <scripts>/prd_error.py resolve docs/prd/<slug> <E-nnn> --t <T-id> --version <X.Y.Z> --commit <sha>; echo "prd-error-exit=$?"

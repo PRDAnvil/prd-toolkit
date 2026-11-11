@@ -92,7 +92,7 @@ def test_base_spec_points_to_the_06_design():
 
 def test_block_names_prd_error_and_stays_small():
     block = (ROOT / "templates/claude-block.md").read_text()
-    assert "`/prd-error`" in block
+    assert "`/prd-toolkit:prd-error`" in block
 
 
 def test_readme_vendored_paths_are_vendored():

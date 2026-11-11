@@ -1,6 +1,6 @@
 ---
 name: authoring-prds
-description: Use when the user wants a PRD, product spec or requirements document written before building a new product, service or feature set, or runs /prd-new - interviews to a PRD folder (docs/prd/<project>/) with contracts and test cases that agents build, test and deploy from (when the user says not to ask questions, writes that folder with every unknown marked), or when asked to continue or resume a draft PRD, or to approve, sign off or change the status of a draft PRD under docs/prd/
+description: Use when the user wants a PRD, product spec or requirements document written before building a new product, service or feature set, or runs /prd-toolkit:prd-new - interviews to a PRD folder (docs/prd/<project>/) with contracts and test cases that agents build, test and deploy from (when the user says not to ask questions, writes that folder with every unknown marked), or when asked to continue or resume a draft PRD, or to approve, sign off or change the status of a draft PRD under docs/prd/
 ---
 
 # Authoring PRDs
@@ -118,7 +118,7 @@ report each finding, and return to the phase it belongs to. Never commit an `App
 
 ### Phase 2 in detail
 
-- **Slug:** `$ARGUMENTS` from `/prd-new`, else derive one and say so. Lowercase,
+- **Slug:** `$ARGUMENTS` from `/prd-toolkit:prd-new`, else derive one and say so. Lowercase,
   `^[a-z][a-z0-9-]*$`. If `docs/prd/<slug>/` exists, read its §14 first. A row at 1.0.0 or
   above means it has been approved: stop, that is a change for `prd-toolkit:changing-prds`.
   No such row means it is a draft: resume it (below). Never copy the template over it.

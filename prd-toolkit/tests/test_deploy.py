@@ -188,7 +188,7 @@ def test_refuses_built_block(repo):
     change(repo, "docs/prd/orders/features/import.md", "Status: verified (since 1.0.0)", "Status: built (since 1.0.0)")
     r = deploy_cli(repo, "run")
     assert r.returncode == 1
-    assert "refused: FR-001 is built; its tests have not passed (run /prd-build)" in r.stdout.splitlines()
+    assert "refused: FR-001 is built; its tests have not passed (run /prd-toolkit:prd-build)" in r.stdout.splitlines()
     assert not (repo / ".deploy").exists()
 
 

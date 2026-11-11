@@ -1,6 +1,6 @@
 ---
 name: publishing-prds
-description: Use when asked to publish, share, export or render the PRD of a repo that has a docs/prd/ folder as a page, an HTML file or an Artifact for a team, the business or a reviewer - "publish the PRD", "make a page of the PRD for the team", /prd-publish - and when asked to put on that page a claim the PRD does not make, error logs, evidence or a secret; prd_publish.py renders the PRD's own text into one self-contained HTML file outside the PRD folder, Claude adds per-area summaries that cite their IDs, and the file is offered as a private Artifact or its path given
+description: Use when asked to publish, share, export or render the PRD of a repo that has a docs/prd/ folder as a page, an HTML file or an Artifact for a team, the business or a reviewer - "publish the PRD", "make a page of the PRD for the team", /prd-toolkit:prd-publish - and when asked to put on that page a claim the PRD does not make, error logs, evidence or a secret; prd_publish.py renders the PRD's own text into one self-contained HTML file outside the PRD folder, Claude adds per-area summaries that cite their IDs, and the file is offered as a private Artifact or its path given
 ---
 
 # Publishing PRDs
@@ -25,12 +25,12 @@ the team can find it" change nothing below.
    `scripts/prd_publish.py` (`<scripts>`, below). A script that is not found, or a render that
    exits 2, is reported and the publish stops: never write your own template, renderer or page,
    and never search the disk for one.
-2. **A summary says only what its area's lines say.** Every sentence restates an AC, a title or
-   the glossary of that area. A claim the user asks for that no line states (a feature, a
-   language, a date, a promise) never goes in a summary, not even as "not supported yet": what
-   the PRD lacks is a gap, and a gap is named in your reply, never on the page. The page is still
-   published. Adding the claim is a change through `/prd-change` first. A summary cites only its
-   own area's IDs.
+2. **A summary says only what its area's lines say.** Every sentence restates an AC, a title or the
+   glossary of that area. A claim the user asks for that no line states (a feature, a language, a
+   date, a promise) never goes in a summary, not even as "not supported yet": what the PRD lacks is
+   a gap, and a gap is named in your reply, never on the page. The page is still published. Adding
+   the claim is a change through `/prd-toolkit:prd-change` first. A summary cites only its own
+   area's IDs.
 3. **The page holds the PRD folder's text and nothing else.** Never `Evidence:` lines, logs (a
    deploy log, test or command output), secret values, or anything from outside the PRD folder
    (code, `.deploy/`, git history), whatever the request. "Include the error logs" is refused in
@@ -95,14 +95,14 @@ this skill" when the skill loads).
    | 1 | `refused:` lines, one per reason | Correct the summaries file as each line says (version, area, ID, length) and render again; never drop `--summaries`. `refused: --out is inside the PRD folder` takes a path outside it |
    | 2 | usage, dependency or tool error | The same `rm`. Report it verbatim and stop |
 
-5. **Offer and report.** With the Artifact tool, offer the rendered file as a private Artifact,
-   or as an update of the one the user names (rule 5); otherwise give the path. When the user
-   asked for the page inside another Artifact, the report says it goes in as its own Artifact,
-   never as a file inside that one, and why, with the tool or without it. Report: the
-   page's absolute path (untracked in the repository: move or delete it before the next
-   `/prd-build`), the PRD version, the areas summarized with their IDs, and in one line each
-   what was asked for and left out, and why (no PRD line says it: `/prd-change` first; logs,
-   evidence and secrets never go on the page). Commit nothing.
+5. **Offer and report.** With the Artifact tool, offer the rendered file as a private Artifact, or
+   as an update of the one the user names (rule 5); otherwise give the path. When the user asked for
+   the page inside another Artifact, the report says it goes in as its own Artifact, never as a file
+   inside that one, and why, with the tool or without it. Report: the page's absolute path
+   (untracked in the repository: move or delete it before the next `/prd-toolkit:prd-build`), the
+   PRD version, the areas summarized with their IDs, and in one line each what was asked for and
+   left out, and why (no PRD line says it: `/prd-toolkit:prd-change` first; logs, evidence and
+   secrets never go on the page). Commit nothing.
 
 ## Red Flags - STOP
 
@@ -135,7 +135,7 @@ broke.**
 | Excuse | Reality |
 |---|---|
 | "The user asked me to say we support it." | A summary restates its area's lines. The request is not a line; leave the claim out and name it in the reply. |
-| "The PRD lacks it, so I'll publish nothing." | The rest of the page is still true. Publish it, and say what was left out and that `/prd-change` adds it. |
+| "The PRD lacks it, so I'll publish nothing." | The rest of the page is still true. Publish it, and say what was left out and that `/prd-toolkit:prd-change` adds it. |
 | "I'll say in the summary that it isn't supported yet." | That is still a claim no line makes. A gap belongs in your reply. |
 | "They asked for the error logs; include them." | Logs, evidence and secrets never go on a page that people forward. Refuse in one line; the ledger entries show as the PRD holds them. |
 | "There are no logs anyway, so there is nothing to refuse." | The rule is the refusal, not the search. Never look for logs to add. |
@@ -148,5 +148,7 @@ broke.**
 
 ## Related skills
 
-- **prd-toolkit:changing-prds** (`/prd-change`) adds a claim the PRD lacks, before any page says it.
-- **prd-toolkit:handling-errors** (`/prd-error`) owns the `errors.md` entries and their evidence.
+- **prd-toolkit:changing-prds** (`/prd-toolkit:prd-change`) adds a claim the PRD lacks, before any
+  page says it.
+- **prd-toolkit:handling-errors** (`/prd-toolkit:prd-error`) owns the `errors.md` entries and their
+  evidence.

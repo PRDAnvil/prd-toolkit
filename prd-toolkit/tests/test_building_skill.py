@@ -1,4 +1,4 @@
-"""The building-from-prds skill, its caller procedure running-a-build.md, the prd-builder agent and /prd-build."""
+"""The building-from-prds skill, its caller procedure running-a-build.md, the prd-builder agent and /prd-toolkit:prd-build."""
 import re
 from pathlib import Path
 
@@ -72,7 +72,7 @@ def test_frontmatter_parses_and_triggers_on_implement_requests():
     fm = frontmatter(SKILL)
     assert set(fm) == {"name", "description"}
     d = fm["description"]
-    for s in ("docs/prd/", "/prd-build", "prd-builder", "implement FR-"):
+    for s in ("docs/prd/", "/prd-toolkit:prd-build", "prd-builder", "implement FR-"):
         assert s in d, s
     for path in (SKILL, AGENT, COMMAND):
         for value in frontmatter(path).values():
@@ -169,7 +169,7 @@ def test_procedure_tester_rounds_and_misread_line():
 
 def test_procedure_reconcile_record_and_stop():
     t = flat(RUN)
-    assert "the status follows **Stops**" in t and "/prd-change" in t
+    assert "the status follows **Stops**" in t and "/prd-toolkit:prd-change" in t
     assert "the builder may now read the failing test" in t
     assert "After a third failed round on one T-id the build stops and reports it to the user." in t
     assert "After three rounds on one T-id" not in t
@@ -322,7 +322,7 @@ def test_r28_caller_edits_the_prd_only_at_the_close():
     t = flat(RUN)
     assert ("The caller edits the PRD only at the close: a block's `Status:`, its §11 status and its "
             "`Source:`, and ") in t
-    assert "A test case, a `known-failing:` marker, an AC or a contract change goes through `/prd-change`." in t
+    assert "A test case, a `known-failing:` marker, an AC or a contract change goes through `/prd-toolkit:prd-change`." in t
     assert "I didn't add a known-failing marker since this looks like a harness issue" in flat(SKILL)
 
 
@@ -522,7 +522,7 @@ def test_g6_running_a_build_opens_with_the_checklist():
 def test_r26_block_with_only_deploy_gate_tests_closes_verified():
     close = flat(RUN).split("8. **Close.**", 1)[1].split("Run `git rev-parse", 1)[0]
     for s in ["A block with no unit and no build-gate T-ids moves to `verified` at a clean close",
-              "its deploy-gate tests run at `/prd-deploy`",
+              "its deploy-gate tests run at `/prd-toolkit:prd-deploy`",
               "Never leave it `built`",
               "refuses a deploy while any block is `built`"]:
         assert s in close, s
@@ -548,7 +548,7 @@ def test_r28_split_gives_the_tester_every_non_unit_tid():
               "The tester writes a test for every non-unit T-id and never runs a deploy-gate one.",
               "Of those, only the **build-gate non-unit** T-ids (a level whose `Gate` is `build`) run in the "
               "build: step 5's suite and its `--results` list, step 7 and the close's `verified` take them "
-              "and never a deploy-gate T-id, which runs at `/prd-deploy`."]:
+              "and never a deploy-gate T-id, which runs at `/prd-toolkit:prd-deploy`."]:
         assert s in step1, s
 
 
@@ -571,7 +571,7 @@ def test_r28_suite_results_and_close_stay_build_gate():
     t = flat(RUN)
     step5 = _step(t, 5, "Run.**", "6. **Reconcile**")
     assert ("A deploy-gate T-id is never in the suite or its `--tids` list, though the tester wrote its test "
-            "in step 3: it runs at `/prd-deploy`.") in step5
+            "in step 3: it runs at `/prd-toolkit:prd-deploy`.") in step5
     step7 = _step(t, 7, "Full run.**", "8. **Close.**")
     assert "Run every Levels harness command whose `Gate` is `build`" in step7
     close = t.split("8. **Close.**", 1)[1]
@@ -585,7 +585,7 @@ def test_r28_tester_only_round_for_verified_blocks():
     para = t.split("**A tester-only round.**", 1)[1].split("1. **Preflight.**", 1)[0]
     for s in ["A block already `verified` whose deploy-gate T-ids no test cites",
               "`<ID>: <T-id> (deploy gate) has no citing test; it cannot go live`",
-              "`/prd-build <area> <IDs>`",
+              "`/prd-toolkit:prd-build <area> <IDs>`",
               "no builder and no status change",
               "the T-ids of the pre-flight's `refused:` lines",
               r"Grep the anchored pattern `@prd\s+<T-id>\b`",
@@ -618,7 +618,7 @@ def test_tester_only_round_finds_missing_tids_exactly():
     assert "When none is missing, report that and commit nothing." in para
 
 
-# --- 0.6: a stopped build records an entry; /prd-build --fixes E-nnn ---
+# --- 0.6: a stopped build records an entry; /prd-toolkit:prd-build --fixes E-nnn ---
 
 def test_stops_name_the_three_that_record_an_entry():
     t = flat(RUN)
@@ -642,7 +642,7 @@ def test_fixes_flag_in_command_and_preflight():
 def test_fixes_close_edit_is_one_line_only():
     r = flat(RUN)
     for s in ("line of each build-gate or unit regression T-id that is `pass`", "and no other test-case line",
-              "every other test-case edit still goes through `/prd-change`",
+              "every other test-case edit still goes through `/prd-toolkit:prd-change`",
               "the T-ids whose test cases carry `known-failing: E-nnn`"):
         assert s in r, s
     assert "--fixes" in flat(ROOT / "references/prd-format.md")
@@ -698,7 +698,7 @@ def test_r21_deploy_gate_regression_tid_line_comes_off_before_step_7():
     for s in ("Right after that commit, remove the `known-failing: E-nnn` line of each regression T-id whose test case is at a deploy-gate level",
               "the build never runs it",
               "Its block closes `verified`",
-              "its test proves the fix at `/prd-deploy`"):
+              "its test proves the fix at `/prd-toolkit:prd-deploy`"):
         assert s in r, s
     assert r.index("the deploy-gate lines.**") < r.index("the build-gate and unit lines.**") < r.index("7. **Full run.**")
 

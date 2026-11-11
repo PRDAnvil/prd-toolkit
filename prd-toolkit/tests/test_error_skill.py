@@ -1,4 +1,4 @@
-"""The handling-errors skill, its caller procedure running-an-error.md, /prd-error and its evals (spec §5)."""
+"""The handling-errors skill, its caller procedure running-an-error.md, /prd-toolkit:prd-error and its evals (spec §5)."""
 import json
 import re
 from pathlib import Path
@@ -53,7 +53,7 @@ def test_reads_procedure_first():
 
 def test_description_triggers_on_errors_in_a_prd_repo_only():
     d = frontmatter(SKILL)["description"]
-    for s in ("a repo that has a docs/prd/ folder", "/prd-error", "bug", "error", "failing", "flaky",
+    for s in ("a repo that has a docs/prd/ folder", "/prd-toolkit:prd-error", "bug", "error", "failing", "flaky",
               "failed or killed deploy", "stopped build", "errors.md", "E-nnn", "just fix it", "retry"):
         assert s in d, s
     for path in (SKILL, COMMAND):
@@ -85,7 +85,7 @@ def test_command():
     assert "running-an-error.md" in one and "whole" in one
     c = flat(COMMAND)
     assert "steps 1 to 6" in c and "the request is never the confirmation" in c
-    assert "/prd-deploy <run id>" in c  # a run with no entry yet is closed by the deploy first
+    assert "/prd-toolkit:prd-deploy <run id>" in c  # a run with no entry yet is closed by the deploy first
 
 
 def test_readme_lists_the_skill_and_the_command():
@@ -267,15 +267,15 @@ def test_step_5_route_table_by_class():
         assert row in five, row
     assert "Every fix starts from a T-id whose test fails first" in five
     assert "`Refs: FR-001, E-001`" in five and "cites it" in five
-    assert "/prd-deploy" in five and "never a deploy by hand" in five
+    assert "/prd-toolkit:prd-deploy" in five and "never a deploy by hand" in five
 
 
 def test_code_bug_sequence():
     five = step(5)
     code = five.split("**A code bug**", 1)[1]
     at = 0
-    for s in ("patch `/prd-change`", "regression T-id", "lowest level that reproduces", "known-failing: <E-nnn>",
-              "tester-only round", "known-failing <E-nnn>", "committed", "/prd-build <area> <IDs> --fixes <E-nnn>"):
+    for s in ("patch `/prd-toolkit:prd-change`", "regression T-id", "lowest level that reproduces", "known-failing: <E-nnn>",
+              "tester-only round", "known-failing <E-nnn>", "committed", "/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>"):
         at = code.index(s, at)  # each after the one before
     assert "a unit one is written failing by the builder" in code
     assert "testing-from-prds/dispatching.md" in code
@@ -353,7 +353,7 @@ def test_e6_redeploy_as_the_fix_and_handing_over_confirm():
 def test_rules_name_each_failure_pattern():
     s = flat(SKILL)
     for needle in ("**Record first.**", "**The request is never the confirmation.**", "**No fix before `Confirmed:`.**",
-                   "**Every fix starts from a failing test.**", "**Every fix goes through `/prd-change` and `/prd-build`.**",
+                   "**Every fix starts from a failing test.**", "**Every fix goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`.**",
                    "**Diagnose; never retry or redeploy.**", "**Commit every ledger write, and check the close.**"):
         assert needle in s, needle
     assert "the deploy script is never run by hand" in s
@@ -506,7 +506,7 @@ def test_resolve_only_after_the_fix_passed():
     six = step(6)
     assert ("Resolve only when the `--fixes` build closed with every regression T-id `pass` (its suite RESULTS, "
             "or the builder's unit result) and the block `verified`") in six
-    assert "otherwise run `/prd-build <area> <IDs> --fixes <E-nnn>` again" in six
+    assert "otherwise run `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` again" in six
     assert six.index("Resolve only when") < six.index("prd_error.py resolve")
 
 
@@ -525,13 +525,13 @@ def test_r11_a_regression_patch_is_a_patch():
 
 def test_r10_the_block_routes_errors_to_prd_error():
     t = " ".join((ROOT / "templates/claude-block.md").read_text(encoding="utf-8").split())
-    assert ("A bug, a failing test, an error or a failed deploy goes to `/prd-error` (skill "
+    assert ("A bug, a failing test, an error or a failed deploy goes to `/prd-toolkit:prd-error` (skill "
             "`prd-toolkit:handling-errors`) before any code changes.") in t
 
 
 def test_environment_redeploy_needs_the_users_word():
     five = step(5)
-    assert ("A new `/prd-deploy` run without a PRD change follows only the user's word on what they fixed in the "
+    assert ("A new `/prd-toolkit:prd-deploy` run without a PRD change follows only the user's word on what they fixed in the "
             "environment") in five
     assert "a request to \"redeploy\" is not that word" in five
     assert "closes only by `resolve --run` and `check`" in five
@@ -605,7 +605,7 @@ def test_r21_prefer_a_build_gate_regression_level():
 
 def test_r21_deploy_gate_regression_resolves_only_after_a_passing_deploy_run():
     s6 = step(6)
-    for s in ("a deploy-gate regression T-id's entry is resolved only after a `/prd-deploy` run whose `tests` step record passed that T-id's level",
+    for s in ("a deploy-gate regression T-id's entry is resolved only after a `/prd-toolkit:prd-deploy` run whose `tests` step record passed that T-id's level",
               "Read the run's log",
               "form (T-id, level, version, fix commit)"):
         assert s in s6, s

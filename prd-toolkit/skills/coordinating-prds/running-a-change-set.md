@@ -5,19 +5,20 @@ not done until step 6's close: run every step, in order. The turn ends before it
 the user: for the members in step 1, the one approval in step 3, a human step's reply or a stop's
 answer in steps 4 and 5, and for a dry run or a build that runs from another member's root.
 
-For the caller: `/prd-change-set`, `prd-toolkit:changing-prds` when its `impact` run stops a
-change, or any session asked to change something across repositories or to resume a `CS-nnn`.
-The `coordinating-prds` Red Flags are yours.
+For the caller: `/prd-toolkit:prd-change-set`, `prd-toolkit:changing-prds` when its `impact` run
+stops a change, or any session asked to change something across repositories or to resume a
+`CS-nnn`. The `coordinating-prds` Red Flags are yours.
 
-**You coordinate; the member skills do the work.** A member's PRD edit is `/prd-change`
-(`prd-toolkit:changing-prds`), its build `/prd-build` (`prd-toolkit:building-from-prds`), its
-deploy `/prd-deploy` (`prd-toolkit:deploying-from-prds`) and its error `/prd-error`
+**You coordinate; the member skills do the work.** A member's PRD edit is `/prd-toolkit:prd-change`
+(`prd-toolkit:changing-prds`), its build `/prd-toolkit:prd-build`
+(`prd-toolkit:building-from-prds`), its deploy `/prd-toolkit:prd-deploy`
+(`prd-toolkit:deploying-from-prds`) and its error `/prd-toolkit:prd-error`
 (`prd-toolkit:handling-errors`). A headless run registers only `prd-toolkit:<command>`: where the
 bare command is not listed, invoke the same command with the Skill tool as `prd-toolkit:prd-build`
 (and so on). The record is written only by `prd_links.py changeset` and a snapshot only by
 `prd_links.py sync`: never an Edit or Write of either. Nothing is pushed, merged or opened as a PR,
-whoever asks: a push or merge request gets one line naming that rule and the Merge order (before
-the close, the record's Order and each row's State), and the procedure goes on.
+whoever asks: a push or merge request gets one line naming that rule and the Merge order (before the
+close, the record's Order and each row's State), and the procedure goes on.
 
 **Which script.** `${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call, so no command holds it.
 Every command below runs a repository's vendored copy, `<root>/.prd-toolkit/prd_links.py`, with
@@ -33,24 +34,24 @@ and `<prd>` a member's. `<upstream>` is an upstream member's PRD slug (its Upstr
 `links.md`, never its Location). `<record>` is `<start>/docs/prd/<start-prd>/changes/CS-<nnn>.md`,
 and `<branch>` the record's Branch, `cs-<nnn>-<slug>`, the same in every member.
 
-**One record drives a change set.** Record writes, `impact`, `sync`, `check` and deploys run for
-any member from this session: the member's `<root>/.prd-toolkit/…` scripts, its PRD folder
+**One record drives a change set.** Record writes, `impact`, `sync`, `check` and deploys run for any
+member from this session: the member's `<root>/.prd-toolkit/…` scripts, its PRD folder
 `<root>/docs/prd/<prd>`, and `git -C <root>`, never a `cd`. In another member, step 3's approval
 commit (`changing-prds` step 5) takes `<scripts>` as `<root>/.prd-toolkit` and the PRD folder as
-`<root>/docs/prd/<prd>`; `/prd-deploy`'s likewise (`prd_deploy.py` dispatches no agent). Anything
-that dispatches an agent runs in a session started in that member's root: `changing-prds` step 4's
-dry run and `/prd-build`, because the builder's round is cut as a `prd-round/<area>-<n>` branch
-in the session's own worktree and the tester's guard binds to the session's own repository. A
-session never begins a step it cannot finish, so a member's whole step 2 runs in that member's own
-session, as its step 4 does. Before step 2 or step 4 of a member that
-is not this session's repository, log where the chain stops, `<n>` being the step:
+`<root>/docs/prd/<prd>`; `/prd-toolkit:prd-deploy`'s likewise (`prd_deploy.py` dispatches no agent).
+Anything that dispatches an agent runs in a session started in that member's root: `changing-prds`
+step 4's dry run and `/prd-toolkit:prd-build`, because the builder's round is cut as a
+`prd-round/<area>-<n>` branch in the session's own worktree and the tester's guard binds to the
+session's own repository. A session never begins a step it cannot finish, so a member's whole step 2
+runs in that member's own session, as its step 4 does. Before step 2 or step 4 of a member that is
+not this session's repository, log where the chain stops, `<n>` being the step:
 
 ```bash
 uv run --script <start>/.prd-toolkit/prd_links.py changeset log <record> '<prd>: step <n> runs from <root>'; echo "prd-links-exit=$?"
 ```
 
-then the record write, and stop with: "Continue with `/prd-change-set CS-<nnn>` from `<root>`"
-(headless: `prd-toolkit:prd-change-set CS-<nnn>`). That session resumes from the record.
+then the record write, and stop with: "Continue with `/prd-toolkit:prd-change-set CS-<nnn>` from
+`<root>`" (headless: `prd-toolkit:prd-change-set CS-<nnn>`). That session resumes from the record.
 
 **One command per Bash call, with literal paths.** Each command below is its own Bash call, and
 every path, ID and SHA in it is typed out in full: paste what a command printed, never a variable
@@ -185,15 +186,15 @@ Text with no record is a new change set: step 1.
 4. **Build in order.** For each row in Order, once its Waits for holds (a wait `<prd> verified`
    holds when that row is `verified` or `live in` any environment; `<prd> live in <env>` when it is
    `live in` that environment or one after it in that member's `operations.md` Environments table):
-   `/prd-build <area> <IDs>` in that member, from a session started in its root (**One record drives
-   a change set**). This step runs no sync of its own: on a change-set
-   branch `running-a-build.md` runs the `prd_links.py sync --ref <branch>` against each upstream
-   member and commits the re-lock before its clean-tree preflight. When a downstream row waits for
-   `live in <env>`, the upstream's `/prd-deploy --until <env>` runs before it, from this session,
-   its human steps relayed as `deploying-from-prds` relays them: the question to the user, their
-   reply verbatim, never an answer of yours. A deploy's commits on a change-set branch carry no
-   `Change-set:` trailer (`deploying-from-prds` is unchanged). `changeset set` each State as it is
-   reached (the build's close reports it; a deploy's close reached `live in <env>`), then the
+   `/prd-toolkit:prd-build <area> <IDs>` in that member, from a session started in its root (**One
+   record drives a change set**). This step runs no sync of its own: on a change-set branch
+   `running-a-build.md` runs the `prd_links.py sync --ref <branch>` against each upstream member and
+   commits the re-lock before its clean-tree preflight. When a downstream row waits for
+   `live in <env>`, the upstream's `/prd-toolkit:prd-deploy --until <env>` runs before it, from this
+   session, its human steps relayed as `deploying-from-prds` relays them: the question to the user,
+   their reply verbatim, never an answer of yours. A deploy's commits on a change-set branch carry
+   no `Change-set:` trailer (`deploying-from-prds` is unchanged). `changeset set` each State as it
+   is reached (the build's close reports it; a deploy's close reached `live in <env>`), then the
    record write:
 
    ```bash
@@ -214,10 +215,10 @@ Text with no record is a new change set: step 1.
    ```
 
    Then the record write. The stop goes on Status (`stopped: <prd>: <reason>`) and in Log, and the
-   row keeps its State, so a resumed session knows where the chain stood; the rows after it wait.
-   An error goes to that member's `/prd-error` (`prd-toolkit:handling-errors`). A fix that needs a
-   PRD edit amends the change set: the member's edit through `changing-prds` steps 1 to 4, its diff
-   shown and approved alone, by a reply to that diff:
+   row keeps its State, so a resumed session knows where the chain stood; the rows after it wait. An
+   error goes to that member's `/prd-toolkit:prd-error` (`prd-toolkit:handling-errors`). A fix that
+   needs a PRD edit amends the change set: the member's edit through `changing-prds` steps 1 to 4,
+   its diff shown and approved alone, by a reply to that diff:
 
    ```bash
    uv run --script <start>/.prd-toolkit/prd_links.py changeset approve <record> --reply '<the reply, verbatim>' --amendment; echo "prd-links-exit=$?"
@@ -248,5 +249,5 @@ Text with no record is a new change set: step 1.
    uv run --script <root>/.prd-toolkit/prd_links.py sync <root>/docs/prd/<prd> <upstream>; echo "prd-links-exit=$?"
    ```
 
-   Production deploys stay per repository, through `/prd-deploy`, in Merge order. Report the
-   record, each row's State, the Merge order and each member's branch.
+   Production deploys stay per repository, through `/prd-toolkit:prd-deploy`, in Merge order. Report
+   the record, each row's State, the Merge order and each member's branch.

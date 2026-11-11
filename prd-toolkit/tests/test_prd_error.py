@@ -1,4 +1,4 @@
-"""prd_error.py: the errors.md writes (new, propose, confirm, resolve, list) and /prd-status by state."""
+"""prd_error.py: the errors.md writes (new, propose, confirm, resolve, list) and /prd-toolkit:prd-status by state."""
 import subprocess
 import sys
 from datetime import date
@@ -18,7 +18,7 @@ def ledger(prd):
 
 
 def new(prd, **kw):
-    args = dict(title="Greeting drops a word", source="user report (/prd-error)", touches=["FR-001"],
+    args = dict(title="Greeting drops a word", source="user report (/prd-toolkit:prd-error)", touches=["FR-001"],
                 evidence=["`greet x` prints y"], today=TODAY)
     args.update(kw)
     return errors.new(model.load(prd), args["title"], args["source"], args["touches"], args["evidence"], args["today"])
@@ -33,7 +33,7 @@ def refused(fn, *a, **kw):
 def test_new_appends_next_number(prd):
     assert new(prd) == "E-002"
     e = ledger(prd)["E-002"]
-    assert (e.detected, e.classification, e.state, e.resolution) == ("2026-11-03, user report (/prd-error)", "unclassified", "unclassified", "-")
+    assert (e.detected, e.classification, e.state, e.resolution) == ("2026-11-03, user report (/prd-toolkit:prd-error)", "unclassified", "unclassified", "-")
     assert (e.diagnosis, e.recurrence, e.evidence, e.touches[0][0]) == ("-", "-", ["`greet x` prints y"], "FR-001")
     assert ledger(prd)["E-001"].open is False
 

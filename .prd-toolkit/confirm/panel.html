@@ -529,7 +529,7 @@ function cardView() {
   if (confirmedBy(it) !== null) {
     out.push(h('section', { class: 'confirmed' }, h('h3', { text: 'Your answer' }),
       h('div', { class: 'saved' }, h('div', { class: 'decision', text: '✓ Confirmed' }), h('p', { class: 'said', text: it.confirmed })),
-      h('p', { class: 'hint', text: 'Confirmed in errors.md; change it through /prd-error' })));
+      h('p', { class: 'hint', text: 'Confirmed in errors.md; change it through /prd-toolkit:prd-error' })));
   } else if (isChanged(it.id) && saved) {
     out.push(h('div', { class: 'notice warn', role: 'status' },
       h('strong', { text: '⟳ This item changed since you answered.' }), ' Your earlier answer is below; answer it again.',

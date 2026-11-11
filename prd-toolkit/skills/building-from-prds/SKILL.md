@@ -1,6 +1,6 @@
 ---
 name: building-from-prds
-description: Use when building or implementing an approved change in a repo that has a docs/prd/ folder - "implement FR-003", "build the approved change", /prd-build - when a test that cites a T-id of an approved requirement fails against the code, when asked to fix the code or a tester's test so a build goes green, or when dispatched as prd-builder; the builder writes unit tests first and then the code from the implement pack, a black-box tester writes every other test, and the caller reconciles each failure by quote and moves the requirements approved → built → verified
+description: Use when building or implementing an approved change in a repo that has a docs/prd/ folder - "implement FR-003", "build the approved change", /prd-toolkit:prd-build - when a test that cites a T-id of an approved requirement fails against the code, when asked to fix the code or a tester's test so a build goes green, or when dispatched as prd-builder; the builder writes unit tests first and then the code from the implement pack, a black-box tester writes every other test, and the caller reconciles each failure by quote and moves the requirements approved → built → verified
 ---
 
 # Building from PRDs
@@ -297,16 +297,16 @@ Quoted from runs without this skill (evals/baselines/building-from-prds.md), exc
 - "The tests pass when I run them, so the suite round isn't needed." (The thought behind a rerun
   that dispatched only the builder, ran the harness itself and closed `verified`.) A tester's
   T-id has no result until the tester's `Mode: suite` round reports it.
-- "I didn't add a known-failing marker since this looks like a harness issue" is the thought to
-  stop at: a `known-failing:` marker, a test case, an AC or a contract is never the caller's to
-  add or weigh. The caller edits the PRD only at the close (status and `Source:`, and the entry
+- "I didn't add a known-failing marker since this looks like a harness issue" is the thought to stop
+  at: a `known-failing:` marker, a test case, an AC or a contract is never the caller's to add or
+  weigh. The caller edits the PRD only at the close (status and `Source:`, and the entry
   `prd_error.py new` writes (never by hand)) and, on `--fixes E-nnn`, that entry's `known-failing:`
   lines before step 7's trace (a build-gate or unit regression T-id's once it is `pass`, a
   deploy-gate one's right after the tester's un-mark commit), each with its case's `symptom:` line
-  when it has one, and no other test-case line; everything else goes through `/prd-change`.
-  (Observed in a proof: the `known-failing:` line removed alone, lint failed
-  `test-refs: <T-id>: symptom: needs known-failing: on the same case`, and the `symptom:` lines
-  came off outside the procedure.)
+  when it has one, and no other test-case line; everything else goes through
+  `/prd-toolkit:prd-change`. (Observed in a proof: the `known-failing:` line removed alone, lint
+  failed `test-refs: <T-id>: symptom: needs known-failing: on the same case`, and the `symptom:`
+  lines came off outside the procedure.)
 - Resolving the entry after a `--fixes` build, or writing a stop's entry by hand. (Pressure, not
   observed.) The caller never resolves an entry: the build reports, and `handling-errors`
   resolves; a stop's entry is written with `prd_error.py new`, never typed into `errors.md`.
@@ -373,7 +373,7 @@ step whose gate is open.**
 ## Related skills
 
 - **prd-toolkit:changing-prds** takes every PRD gap; its step 5 hands an approved
-  change to `/prd-build`.
+  change to `/prd-toolkit:prd-build`.
 - **prd-toolkit:testing-from-prds** is what `prd-tester` follows; its `dispatching.md` steps 2 and
   4 are the snapshot and state check for the tester's rounds; the builder's state check is
   running-a-build.md step 4.

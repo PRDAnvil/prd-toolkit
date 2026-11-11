@@ -85,7 +85,7 @@ def test_item1_no_text_says_the_line_comes_off_at_the_close():
 
 def test_item1_prd_format_error_loop_and_spec_agree():
     f = flat(FORMAT)
-    assert ("A `/prd-build --fixes E-nnn` removes the line before its step 7 trace: once its T-id passes, or, at a "
+    assert ("A `/prd-toolkit:prd-build --fixes E-nnn` removes the line before its step 7 trace: once its T-id passes, or, at a "
             "deploy-gate level, once the tester's un-mark is committed") in f
     e = flat(ERROR_RUN)
     assert "removes their `known-failing:` lines before its full run" in e
@@ -281,15 +281,15 @@ AGENT = ROOT / "agents/prd-builder.md"
 def test_item5_changing_prds_step5_cites_the_entry_and_hands_off_fixes():
     s5 = between(flat(CHANGING), "5. **Approval, then commit.**", "## Red Flags")
     assert ("a change made for an `errors.md` entry uses `Refs: <changed IDs>, E-nnn` on that commit instead") in s5
-    assert ("hand off `/prd-build <area> <IDs> --fixes E-nnn` when the change was made for a confirmed entry "
+    assert ("hand off `/prd-toolkit:prd-build <area> <IDs> --fixes E-nnn` when the change was made for a confirmed entry "
             "whose route builds code") in s5
-    assert "otherwise build with `/prd-build <area> <changed IDs>`" in s5
+    assert "otherwise build with `/prd-toolkit:prd-build <area> <changed IDs>`" in s5
 
 
 def test_item5_error_procedure_drops_the_builds_commits():
     s5 = between(flat(ERROR_RUN), "5. **Fix, by class.**", "| Class | Route |")
     assert "the build's commits" not in s5
-    assert ("each `/prd-change`'s commits, its approval commit included, and the `--fixes` build's removal commits; "
+    assert ("each `/prd-toolkit:prd-change`'s commits, its approval commit included, and the `--fixes` build's removal commits; "
             "the build's other commits cite its IDs, as every build commit does") in s5
 
 
@@ -389,7 +389,7 @@ def test_minor_deploy_names_prd_error_after_a_passing_regression_test():
     five = flat(DEPLOY_RUN).split("5. **Report.**", 1)[1]
     assert "prd_error.py list docs/prd/<slug> --open; echo \"prd-error-exit=$?\"" in five
     assert ("for each `confirmed` entry whose `Touches:` names a block the run's `tests` step passed, name "
-            "`/prd-error E-nnn` as the next step: it resolves the entry from this run's log") in five
+            "`/prd-toolkit:prd-error E-nnn` as the next step: it resolves the entry from this run's log") in five
 
 
 def test_minor_recover_then_rollback_restores_the_previous_install():

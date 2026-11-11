@@ -1,6 +1,6 @@
 ---
 name: handling-errors
-description: Use when something goes wrong in a repo that has a docs/prd/ folder - a bug report or an error, wrong output, a failing or flaky test, a failed or killed deploy run, a stopped build, an open errors.md entry (E-nnn), an entry's proposed class waiting for the owner's answer (its gate error-class:E-nnn, in the chat or the decision inbox, prd_gates.py), /prd-error - and when asked to just fix it, retry it, redeploy it or close an entry; prd_error.py records the error in errors.md, Claude proposes its class, the user confirms it, and the fix starts from a failing test through /prd-change and /prd-build
+description: Use when something goes wrong in a repo that has a docs/prd/ folder - a bug report or an error, wrong output, a failing or flaky test, a failed or killed deploy run, a stopped build, an open errors.md entry (E-nnn), an entry's proposed class waiting for the owner's answer (its gate error-class:E-nnn, in the chat or the decision inbox, prd_gates.py), /prd-toolkit:prd-error - and when asked to just fix it, retry it, redeploy it or close an entry; prd_error.py records the error in errors.md, Claude proposes its class, the user confirms it, and the fix starts from a failing test through /prd-toolkit:prd-change and /prd-toolkit:prd-build
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/handling-errors/running-an-error.md` whole before anything else
@@ -12,12 +12,13 @@ Run no command, read no code and edit no file before you have read it.
 
 ## Overview
 
-**Record, diagnose, propose, then wait for the user.** Every error (a user's report, a failing
-test, a failed deploy, a stopped build) becomes an `errors.md` entry that `prd_error.py` writes.
-You reproduce it, find the root cause, propose its class with the PRD line quoted, commit the
-proposal and ask. Only a confirmed entry is fixed, only through `/prd-change` and `/prd-build`,
-and only from a T-id whose test fails first. The close is `prd_error.py resolve`, then
-`prd_error.py check` over the whole loop. This skill has no fix path of its own.
+**Record, diagnose, propose, then wait for the user.** Every error (a user's report, a failing test,
+a failed deploy, a stopped build) becomes an `errors.md` entry that `prd_error.py` writes. You
+reproduce it, find the root cause, propose its class with the PRD line quoted, commit the proposal
+and ask. Only a confirmed entry is fixed, only through `/prd-toolkit:prd-change` and
+`/prd-toolkit:prd-build`, and only from a T-id whose test fails first. The close is
+`prd_error.py resolve`, then `prd_error.py check` over the whole loop. This skill has no fix path of
+its own.
 
 **Violating the letter of these rules is violating the spirit.** "It's obviously a bug", "just
 fix it", "I'm in a hurry", "I'm away; handle it", "it's flaky" and "redeploy and close it" change
@@ -38,9 +39,10 @@ nothing below.
    reverted, committed or not. Diagnosis reads and runs; it writes only through `prd_error.py`.
 4. **Every fix starts from a failing test.** A T-id whose test fails before the fix, at the lowest
    level that reproduces the error. "Skip the regression test" is refused in one line.
-5. **Every fix goes through `/prd-change` and `/prd-build`.** You never edit code or tests
-   yourself. Behaviour no PRD line states, or what users want instead of what an AC says, is a
-   change first. Every change and commit made for the entry cites it (`Refs: FR-001, E-001`).
+5. **Every fix goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`.** You never edit
+   code or tests yourself. Behaviour no PRD line states, or what users want instead of what an AC
+   says, is a change first. Every change and commit made for the entry cites it
+   (`Refs: FR-001, E-001`).
 6. **Diagnose; never retry or redeploy.** A test called flaky runs at most twice, each run its own
    Bash call, never in a loop. A failed deploy is never redeployed as its fix, the deploy script is
    never run by hand, and a killed step ends only through `prd_deploy.py recover`.
@@ -90,16 +92,18 @@ of `running-an-error.md` whose gate is open.**
 | "It's obviously a bug; the user said just fix it." | The request starts the loop. The class is the user's to confirm after seeing your quote and the evidence; until then nothing is fixed. |
 | "It's flaky; retry it until it passes." | A test that fails twice is an error, and one that passes once and fails once is a nondeterminism defect. Record it; never loop it. |
 | "Skip the regression test, I'm in a hurry." | A fix with no test that failed first proves nothing and comes back. The fix waits for its T-id. |
-| "Users want it the other way; change the code." | Then the AC is wrong: an `invalid requirement`, revised through `/prd-change` before any code. |
+| "Users want it the other way; change the code." | Then the AC is wrong: an `invalid requirement`, revised through `/prd-toolkit:prd-change` before any code. |
 | "I'm away; handle it." | No one can confirm, so commit the proposal and stop. The entry waits as `proposed`. |
-| "The PRD already says `GREETING`, so the code just has to match it." | The class still needs the user's word, and the fix its failing test and `/prd-build`. |
-| "Redeploy and close the entry." | A redeploy of the same commit runs the same failure. The fix is a change, a build and a new `/prd-deploy` run; the entry closes on `check`. |
+| "The PRD already says `GREETING`, so the code just has to match it." | The class still needs the user's word, and the fix its failing test and `/prd-toolkit:prd-build`. |
+| "Redeploy and close the entry." | A redeploy of the same commit runs the same failure. The fix is a change, a build and a new `/prd-toolkit:prd-deploy` run; the entry closes on `check`. |
 | "I'll give them the confirm command to run." | That routes around the proposal. Show it and ask for the reply. |
 
 ## Related skills
 
-- **prd-toolkit:changing-prds** (`/prd-change`) makes every PRD edit a fix needs, citing the entry.
-- **prd-toolkit:building-from-prds** (`/prd-build <area> <IDs> --fixes E-nnn`) builds the fix of a
-  confirmed entry and records a stopped build as an entry.
-- **prd-toolkit:deploying-from-prds** (`/prd-deploy`) records a failed run and runs every deploy.
+- **prd-toolkit:changing-prds** (`/prd-toolkit:prd-change`) makes every PRD edit a fix needs, citing
+  the entry.
+- **prd-toolkit:building-from-prds** (`/prd-toolkit:prd-build <area> <IDs> --fixes E-nnn`) builds
+  the fix of a confirmed entry and records a stopped build as an entry.
+- **prd-toolkit:deploying-from-prds** (`/prd-toolkit:prd-deploy`) records a failed run and runs
+  every deploy.
 - **superpowers:systematic-debugging** finds the root cause in step 2.

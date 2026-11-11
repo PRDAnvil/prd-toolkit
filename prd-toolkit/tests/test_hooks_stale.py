@@ -1,4 +1,4 @@
-"""Stale CI: hooks.stale_ci, `prd_hooks.py check [--ci]`, the /prd-status CI part and the changing-prds close."""
+"""Stale CI: hooks.stale_ci, `prd_hooks.py check [--ci]`, the /prd-toolkit:prd-status CI part and the changing-prds close."""
 import re
 import subprocess
 import sys
