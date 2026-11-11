@@ -103,9 +103,8 @@ def test_marker_elsewhere_on_layout(tmp_path, monkeypatch):
     check(r, exit=1, contains_line=f"{T}:23: sections: Test roots: lists no backticked directory", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-014")
 def test_slot_twice(tmp_path, monkeypatch):
-    """@prd T-025.10 known-failing E-014"""
+    """@prd T-025.10"""
     o = Orders(tmp_path, monkeypatch)
     o.lines("testing.md").insert_before(29, "- **Waits.** An expectation waits up to 5 s.")
     r = o.run()
