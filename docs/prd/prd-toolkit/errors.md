@@ -135,6 +135,7 @@ Recurrence of: -
 ### E-014 A repeated prd.md section or Harness slot is reported as out of order, not as a duplicate
 Detected: 2026-11-10, confirmation of Q-01 (FR-022, FR-025)
 Classification: code bug
+Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-022, FR-025
 Diagnosis: The order checks compare the present sections, and the present Harness slots, with the expected list (structure.py:146 and :210), so a section or slot that appears twice makes the lists differ and is reported as out of order. No finding names the duplicate, which sends the author looking for a misplaced section instead of the repeated one, often left by a merge.
 Resolution: open, intended: a level-2 section of prd.md that appears twice is reported at the second one's line as `duplicate section '## <n>. <title>'`, and a Harness slot that appears twice as `Harness slot '<slot>' appears twice`; out of order is reported only when the sections, or the slots, are out of order once duplicates are set aside (the owner, 2026-11-10)
