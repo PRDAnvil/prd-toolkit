@@ -158,3 +158,13 @@ Touches: FR-024
 Diagnosis: The header-mismatch finding is built with line 1 (structure.py:193) although the table's own line is known (the parsed table's line). Every other adoption.md finding points at the line to fix, a row at its own line, so this one sends the author to the file's heading instead of the header row.
 Resolution: T-024.7 [integration], PRD 6.2.2, fixed in 628895739af3e88bdf9c9d19fa6f3173638e0a54
 Recurrence of: -
+
+### E-017 test_validator_fails_defect fails when uv prints `Installed 1 package` on stderr
+Detected: 2026-11-11, user report (/prd-error)
+Classification: unclassified
+Evidence: User report (/prd-error), 2026-11-11: test_builtin_packs.py::test_validator_fails_defect is flaky.
+  It sometimes fails when uv prints "Installed 1 package" on stderr.
+  First seen during the move to PRDAnvil/prd-toolkit (0.8.6, 2026-11-10).
+Diagnosis: -
+Resolution: -
+Recurrence of: -
