@@ -1,8 +1,8 @@
-# prd-toolkit 0.8.7: best-practice sources, and the next adopted area — backlog
+# prd-toolkit 0.8.8: best-practice sources, and the next adopted area — backlog
 
 > **Date:** 2026-11-08
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.7's own
+> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.8's own
 > brainstorm, or moves to a later release.
 > **Extends:** `2026-11-08-prd-toolkit-0.8.5-design.md` and the specs it extends, under
 > `2026-11-03-prd-toolkit-0.8-umbrella.md`.
@@ -13,12 +13,15 @@
 > - Renumbered (owner, 2026-11-10): 0.8.6 is the move to PRDAnvil/prd-toolkit, so this backlog is
 >   0.8.7's; the file keeps its name. Item 2 is done: `lint-structure` was adopted, its Boundary
 >   narrowed to `structure.py`, as PRD 6.2.0 (PR #29 in ihistand/claude-plugins).
-> - Owner, 2026-11-09: items 3 (the rest of issue #24) and 4 (the changelog's PRD version), after
->   PR #26 merged.
+> - Owner, 2026-11-09: items 3 (the rest of issue #24, now PRDAnvil/prd-toolkit#2) and 4 (the
+>   changelog's PRD version), after PR #26 merged.
+> - Renumbered (owner, 2026-11-11): 0.8.7 ships the lint-structure fixes and the full command names
+>   (`docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md`), so this backlog is 0.8.8's; the file
+>   keeps its name. Item 4 is done in 0.8.7. Item 5 joins: E-017 found it.
 
 ## 1. Backlog
 
-1. **Best-practice sources.** As the umbrella's 0.8.7 row says: sources found by Claude and approved
+1. **Best-practice sources.** As the umbrella's 0.8.8 row says: sources found by Claude and approved
    by the user, or added by the user; recorded per pack or per PRD; turned into §5 rows or checklist
    items; finding, installing or writing a skill or a pack when a PRD needs one, recorded in §6.
 2. **Adopt `lint-structure` in the toolkit's own PRD.** The second adopted area, after `lint-cli`,
@@ -35,7 +38,7 @@
      then `change` and `build-check`; then `trace-and-hooks`, `context` and `status`; then `deploy`,
      `tester-guard`, `publish`, `gates` and `links`, once they stop changing every release; `skills`
      last, with judged cases. The PRD's goal (§2) is every area adopted before the plugin's 1.0.0.
-3. **One uv environment per script path, per clone (the rest of issue #24).** uv keys a cached
+3. **One uv environment per script path, per clone (the rest of issue #24, now PRDAnvil/prd-toolkit#2).** uv keys a cached
    `uv run --script` environment on the script's path, not its contents. Each clone or worktree
    therefore adds one environment to `~/.cache/uv/environments-v2` for every prd script its git
    hooks and skills run, and nothing removes them. On 2026-11-09 the cache held 26,888 environments,
@@ -50,7 +53,16 @@
      run `uv run --script .prd-toolkit/<script>.py` today, in this repository and in every repository
      that installed the toolkit. Whatever form replaces it has to keep those working, or rewrite them
      through `prd_hooks.py install` / `vendor` and `ci`, with an upgrade note.
-   - References: issue #24 and its comments; E-008 in `docs/prd/prd-toolkit/errors.md`.
+   - References: issue #24 in ihistand/claude-plugins, moved to PRDAnvil/prd-toolkit#2, and its comments; E-008 in `docs/prd/prd-toolkit/errors.md`.
 4. **The changelog's PRD version.** The 0.8.5 changelog says "The toolkit's own PRD is at 6.0.0
    (approved b99cfac)". PR #26 moved the PRD to 6.1.0 (approved 7ed632f) after 0.8.5 shipped. The
    0.8.7 changelog names the PRD version it reaches: 6.2.1 (the move), or later if 0.8.7 changes it.
+   Done in 0.8.7.
+5. **An error in code no adopted area covers has no close.** E-017 (a flaky test in
+   `tests/test_builtin_packs.py`, which runs the document pack's validator) was confirmed a code bug,
+   but no requirement covers the test or `packs/document/validate_outline.py`, so `/prd-build --fixes`
+   has no block to build and `prd_error.py resolve` refuses a fix with no T-id ("a fix needs a T-id,
+   its level and a commit"). The owner chose a plain fix commit citing `Refs: E-017` (0.8.7); the
+   entry stays `confirmed`. Decide the route: a resolution form for a fix outside every adopted
+   Boundary (the fix commit and the red runs, no T-id), or adopting the area that holds the code
+   first. Until then such an entry stays open.
