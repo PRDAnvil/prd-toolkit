@@ -231,8 +231,8 @@ def _harness_findings(prd: Prd) -> Iterator[Finding]:
     if layout and h.test_roots is None:
         yield Finding("testing.md", layout, "sections", "the Harness Layout slot has no 'Test roots:' text")
     elif layout and h.test_roots == []:
-        text = prd.docs["testing.md"].split("\n")[h.test_roots_line - 1]
-        if "[NEEDS CLARIFICATION" not in text:  # an unfilled marker is markers-open's to report
+        text = prd.docs["testing.md"].split("\n")[h.test_roots_line - 1].split("Test roots:", 1)[1]
+        if "[NEEDS CLARIFICATION" not in text:  # a marker in the list itself is markers-open's to report
             # the guard would then block every write, and trace would fall back to tests/
             yield Finding("testing.md", h.test_roots_line, "sections", "Test roots: lists no backticked directory")
 
