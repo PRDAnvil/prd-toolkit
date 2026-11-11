@@ -144,6 +144,7 @@ Recurrence of: -
 ### E-015 An empty section 13 passes open-questions-empty while the PRD is Approved
 Detected: 2026-11-10, confirmation of Q-02 (FR-031)
 Classification: code bug
+Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-031
 Diagnosis: open-questions-empty reports only the first body line of section 13 that is neither empty nor `None.` (structure.py:333), so a section 13 with no text at all gives no finding. prd-format.md says section 13 is the single line `None.` when there are no open questions, so an Approved PRD with an empty section 13 passes a rule meant to require that line.
 Resolution: open, intended: while the PRD is Approved, a section 13 with no text is reported at its heading line with `section 13 must be 'None.' when the PRD is Approved` (the owner, 2026-11-10)
