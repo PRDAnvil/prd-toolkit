@@ -3,8 +3,8 @@
 # lint-structure: the structure lint rules
 
 ### FR-020 Check the prd.md frontmatter
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:101 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:119 @c060204
 Flow: 1. read the frontmatter the loader parsed → 2. check `prd`, `version`, `status`, `owner`, `updated`, and `language` when present
       → 3. while `contracts/schema.sql` is a file, check `sql-dialect` against sqlglot
 Acceptance (EARS):
@@ -20,8 +20,8 @@ Tests: T-020.1 [integration], T-020.2 [integration], T-020.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint; `prdlint/markdown.py` frontmatter
 
 ### FR-021 Report a PRD language with no table
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:131 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:149 @c060204
 Acceptance (EARS):
 - AC-021.1 When the frontmatter's `language` value fully matches `[a-z]{2,3}`, neither the toolkit's `references/languages/` nor a pack the PRD names has a table for it, and the toolkit's `en` table loads, the lint command shall report `language-table` at the `language:` line with `language '<code>' has no table`.
 - AC-021.2 When the toolkit or a pack the PRD names has a table for the PRD's language that loads, the lint command shall report no `language-table` finding.

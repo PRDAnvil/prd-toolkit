@@ -92,10 +92,16 @@ def _status(prd: Prd) -> str:
 
 
 def _fm_line(prd: Prd, key: str) -> int:
-    for n, line in enumerate(prd.docs["prd.md"].split("\n"), 1):
-        if line.startswith(key + ":"):
-            return n
-    return max(prd.frontmatter_line, 1)
+    """The line of `<key>:` inside prd.md's frontmatter block, or line 1 when the block has none.
+
+    Lines below the closing `---` are never looked at."""
+    if prd.frontmatter_line:
+        for n, line in enumerate(prd.docs["prd.md"].split("\n")[1:], 2):
+            if line.strip() == "---":
+                break
+            if line.startswith(key + ":"):
+                return n
+    return 1
 
 
 def _exists(prd: Prd, path: str) -> bool:

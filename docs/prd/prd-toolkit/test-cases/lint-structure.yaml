@@ -242,8 +242,6 @@ T-020.14:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-012
-  symptom: "the missing key is reported at the body line that starts with the key, not at prd.md:1"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "delete line 5 of prd.md (owner: Sample Owner)", "replace line 53 of prd.md (the second line of section 4's prose) with `owner: ops`"]

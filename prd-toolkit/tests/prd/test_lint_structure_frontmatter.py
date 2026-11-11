@@ -119,9 +119,8 @@ def test_no_schema_no_dialect_check(tmp_path, monkeypatch):
     check(o.run(), exit=1, not_contains="sql-dialect", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-012")
 def test_missing_owner_despite_later_line(tmp_path, monkeypatch):
-    """@prd T-020.14 known-failing E-012"""
+    """@prd T-020.14"""
     o = Orders(tmp_path, monkeypatch)
     edit = o.lines("prd.md").delete(5).replace(53, "owner: ops")
     r = o.run()
