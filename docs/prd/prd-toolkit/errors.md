@@ -120,7 +120,7 @@ Classification: code bug
 Confirmed: 2026-11-10, "Real bug (form) — it should: lint looks up a frontmatter key's line only inside the frontmatter block: a present key is reported at its own line, and a missing key always at prd.md:1, whatever lines below the frontmatter start with <key>:. The language-table and sql-dialect findings use the same lookup."
 Touches: FR-020, FR-021
 Diagnosis: `_fm_line` scans every line of prd.md for one that starts with `<key>:`, not only the frontmatter block, and falls back to the frontmatter's line only when none does. Suppose a key is absent from the frontmatter and a later line of prd.md starts with it, for example a configuration example in a fenced block of section 4 with a `language: python` or `owner: ops` line at column 0. Then the `missing key` finding, and a language-table finding for a PRD with no `language:` key, point at that body line. The helper's name (`_fm_line`) and its fallback to `prd.frontmatter_line` say the line is the frontmatter's.
-Resolution: open
+Resolution: T-020.14 [integration], PRD 6.2.2, fixed in a184bc1
 Recurrence of: -
 
 ### E-013 An empty Test roots list goes unreported when a marker sits elsewhere on the Layout line
