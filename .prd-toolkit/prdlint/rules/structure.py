@@ -147,7 +147,8 @@ def sections(prd: Prd):
         yield Finding("prd.md", 1, "sections", "sections are out of order")
     for a in actual:
         if a not in expected:
-            yield Finding("prd.md", line_of[a], "sections", f"unexpected section '## {a[0]}. {a[1]}'")
+            heading = f"## {a[1]}" if a[0] is None else f"## {a[0]}. {a[1]}"
+            yield Finding("prd.md", line_of[a], "sections", f"unexpected section '{heading}'")
     na = {k.rstrip("/") + ("/" if k.endswith("/") else ""): v for k, v in prd.not_applicable.items()}
     for path in MANDATORY:
         hit = na.get(path) or na.get(path.rstrip("/"))
