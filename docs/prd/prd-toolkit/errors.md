@@ -162,6 +162,7 @@ Recurrence of: -
 ### E-017 test_validator_fails_defect fails when uv prints `Installed 1 package` on stderr
 Detected: 2026-11-11, user report (/prd-error)
 Classification: code bug
+Confirmed: 2026-11-11, "Confirm the class (form)"
 Evidence: User report (/prd-error), 2026-11-11: test_builtin_packs.py::test_validator_fails_defect is flaky.
   It sometimes fails when uv prints "Installed 1 package" on stderr.
   First seen during the move to PRDAnvil/prd-toolkit (0.8.6, 2026-11-10).
