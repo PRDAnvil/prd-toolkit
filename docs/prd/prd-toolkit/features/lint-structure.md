@@ -76,7 +76,7 @@ Tests: T-024.1 [integration], T-024.2 [integration], T-024.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint; adoption.md
 
 ### FR-025 Check testing.md's Harness slots
-Status: built
+Status: verified
 Source: prd-toolkit/scripts/prdlint/rules/structure.py:209 @4e96b4b
 Acceptance (EARS):
 - AC-025.1 If testing.md has no level-2 section titled `Harness` (in any case) that holds a slot bullet `- **<Slot>.**`, the lint command shall report `testing.md:1: sections: testing.md has no '## Harness' section with its slots`.
