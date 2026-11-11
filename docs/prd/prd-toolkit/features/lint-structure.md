@@ -162,8 +162,8 @@ Tests: T-030.1 [integration], T-030.2 [integration], T-030.3 [integration], T-03
 Traces: UJ-01; cli:prd_lint; prd.md section 12
 
 ### FR-031 Require no open question once the PRD is Approved
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:329 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:373 @0d5cc50
 Acceptance (EARS):
 - AC-031.1 While prd.md's status is `Approved`, the lint command shall report `open-questions-empty` at the first line of section 13's body whose text, stripped, is neither empty nor `None.`, with `section 13 must be 'None.' when the PRD is Approved`, and no finding for any later line.
 - AC-031.2 While prd.md's status is not `Approved`, the lint command shall report no `open-questions-empty` finding.

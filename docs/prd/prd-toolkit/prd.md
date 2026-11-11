@@ -170,7 +170,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-028 | Report a vague word without a number | verified | features/lint-structure.md |  |
 | FR-029 | Report clarification markers left open once the PRD is in review | verified | features/lint-structure.md |  |
 | FR-030 | Index every assumption marker | verified | features/lint-structure.md |  |
-| FR-031 | Require no open question once the PRD is Approved | approved | features/lint-structure.md |  |
+| FR-031 | Require no open question once the PRD is Approved | verified | features/lint-structure.md |  |
 | FR-032 | Report a banned glossary synonym | verified | features/lint-structure.md |  |
 
 ## 12. Assumptions index
