@@ -305,7 +305,7 @@ def vague_word(prd: Prd):
             retired = _removed_ac_lines(b)
             items = [(n, t) for (n, _), t in zip(b.lines, stripped) if n not in retired]
         else:
-            items = [(a.line, a.text) for a in b.acs if not a.removed]
+            items = [(a.line, strip_code(a.text)) for a in b.acs if not a.removed]
         for n, t in items:
             f = check(b.file, n, t)
             if f:
