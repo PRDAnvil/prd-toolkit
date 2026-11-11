@@ -93,7 +93,7 @@ Classification: code bug
 Confirmed: 2026-11-10, "Real bug (form) — it should: When prd.md has a level-2 heading that is not one of the fourteen sections, numbered or not, lint reports sections at its line with unexpected section '<the heading as written>', e.g. unexpected section '## Notes'; it never prints None."
 Touches: FR-022
 Diagnosis: The section parser gives an unnumbered level-2 heading of prd.md (`## Notes`) the number None, and the finding is built as `unexpected section '## {a[0]}. {a[1]}'`, so it prints `unexpected section '## None. Notes'`, quoting a heading that is in no file. The sibling message on line 144 (`missing section '## <n>. <title>'`) and prd-format.md ("prd.md sections": level-2 headings, exactly these) quote a heading as it is written. The Python `None` reaching the message contradicts them.
-Resolution: open
+Resolution: T-022.4 [integration], PRD 6.2.1, fixed in dbad7a3
 Recurrence of: -
 
 ### E-010 vague-word reads code spans in an FR block's acceptance criteria
