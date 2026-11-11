@@ -159,8 +159,8 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-017 | Report an Environments Branch that git refuses | verified | features/lint-cli.md |  |
 | FR-018 | Check a runbook Check's matches pattern | verified | features/lint-cli.md |  |
 | NFR-019 | A test run leaves no cached uv environments behind | verified | nfr.md |  |
-| FR-020 | Check the prd.md frontmatter | approved | features/lint-structure.md |  |
-| FR-021 | Report a PRD language with no table | approved | features/lint-structure.md |  |
+| FR-020 | Check the prd.md frontmatter | verified | features/lint-structure.md |  |
+| FR-021 | Report a PRD language with no table | verified | features/lint-structure.md |  |
 | FR-022 | Require prd.md's fourteen sections in order | verified | features/lint-structure.md |  |
 | FR-023 | Require the mandatory files and account for the optional ones | live | features/lint-structure.md | 6.2.0 |
 | FR-024 | Check section 8 and adoption.md | approved | features/lint-structure.md |  |
