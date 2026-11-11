@@ -106,8 +106,8 @@ Tests: T-026.1 [integration], T-026.2 [integration], T-026.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint; `prdlint/markdown.py` strip_code, mask_quoted
 
 ### FR-027 Report an unfilled placeholder
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:241 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:271 @4cecb14
 Acceptance (EARS):
 - AC-027.1 When a prose line (FR-026) holds `TBD` or `TODO` as a whole word, `???`, one of the template slots `{{project}}`, `{{owner}}`, `{{date}}` and `{{sql_dialect}}`, or text from `<` and a letter to the next `>` with no `<` or `>` between that does not start `<http://` or `<https://`, the lint command shall report `placeholder` at that line with `placeholder '<the first such text on the line>' in prose; if this is literal text, put it in backticks`.
 - AC-027.2 The lint command shall not report `placeholder` for a double-brace name other than the four template slots, for `todo` or `tbd` in lowercase, for an autolink `<https://…>`, or for text in a code span.
@@ -133,9 +133,9 @@ Tests: T-028.1 [integration], T-028.2 [integration], T-028.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint; `references/languages/en.yaml` vague
 
 ### FR-029 Report clarification markers left open once the PRD is in review
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:298 @ae00c13
-  prd-toolkit/scripts/prdlint/rules/structure.py:52 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:328 @4cecb14
+  prd-toolkit/scripts/prdlint/rules/structure.py:64 @4cecb14
 Acceptance (EARS):
 - AC-029.1 While prd.md's status is `In review` or `Approved`, the lint command shall report `markers-open` once at each line of a scanned file (AC-029.2 to AC-029.4) that holds `[NEEDS CLARIFICATION`, with `[NEEDS CLARIFICATION] left open while status is <status> (markers count in every text file, comments included; delete a template hint once its slot is answered)`.
 - AC-029.2 The markers-open and assumption-indexed rules shall scan each Markdown file the loader reads whose path has no part starting with `.`, as FR-026 reads it, and each file under the PRD folder whose suffix is `.yaml`, `.yml`, `.sql` or `.json`, read raw so that values and comments count.
@@ -148,8 +148,8 @@ Tests: T-029.1 [integration], T-029.2 [integration], T-029.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint
 
 ### FR-030 Index every assumption marker
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:312 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:342 @4cecb14
 Acceptance (EARS):
 - AC-030.1 When a line of a scanned file (AC-029.2 to AC-029.4) holds `[ASSUMPTION` as a whole word not followed by a space, `A-` digits and a colon, the lint command shall report `assumption-indexed` at that line with `[ASSUMPTION] marker has no A-nn id`, whatever the PRD's status.
 - AC-030.2 When a line of a scanned file holds `[ASSUMPTION A-<n>:` and no row of a table in prd.md's section 12 has `A-<n>`, backticks removed, as its first cell, the lint command shall report `assumption-indexed` at that line with `A-<n> has no row in section 12`, whatever the PRD's status, and shall report nothing for a marker whose ID has a row.
@@ -174,8 +174,8 @@ Tests: T-031.1 [integration], T-031.2 [integration], T-031.3 [integration]  (tes
 Traces: UJ-01; cli:prd_lint; prd.md section 13
 
 ### FR-032 Report a banned glossary synonym
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:340 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:370 @4cecb14
 Acceptance (EARS):
 - AC-032.1 When a prose line (FR-026) outside prd.md's section 3 holds a banned synonym of section 3's glossary as a whole word in any case, optionally followed by `s`, the lint command shall report `glossary-synonym` at that line with `'<the text as written>' is a banned synonym; use '<the row's Term cell>'`, once per banned synonym per line, the banned synonyms being the comma-separated parts of the third cell of each section 3 table row with at least three cells, each part trimmed and its backticks removed.
 - AC-032.2 The lint command shall report no `glossary-synonym` finding on section 3's heading or body lines, nor for a synonym inside a code span or fenced block.
