@@ -96,3 +96,20 @@ def test_vendor_rejects_ci_flags(tmp_path):
 def test_help_lists_vendor(tmp_path):
     # "vendored copy" appears in the help already: match the action choice itself
     assert re.search(r"[{,]vendor[,}]", run(SCRIPT, tmp_path, "--help").stdout)
+
+
+def test_vendor_copies_the_license(tmp_path):
+    a = make_repo(tmp_path / "a")
+    r = run(SCRIPT, a, "vendor", PRD)
+    assert r.returncode == 0, r.stderr
+    assert (a / ".prd-toolkit/LICENSE").read_bytes() == (PLUGIN_ROOT / "LICENSE").read_bytes()
+
+
+def test_check_reports_a_missing_license(tmp_path):
+    a = make_repo(tmp_path / "a")
+    assert run(SCRIPT, a, "vendor", PRD).returncode == 0
+    assert ".prd-toolkit/LICENSE" not in run(SCRIPT, a, "check", PRD).stdout
+    (a / ".prd-toolkit/LICENSE").unlink()
+    r = run(SCRIPT, a, "check", PRD)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert ".prd-toolkit/LICENSE is missing" in r.stdout.splitlines()

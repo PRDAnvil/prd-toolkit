@@ -28,10 +28,6 @@ def test_versions():
     assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
-    js = (REPO / "web/src/data/plugins.js").read_text()
-    block = js[js.index("id: 'prd-toolkit'"):]
-    assert f"version: '{plugin['version']}'" in block
-    assert "{ label: 'Design spec (0.8.1)', url: 'https://github.com/ihistand/claude-plugins/blob/main/" + SPEC_REL + "' }" in block
     assert re.search(r"Version \d+\.\d+\.\d+\.", README)
     assert f"(../{SPEC_REL})" in README
 

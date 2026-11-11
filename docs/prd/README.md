@@ -6,7 +6,7 @@ step with its code. Code implements its PRD; a change in behaviour starts in the
 
 | PRD | Version | Status | Covers |
 |---|---|---|---|
-| [prd-toolkit](prd-toolkit/) | 6.2.0 | Approved | prd-toolkit keeps a living PRD folder in a repository and makes agents build, test and deploy from it: a linter and trace checks for the folder, a black-box test agent, and skills that author, adopt, change, build, deploy, handle errors in, publish and link PRDs. |
+| [prd-toolkit](prd-toolkit/) | 6.2.1 | Approved | prd-toolkit keeps a living PRD folder in a repository and makes agents build, test and deploy from it: a linter and trace checks for the folder, a black-box test agent, and skills that author, adopt, change, build, deploy, handle errors in, publish and link PRDs. |
 
 ## How it works
 
@@ -19,7 +19,7 @@ step with its code. Code implements its PRD; a change in behaviour starts in the
 
 ## Getting started
 
-- Install the prd-toolkit plugin for Claude Code: https://github.com/ihistand/claude-plugins/tree/main/prd-toolkit
+- Install the prd-toolkit plugin for Claude Code: https://github.com/PRDAnvil/prd-toolkit/tree/main/prd-toolkit
 - Once per clone: `uv run --script .prd-toolkit/prd_hooks.py install docs/prd/<slug>`
 - Then see each PRD's README.
 <!-- prd-toolkit:end -->

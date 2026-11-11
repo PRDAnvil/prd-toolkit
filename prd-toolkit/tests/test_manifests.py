@@ -24,12 +24,6 @@ def test_versions_agree_and_are_semver():
     assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])
 
 
-def test_web_description_matches():
-    market = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())
-    entry = next(p for p in market["plugins"] if p["name"] == "prd-toolkit")
-    js = (ROOT / "web/src/data/plugins.js").read_text()
-    assert re.search(r"description: '" + re.escape(entry["description"]) + "'", js)
-
 
 def test_description_says_links_across_repositories():
     plugin = json.loads((ROOT / "prd-toolkit/.claude-plugin/plugin.json").read_text())
@@ -42,6 +36,3 @@ def test_version_is_a_release():
     assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])
     market = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
-    js = (ROOT / "web/src/data/plugins.js").read_text()
-    block = js[js.index("id: 'prd-toolkit'"):]
-    assert re.search(r"version: '([^']+)'", block).group(1) == plugin["version"]

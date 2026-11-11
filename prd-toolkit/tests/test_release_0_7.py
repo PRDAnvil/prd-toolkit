@@ -29,11 +29,6 @@ def test_versions():
     assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
-    js = (REPO / "web/src/data/plugins.js").read_text()
-    block = js[js.index("id: 'prd-toolkit'"):]
-    assert f"version: '{plugin['version']}'" in block
-    assert "/prd-change-set" in block and "coordinating-prds" in block
-    assert SPEC_07.split("docs/superpowers/specs/")[1] in block
     assert "links PRDs across repositories" in plugin["description"] and "/prd-change-set" in plugin["description"]
 
 

@@ -31,7 +31,7 @@ def test_version_and_spec_link():
 def test_no_plugin_root_variable_in_shell_blocks():
     blocks = re.findall(r"```\n(.*?)```", README, re.S)
     assert blocks and not [b for b in blocks if "CLAUDE_PLUGIN_ROOT" in b]
-    assert "~/.claude/plugins/cache/ihistand/prd-toolkit/<version>/scripts/" in README
+    assert "~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/" in README
     assert "claude plugin list" in README
 
 
