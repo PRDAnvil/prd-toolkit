@@ -74,7 +74,7 @@ Omit needless words, use the active voice, and be specific.
 <!-- prd-toolkit:start -->
 ## Product requirements (by prd_block.py; do not edit)
 
-The PRD at `docs/prd/prd-toolkit` (version 6.2.1) is the authority.
+The PRD at `docs/prd/prd-toolkit` (version 6.2.2) is the authority.
 
 - To learn what an area does, run `/prd-context <area>` and work from its pack; read whole PRD
   files only to edit them. Build an approved change with `/prd-build <area> <IDs>`. Code
