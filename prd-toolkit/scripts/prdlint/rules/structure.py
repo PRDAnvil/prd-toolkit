@@ -46,6 +46,18 @@ def prose(prd: Prd) -> Iterator[tuple[str, int, str]]:
             yield rel, n, line
 
 
+def _hidden(rel: str) -> bool:
+    """True when a path relative to the PRD folder has a part starting with `.`: not part of the PRD."""
+    return any(part.startswith(".") for part in rel.split("/"))
+
+
+def _visible_prose(prd: Prd) -> Iterator[tuple[str, int, str]]:
+    """prose(), without the lines of hidden Markdown files."""
+    for rel, n, text in prose(prd):
+        if not _hidden(rel):
+            yield rel, n, text
+
+
 _RAW_SUFFIXES = {".yaml", ".yml", ".sql", ".json"}
 
 
@@ -55,7 +67,7 @@ def all_lines(prd: Prd) -> Iterator[tuple[str, int, str]]:
     Markdown comes from prose() (code blanked); YAML, SQL and JSON files are read raw, so markers
     in their values and comments count. Fixture data under contracts/fixtures/, other file types,
     upstream snapshots (contracts/upstream/, in a PRD with links.md), and hidden or editor-backup files (`.x.swp`, `x~`, `x.bak`) are skipped, as are binary files."""
-    yield from prose(prd)
+    yield from _visible_prose(prd)
     for p in sorted(prd.root.rglob("*")):
         if not p.is_file() or p.suffix not in _RAW_SUFFIXES:
             continue
@@ -257,12 +269,12 @@ def _scalars(node, line: int) -> Iterator[tuple[int, str]]:
 
 @rule("placeholder")
 def placeholder(prd: Prd):
-    for rel, n, text in prose(prd):
+    for rel, n, text in _visible_prose(prd):
         m = _PLACEHOLDER.search(text)
         if m:
             yield Finding(rel, n, "placeholder", f"placeholder '{m.group(0)}' in prose; if this is literal text, put it in backticks")
     sources = [(rel, data) for rel, data in prd.yaml.items()] + [(tc.file, tc.data) for tc in prd.test_cases]
-    for rel, data in sources:
+    for rel, data in (s for s in sources if not _hidden(s[0])):
         for n, value in _scalars(data, 1):
             m = _SCALAR_PLACEHOLDER.search(value)
             if m:
@@ -368,7 +380,7 @@ def glossary_synonym(prd: Prd):
             for word in (w.strip().strip("`") for w in r.cells[2].split(",")):
                 if word and word.lower() not in ("-", "—", "none"):
                     banned.append((r.cells[0], re.compile(rf"\b{re.escape(word)}s?\b", re.I)))
-    for rel, n, text in prose(prd):
+    for rel, n, text in _visible_prose(prd):
         if rel == "prd.md" and n in skip:
             continue
         for term, pat in banned:
