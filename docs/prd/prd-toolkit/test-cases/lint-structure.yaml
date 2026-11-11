@@ -1178,8 +1178,6 @@ T-028.7:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-010
-  symptom: "vague-word reports 'secure' from inside a code span of the AC"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "replace line 11 of features/import.md with two spaces and `and log `IMPORT_DUPLICATE` once for it, with the flag `--secure`.`"]
@@ -1196,8 +1194,6 @@ T-028.8:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-010
-  symptom: "no vague-word finding, the digit inside the code span counted as a number"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "replace line 11 of features/import.md with two spaces and `and log `IMPORT_DUPLICATE` once for it and be fast with `--limit 50`.`"]

@@ -120,8 +120,8 @@ Tests: T-027.1 [integration], T-027.2 [integration], T-027.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint
 
 ### FR-028 Report a vague word without a number
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:273 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:291 @5b99f56
 Acceptance (EARS):
 - AC-028.1 When the text of an AC of an FR block that is not removed, its continuation lines joined, holds outside any code span a word of the PRD language table's `vague` list as a whole word in any case, and holds no digit anywhere once every AC, FR, NFR, UJ and T ID is taken out, the lint command shall report `vague-word` at the AC's first line with `'<the first such word, as written>' with no measurable number on the line`.
 - AC-028.2 When such an AC holds a digit outside any code span and outside those IDs, the lint command shall report no `vague-word` finding for it.

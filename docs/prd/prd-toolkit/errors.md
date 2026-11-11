@@ -102,7 +102,7 @@ Classification: code bug
 Confirmed: 2026-11-10, "Real bug (form) — it should: In an FR block's ACs, vague-word ignores code spans the way it does for NFR lines: a listed word inside a code span is not reported, and a digit inside a code span does not count as a measurable number."
 Touches: FR-028
 Diagnosis: For an NFR block the rule blanks fenced code and inline code spans before matching (line 286). Commit 3b28e1a ("vague-word ignores code in NFR blocks") added this, and test_vague_word_ignores_inline_code_and_fences tests it. For an FR block it matches the raw AC text (`a.text`, line 290). An FR AC that names a flag such as `--secure` in a code span is therefore reported as `'secure' with no measurable number on the line`, and a digit inside a code span exempts a listed word outside it. prd-format.md ("lint ignores code spans", Requirement blocks) and the sibling NFR branch treat code as not prose.
-Resolution: open
+Resolution: T-028.7 [integration], PRD 6.2.2, fixed in 76cf058
 Recurrence of: -
 
 ### E-011 Markers in hidden Markdown files are scanned

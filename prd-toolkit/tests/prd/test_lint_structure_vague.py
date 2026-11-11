@@ -56,9 +56,8 @@ def test_vague_removed_ac(tmp_path, monkeypatch):
     check(o.run(), not_contains="vague-word", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-010")
 def test_vague_in_code_span(tmp_path, monkeypatch):
-    """@prd T-028.7 known-failing E-010"""
+    """@prd T-028.7"""
     o = Orders(tmp_path, monkeypatch)
     o.lines("features/import.md").replace(11, IMPORT_LINE_11 + ", with the flag `--secure`.")
     r = o.run()
@@ -71,9 +70,8 @@ def test_vague_in_code_span(tmp_path, monkeypatch):
     check(r, exit=0, not_contains="vague-word", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-010")
 def test_digit_in_code_span_is_no_number(tmp_path, monkeypatch):
-    """@prd T-028.8 known-failing E-010"""
+    """@prd T-028.8"""
     o = Orders(tmp_path, monkeypatch)
     o.lines("features/import.md").replace(11, IMPORT_LINE_11 + " and be fast with `--limit 50`.")
     r = o.run()
