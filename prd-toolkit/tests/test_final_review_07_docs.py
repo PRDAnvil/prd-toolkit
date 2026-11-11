@@ -18,7 +18,7 @@ def test_changing_prds_says_add_writes_the_upstreams_consumers_row():
 
 def test_root_readme_lists_the_change_set_command_and_skill():
     text = (ROOT.parent / "README.md").read_text(encoding="utf-8")
-    assert "`/prd-change-set`" in text
+    assert "`/prd-toolkit:prd-change-set`" in text
     assert "**coordinating-prds skill**" in text
 
 

@@ -37,7 +37,7 @@ def test_no_plugin_root_variable_in_shell_blocks():
 
 def test_deploying_section():
     s = flat(section("Deploying"))
-    for needle in ("/prd-deploy", "prd_deploy.py", "prd_drift.py", "(actor: agent) (env: production)", "Run:", "Check:",
+    for needle in ("/prd-toolkit:prd-deploy", "prd_deploy.py", "prd_drift.py", "(actor: agent) (env: production)", "Run:", "Check:",
                    "Rollback:", "Do:", "tests <level>", "prints", "## Deployed", "## Drift", "production gate",
                    "drift-<env>", "test-deploy-<env>", "never deploy", "dirty", "built", "approval", "confirm",
                    "second rollback", "trusted to be the user's"):
@@ -52,11 +52,11 @@ def test_upgrade_note_shows_both_runbooks():
 
 def test_changelog_and_command_row():
     assert "- **0.5.0:**" in README
-    assert "| `/prd-deploy [--until <env>] [<run id>]` | `prd-toolkit:deploying-from-prds` |" in README
+    assert "| `/prd-toolkit:prd-deploy [--until <env>] [<run id>]` | `prd-toolkit:deploying-from-prds` |" in README
 
 
 def test_root_readme_lists_deploy():
-    assert "/prd-deploy" in ROOT_README and "deploying-from-prds" in ROOT_README
+    assert "/prd-toolkit:prd-deploy" in ROOT_README and "deploying-from-prds" in ROOT_README
 
 
 def refusal_bullets() -> dict[str, dict[str, str]]:
