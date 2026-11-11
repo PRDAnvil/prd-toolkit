@@ -87,9 +87,8 @@ def test_no_testing_md(tmp_path, monkeypatch):
     )
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-013")
 def test_marker_elsewhere_on_layout(tmp_path, monkeypatch):
-    """@prd T-025.9 known-failing E-013"""
+    """@prd T-025.9"""
     t = texts()
     o = Orders(tmp_path, monkeypatch)
     o.lines("testing.md").sub(23, ROOTS, t["r_marker_elsewhere"])
