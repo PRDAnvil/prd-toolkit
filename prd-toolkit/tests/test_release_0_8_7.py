@@ -12,6 +12,8 @@ BARE = re.compile(r"(?<![:A-Za-z0-9_-])/prd-(" + "|".join(COMMANDS) + r")\b")
 # What the plugin writes or tells a reader to type. Past records keep their words: the evals' baselines and
 # prompts, the README's changelog and older Known limits, errors.md, the dated specs and plans.
 CURRENT = ("skills", "commands", "agents", "templates", "scripts", "references")
+# A Red Flags row quotes a baseline session in its own words, bare name included (test_coordinating_skill pins it).
+QUOTED = "then run `/prd-build welcome FR-001`.\" (C1)"
 
 
 def flat(s: str) -> str:
@@ -39,7 +41,8 @@ def test_no_bare_command_names_in_what_the_plugin_says():
     for rel in sorted(p for p in tracked.stdout.split("\0") if p):
         f = ROOT / rel
         if f.is_file() and f.suffix in (".md", ".py", ".html", ".json", ".yaml", ".sh"):
-            hits += [f"{rel}: {m.group(0)}" for m in BARE.finditer(f.read_text(encoding="utf-8"))]
+            text = f.read_text(encoding="utf-8").replace(QUOTED, "")
+            hits += [f"{rel}: {m.group(0)}" for m in BARE.finditer(text)]
     hits += [f"plugin.json: {m.group(0)}" for m in BARE.finditer((ROOT / ".claude-plugin/plugin.json").read_text())]
     assert hits == []
 
