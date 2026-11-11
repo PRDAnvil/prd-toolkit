@@ -147,7 +147,7 @@ Classification: code bug
 Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-031
 Diagnosis: open-questions-empty reports only the first body line of section 13 that is neither empty nor `None.` (structure.py:333), so a section 13 with no text at all gives no finding. prd-format.md says section 13 is the single line `None.` when there are no open questions, so an Approved PRD with an empty section 13 passes a rule meant to require that line.
-Resolution: open, intended: while the PRD is Approved, a section 13 with no text is reported at its heading line with `section 13 must be 'None.' when the PRD is Approved` (the owner, 2026-11-10)
+Resolution: T-031.3 [integration], PRD 6.2.2, fixed in 0d5cc508ec826791c9da3348bc68d8b67a51deea
 Recurrence of: -
 
 ### E-016 The adoption.md header finding is reported at line 1, not at the header's line
