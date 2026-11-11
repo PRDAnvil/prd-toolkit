@@ -65,6 +65,13 @@ def test_upgrade_note():
         assert needle in e, needle
 
 
+def test_root_readme_install_names_the_uninstall():
+    """A user upgrading from 0.8.5 lands on the root README first: its Install section says to drop the old copy."""
+    s = flat(section((REPO / "README.md").read_text(encoding="utf-8"), "Install"))
+    assert "claude plugin uninstall prd-toolkit@ihistand" in s
+    assert s.index("claude plugin uninstall prd-toolkit@ihistand") < s.index(ADD)
+
+
 def test_no_old_marketplace_names():
     hits = []
     for f in sorted(ROOT.rglob("*")):

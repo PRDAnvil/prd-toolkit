@@ -18,6 +18,8 @@ A living PRD as the single authority agents build, test and deploy from: a PRD f
 
 ## Install
 
+If you installed prd-toolkit from the old `ihistand` marketplace (0.8.5 or earlier), remove that copy first, or both load: `claude plugin uninstall prd-toolkit@ihistand`, at every scope it is installed.
+
 In Claude Code:
 
 ```
