@@ -629,8 +629,6 @@ T-024.7:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-016
-  symptom: "the header finding is reported at adoption.md:1, not at the header's line"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup:
