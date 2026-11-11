@@ -1591,8 +1591,6 @@ T-031.3:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-015
-  symptom: "no open-questions-empty finding for a section 13 with no text"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "delete line 116 of prd.md (None.), leaving section 13 with no text"]
