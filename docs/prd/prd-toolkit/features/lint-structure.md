@@ -31,7 +31,7 @@ Tests: T-021.1 [integration], T-021.2 [integration]  (test-cases/lint-structure.
 Traces: UJ-01; cli:prd_lint; `prdlint/languages.py` problem
 
 ### FR-022 Require prd.md's fourteen sections in order
-Status: approved
+Status: built
 Source: prd-toolkit/scripts/prdlint/rules/structure.py:138 @ae00c13
 Acceptance (EARS):
 - AC-022.1 If prd.md has no level-2 heading `## <n>. <title>` for one of the fourteen sections of prd-format.md (`1. Metadata & stack` to `14. Changelog`), the lint command shall report `prd.md:1: sections: missing section '## <n>. <title>'` for each one missing.
