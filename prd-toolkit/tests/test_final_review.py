@@ -101,7 +101,7 @@ def test_one_turn_carve_out_and_dirty_tree_stop():
 
 def test_readme_build_command_row():
     t = README.read_text(encoding="utf-8")
-    assert "| `/prd-build <area> <IDs>` |" in t and "/prd-build [IDs]" not in t
+    assert "| `/prd-toolkit:prd-build <area> <IDs>` |" in t and "/prd-toolkit:prd-build [IDs]" not in t
 
 
 def test_description_has_no_double_and():

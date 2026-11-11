@@ -90,9 +90,9 @@ def test_command():
 
 def test_readme_lists_the_skill_and_the_command():
     t = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "| `/prd-error [<E-nnn> \\| <run id> \\| <text>]` | `prd-toolkit:handling-errors` |" in t
+    assert "| `/prd-toolkit:prd-error [<E-nnn> \\| <run id> \\| <text>]` | `prd-toolkit:handling-errors` |" in t
     root = (ROOT.parent / "README.md").read_text(encoding="utf-8")
-    assert "handling-errors" in root and "/prd-error" in root
+    assert "handling-errors" in root and "/prd-toolkit:prd-error" in root
 
 
 # --- the procedure: six steps, their commands, one per call ---

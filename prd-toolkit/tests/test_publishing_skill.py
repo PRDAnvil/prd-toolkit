@@ -94,9 +94,9 @@ def test_command():
 
 def test_readme_lists_the_skill_and_the_command():
     t = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "| `/prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` |" in t
+    assert "| `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` |" in t
     root = (ROOT.parent / "README.md").read_text(encoding="utf-8")
-    assert "publishing-prds" in root and "/prd-publish" in root
+    assert "publishing-prds" in root and "/prd-toolkit:prd-publish" in root
 
 
 def test_prose_lines_are_wrapped():

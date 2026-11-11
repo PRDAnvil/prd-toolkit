@@ -39,7 +39,7 @@ def test_readme_machine_interface():
                    "prd_change.py digest", "prd_change.py approve", "`needs judgment`", "`; pending`",
                    "`.prd-review.json`", "prd_gates.py list", "prd_gates.py answer", "--question",
                    "refused: the gate changed; list again", "`approve`", "`changes`", "--choice changes",
-                   "/prd-change --review", "claude -p", "prd_confirm.py answer", "prd_confirm.py open",
+                   "/prd-toolkit:prd-change --review", "claude -p", "prd_confirm.py answer", "prd_confirm.py open",
                    "prd_confirm.py done", "edits nothing"):
         assert needle in m, needle
     order = m[m.index("The order a client runs"):]

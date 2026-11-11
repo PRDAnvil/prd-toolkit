@@ -49,7 +49,7 @@ def test_links_and_change_sets_sections():
                    "<kind>:<prd>/<name>", "check --ci", "exit 3", "git URL", "asyncapi"):
         assert needle in s, needle
     c = flat(section(README, "Change sets"))
-    for needle in ("/prd-change-set", "changes/CS-nnn.md", "prd_links.py changeset", "one approval", "Merge order",
+    for needle in ("/prd-toolkit:prd-change-set", "changes/CS-nnn.md", "prd_links.py changeset", "one approval", "Merge order",
                    "Change-set:", "cs-<nnn>-<slug>", "nothing is pushed", "resume"):
         assert needle in c or needle.lower() in c.lower(), needle
 

@@ -7,10 +7,10 @@ A living PRD as the single authority agents build, test and deploy from: a PRD f
 - **changing-prds skill** - Changes the PRD first, with new IDs and a version bump, before any code
 - **building-from-prds skill** - Takes approved requirements to verified code: a builder in its own worktree, tests written by prd-tester, statuses approved, built, verified
 - **deploying-from-prds skill** - Deploys a verified PRD through its runbook with `prd_deploy.py`, stopping at every human step and failure, and records Deployed rows and `verified` → `live`
-- **handling-errors skill** - Records any error in `errors.md` with `prd_error.py`, proposes its class for the user to confirm, and fixes it from a failing test through `/prd-change` and `/prd-build`
+- **handling-errors skill** - Records any error in `errors.md` with `prd_error.py`, proposes its class for the user to confirm, and fixes it from a failing test through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`
 - **publishing-prds skill** - Renders the PRD with `prd_publish.py` as one self-contained HTML page with per-area summaries that cite their IDs, outside the PRD folder and never committed, offered as a private Artifact
 - **coordinating-prds skill** - Links PRDs across repositories (`links.md`, a pinned snapshot of the cited upstream items, `prd_links.py`) and runs a change that crosses them as one change set: one record, one approval, a build per repository in dependency order
-- **Slash commands**: `/prd-new`, `/prd-adopt`, `/prd-change`, `/prd-change-set`, `/prd-context`, `/prd-build`, `/prd-status`, `/prd-deploy`, `/prd-error` and `/prd-publish`
+- **Slash commands**: `/prd-toolkit:prd-new`, `/prd-toolkit:prd-adopt`, `/prd-toolkit:prd-change`, `/prd-toolkit:prd-change-set`, `/prd-toolkit:prd-context`, `/prd-toolkit:prd-build`, `/prd-toolkit:prd-status`, `/prd-toolkit:prd-deploy`, `/prd-toolkit:prd-error` and `/prd-toolkit:prd-publish`
 - **Lint CLI**: `prd_lint.py` checks 40 rules; `prd_block.py` writes the CLAUDE.md block
 
 **For full documentation:** See [prd-toolkit/README.md](./prd-toolkit/README.md)
@@ -27,7 +27,7 @@ In Claude Code:
 /plugin install prd-toolkit@prdanvil
 ```
 
-Restart Claude Code, then check that `claude plugin list` shows `prd-toolkit@prdanvil`. The scripts need [uv](https://docs.astral.sh/uv/).
+Restart Claude Code, then check that `claude plugin list` shows `prd-toolkit@prdanvil`. Its commands are typed under the plugin's name, as `/prd-toolkit:prd-new`. The scripts need [uv](https://docs.astral.sh/uv/).
 
 ## License
 

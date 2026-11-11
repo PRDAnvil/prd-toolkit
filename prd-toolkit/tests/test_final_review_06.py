@@ -263,7 +263,7 @@ README = ROOT / "README.md"
 def test_items2_4_readme_and_procedure_name_the_new_refusals():
     r = flat(README)
     assert ("Outside a git checkout `check --ci` exits 2 (`prd_hooks: <path> is not inside a git checkout`), "
-            "and `/prd-status`'s CI part says the same.") in r
+            "and `/prd-toolkit:prd-status`'s CI part says the same.") in r
     assert ("`new`, `propose`, `confirm` and `resolve`: a value that would open a code fence (an `Evidence:` line, "
             "or a title, diagnosis, reply or reason, whose first non-space characters are") in r
     assert "`refused: Evidence: line <n> would open a code fence; drop it or put text before it`" in r

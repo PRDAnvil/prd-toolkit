@@ -36,14 +36,14 @@ def test_readme_version_and_spec_link():
 
 def test_handling_errors_section():
     s = flat(section("Handling errors")).lower()
-    for needle in ("/prd-error", "record", "reproduce", "propose", "confirmation", "/prd-change", "/prd-build --fixes",
+    for needle in ("/prd-toolkit:prd-error", "record", "reproduce", "propose", "confirmation", "/prd-toolkit:prd-change", "/prd-toolkit:prd-build --fixes",
                    "resolve", "prd_error.py check", "known-failing", "prd_deploy.py recover", "e-nnn"):
         assert needle in s, needle
 
 
 def test_publishing_section():
     s = flat(section("Publishing"))
-    for needle in ("/prd-publish", "self-contained", "summar", "Artifact", "file", "prd_publish.py"):
+    for needle in ("/prd-toolkit:prd-publish", "self-contained", "summar", "Artifact", "file", "prd_publish.py"):
         assert needle in s, needle
 
 

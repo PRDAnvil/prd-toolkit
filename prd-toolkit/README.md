@@ -38,18 +38,20 @@ install hint and exits 2.
 
 ## Commands and skills
 
+Claude Code lists a plugin's commands under the plugin's name, so type each in full: `/prd-toolkit:prd-new`, not `/prd-new`, which it answers with "Unknown command".
+
 | Command | Skill | Use |
 |---|---|---|
-| `/prd-new [slug]` | `prd-toolkit:authoring-prds` | Interview to a PRD folder `docs/prd/<slug>/`, lint it, dry-run it with prd-tester, approve it, install the CLAUDE.md block |
-| `/prd-adopt [area]` | `prd-toolkit:adopting-prds` | Bring an existing repo under a PRD one area at a time, from the code, with the user's word on each requirement |
-| `/prd-change <description>` | `prd-toolkit:changing-prds` | Change the PRD first, with new IDs and a version bump, before any code; `prd_change.py` keeps the books. `/prd-change --review <dir>` reviews a change, edits nothing and writes one JSON verdict (see Machine interface) |
-| `/prd-context [area] [IDs] [implement]` | `prd_context.py` | Print the focused context pack for one task: the decide pack, or with `implement` the implement pack |
-| `/prd-build <area> <IDs>` | `prd-toolkit:building-from-prds` | Take approved requirements to verified code: `prd-builder` works on a round branch the build cuts and merges `--ff-only`, then `prd-tester` writes the tests in its `write` mode; the build reconciles by quote and moves statuses `approved`, `built`, `verified` with no version bump |
-| `/prd-status` | `prd_status.py` | Show where each requirement stands, and the version each environment runs |
-| `/prd-deploy [--until <env>] [<run id>]` | `prd-toolkit:deploying-from-prds` | Deploy a verified PRD through its runbook with `prd_deploy.py`, stopping at every human step and failure, then record the run (see Deploying) |
-| `/prd-error [<E-nnn> \| <run id> \| <text>]` | `prd-toolkit:handling-errors` | Record an error in `errors.md` with `prd_error.py`, diagnose it, propose its class and wait for the user's confirmation; the fix starts from a failing test and goes through `/prd-change` and `/prd-build --fixes E-nnn`, and the close is checked with `prd_error.py check` |
-| `/prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
-| `/prd-change-set [<CS-nnn> \| <text>]` | `prd-toolkit:coordinating-prds` | Coordinate one change across linked PRDs in several repositories: one record, one approval for every member's PRD diff, then a build (and where a link needs it, a deploy) per repository in dependency order (see Change sets) |
+| `/prd-toolkit:prd-new [slug]` | `prd-toolkit:authoring-prds` | Interview to a PRD folder `docs/prd/<slug>/`, lint it, dry-run it with prd-tester, approve it, install the CLAUDE.md block |
+| `/prd-toolkit:prd-adopt [area]` | `prd-toolkit:adopting-prds` | Bring an existing repo under a PRD one area at a time, from the code, with the user's word on each requirement |
+| `/prd-toolkit:prd-change <description>` | `prd-toolkit:changing-prds` | Change the PRD first, with new IDs and a version bump, before any code; `prd_change.py` keeps the books. `/prd-toolkit:prd-change --review <dir>` reviews a change, edits nothing and writes one JSON verdict (see Machine interface) |
+| `/prd-toolkit:prd-context [area] [IDs] [implement]` | `prd_context.py` | Print the focused context pack for one task: the decide pack, or with `implement` the implement pack |
+| `/prd-toolkit:prd-build <area> <IDs>` | `prd-toolkit:building-from-prds` | Take approved requirements to verified code: `prd-builder` works on a round branch the build cuts and merges `--ff-only`, then `prd-tester` writes the tests in its `write` mode; the build reconciles by quote and moves statuses `approved`, `built`, `verified` with no version bump |
+| `/prd-toolkit:prd-status` | `prd_status.py` | Show where each requirement stands, and the version each environment runs |
+| `/prd-toolkit:prd-deploy [--until <env>] [<run id>]` | `prd-toolkit:deploying-from-prds` | Deploy a verified PRD through its runbook with `prd_deploy.py`, stopping at every human step and failure, then record the run (see Deploying) |
+| `/prd-toolkit:prd-error [<E-nnn> \| <run id> \| <text>]` | `prd-toolkit:handling-errors` | Record an error in `errors.md` with `prd_error.py`, diagnose it, propose its class and wait for the user's confirmation; the fix starts from a failing test and goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build --fixes E-nnn`, and the close is checked with `prd_error.py check` |
+| `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
+| `/prd-toolkit:prd-change-set [<CS-nnn> \| <text>]` | `prd-toolkit:coordinating-prds` | Coordinate one change across linked PRDs in several repositories: one record, one approval for every member's PRD diff, then a build (and where a link needs it, a deploy) per repository in dependency order (see Change sets) |
 
 ## Lint CLI
 
@@ -77,7 +79,7 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 
 ## Adopting an existing repo
 
-`/prd-adopt [area]` runs the `adopting-prds` skill. It bootstraps `docs/prd/<slug>/` (first run
+`/prd-toolkit:prd-adopt [area]` runs the `adopting-prds` skill. It bootstraps `docs/prd/<slug>/` (first run
 only), then takes one area at a time, an area being `features/<area>.md` plus
 `test-cases/<area>.yaml`, bounded by the file globs in its Boundary cell. Progress is the adoption
 map in `adoption.md`, and each area moves forward one state at a time:
@@ -205,9 +207,9 @@ differs is rewritten only with `--force`.
 
 The generated `prd-lint` job runs `prd_lint.py --ci` and then `prd_hooks.py check --ci`, which reports
 `stale: <path>: re-run prd_hooks.py ci --<forge> --force` when the PRD has since gained a level, an
-environment, a `tests` step or a Drift row. `check` and `/prd-status` print the same line.
+environment, a `tests` step or a Drift row. `check` and `/prd-toolkit:prd-status` print the same line.
 Outside a git checkout `check --ci` exits 2 (`prd_hooks: <path> is not inside a git checkout`), and
-`/prd-status`'s CI part says the same.
+`/prd-toolkit:prd-status`'s CI part says the same.
 
 ```
 uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_hooks.py ci --github docs/prd/<slug>
@@ -254,7 +256,7 @@ Known limits:
 
 ## Deploying
 
-`/prd-deploy [--until <env>] [<run id>]` runs the `deploying-from-prds` skill. It takes `verified`
+`/prd-toolkit:prd-deploy [--until <env>] [<run id>]` runs the `deploying-from-prds` skill. It takes `verified`
 code to a running environment by running the `operations.md` runbook with `prd_deploy.py`: every
 step from 1, in order, never from the middle. A script runs the commands, not the model. The skill
 shows the plan, relays the user's reply to each human step, offers a failed step's rollback, and
@@ -388,7 +390,7 @@ credentials; the toolkit adds no sandbox.
 
 ## Handling errors
 
-`/prd-error` (skill `prd-toolkit:handling-errors`) takes any error, a bug, a failing test, an
+`/prd-toolkit:prd-error` (skill `prd-toolkit:handling-errors`) takes any error, a bug, a failing test, an
 incident or a failed deploy, from a record to a checked fix. `errors.md` holds one `### E-nnn`
 entry for each; `prd_error.py` is the only writer.
 
@@ -402,7 +404,7 @@ entry for each; `prd_error.py` is the only writer.
 4. **Your confirmation.** `confirm` records your reply verbatim, in your words, and the class you
    settle on. Only a confirmed entry can be cited by code (`Refs: E-nnn`); the commit-msg hook and
    `prd_error.py check` refuse a code commit that cites an unconfirmed one.
-5. **Fix.** A change goes through `/prd-change` (citing the entry), and `/prd-build --fixes E-nnn`
+5. **Fix.** A change goes through `/prd-toolkit:prd-change` (citing the entry), and `/prd-toolkit:prd-build --fixes E-nnn`
    builds it from the entry's failing test.
 6. **Resolve and check.** `resolve` writes the resolution (`<T-id> [<level>], PRD <X.Y.Z>, fixed in
    <commit>`; `<T-id or ->, PRD <X.Y.Z>, run <run id>`; or `not a defect: <why>`), then
@@ -450,7 +452,7 @@ another resolution; an unreadable range or PRD folder.
 
 ## Publishing
 
-`/prd-publish [<out file>] [<request>]` (skill `prd-toolkit:publishing-prds`) renders the PRD with
+`/prd-toolkit:prd-publish [<out file>] [<request>]` (skill `prd-toolkit:publishing-prds`) renders the PRD with
 `prd_publish.py` as one self-contained HTML page with an Overview tab (opened by default), a Business tab and a Technical tab; the Overview is described under READMEs and the Overview tab. The page
 loads nothing (no script, stylesheet, font or image from any URL), so it opens offline, by email or
 on an intranet; PRD text is rendered from markdown with raw HTML escaped, and the error ledger
@@ -473,7 +475,7 @@ never stored in the PRD folder.
 **Where it goes.** The page is written outside the PRD folder, to the path you name (default
 `./<project>-prd-<version>.html` in the repository root, untracked; the summaries file is written
 beside it and deleted after the render), and is never committed; the skill reports its absolute
-path. An untracked page stops the next `/prd-build` at its clean-tree check, so move it out of the
+path. An untracked page stops the next `/prd-toolkit:prd-build` at its clean-tree check, so move it out of the
 repository or delete it first. When the session has the Artifact tool,
 the skill offers the same file as a private Artifact, or updates one you name; otherwise, or when you
 decline, it gives you the file path.
@@ -525,7 +527,7 @@ with nothing on stdout (`prd_links: <why>` on stderr), git that cannot run in an
 a refusal or failure of `impact` itself, so its exit 1 always means a consumer cites a changed item. Exit 3 (`check` and `impact` only): nothing drifted but a side was unreachable.
 `check --ci` exits 0 where `check` would exit 3, after printing the unreachable line; the generated
 `prd-lint` job runs it, so CI catches a break only where the other side is reachable. The deploy
-pre-flight refuses to start on exit 1 and reports exit 3. `/prd-status` shows the verdict counts for
+pre-flight refuses to start on exit 1 and reports exit 3. `/prd-toolkit:prd-status` shows the verdict counts for
 path locations and `check: not run` for a git URL.
 
 Four lint rules (36 in all) read `links.md`, the snapshot and the records without leaving the
@@ -533,7 +535,7 @@ repository: `links-format`, `upstream-refs`, `snapshot-cited` and `change-sets`.
 
 ## Change sets
 
-A change to a contract item that another PRD cites cannot stop at one repository. `/prd-change-set
+A change to a contract item that another PRD cites cannot stop at one repository. `/prd-toolkit:prd-change-set
 [<CS-nnn> | <text>]` (skill `prd-toolkit:coordinating-prds`) runs it as one change set:
 
 1. `impact` finds the consumers; you confirm the members; `prd_links.py changeset new` writes
@@ -543,8 +545,8 @@ A change to a contract item that another PRD cites cannot stop at one repository
    each downstream member syncs from the edited upstream branch.
 3. One approval: every member's PRD diff is shown together, and one reply approves the set. The record
    quotes it; an amendment is approved alone.
-4. Each member builds in Order once its Waits for holds, through `/prd-build`, with the
-   `Change-set: <prd>/CS-nnn` trailer on its commits; an upstream is deployed through `/prd-deploy
+4. Each member builds in Order once its Waits for holds, through `/prd-toolkit:prd-build`, with the
+   `Change-set: <prd>/CS-nnn` trailer on its commits; an upstream is deployed through `/prd-toolkit:prd-deploy
    --until <env>` first when a downstream link needs it. Its pre-flight, and `check --ci` (the
    generated `prd-lint` job), let drift between two members of the open change set through, printing
    `drift allowed by <start-prd>/CS-nnn: <line>`; other drift still refuses or fails, and a plain
@@ -556,10 +558,10 @@ A change to a contract item that another PRD cites cannot stop at one repository
 
 The record is written only by `prd_links.py changeset`. A dry run and a build dispatch agents bound to
 the session's own repository, so they run in a session started in that member's root: expect one resume
-per member, each a `/prd-change-set CS-nnn` from that root. Record writes, `impact`, `sync`, `check` and
+per member, each a `/prd-toolkit:prd-change-set CS-nnn` from that root. Record writes, `impact`, `sync`, `check` and
 deploys run for any member from any session.
 
-A headless run registers only `prd-toolkit:<command>` (a bare `/prd-status` is not listed, as probed in
+A headless run registers only `prd-toolkit:<command>` (a bare `/prd-toolkit:prd-status` is not listed, as probed in
 0.7 on Claude Code 2.1.316): invoke `prd-toolkit:prd-change-set` and the other commands in that form.
 
 ## Packs
@@ -654,13 +656,13 @@ uv run --script .prd-toolkit/prd_change.py approve docs/prd/<slug> --reply "<ver
   §14 row is pending, and `CLAUDE.md` has no uncommitted changes (an ignored `CLAUDE.md` is skipped). It then writes the record, sets the status `Approved`, runs `prd_block.py` and
   commits `docs(prd): approve <slug> <version>` with `Reply: "…"` in the body, and deletes the verdict.
 
-**Review mode.** `/prd-change --review <dir>` edits nothing (only the tester's dry-run directory and
+**Review mode.** `/prd-toolkit:prd-change --review <dir>` edits nothing (only the tester's dry-run directory and
 the verdict): it restates the change, runs `prd_links.py impact` when `links.md` has Consumers,
 decides each `needs judgment` item, dry-runs the new and revised non-unit T-ids through `prd-tester`,
 and writes `.prd-review.json` in the PRD folder: `{"interface": 1, "kind": "review", "head",
 "digest", "restate", "touches", "impact", "bump": {"level", "decided"}, "dry_run", "ready",
 "blockers"}`, plus an optional `"refs"` (0.8.2) that `changing-prds` step 4 sets for a change made for an
-`errors.md` entry, the approval commit's `Refs:` IDs. Run it headless as `claude -p "/prd-change --review <dir>" --output-format json` with
+`errors.md` entry, the approval commit's `Refs:` IDs. Run it headless as `claude -p "/prd-toolkit:prd-change --review <dir>" --output-format json` with
 the plugin loaded and the tools `Read`, `Grep`, `Glob`, `Bash` and `Agent`. The order a client runs: `bump`, then the review, then `record` at the level the verdict gives, then lint and trace; `record` does not change the digest, so the verdict stays valid.
 
 **Pending decisions.** `prd_gates.py list <prd dir> [--worktrees] --json` prints every decision a
@@ -1041,7 +1043,7 @@ and how to read and change it) and `docs/prd/README.md` (a table of every PRD un
 the toolkit works and how to get started). Each block sits between `<!-- prd-toolkit:start -->` and
 `<!-- prd-toolkit:end -->`; text outside the markers belongs to you and is never touched. A block is
 never edited by hand: it is rewritten from the PRD, and a better description is a better PRD §2,
-changed through `/prd-change`. The description is §2's first paragraph (its first sentence in the
+changed through `/prd-toolkit:prd-change`. The description is §2's first paragraph (its first sentence in the
 parent's table). Two start markers, or unbalanced markers, make `prd_block.py` exit 2; a marker
 inside a closed code fence is not a marker. The skills stage both READMEs with `CLAUDE.md` wherever
 they run `prd_block.py`, and lint, the change digest, the version bump and the tester all skip the
@@ -1074,7 +1076,7 @@ principles; the architecture (§4); a table of areas with adoption status and re
 by status; the count of open errors; the linked PRDs; and the getting-started steps. It needs no
 summary and gets none, and it loads nothing, like the rest of the page. The README and the tab take
 their facts from one module, `prdlint/overview.py`, so they never disagree. A published page gains
-its tab on the next `/prd-publish`; a PRD without `Principles:` or `Getting started:` gets the tab
+its tab on the next `/prd-toolkit:prd-publish`; a PRD without `Principles:` or `Getting started:` gets the tab
 without those two parts.
 
 ## Folder layout
@@ -1103,8 +1105,9 @@ The exact syntax lint parses is `references/prd-format.md`. The starting files a
 uv run --directory prd-toolkit pytest -q
 ```
 
-Under `claude --plugin-dir <path>` the commands answer only to their namespaced form, such as
-`/prd-toolkit:prd-change`; the bare `/prd-change` that the skills print is the installed form.
+The commands answer only to their namespaced form, such as `/prd-toolkit:prd-change`, both when
+the plugin is installed and under `claude --plugin-dir <path>`. The bare `/prd-change` that the
+skills' text still prints gets "Unknown command" from current Claude Code: type the namespaced form.
 
 The plugin eval: run the command recorded in `evals/BASELINE.md` (0.2 baseline; the 0.8.0 and 0.8.1 sections run one case at a time). The `--scaffold`
 flag is required by the scaffolded cases, `Agent` lets the caller dispatch `prd-tester`, and the
