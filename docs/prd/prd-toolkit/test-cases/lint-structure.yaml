@@ -347,8 +347,6 @@ T-022.4:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-009
-  symptom: "the heading is quoted as `## None. Notes`, not as written"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "append `## Notes` to prd.md (line 123)"]
