@@ -218,7 +218,7 @@ def _adoption_findings(prd: Prd) -> Iterator[Finding]:
         return
     header = [c.strip().strip("`") for c in ts[0].header]
     if header != ["Area", "State", "Boundary"]:
-        yield Finding(ADOPTION_FILE, 1, "sections", f"{ADOPTION_FILE} table header must be '| Area | State | Boundary |', not '| {' | '.join(header)} |'")
+        yield Finding(ADOPTION_FILE, ts[0].line, "sections", f"{ADOPTION_FILE} table header must be '| Area | State | Boundary |', not '| {' | '.join(header)} |'")
     for row in prd.adoption or []:
         if row.state not in ADOPTION_STATES:
             yield Finding(ADOPTION_FILE, row.line, "sections", f"adoption state '{row.state}' for {row.area} must be one of {', '.join(ADOPTION_STATES)}")
@@ -370,6 +370,8 @@ def open_questions_empty(prd: Prd):
         if text.strip() and text.strip() != "None.":
             yield Finding("prd.md", n, "open-questions-empty", "section 13 must be 'None.' when the PRD is Approved")
             return
+    if sec and not any(text.strip() for _, text in sec.body):
+        yield Finding("prd.md", sec.line, "open-questions-empty", "section 13 must be 'None.' when the PRD is Approved")
 
 
 @rule("glossary-synonym")

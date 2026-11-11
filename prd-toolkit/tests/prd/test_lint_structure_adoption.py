@@ -61,9 +61,8 @@ def test_adoption_without_table(tmp_path, monkeypatch):
     check(o.run(), exit=1, contains_line=f"{D}/adoption.md:1: sections: adoption.md holds no '| Area | State | Boundary |' table", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-016")
 def test_adoption_bad_header(tmp_path, monkeypatch):
-    """@prd T-024.7 known-failing E-016"""
+    """@prd T-024.7"""
     o = Orders(tmp_path, monkeypatch)
     o.lines("prd.md").replace(84, "See adoption.md.")
     o.write_lines("adoption.md", ["# Adoption map", "", "| Area | State |", "|---|---|", "| import | adopted |"])

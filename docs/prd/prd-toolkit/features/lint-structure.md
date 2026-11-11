@@ -58,8 +58,8 @@ Tests: T-023.1 [integration], T-023.2 [integration], T-023.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint
 
 ### FR-024 Check section 8 and adoption.md
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:167 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:195 @d27f577
 Acceptance (EARS):
 - AC-024.1 If section 8 of prd.md holds a pipe table, the lint command shall report `sections` at the section 8 heading's line with `section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave "See adoption.md."`.
 - AC-024.2 If section 8's body, its surrounding whitespace and one final `.` removed, is `See adoption.md` and the PRD folder has no `adoption.md`, the lint command shall report `sections` at the section 8 heading's line with `section 8 points at adoption.md but adoption.md does not exist`.
@@ -162,8 +162,8 @@ Tests: T-030.1 [integration], T-030.2 [integration], T-030.3 [integration], T-03
 Traces: UJ-01; cli:prd_lint; prd.md section 12
 
 ### FR-031 Require no open question once the PRD is Approved
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:329 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:373 @0d5cc50
 Acceptance (EARS):
 - AC-031.1 While prd.md's status is `Approved`, the lint command shall report `open-questions-empty` at the first line of section 13's body whose text, stripped, is neither empty nor `None.`, with `section 13 must be 'None.' when the PRD is Approved`, and no finding for any later line.
 - AC-031.2 While prd.md's status is not `Approved`, the lint command shall report no `open-questions-empty` finding.

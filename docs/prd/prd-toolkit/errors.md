@@ -147,7 +147,7 @@ Classification: code bug
 Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-031
 Diagnosis: open-questions-empty reports only the first body line of section 13 that is neither empty nor `None.` (structure.py:333), so a section 13 with no text at all gives no finding. prd-format.md says section 13 is the single line `None.` when there are no open questions, so an Approved PRD with an empty section 13 passes a rule meant to require that line.
-Resolution: open, intended: while the PRD is Approved, a section 13 with no text is reported at its heading line with `section 13 must be 'None.' when the PRD is Approved` (the owner, 2026-11-10)
+Resolution: T-031.3 [integration], PRD 6.2.2, fixed in 0d5cc508ec826791c9da3348bc68d8b67a51deea
 Recurrence of: -
 
 ### E-016 The adoption.md header finding is reported at line 1, not at the header's line
@@ -156,5 +156,5 @@ Classification: code bug
 Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-024
 Diagnosis: The header-mismatch finding is built with line 1 (structure.py:193) although the table's own line is known (the parsed table's line). Every other adoption.md finding points at the line to fix, a row at its own line, so this one sends the author to the file's heading instead of the header row.
-Resolution: open, intended: the adoption.md header finding is reported at the table's header line (the owner, 2026-11-10)
+Resolution: T-024.7 [integration], PRD 6.2.2, fixed in 628895739af3e88bdf9c9d19fa6f3173638e0a54
 Recurrence of: -

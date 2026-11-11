@@ -2,10 +2,8 @@
 import sys
 from pathlib import Path
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lint_structure_support import KnownFailure, Orders, check, finding_in, symptom  # noqa: E402
+from lint_structure_support import Orders, check, finding_in, symptom  # noqa: E402
 
 D = "docs/prd/orders"
 P = f"{D}/prd.md"
@@ -32,9 +30,8 @@ def test_open_question_in_review(tmp_path, monkeypatch):
     check(o.run(), not_contains="open-questions-empty", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-015")
 def test_section_13_empty(tmp_path, monkeypatch):
-    """@prd T-031.3 known-failing E-015"""
+    """@prd T-031.3"""
     o = Orders(tmp_path, monkeypatch)
     o.lines("prd.md").delete(116)
     r = o.run()
