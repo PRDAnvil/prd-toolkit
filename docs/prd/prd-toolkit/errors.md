@@ -93,7 +93,7 @@ Classification: code bug
 Confirmed: 2026-11-10, "Real bug (form) — it should: When prd.md has a level-2 heading that is not one of the fourteen sections, numbered or not, lint reports sections at its line with unexpected section '<the heading as written>', e.g. unexpected section '## Notes'; it never prints None."
 Touches: FR-022
 Diagnosis: The section parser gives an unnumbered level-2 heading of prd.md (`## Notes`) the number None, and the finding is built as `unexpected section '## {a[0]}. {a[1]}'`, so it prints `unexpected section '## None. Notes'`, quoting a heading that is in no file. The sibling message on line 144 (`missing section '## <n>. <title>'`) and prd-format.md ("prd.md sections": level-2 headings, exactly these) quote a heading as it is written. The Python `None` reaching the message contradicts them.
-Resolution: open
+Resolution: T-022.4 [integration], PRD 6.2.1, fixed in dbad7a3
 Recurrence of: -
 
 ### E-010 vague-word reads code spans in an FR block's acceptance criteria
@@ -129,20 +129,22 @@ Classification: code bug
 Confirmed: 2026-11-10, "Real bug (form) — it should: lint reports Test roots: lists no backticked directory whenever the list after Test roots: names no backticked directory and that list itself holds no [NEEDS CLARIFICATION marker; a marker elsewhere on the Layout line does not excuse it."
 Touches: FR-025
 Diagnosis: When `Test roots:` lists no backticked directory, the rule skips its finding if `[NEEDS CLARIFICATION` appears anywhere on the Layout bullet's line, including the convention text before `Test roots:`. Consider the template's Layout line with its first marker kept and its roots filled in without backticks (`Test roots: tests/`). It gives no `sections` finding, and in a Draft PRD no finding at all, although the guard will then block every write. prd-format.md (testing.md, Harness) reports a `Test roots:` that lists no backticked directory and holds no marker. The comment on line 217 names the case it skips as an unfilled marker, which markers-open reports. The loader already removes markers from the Test roots text alone (model.py:575).
-Resolution: open
+Resolution: T-025.9 [integration], PRD 6.2.1, fixed in 876eda9
 Recurrence of: -
 
 ### E-014 A repeated prd.md section or Harness slot is reported as out of order, not as a duplicate
 Detected: 2026-11-10, confirmation of Q-01 (FR-022, FR-025)
 Classification: code bug
+Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-022, FR-025
 Diagnosis: The order checks compare the present sections, and the present Harness slots, with the expected list (structure.py:146 and :210), so a section or slot that appears twice makes the lists differ and is reported as out of order. No finding names the duplicate, which sends the author looking for a misplaced section instead of the repeated one, often left by a merge.
-Resolution: open, intended: a level-2 section of prd.md that appears twice is reported at the second one's line as `duplicate section '## <n>. <title>'`, and a Harness slot that appears twice as `Harness slot '<slot>' appears twice`; out of order is reported only when the sections, or the slots, are out of order once duplicates are set aside (the owner, 2026-11-10)
+Resolution: T-022.5 [integration], PRD 6.2.1, fixed in 1c7f45e
 Recurrence of: -
 
 ### E-015 An empty section 13 passes open-questions-empty while the PRD is Approved
 Detected: 2026-11-10, confirmation of Q-02 (FR-031)
 Classification: code bug
+Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-031
 Diagnosis: open-questions-empty reports only the first body line of section 13 that is neither empty nor `None.` (structure.py:333), so a section 13 with no text at all gives no finding. prd-format.md says section 13 is the single line `None.` when there are no open questions, so an Approved PRD with an empty section 13 passes a rule meant to require that line.
 Resolution: open, intended: while the PRD is Approved, a section 13 with no text is reported at its heading line with `section 13 must be 'None.' when the PRD is Approved` (the owner, 2026-11-10)
@@ -151,6 +153,7 @@ Recurrence of: -
 ### E-016 The adoption.md header finding is reported at line 1, not at the header's line
 Detected: 2026-11-10, confirmation of Q-03 (FR-024)
 Classification: code bug
+Confirmed: 2026-11-10, "Confirm the class (form)"
 Touches: FR-024
 Diagnosis: The header-mismatch finding is built with line 1 (structure.py:193) although the table's own line is known (the parsed table's line). Every other adoption.md finding points at the line to fix, a row at its own line, so this one sends the author to the file's heading instead of the header row.
 Resolution: open, intended: the adoption.md header finding is reported at the table's header line (the owner, 2026-11-10)

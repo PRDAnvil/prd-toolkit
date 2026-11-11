@@ -143,11 +143,21 @@ def sections(prd: Prd):
         if (num, title) not in actual:
             yield Finding("prd.md", 1, "sections", f"missing section '## {num}. {title}'")
     present = [e for e in expected if e in actual]
-    if [a for a in actual if a in expected] != present:
+    firsts = []  # each expected section at its first heading; a later one is a duplicate
+    for s in prd.sections:
+        key = (s.number, s.title)
+        if key not in expected:
+            continue
+        if key in firsts:
+            yield Finding("prd.md", s.line, "sections", f"duplicate section '## {key[0]}. {key[1]}'")
+        else:
+            firsts.append(key)
+    if firsts != present:
         yield Finding("prd.md", 1, "sections", "sections are out of order")
     for a in actual:
         if a not in expected:
-            yield Finding("prd.md", line_of[a], "sections", f"unexpected section '## {a[0]}. {a[1]}'")
+            heading = f"## {a[1]}" if a[0] is None else f"## {a[0]}. {a[1]}"
+            yield Finding("prd.md", line_of[a], "sections", f"unexpected section '{heading}'")
     na = {k.rstrip("/") + ("/" if k.endswith("/") else ""): v for k, v in prd.not_applicable.items()}
     for path in MANDATORY:
         hit = na.get(path) or na.get(path.rstrip("/"))
@@ -207,14 +217,22 @@ def _harness_findings(prd: Prd) -> Iterator[Finding]:
     for slot in HARNESS_SLOTS:
         if slot not in names:
             yield Finding("testing.md", h.slots[0][1], "sections", f"Harness slot '{slot}' is missing")
-    if [n for n in names if n in HARNESS_SLOTS] != [n for n in HARNESS_SLOTS if n in names]:
+    firsts = []  # each known slot at its first bullet; a later one is a duplicate
+    for name, line in h.slots:
+        if name not in HARNESS_SLOTS:
+            continue
+        if name in firsts:
+            yield Finding("testing.md", line, "sections", f"Harness slot '{name}' appears twice")
+        else:
+            firsts.append(name)
+    if firsts != [n for n in HARNESS_SLOTS if n in names]:
         yield Finding("testing.md", h.slots[0][1], "sections", f"Harness slots are out of order; the order is {', '.join(HARNESS_SLOTS)}")
     layout = next((n for name, n in h.slots if name == "Layout"), None)
     if layout and h.test_roots is None:
         yield Finding("testing.md", layout, "sections", "the Harness Layout slot has no 'Test roots:' text")
     elif layout and h.test_roots == []:
-        text = prd.docs["testing.md"].split("\n")[h.test_roots_line - 1]
-        if "[NEEDS CLARIFICATION" not in text:  # an unfilled marker is markers-open's to report
+        text = prd.docs["testing.md"].split("\n")[h.test_roots_line - 1].split("Test roots:", 1)[1]
+        if "[NEEDS CLARIFICATION" not in text:  # a marker in the list itself is markers-open's to report
             # the guard would then block every write, and trace would fall back to tests/
             yield Finding("testing.md", h.test_roots_line, "sections", "Test roots: lists no backticked directory")
 

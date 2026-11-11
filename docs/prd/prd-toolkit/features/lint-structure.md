@@ -31,7 +31,7 @@ Tests: T-021.1 [integration], T-021.2 [integration]  (test-cases/lint-structure.
 Traces: UJ-01; cli:prd_lint; `prdlint/languages.py` problem
 
 ### FR-022 Require prd.md's fourteen sections in order
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/rules/structure.py:138 @ae00c13
 Acceptance (EARS):
 - AC-022.1 If prd.md has no level-2 heading `## <n>. <title>` for one of the fourteen sections of prd-format.md (`1. Metadata & stack` to `14. Changelog`), the lint command shall report `prd.md:1: sections: missing section '## <n>. <title>'` for each one missing.
@@ -76,8 +76,8 @@ Tests: T-024.1 [integration], T-024.2 [integration], T-024.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint; adoption.md
 
 ### FR-025 Check testing.md's Harness slots
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:199 @ae00c13
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:209 @4e96b4b
 Acceptance (EARS):
 - AC-025.1 If testing.md has no level-2 section titled `Harness` (in any case) that holds a slot bullet `- **<Slot>.**`, the lint command shall report `testing.md:1: sections: testing.md has no '## Harness' section with its slots`.
 - AC-025.2 If one of the fifteen slots Lifecycle, Environment switch, Database access, Tools on the runner, Clean state, Persistent environments, Layout, HTTP requests, Fixtures, Browser identity, Assertions, Waits, Effects, Leaks and Acceptance has no bullet, the lint command shall report `sections` at the first slot bullet's line with `Harness slot '<slot>' is missing`, once per absent slot.

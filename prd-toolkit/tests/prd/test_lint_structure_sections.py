@@ -32,9 +32,8 @@ def test_unexpected_numbered_section(tmp_path, monkeypatch):
     check(o.run(), exit=1, contains_line=f"{P}:123: sections: unexpected section '## 15. Appendix'", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-009")
 def test_unexpected_unnumbered_section(tmp_path, monkeypatch):
-    """@prd T-022.4 known-failing E-009"""
+    """@prd T-022.4"""
     o = Orders(tmp_path, monkeypatch)
     o.lines("prd.md").append("## Notes")
     r = o.run()
@@ -47,9 +46,8 @@ def test_unexpected_unnumbered_section(tmp_path, monkeypatch):
     check(r, exit=1, contains_line=f"{P}:123: sections: unexpected section '## Notes'", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-014")
 def test_duplicate_section(tmp_path, monkeypatch):
-    """@prd T-022.5 known-failing E-014"""
+    """@prd T-022.5"""
     o = Orders(tmp_path, monkeypatch)
     o.lines("prd.md").append("## 9. Versioning")
     r = o.run()

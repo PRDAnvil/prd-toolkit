@@ -347,8 +347,6 @@ T-022.4:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-009
-  symptom: "the heading is quoted as `## None. Notes`, not as written"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "append `## Notes` to prd.md (line 123)"]
@@ -365,8 +363,6 @@ T-022.5:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-014
-  symptom: "the repeated section is reported as `sections are out of order`, with no duplicate finding"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "append `## 9. Versioning` to prd.md (line 123), a second section 9 after section 14"]
@@ -830,8 +826,6 @@ T-025.9:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-013
-  symptom: "no `Test roots: lists no backticked directory` finding while a marker sits elsewhere on the Layout line"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-structure/texts]
   input:
     setup: [S0, "on line 23 of testing.md, replace `Test roots: `tests/`.` with texts.r_marker_elsewhere"]
@@ -848,8 +842,6 @@ T-025.10:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-014
-  symptom: "the repeated slot is reported as `Harness slots are out of order`, with no duplicate finding"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "insert `- **Waits.** An expectation waits up to 5 s.` before line 29 of testing.md (the Effects slot), a second Waits slot right after the first"]
