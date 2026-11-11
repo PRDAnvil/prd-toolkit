@@ -163,7 +163,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-021 | Report a PRD language with no table | verified | features/lint-structure.md |  |
 | FR-022 | Require prd.md's fourteen sections in order | verified | features/lint-structure.md |  |
 | FR-023 | Require the mandatory files and account for the optional ones | live | features/lint-structure.md | 6.2.0 |
-| FR-024 | Check section 8 and adoption.md | approved | features/lint-structure.md |  |
+| FR-024 | Check section 8 and adoption.md | verified | features/lint-structure.md |  |
 | FR-025 | Check testing.md's Harness slots | verified | features/lint-structure.md |  |
 | FR-026 | Read prose without code and errors.md quotations | live | features/lint-structure.md | 6.2.0 |
 | FR-027 | Report an unfilled placeholder | verified | features/lint-structure.md |  |
