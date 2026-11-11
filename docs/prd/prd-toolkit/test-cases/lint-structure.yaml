@@ -826,8 +826,6 @@ T-025.9:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-013
-  symptom: "no `Test roots: lists no backticked directory` finding while a marker sits elsewhere on the Layout line"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-structure/texts]
   input:
     setup: [S0, "on line 23 of testing.md, replace `Test roots: `tests/`.` with texts.r_marker_elsewhere"]
