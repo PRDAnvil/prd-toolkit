@@ -131,9 +131,8 @@ def test_yaml_angle_and_comment(tmp_path, monkeypatch):
     check(o.run(), not_contains="placeholder", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-011")
 def test_hidden_file(tmp_path, monkeypatch):
-    """@prd T-027.9 known-failing E-011"""
+    """@prd T-027.9"""
     t = texts()
     o = Orders(tmp_path, monkeypatch)
     o.write(".notes.md", t["p_tbd_line"] + "\n")

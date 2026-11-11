@@ -166,12 +166,12 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-024 | Check section 8 and adoption.md | approved | features/lint-structure.md |  |
 | FR-025 | Check testing.md's Harness slots | verified | features/lint-structure.md |  |
 | FR-026 | Read prose without code and errors.md quotations | live | features/lint-structure.md | 6.2.0 |
-| FR-027 | Report an unfilled placeholder | approved | features/lint-structure.md |  |
+| FR-027 | Report an unfilled placeholder | verified | features/lint-structure.md |  |
 | FR-028 | Report a vague word without a number | verified | features/lint-structure.md |  |
-| FR-029 | Report clarification markers left open once the PRD is in review | approved | features/lint-structure.md |  |
-| FR-030 | Index every assumption marker | approved | features/lint-structure.md |  |
+| FR-029 | Report clarification markers left open once the PRD is in review | verified | features/lint-structure.md |  |
+| FR-030 | Index every assumption marker | verified | features/lint-structure.md |  |
 | FR-031 | Require no open question once the PRD is Approved | approved | features/lint-structure.md |  |
-| FR-032 | Report a banned glossary synonym | approved | features/lint-structure.md |  |
+| FR-032 | Report a banned glossary synonym | verified | features/lint-structure.md |  |
 
 ## 12. Assumptions index
 

@@ -81,9 +81,8 @@ def test_empty_synonym_parts(tmp_path, monkeypatch):
     check(o.run(), not_contains="glossary-synonym", stderr="")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-011")
 def test_synonym_hidden_file(tmp_path, monkeypatch):
-    """@prd T-032.5 known-failing E-011"""
+    """@prd T-032.5"""
     o = Orders(tmp_path, monkeypatch)
     o.write(".notes.md", "a purchase arrives\n")
     r = o.run()

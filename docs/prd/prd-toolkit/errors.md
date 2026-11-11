@@ -111,7 +111,7 @@ Classification: code bug
 Confirmed: 2026-11-10, "Real bug (form) — it should: A file or folder under the PRD folder whose name starts with . is not part of the PRD: lint loads no Markdown from it, so no rule (markers, assumptions, placeholders, glossary, requirement blocks) reads it."
 Touches: FR-027, FR-029, FR-030, FR-032
 Diagnosis: `all_lines` yields every line of `prose(prd)`, which holds every Markdown file the loader read. The loader collects them with `rglob("*.md")` (model.py:869), which also matches hidden names such as `.notes.md` or `features/.draft.md`. markers-open and assumption-indexed therefore report markers in hidden Markdown files. The function's own docstring (structure.py:57: hidden or editor-backup files are skipped) and prd-format.md (Requirement blocks: hidden or editor-backup files are not scanned) say otherwise, and the raw-file branch (line 64) does skip any path part that starts with `.`.
-Resolution: open
+Resolution: T-027.9 [integration], PRD 6.2.2, fixed in ca2cee4
 Recurrence of: -
 
 ### E-012 A key missing from the frontmatter is reported at a body line of prd.md
