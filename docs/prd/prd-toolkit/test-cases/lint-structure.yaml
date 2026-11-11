@@ -1064,8 +1064,6 @@ T-027.9:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-011
-  symptom: "placeholder reports a line of the hidden file .notes.md"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-structure/texts]
   input:
     setup: [S0, "write <P>/.notes.md as texts.p_tbd_line and a newline"]
@@ -1383,8 +1381,6 @@ T-029.11:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-011
-  symptom: "markers-open reports a line of the hidden file .notes.md"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-structure/texts]
   input:
     setup: [S0, "write <P>/.notes.md as texts.m_line and a newline; the status stays Approved"]
@@ -1545,8 +1541,6 @@ T-030.10:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-011
-  symptom: "assumption-indexed reports a line of the hidden file .notes.md"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-structure/texts]
   input:
     setup: [S0, "write <P>/.notes.md as texts.a_a09_line and a newline"]
@@ -1686,8 +1680,6 @@ T-032.5:
   target: cli:prd_lint
   environment: local
   identity: none
-  known-failing: E-011
-  symptom: "glossary-synonym reports a line of the hidden file .notes.md"
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "write <P>/.notes.md as the line `a purchase arrives` and a newline"]
