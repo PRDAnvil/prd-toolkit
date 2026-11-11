@@ -103,7 +103,7 @@ def _run(tmp: Path, data, name="outline.yaml", validator=VALIDATOR):
     f = root / "contracts" / name
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(yaml.safe_dump(data, sort_keys=False) if not isinstance(data, str) else data, encoding="utf-8")
-    return subprocess.run(["uv", "run", "--script", str(validator), f"contracts/{name}"], cwd=root,
+    return subprocess.run(["uv", "run", "--quiet", "--script", str(validator), f"contracts/{name}"], cwd=root,
                           capture_output=True, text=True)
 
 
