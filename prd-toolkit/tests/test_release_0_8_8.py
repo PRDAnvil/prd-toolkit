@@ -21,7 +21,7 @@ def test_no_vendored_script_is_run_by_its_file():
 def test_no_skill_line_runs_a_script_by_its_file():
     hits = [f"{p}:{n}" for p in tracked("skills", "commands", "agents", "templates")
             for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
-            if re.search(r"uv run --script\s+\S*prd_\w+\.py", line)]
+            if re.search(r"uv run --script\s+.*?prd_\w+\.py", line)]  # a placeholder may hold a space
     assert hits == []
 
 
@@ -36,7 +36,16 @@ def test_every_scripts_definition_checks_for_the_launcher():
         text = p.read_text(encoding="utf-8")
         if "`<scripts>` is `.prd-toolkit` when" in text:
             para = next(par for par in text.split("\n\n") if "`<scripts>` is `.prd-toolkit` when" in par)
-            assert "predates 0.8.8" in para and "`prd`" in para, p
+            assert "predates 0.8.8" in para and "When `.prd-toolkit/` exists but holds no `prd`," in " ".join(para.split()), p
+
+
+def test_every_launcher_command_in_a_skill_exists():
+    from prd_dispatch import COMMANDS
+    # `<dir>/prd <command>`: the `/prd ` path segment, so prose such as "the PRD" never counts
+    found = [(p.name, c) for p in tracked("skills", "commands", "agents")
+             for c in re.findall(r"/prd ([a-z][a-z-]*)", p.read_text(encoding="utf-8"))]
+    assert len(found) >= 80
+    assert [f for f in found if f[1] not in COMMANDS] == []
 
 
 def _paragraphs(text: str) -> list[str]:
@@ -59,7 +68,7 @@ def test_the_launcher_is_named_where_a_vendored_copy_is_checked():
         return " ".join((ROOT / rel).read_text(encoding="utf-8").split())
 
     # a 0.8.7 copy passes the 0.6 and 0.8.1 checks, then the close's `.prd-toolkit/prd hooks` lines find no launcher
-    assert ("When `.prd-toolkit/` holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user the same."
+    assert ("When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user the same."
             in flat("skills/changing-prds/SKILL.md"))
     assert ("and so is a judged test that finds no `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py`"
             in flat("skills/handling-errors/SKILL.md"))

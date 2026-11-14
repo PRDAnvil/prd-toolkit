@@ -35,8 +35,8 @@ A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`.
-When `.prd-toolkit/` holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user
-the same.
+When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell
+the user the same.
 A first adoption has no `.prd-toolkit/` until the hooks install, so it uses the plugin path; a later
 area in an adopted repo uses the vendored copy, so lint and trace match what CI runs.
 
@@ -166,7 +166,7 @@ picked. Otherwise show the map, recommend one area and why, and stop for the use
 
 - Show the area's Boundary and the files it matches; correct it if the user does.
 - **The area's pack.** List the packs, its own Bash call:
-  `uv run --script <plugin scripts>/prd_lint.py --list-packs; echo "prd-list-packs-exit=$?"` (`<plugin scripts>` is the plugin's own `scripts` directory as a literal absolute path, even in a repository that has `.prd-toolkit/`: `--list-packs` lists what is on this machine and is not a gate, and a vendored copy lists only the packs it vendored). Then propose a pack from the area's Boundary files: Markdown documents written
+  `<plugin scripts>/prd lint --list-packs; echo "prd-list-packs-exit=$?"` (`<plugin scripts>` is the plugin's own `scripts` directory as a literal absolute path, even in a repository that has `.prd-toolkit/`: `--list-packs` lists what is on this machine and is not a gate, and a vendored copy lists only the packs it vendored). Then propose a pack from the area's Boundary files: Markdown documents written
   for people (`docs/**/*.md`: a guide, a runbook, a policy) are `document`; code with an API, a
   database or events is `service`; a pack of an installed plugin whose description fits its files
   is that pack. Show the proposal with the files that led to it, and write the area's `Target:`

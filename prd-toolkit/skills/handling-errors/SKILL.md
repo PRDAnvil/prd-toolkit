@@ -28,9 +28,9 @@ nothing below.
 
 1. **Record first.** `prd_error.py new` before any fix, and the entry committed with
    `Refs: E-nnn`. Never write an entry or its lines by hand, except one `Resolution:` line that
-   `check` reports wrong (step 6). Call the vendored
-   `.prd-toolkit/prd_error.py` when `.prd-toolkit/` exists, otherwise the plugin's
-   `scripts/prd_error.py` as a literal absolute path, the plugin root being two directories above
+   `check` reports wrong (step 6). Run the vendored copy
+   through `.prd-toolkit/prd` when `.prd-toolkit/` exists, otherwise the plugin's
+   `scripts/prd` as a literal absolute path, the plugin root being two directories above
    the skill's base directory.
 2. **The request is never the confirmation.** Only a reply given after the proposal counts; the
    request that started the loop is never one, nor your own text. With no one to ask, commit the

@@ -29,9 +29,9 @@ record it" change nothing below.
 
 1. **Never run a runbook command yourself.** Not a step's `Run:`, `Check:` or `Rollback:`, not
    a `tests` step's harness command, not the deploy script "just to check". Only `prd_deploy.py`
-   runs them, through the commands in `running-a-deploy.md`. Call the repository's vendored
-   `.prd-toolkit/prd_deploy.py` when `.prd-toolkit/` exists, otherwise the plugin's
-   `scripts/prd_deploy.py` as a literal absolute path, the plugin root being two directories
+   runs them, through the commands in `running-a-deploy.md`. Run the repository's vendored copy
+   through `.prd-toolkit/prd` when `.prd-toolkit/` exists, otherwise the plugin's
+   `scripts/prd` as a literal absolute path, the plugin root being two directories
    above the skill's base directory: `${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call.
 2. **When the harness denies a `prd_deploy.py` command, or the script is slow, stop and tell the
    user**, naming the command so they can allow it. A denial or a slow step is never a reason to

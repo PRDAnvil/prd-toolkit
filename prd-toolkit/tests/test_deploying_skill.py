@@ -302,7 +302,7 @@ def test_r20_which_script_to_call():
     assert "two directories above the skill's base directory" in t and "Base directory for this skill" in t
     assert "a literal absolute path" in t
     s = flat(SKILL)
-    assert "`.prd-toolkit/prd_deploy.py`" in s and "two directories above the skill's base directory" in s
+    assert "Run the repository's vendored copy through `.prd-toolkit/prd` when" in s and "two directories above the skill's base directory" in s
     blocks = re.findall(r"```bash\n(.*?)```", RUN.read_text(encoding="utf-8"), re.S)
     for block in blocks:
         for line in block.splitlines():

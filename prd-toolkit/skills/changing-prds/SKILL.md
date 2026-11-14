@@ -31,8 +31,8 @@ A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`. When `.prd-toolkit/` holds no `prd_change.py`, the vendored copy predates
-0.8.1: stop, and tell the user the same. When `.prd-toolkit/` holds no `prd`, the vendored copy
-predates 0.8.8: stop, and tell the user the same.
+0.8.1: stop, and tell the user the same. When `.prd-toolkit/` exists but holds no `prd`, the
+vendored copy predates 0.8.8: stop, and tell the user the same.
 
 Lint, the mechanical gate:
 
@@ -62,7 +62,7 @@ the gap as the change.
 An area's pack is its `Target:` line (`Target: pack <name> <X.Y.Z> (<source>)`), or §1's `Pack:`
 line for an area with none, or `service` when there is neither. Before you say a pack is missing,
 list the packs, its own Bash call:
-`uv run --script <plugin scripts>/prd_lint.py --list-packs; echo "prd-list-packs-exit=$?"` (`<plugin scripts>` is the plugin's own `scripts` directory as a literal absolute path, even in a repository that has `.prd-toolkit/`: `--list-packs` lists what is on this machine and is not a gate, and a vendored copy lists only the packs it vendored). It prints
+`<plugin scripts>/prd lint --list-packs; echo "prd-list-packs-exit=$?"` (`<plugin scripts>` is the plugin's own `scripts` directory as a literal absolute path, even in a repository that has `.prd-toolkit/`: `--list-packs` lists what is on this machine and is not a gate, and a vendored copy lists only the packs it vendored). It prints
 the built-ins and every installed plugin's packs, `<name> <version> (<source>) — <description>`; a
 pack on that list exists, whatever a search of the repository found. So does a pack vendored in
 `.prd-toolkit/packs/<name>/` (its `pack.yaml`), which lint reads before any other copy.
@@ -88,7 +88,7 @@ never edited by hand. Run each command its own Bash call, from the plugin's scri
 (`<plugin scripts>`, as above: never the vendored `.prd-toolkit/` copy, whose `packs/` still holds
 the old version). On a refusal, stop and report it.
 
-- First `uv run --script <plugin scripts>/prd_change.py pack docs/prd/<slug> <name> <X.Y.Z>; echo "prd-change-exit=$?"`.
+- First `<plugin scripts>/prd change pack docs/prd/<slug> <name> <X.Y.Z>; echo "prd-change-exit=$?"`.
   It moves every line naming `<name>` and records `pack <name> <old> → <new>; pending` as a
   patch, leaving the tree uncommitted. A `refused:` line names what to fix:
   `no Pack: or Target: pack line names <name>`, `every line naming <name> already names <X.Y.Z>`,

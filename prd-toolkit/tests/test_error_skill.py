@@ -146,7 +146,7 @@ def test_procedure_commands_are_one_per_call_with_literal_paths():
     assert "two directories above the skill's base directory" in t and "a literal absolute path" in t
     for path in (SKILL, RUN, COMMAND):
         assert '"${CLAUDE_PLUGIN_ROOT}/scripts/' not in path.read_text(encoding="utf-8"), path.name
-    assert "`.prd-toolkit/prd_error.py`" in flat(SKILL)
+    assert "Run the vendored copy through `.prd-toolkit/prd` when `.prd-toolkit/` exists" in flat(SKILL)
 
 
 def test_free_text_goes_in_single_quotes():

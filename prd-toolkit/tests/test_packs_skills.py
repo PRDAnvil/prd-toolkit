@@ -23,7 +23,7 @@ ERRORS = SKILLS / "handling-errors/SKILL.md"
 # --list-packs echoes its own tag (R26): `prd-lint-exit=0` belongs to a lint of the PRD folder, and graders read it
 GATE = '; echo "prd-list-packs-exit=$?"'
 # --list-packs always runs from the plugin's own scripts (final review 1a): a vendored copy lists only what it vendored
-LIST_PACKS = "uv run --script <plugin scripts>/prd_lint.py --list-packs" + GATE
+LIST_PACKS = "<plugin scripts>/prd lint --list-packs" + GATE
 PLUGIN_SCRIPTS = ("`<plugin scripts>` is the plugin's own `scripts` directory as a literal absolute path, even in a "
                   "repository that has `.prd-toolkit/`: `--list-packs` lists what is on this machine and is not a gate, "
                   "and a vendored copy lists only the packs it vendored")
@@ -268,8 +268,10 @@ def test_list_packs_never_runs_the_vendored_copy():
     files = sorted(SKILLS.glob("*/*.md")) + sorted((ROOT / "agents").glob("*.md"))
     lines = [(p.name, line) for p in files for line in p.read_text(encoding="utf-8").splitlines() if "--list-packs;" in line]
     for name, line in lines:
-        assert "<plugin scripts>/prd_lint.py --list-packs" in line, (name, line)
-        assert ".prd-toolkit/prd_lint.py --list-packs" not in line and "<scripts>/prd_lint.py --list-packs" not in line, (name, line)
+        assert "<plugin scripts>/prd lint --list-packs" in line, (name, line)
+        for vendored in (".prd-toolkit/prd_lint.py", "<scripts>/prd_lint.py", ".prd-toolkit/prd lint", "<scripts>/prd lint"):
+            assert f"{vendored} --list-packs" not in line, (name, line)
+    assert len(lines) >= 3
 
 
 def test_builder_finds_the_manifest_in_the_three_places():
@@ -289,7 +291,7 @@ def test_tester_example_runs_the_judge_from_the_repository_root():
 
 def _commands(text: str) -> list[str]:
     blocks = re.findall(r"```(?:bash)?\n(.*?)```", text, re.S)
-    spans = re.findall(r"`((?:uv run|git|rm|ls|mkdir|find|diff|python3?|[^`\s]*/prd) [^`]*)`", text)  # `<x>/prd <command>` is the launcher
+    spans = re.findall(r"`((?:uv run|git|rm|ls|mkdir|find|diff|python3?|[^`\s]*/prd|<plugin scripts>/prd) [^`]*)`", text)  # `<x>/prd <command>` is the launcher
     return [b for b in blocks] + spans
 
 
@@ -304,7 +306,7 @@ def test_no_plugin_root_variable_inside_a_command():
 
 # ---------------------------------------------------------------- 0.8.5, spec 13 (items 3, 6, A, 7): Task 14's pins
 
-PACK_CALL = 'uv run --script <plugin scripts>/prd_change.py pack docs/prd/<slug> <name> <X.Y.Z>; echo "prd-change-exit=$?"'
+PACK_CALL = '<plugin scripts>/prd change pack docs/prd/<slug> <name> <X.Y.Z>; echo "prd-change-exit=$?"'
 PACK_INSTALL = "<plugin scripts>/prd hooks install docs/prd/<slug>"
 PACK_DRY_RUN = "--dry-run 'no dry run (pack version only)'"
 TIMEOUT_COPY = "its `timeout` into the level's `Timeout` cell (blank when the pack has none)"
