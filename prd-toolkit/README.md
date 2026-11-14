@@ -64,8 +64,9 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 ```
 
 - **Which copy to run.** A person's shell does not set `${CLAUDE_PLUGIN_ROOT}`, so the commands here
-  name a path. In a repo whose hooks are installed, run the vendored copy,
-  `.prd-toolkit/<script>.py`. Before the first install (no `.prd-toolkit/` yet) run the plugin's
+  name a path. In a repo whose hooks are installed, run the vendored launcher,
+  `.prd-toolkit/prd <command>`, where the command is the script's name without `prd_` and `.py`,
+  with `_` written `-` (`prd_build_check.py` is `build-check`). Before the first install (no `.prd-toolkit/` yet) run the plugin's
   install path, `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/<script>.py`, where `prdanvil` is this marketplace's name and
   `<version>` is the installed version (`claude plugin list` shows it, and so does
   `ls ~/.claude/plugins/cache/prdanvil/prd-toolkit/`). A checkout of this repo works too, as the

@@ -94,3 +94,9 @@ def test_readme_runs_the_vendored_copy_through_the_launcher():
     assert len(text) < len(full)          # the helper removed the past-record sections
     assert ".prd-toolkit/prd " in text    # and the examples are still there
     assert [l for l in text.splitlines() if re.search(r"uv run --script \S*\.prd-toolkit/", l)] == []
+
+
+def test_readme_says_how_to_run_the_vendored_copy():
+    text = _readme_without_past_records()
+    assert ".prd-toolkit/prd <command>" in text
+    assert ".prd-toolkit/<script>.py" not in text
