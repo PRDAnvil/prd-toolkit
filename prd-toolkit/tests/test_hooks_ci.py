@@ -226,11 +226,18 @@ def test_deploy_jobs(prd):
     assert by["test-deploy-production"].script == ["export PRD_ENV=production TEST_ENV=production; pytest tests/smoke"]
 
 
+def _deploys(text):
+    """A line that runs the deploy script, by its file (0.8.7) or through the launcher (0.8.8)."""
+    return "prd_deploy.py" in text or "prd deploy" in text
+
+
 def test_ci_never_deploys(prd):
+    # the check can fail: both forms of a deploy line are caught
+    assert _deploys("uv run --script .prd-toolkit/prd_deploy.py run x") and _deploys("sh .prd-toolkit/prd deploy run x")
     for j in all_jobs(prd):
-        assert not any("prd_deploy.py" in s for s in j.script)
+        assert not any(_deploys(s) for s in j.script)
     for render in (hooks.render_gitlab, hooks.render_github):
-        assert "prd_deploy.py" not in render(all_jobs(prd))
+        assert not _deploys(render(all_jobs(prd)))
 
 
 def test_gitlab_manual(prd):

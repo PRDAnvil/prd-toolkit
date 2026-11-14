@@ -40,7 +40,8 @@ def test_launcher_two_clones_one_environment(tmp_path):
         r = launch(tmp_path / name, "--version", cache=cache)
         assert r.returncode == 0, r.stderr
         assert r.stdout == "0.0.0-test\n"
-    assert len(list((cache / "environments-v2").iterdir())) == 1
+    # environments-v2/<interpreter shard>/<environment>: count the environments, not the shards
+    assert len([p for p in (cache / "environments-v2").glob("*/*") if p.is_dir()]) == 1
 
 
 def test_launcher_ignores_host_project(tmp_path):
