@@ -1,6 +1,6 @@
 # `prd-toolkit` eval baseline
 
-Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived until 0.8.6.
+Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
 ## 0.8.5 baseline
 
