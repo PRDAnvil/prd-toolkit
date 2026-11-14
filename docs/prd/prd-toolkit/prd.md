@@ -1,9 +1,9 @@
 ---
 prd: prd-toolkit
-version: 6.2.2
+version: 6.2.3
 status: Approved
 owner: Ivan Histand
-updated: 2026-11-10
+updated: 2026-11-14
 ---
 
 <!-- Format: references/prd-format.md, "prd.md sections". -->
@@ -13,13 +13,13 @@ updated: 2026-11-10
 
 ## 1. Metadata & stack
 
-- Language: Python 3.11 or later. Each CLI script (`prd-toolkit/scripts/prd_*.py`) is a uv script with an inline dependency header, run as `uv run --script <script>`.
+- Language: Python 3.11 or later. Each CLI script (`prd-toolkit/scripts/prd_*.py`) is a uv script with an inline dependency header, run as `uv run --script <script>`, or through the launcher `prd-toolkit/scripts/prd` as `prd <command>` (the script's name without `prd_` and `.py`, `_` written `-`), which runs every script in one uv environment made from `scripts/requirements.txt`.
 - Framework: a Claude Code plugin (skills, agents, slash commands, a plugin hook) in the `prdanvil` marketplace; script libraries pyyaml, sqlglot, openapi-spec-validator and markdown-it-py; pytest for the tests.
 - Database: none.
-- Hosting: the plugin is installed from the `prdanvil` marketplace into each user's Claude Code; a target repository runs a vendored copy of the scripts under `.prd-toolkit/` from its git hooks and CI.
+- Hosting: the plugin is installed from the `prdanvil` marketplace into each user's Claude Code; a target repository runs a vendored copy of the scripts under `.prd-toolkit/` from its git hooks and CI, through the vendored launcher `.prd-toolkit/prd`.
 - Repository: https://github.com/PRDAnvil/prd-toolkit, folder `prd-toolkit/`. This PRD covers `prd-toolkit/`; the repository root holds the `prdanvil` marketplace file (`.claude-plugin/marketplace.json`), the root README, the MIT LICENSE and this PRD. Until 2026-11-10 the toolkit lived in `ihistand/claude-plugins`; its history moved here with it.
 - Not used: a network service, a database, a published Python package (target repositories run the vendored copy).
-- Packaging: no build backend (`prd-toolkit/pyproject.toml` has `[tool.uv] package = false` and serves only the tests); the layout is `prd-toolkit/` with `scripts/` (the CLI scripts and the `prdlint` package), `skills/`, `agents/`, `commands/`, `hooks/`, `templates/` and `references/`; the entry points are the CLI scripts, each run as `uv run --script prd-toolkit/scripts/prd_<name>.py`; the install command is `/plugin install prd-toolkit@prdanvil` after `/plugin marketplace add PRDAnvil/prd-toolkit`, and in a target repository `prd_hooks.py install docs/prd/<slug>` vendors the scripts.
+- Packaging: no build backend (`prd-toolkit/pyproject.toml` has `[tool.uv] package = false` and serves only the tests); the layout is `prd-toolkit/` with `scripts/` (the CLI scripts and the `prdlint` package), `skills/`, `agents/`, `commands/`, `hooks/`, `templates/` and `references/`; the entry points are the launcher `prd-toolkit/scripts/prd` (`prd <command>`) and the CLI scripts behind it, each of which also runs as `uv run --script prd-toolkit/scripts/prd_<name>.py`; the install command is `/plugin install prd-toolkit@prdanvil` after `/plugin marketplace add PRDAnvil/prd-toolkit`, and in a target repository `prd_hooks.py install docs/prd/<slug>` vendors the scripts.
 - Not applicable: `contracts/openapi.yaml` — no HTTP API
 - Not applicable: `contracts/schema.sql` — no database
 - Not applicable: `contracts/events.md` — no events, jobs or queues
@@ -51,14 +51,13 @@ Getting started:
 
 1. Install the plugin: `/plugin marketplace add PRDAnvil/prd-toolkit`, then `/plugin install prd-toolkit@prdanvil`.
 2. Start a PRD with `/prd-toolkit:prd-new`, or bring an existing repository under one with `/prd-toolkit:prd-adopt`.
-3. Install the hooks once per clone: `uv run --script .prd-toolkit/prd_hooks.py install docs/prd/<slug>`.
+3. Install the hooks once per clone: `.prd-toolkit/prd hooks install docs/prd/<slug>`.
 4. Change behaviour with `/prd-toolkit:prd-change`, then build it with `/prd-toolkit:prd-build`; report a bug with `/prd-toolkit:prd-error`.
 
 Personas: an engineer working in a repository with Claude Code; the agents the toolkit
 dispatches (`prd-builder`, `prd-tester`); a reviewer reading a published PRD page.
 
-Out of scope: the repository's other plugins and the `web/` docs site; the target projects'
-own code.
+Out of scope: the target projects' own code.
 
 ## 3. Glossary
 
@@ -201,3 +200,4 @@ None.
 | 6.2.0 | 2026-11-10 | lint-structure area adopted (prdlint/rules/structure.py); suite 85 pass, T-020.14 known-failing E-012, T-022.4 known-failing E-009, T-022.5 known-failing E-014, T-024.7 known-failing E-016, T-025.9 known-failing E-013, T-025.10 known-failing E-014, T-027.9 known-failing E-011, T-028.7 known-failing E-010, T-028.8 known-failing E-010, T-029.11 known-failing E-011, T-030.10 known-failing E-011, T-031.3 known-failing E-015, T-032.5 known-failing E-011; testing.md gains the lint-structure/texts fixture and the stdout_not_contains and stdout_count_of_line keys; contracts/cli.yaml gains prd_lint.structure_findings; E-009 to E-016 recorded open; dry run T-020.14, T-022.4, T-022.5, T-024.7, T-025.9, T-025.10, T-027.9, T-028.7, T-028.8, T-029.11, T-030.10, T-031.3, T-032.5, 0 open questions, 0 dismissed by quote | FR-001, FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-013, FR-014, FR-020, FR-021, FR-022, FR-023, FR-024, FR-025, FR-026, FR-027, FR-028, FR-029, FR-030, FR-031, FR-032, AC-020.1, AC-020.2, AC-020.3, AC-020.4, AC-020.5, AC-020.6, AC-021.1, AC-021.2, AC-022.1, AC-022.2, AC-022.3, AC-022.4, AC-023.1, AC-023.2, AC-023.3, AC-023.4, AC-024.1, AC-024.2, AC-024.3, AC-024.4, AC-024.5, AC-024.6, AC-024.7, AC-024.8, AC-024.9, AC-025.1, AC-025.2, AC-025.3, AC-025.4, AC-025.5, AC-025.6, AC-025.7, AC-025.8, AC-025.9, AC-026.1, AC-026.2, AC-026.3, AC-027.1, AC-027.2, AC-027.3, AC-027.4, AC-027.5, AC-028.1, AC-028.2, AC-028.3, AC-028.4, AC-029.1, AC-029.2, AC-029.3, AC-029.4, AC-029.5, AC-030.1, AC-030.2, AC-030.3, AC-030.4, AC-030.5, AC-031.1, AC-031.2, AC-031.3, AC-032.1, AC-032.2, AC-032.3, AC-032.4, T-020.1, T-020.2, T-020.3, T-020.4, T-020.5, T-020.6, T-020.7, T-020.8, T-020.9, T-020.10, T-020.11, T-020.12, T-020.13, T-020.14, T-021.1, T-021.2, T-022.1, T-022.2, T-022.3, T-022.4, T-022.5, T-023.1, T-023.2, T-023.3, T-023.4, T-023.5, T-023.6, T-023.7, T-023.8, T-024.1, T-024.2, T-024.3, T-024.4, T-024.5, T-024.6, T-024.7, T-024.8, T-024.9, T-025.1, T-025.2, T-025.3, T-025.4, T-025.5, T-025.6, T-025.7, T-025.8, T-025.9, T-025.10, T-026.1, T-026.2, T-026.3, T-026.4, T-027.1, T-027.2, T-027.3, T-027.4, T-027.5, T-027.6, T-027.7, T-027.8, T-027.9, T-028.1, T-028.2, T-028.3, T-028.4, T-028.5, T-028.6, T-028.7, T-028.8, T-029.1, T-029.2, T-029.3, T-029.4, T-029.5, T-029.6, T-029.7, T-029.8, T-029.9, T-029.10, T-029.11, T-030.1, T-030.2, T-030.3, T-030.4, T-030.5, T-030.6, T-030.7, T-030.8, T-030.9, T-030.10, T-031.1, T-031.2, T-031.3, T-032.1, T-032.2, T-032.3, T-032.4, T-032.5 |
 | 6.2.1 | 2026-11-10 | the toolkit moves to github.com/PRDAnvil/prd-toolkit and the prdanvil marketplace: section 1 Framework, Hosting, Repository and Packaging, section 2 Getting started, the operations.md production Environment and runbook steps 2 and 3, and the testing.md production row name the new home; the release area Boundary adds prd-toolkit/LICENSE; no dry run (wording only) | - |
 | 6.2.2 | 2026-11-10 | §2 Getting started names the commands in full, /prd-toolkit:prd-new and the rest, as current Claude Code lists them; no dry run (wording only) | - |
+| 6.2.3 | 2026-11-14 | for prd-toolkit 0.8.8: section 1 names the launcher prd-toolkit/scripts/prd beside the CLI scripts, and the vendored launcher the hooks and CI run; section 2 Getting started installs the hooks with .prd-toolkit/prd hooks install, and its Out of scope line drops the other plugins and the web/ docs site, which the repository has not held since the move; adoption.md maps the launcher, prd_dispatch.py and requirements.txt in trace-and-hooks and requirements-publish.txt in publish; no dry run (wording only) | - |
