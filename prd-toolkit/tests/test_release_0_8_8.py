@@ -31,12 +31,21 @@ def test_every_scripts_command_uses_the_launcher():
     assert n >= 80        # the 80 `uv run --script <scripts>/` lines counted on 94a4ba2
 
 
+CI_CLAUSE = ("predates 0.8.8: stop, and tell the user the same. When `.github/workflows/prd-toolkit.yml` or "
+             "`.gitlab/prd-toolkit.yml` exists, the user also runs `prd_hooks.py ci --<forge> --force docs/prd/<slug>` "
+             "from the plugin and commits both together.")
+
+
 def test_every_scripts_definition_checks_for_the_launcher():
+    # install leaves a generated workflow stale (it runs `sh .prd-toolkit/prd`): the guard names the ci rerun too
+    visited = []
     for p in tracked("skills", "commands"):
         text = p.read_text(encoding="utf-8")
         if "`<scripts>` is `.prd-toolkit` when" in text:
-            para = next(par for par in text.split("\n\n") if "`<scripts>` is `.prd-toolkit` when" in par)
-            assert "predates 0.8.8" in para and "When `.prd-toolkit/` exists but holds no `prd`," in " ".join(para.split()), p
+            para = " ".join(next(par for par in text.split("\n\n") if "`<scripts>` is `.prd-toolkit` when" in par).split())
+            assert "When `.prd-toolkit/` exists but holds no `prd`," in para and CI_CLAUSE in para, p
+            visited.append(p.relative_to(ROOT).as_posix())
+    assert len(visited) == 8, visited
 
 
 def test_every_launcher_command_in_a_skill_exists():

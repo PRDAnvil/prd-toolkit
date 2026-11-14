@@ -32,6 +32,8 @@ tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the
 and commit `.prd-toolkit/`.
 When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell
 the user the same.
+When `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists, the user also runs
+`prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commits both together.
 
 **One command per Bash call, with literal paths.** Each command below is its own Bash call, and
 every path, ID and SHA in it is typed out in full: paste what a command printed, never a variable

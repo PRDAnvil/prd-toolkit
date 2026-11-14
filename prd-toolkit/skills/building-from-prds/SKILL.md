@@ -74,6 +74,8 @@ tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the
 and commit `.prd-toolkit/`.
 When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell
 the user the same.
+When `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists, the user also runs
+`prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commits both together.
 
 The caller gives the builder `<scripts>` as the `Scripts:` line of its prompt, as an absolute path
 (the repository root joined to `.prd-toolkit` when the copy is vendored); the builder uses that value.

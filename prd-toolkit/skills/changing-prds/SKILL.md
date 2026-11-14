@@ -33,6 +33,8 @@ tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the
 and commit `.prd-toolkit/`. When `.prd-toolkit/` holds no `prd_change.py`, the vendored copy predates
 0.8.1: stop, and tell the user the same. When `.prd-toolkit/` exists but holds no `prd`, the
 vendored copy predates 0.8.8: stop, and tell the user the same.
+When `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists, the user also runs
+`prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commits both together.
 
 Lint, the mechanical gate:
 
