@@ -1,8 +1,8 @@
-# prd-toolkit 0.8.9: best-practice sources, and the next adopted area — backlog
+# prd-toolkit 0.8.11: best-practice sources, and the next adopted area — backlog
 
 > **Date:** 2026-11-08
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.9's own
+> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.11's own
 > brainstorm, or moves to a later release.
 > **Extends:** `2026-11-08-prd-toolkit-0.8.5-design.md` and the specs it extends, under
 > `2026-11-03-prd-toolkit-0.8-umbrella.md`.
@@ -22,12 +22,23 @@
 >   (`2026-11-14-prd-toolkit-0.8.8-invocation-design.md`), so this backlog is 0.8.9's; the file
 >   keeps its name. Item 3 leaves for 0.8.8. Item 5 leaves for the errors release that follows
 >   conversion (`docs/superpowers/plans/2026-11-14-prd-toolkit-engine-ports.md`, priority 5).
+> - Renumbered (owner, 2026-11-14): a help catalogue (0.8.9) and a Next part in the status report
+>   (0.8.10) are inserted after 0.8.8, so this backlog is 0.8.11's; the file keeps its name. Item 1
+>   gains pack authoring from an example repository. Item 3 is done in 0.8.8, with the limits its
+>   changelog entry names.
 
 ## 1. Backlog
 
-1. **Best-practice sources.** As the umbrella's 0.8.8 row says: sources found by Claude and approved
+1. **Best-practice sources.** As the umbrella's 0.8.11 row says: sources found by Claude and approved
    by the user, or added by the user; recorded per pack or per PRD; turned into §5 rows or checklist
    items; finding, installing or writing a skill or a pack when a PRD needs one, recorded in §6.
+   - **Pack authoring from an example repository** (owner, 2026-11-14). When a repository of a kind
+     no pack covers is adopted, its contract types are first declared as custom types in the PRD (as
+     the toolkit's own `cli` type is). When a second repository needs the same ones, the toolkit reads
+     both, proposes the pack (contract types, harness slots, levels, standards rows, skills rows) and
+     writes it with its validator, for the owner to approve. The owner has four other repositories of
+     different kinds to use as its test cases. A `macos-app` pack (parked in
+     `docs/superpowers/plans/2026-11-14-prd-toolkit-engine-ports.md`) is one output of that flow.
 2. **Adopt `lint-structure` in the toolkit's own PRD.** The second adopted area, after `lint-cli`,
    through `/prd-adopt lint-structure`: extracted as built, confirmed by the owner in the form, and
    closed by a characterization suite. A minor version of the toolkit's PRD. Adoption changes no

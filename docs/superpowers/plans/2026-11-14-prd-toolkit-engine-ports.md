@@ -12,6 +12,10 @@
 > **Carries:** every open item of 0.8.7 (`plans/2026-11-11-prd-toolkit-0.8.7.md`), of the 0.8.8
 > backlog (`specs/2026-11-08-prd-toolkit-0.8.6-backlog.md`) and of the umbrella's 0.8.8 and 0.8.9
 > rows, as they stand on `release/0.8.7` (d23cdfe).
+> **Decided later (owner, 2026-11-14, after the 0.8.8 build):** a help catalogue (0.8.9) and a Next
+> part in the status report (0.8.10) are inserted after 0.8.8, each its own release; best practices
+> move to 0.8.11 and conversion to 0.8.12, their content unchanged. The priority order below and the
+> umbrella's §4 rows say so.
 > **Source:** the review of `PRDAnvil/prd-engine` at `b6bd3e9` (v0.14.0) against prd-toolkit 0.8.6.
 
 **Goal:** Bring four ideas from prd-engine into prd-toolkit. Three are planned here: a replay that
@@ -48,20 +52,22 @@ new Python dependency in any phase.
 
 | # | Release | Contents | From | Size | Needs |
 |---|---|---|---|---|---|
-| 1 | **0.8.7** | Ship what is built: push `release/0.8.7`, one PR, merge, install, remove the worktree, refresh prdanvil.com `/design` and `/guide` | 0.8.7 plan | done but for the owner's word | the owner's word to push |
-| 2 | **0.8.8** | **Invocation:** uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering | backlog item 3; engine | small to medium | 0.8.7 |
-| 3 | **0.8.9** | **Best-practice sources**, and finding, installing or writing a skill or pack a PRD needs | umbrella row, backlog item 1 | large | 0.8.0 |
-| 4 | **0.8.10** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
-| 5 | **0.8.11** | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | engine; backlog item 5 | small | none |
-| 6 | **0.8.12** | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
-| 7 | after | **Antigravity wrapper** (phase 4), if its spike passes | engine | large, uncertain | the `prd` command |
+| 1 | **0.8.7** | Released: merged to `main` | 0.8.7 plan | done | — |
+| 2 | **0.8.8** | **Invocation**, built on `feat/prd-toolkit-0.8.8` and waiting for the owner's word to push: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; engine | built | 0.8.7 |
+| 3 | **0.8.9** | **Help catalogue:** a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | not sized | the `prd` command |
+| 4 | **0.8.10** | **Next part in the status report:** an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | not sized | 0.8.8 |
+| 5 | **0.8.11** | **Best-practice sources**, and finding, installing or writing a skill or pack a PRD needs, with pack authoring from an example repository | umbrella row, backlog item 1 | large | 0.8.0 |
+| 6 | **0.8.12** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
+| 7 | **0.8.13** | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | engine; backlog item 5 | small | none |
+| 8 | **0.8.14** | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
+| 9 | after | **Antigravity wrapper** (phase 4), if its spike passes | engine | large, uncertain | the `prd` command |
 | — | every release | **One area adopted** in the toolkit's own PRD: `lint-ids` next, then `lint-testcases` | backlog item 2's policy | medium each | the release that last reshaped the area |
 | — | 2.0.0 roadmap | **Signed approvals** | engine | medium | one of its three triggers |
 
 Why this order:
 
 - **0.8.7 first.** It is built and `ci-local` passed 5/5 on 2026-11-11. Every later branch should
-  be cut from a `main` that holds it.
+  be cut from a `main` that holds it. Done: 0.8.8 was cut from it.
 - **Invocation before the features.** Issue #2 is a defect in every install today: about 90 GB
   and 27 million files on the owner's machine before it was cleared, and the hooks keep adding.
   The fix rewrites how hooks, CI and skills start the scripts, and so does the `prd` command.
@@ -70,6 +76,9 @@ Why this order:
   times since 2026-11-03, each time by a fixes release. The owner moved it once more on
   2026-11-14, for a defect that grows daily. After that, fixes ride with a feature release or
   wait.
+- **The help catalogue and the Next part before best practices** (owner, 2026-11-14). Both are
+  small, both serve any client as much as the terminal, and each is its own release: 0.8.9 gives
+  a client the format's fields and the lint rules as data, 0.8.10 tells it what a PRD needs next.
 - **Errors after the features** because it is small and nothing waits on it; E-017 stays
   `confirmed` meanwhile, as the owner chose on 2026-11-11.
 - **Surface after conversion** because both reshape what a pack declares.
@@ -79,7 +88,7 @@ Why this order:
 `lint-structure` alone produced eight errors and a fixes release. This is the largest item on the
 list. It needs its own decision: adopt faster, group small areas, or drop the 1.0.0 condition.
 
-**prd-engine already prototyped priorities 3 and 4.** Its REQ-019 (best-practice sources, derived
+**prd-engine already prototyped priorities 5 and 6.** Its REQ-019 (best-practice sources, derived
 standards, skill acquisition) and REQ-020 (platform conversion, vocabulary warnings), with
 `practices.py` and `convert.py`, are a worked draft of both. Read them when those two specs are
 written; port ideas, not code.
@@ -92,21 +101,49 @@ listed.
 
 | ID | Item | Where it goes |
 |---|---|---|
-| R1 | 0.8.7 is not pushed: 11 commits on `release/0.8.7`, upstream unset | priority 1 |
+| R1 | 0.8.7 is not pushed: 11 commits on `release/0.8.7`, upstream unset | done: merged to `main` |
 | R2 | After 0.8.7 merges: install it, remove `.worktrees/release-0.8.7`, update the site's two pages | priority 1 |
-| B1 | Best-practice sources (backlog item 1) | priority 3 |
-| B3 | One uv environment per script path, per clone (backlog item 3, issue #2). Likely fix: `uv run --with … python <script>`; the vendored copies, hooks and generated CI must keep working or be rewritten by `install`, `vendor` and `ci` | priority 2 |
-| B5 | An error in code no adopted area covers has no close; E-017 is open because of it (backlog item 5) | priority 5 |
-| U9 | Conversion (umbrella row) | priority 4 |
+| B1 | Best-practice sources (backlog item 1) | priority 5 |
+| B3 | One uv environment per script path, per clone (backlog item 3, issue #2). Likely fix: `uv run --with … python <script>`; the vendored copies, hooks and generated CI must keep working or be rewritten by `install`, `vendor` and `ci` | addressed in 0.8.8: one `prd` launcher and one uv environment per requirements list; what remains is in its changelog entry's Known limits (the `document` pack's validator, judged tests written before 0.8.8) |
+| B5 | An error in code no adopted area covers has no close; E-017 is open because of it (backlog item 5) | priority 7 |
+| U9 | Conversion (umbrella row) | priority 6 |
 | A1 | Adopt the next area: `lint-ids`, then `lint-testcases` | every release |
-| C1 | `prd.md` line 60, "Out of scope: the repository's other plugins and the `web/` docs site", is stale since the move; a PRD patch | priority 2 |
-| C2 | SHAs from `ihistand/claude-plugins` outside `docs/prd` (the plugin README's changelog, `evals/BASELINE.md`) resolve only there; add a note | priority 2 |
-| C3 | `prd_error.py check` reports `Detected: changed` over a range that spans the move's SHA rewrite (c8f48cf); accept a provenance-only rewrite, or document "start the range after it" | priority 2 |
+| C1 | `prd.md` line 60, "Out of scope: the repository's other plugins and the `web/` docs site", is stale since the move; a PRD patch | done in 0.8.8 |
+| C2 | SHAs from `ihistand/claude-plugins` outside `docs/prd` (the plugin README's changelog, `evals/BASELINE.md`) resolve only there; add a note | done in 0.8.8 |
+| C3 | `prd_error.py check` reports `Detected: changed` over a range that spans the move's SHA rewrite (c8f48cf); accept a provenance-only rewrite, or document "start the range after it" | done in 0.8.8 |
+| E-019 | Seven eval scaffolds (the six deploy cases and `review-edits-nothing`) fail their own clean-tree check since 0.8.4, because `install` writes `CLAUDE.md` and the PRD READMEs, which the scaffolds never commit; their cases never run (the toolkit's `errors.md`, `proposed`) | open; the next release that touches the evals |
 
 Parked, with no release (recorded so they are not lost): the 5-sample dry run does not converge on
 a large adopted area (0.2 acceptance); the builder worktree and tester guard bind to the session's
 repository, so a change set needs one session per member (0.7, R-11c); the candidates in PR #25's
-body.
+body. **A `macos-app` pack**: contract types for an app's surface (screens, menus, keyboard
+shortcuts, accessibility identifiers, file formats, settings), an XCTest and UI-test harness,
+SwiftLint or swift-format standards rows, and a build, sign, notarize and release runbook shape; a
+macOS app that uses the toolkit as a client would be its first adopter, and the pack would come out
+of 0.8.11's pack-authoring flow. **adoption.md as data**: its Boundary cells are long lists in one
+table cell, which makes diffs and merges poor; first a command that edits the map, and a move to one
+path per line (YAML) only in a release that already changes the format.
+
+## Follow-ups from the 0.8.8 review
+
+One line each; none is in a release yet.
+
+- The `document` pack's validator still runs by its file from the vendored copy: a pack version bump.
+- The `core.hooksPath` marked-shim loop: `check` reports it stale and `install` cannot rewrite it
+  (`ours = _ours(path) and not _hooks_path_config(repo_root)`).
+- The stale-CI line that `install` and `check` print for a second PRD in the same repository.
+- The unknown-command message of a vendored copy lists `publish`, which runs only from the plugin.
+- `prd.md` section 1 says every script runs from `scripts/requirements.txt`; publish uses its own
+  file (the next PRD patch).
+- `header_deps` parses only a single-line dependency header.
+- `test_launcher_without_uv` on a machine with uv under `/usr/bin`.
+- An exact-match test for the generated `trace --range` line.
+- The two judged-test graders that miss a launcher path built in pieces.
+- The launcher alternative in graders is not tied to `.prd-toolkit` or `/scripts`.
+- Stale "judged tests call `.prd-toolkit/prd_judge.py`" wording in two skills and the `document` pack.
+- The first docstring lines of `prd_gates.py` and `prd_judge.py` are cut mid-sentence in `prd --help`.
+- E-019: the seven eval scaffolds that fail their own clean-tree check.
+- The `stops-in-review` grader of `changing-hands-off-to-change-set` fails at 0.8.7 and 0.8.8 alike.
 
 ---
 
@@ -163,6 +200,10 @@ preferred here: it closes E-017 without waiting on an adoption.
 ---
 
 ## Phase 2: `prd` dispatcher
+
+**Done in 0.8.8** (built on `feat/prd-toolkit-0.8.8`). The design that was built is
+`docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md` with its Revisions; the
+text below is the plan as first written.
 
 **Decision.** One entry point that **executes** the existing scripts; it does not import them.
 `prd lint docs/prd/x` replaces its own process with `prd_lint.py docs/prd/x`, so usage lines,
