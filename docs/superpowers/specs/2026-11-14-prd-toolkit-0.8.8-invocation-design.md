@@ -8,6 +8,15 @@
 > **Closes:** PRDAnvil/prd-toolkit#2, and item 3 of `2026-11-08-prd-toolkit-0.8.6-backlog.md`.
 
 > **Revisions.**
+> - §1, §2, §4 (owner, 2026-11-14): the release widens to every skill, command and agent line.
+>   §2 said the 80 `uv run --script <scripts>/…` lines run the plugin's own scripts, at one path per
+>   installed version. That was wrong: nine files define `<scripts>` as `.prd-toolkit` whenever the
+>   repository has a vendored copy, so those lines run the vendored copy by its file and keep one
+>   environment per script and per clone, which is most of what remains of #2. Every such line
+>   becomes `<scripts>/prd <command>`; each "Which script" paragraph stops on a vendored copy with
+>   no launcher; every grader that names a script accepts both forms; the README's vendored-copy
+>   examples follow. Found by Task 6's review; plan Tasks 6b, 6c and 6d. "Out" in §2 keeps only the
+>   evals' prompts, scaffolds and baselines, Windows without `sh`, and the scripts' uv headers.
 > - §2 (plan, 2026-11-14): six eval graders match a script's file name in a command
 >   (`prd_links\.py`, `prd_judge\.py`). They are changed to accept both forms, in the task that
 >   changes the skill lines; the evals' prompts and baselines stay out of scope. The 80 plugin-path
