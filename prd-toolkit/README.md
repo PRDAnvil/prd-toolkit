@@ -66,11 +66,12 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 - **Which copy to run.** A person's shell does not set `${CLAUDE_PLUGIN_ROOT}`, so the commands here
   name a path. In a repo whose hooks are installed, run the vendored launcher,
   `.prd-toolkit/prd <command>`, where the command is the script's name without `prd_` and `.py`,
-  with `_` written `-` (`prd_build_check.py` is `build-check`). Before the first install (no `.prd-toolkit/` yet) run the plugin's
-  install path, `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/<script>.py`, where `prdanvil` is this marketplace's name and
-  `<version>` is the installed version (`claude plugin list` shows it, and so does
-  `ls ~/.claude/plugins/cache/prdanvil/prd-toolkit/`). A checkout of this repo works too, as the
-  other two lines do.
+  with `_` written `-` (`prd_build_check.py` is `build-check`). Before the first install (no
+  `.prd-toolkit/` yet) run the plugin's install path,
+  `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/<script>.py`, where `prdanvil` is
+  this marketplace's name and `<version>` is the installed version (`claude plugin list` shows it,
+  and so does `ls ~/.claude/plugins/cache/prdanvil/prd-toolkit/`). A checkout of this repo works
+  too, as the other two lines do.
 - Output is one line per violation: `<file>:<line>: <rule>: <message>`.
 - Exit 0 when clean, 1 on violations, 2 on usage, dependency or internal error.
 - Output is `<file>:<line>: warn: <rule>: <message>` for a warning (`platform-word`); the exit code counts errors only.
@@ -854,7 +855,7 @@ the user cannot state.
 
 ## Changelog
 
-Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived until 0.8.6.
+Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
 - **0.8.7:** fixes and full command names; no feature. Current Claude Code lists a plugin's commands only under the plugin's name, so a bare `/prd-build` is "Unknown command": every template, skill, command, agent and script message now names the commands in full (`/prd-toolkit:prd-build`, `/prd-toolkit:prd-error`, …), including the managed `CLAUDE.md` block and the `docs/prd/README.md` and `docs/prd/<slug>/README.md` blocks that `prd_block.py` writes. The `lint-structure` fixes from its adoption: `sections` names an unnumbered heading as it is, not `## None.` (E-009); `vague-word` skips code spans in acceptance criteria (E-010); the placeholder, marker, assumption and glossary rules skip hidden files (E-011); a frontmatter key missing from `prd.md` is reported at the frontmatter, not a body line (E-012); an empty Test roots list is reported wherever a marker sits on the Layout line (E-013); a repeated section or Harness slot is reported as a duplicate, not as out of order (E-014); an empty section 13 fails `open-questions-empty` on an Approved PRD (E-015); the `adoption.md` header finding names the header's line (E-016). The toolkit's own test `test_validator_fails_defect` runs the document pack's validator with `--quiet`, as the pack does, so uv's `Installed 1 package` line no longer breaks it (E-017). The toolkit's own PRD is 6.2.2. Best-practice sources move to 0.8.8 and conversion to 0.8.9. See the [plan](../docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md).
   - **Upgrade:** run `claude plugin marketplace update prdanvil` and `claude plugin update prd-toolkit@prdanvil` at each scope it is installed at, then `/reload-plugins`. A repository that vendors the toolkit keeps the old, bare command names in its `CLAUDE.md` block and its PRD READMEs until it runs `uv run --script <plugin>/scripts/prd_hooks.py install docs/prd/<slug>` from 0.8.7 and commits `.prd-toolkit/` with the refreshed blocks; until then its own checks stay green, because they read the vendored templates.
