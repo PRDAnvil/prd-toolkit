@@ -345,10 +345,10 @@ def test_snapshot_tool_is_named():
 def test_changing_prds_runs_impact_after_the_restate_and_hands_off():
     t = CHANGING.read_text(encoding="utf-8")
     restate, bump = t.index("1. **Restate the change**"), t.index("3. **Bump the version**")
-    at = t.index("prd_links.py impact")
+    at = t.index("<scripts>/prd links impact")
     assert restate < at < bump
     para = " ".join(t[at - 600:bump].split())
-    assert 'uv run --script <scripts>/prd_links.py impact docs/prd/<slug>; echo "prd-links-exit=$?"' in para
+    assert '<scripts>/prd links impact docs/prd/<slug>; echo "prd-links-exit=$?"' in para
     assert "When `links.md` has Consumers" in para
     assert "`1`" in para and "`3`" in para and "stops this change" in para
     assert "/prd-toolkit:prd-change-set" in para and "prd-toolkit:coordinating-prds" in para
@@ -366,7 +366,7 @@ def test_running_a_build_on_a_change_set_branch():
     para_at = t.index("**On a change-set branch.**")
     assert para_at < t.index("3. **Dispatch the builder's round, then the tester.**")
     para = " ".join(t[para_at:t.index("\n\n**", para_at + 10)].split())
-    assert ('uv run --script <scripts>/prd_links.py sync docs/prd/<slug> <upstream> --ref <branch>; '
+    assert ('<scripts>/prd links sync docs/prd/<slug> <upstream> --ref <branch>; '
             'echo "prd-links-exit=$?"') in t
     assert "each upstream member" in para and "before the dispatch" in para
     assert '-m "Change-set: <start-prd>/CS-<nnn>"' in para

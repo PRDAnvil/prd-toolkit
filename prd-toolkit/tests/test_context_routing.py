@@ -43,7 +43,7 @@ def test_block_stays_small(prd):
 
 def test_changing_step_1_runs_the_decide_pack():
     step1 = section(CHANGING, "1. **Restate the change**", "2. **Edit the PRD.**")
-    assert "<scripts>/prd_context.py" in step1 and 'echo "prd-context-exit=$?"' in step1
+    assert "<scripts>/prd context " in step1 and 'echo "prd-context-exit=$?"' in step1
     assert "Read whole PRD files only to edit them" in CHANGING.read_text()
     assert "Grep the PRD folder for each ID" not in step1
     assert "as your first look at the PRD, run the pack" in " ".join(step1.split())
@@ -69,7 +69,7 @@ def test_adopting_previews_come_from_the_implement_pack():
 def test_command_maps_arguments():
     raw = (ROOT / "commands/prd-context.md").read_text()
     t = " ".join(raw.split())
-    assert raw.startswith("---\ndescription: ") and "<scripts>/prd_context.py" in t
+    assert raw.startswith("---\ndescription: ") and "<scripts>/prd context " in t
     assert "ask which PRD" in t
     assert "is the area: pass it as `--area <area>`" in t
     assert "`UJ-`, `FR-`, `NFR-`, `AC-`, `T-` or `E-`" in t and "never the area" in t
@@ -291,10 +291,13 @@ def test_r21_every_scripts_call_is_vendored():
     """Scan, do not list: a script a text calls through <scripts> must be one the hooks vendor."""
     from prdlint import hooks
     called = set()
-    for rel in R21_FILES:
-        called |= set(re.findall(r"<scripts>/(\w+\.py)", (ROOT / rel).read_text(encoding="utf-8")))
-    called |= set(re.findall(r"<scripts>/(\w+\.py)", (ROOT / "skills/deploying-from-prds/running-a-deploy.md").read_text(encoding="utf-8")))
-    assert called and "prd_block.py" in called
+    for rel in [*R21_FILES, "skills/deploying-from-prds/running-a-deploy.md"]:
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        called |= set(re.findall(r"<scripts>/(\w+\.py)", text))
+        # `<scripts>/prd <command>` runs the launcher, and through it `prd_<command>.py`
+        commands = re.findall(r"<scripts>/prd ([a-z][a-z-]*)\b", text)
+        called |= {f"prd_{c.replace('-', '_')}.py" for c in commands} | ({"prd"} if commands else set())
+    assert called and "prd_block.py" in called and "prd" in called
     assert called <= set(hooks.VENDORED), called - set(hooks.VENDORED)
 
 

@@ -66,11 +66,14 @@ directory: that is the copy its hooks and CI run. Otherwise `<scripts>` is the p
 directory, written as a literal absolute path (in double quotes if it holds a space): the plugin
 root is two directories above the skill's base directory (Claude Code shows it as "Base
 directory for this skill" when the skill loads), and `<scripts>` is `<plugin root>/scripts`.
-Glob for `.prd-toolkit/*.py` once to decide, and use the same `<scripts>` for every command.
+Glob for `.prd-toolkit/prd*` once to decide (it lists `prd` and the `prd_*.py` scripts), and use
+the same `<scripts>` for every command.
 A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`.
+When `.prd-toolkit/` holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user
+the same.
 
 The caller gives the builder `<scripts>` as the `Scripts:` line of its prompt, as an absolute path
 (the repository root joined to `.prd-toolkit` when the copy is vendored); the builder uses that value.
@@ -95,7 +98,7 @@ only. The caller's `--sources` rejected the lines the prompt quotes; give each b
 its implementation starts, by this report's SOURCES rule.
 
 1. **The pack first.** Before you open any PRD file or write anything, run, as its own Bash call:
-   `uv run --script <scripts>/prd_context.py docs/prd/<slug> --area <area> --req <IDs> --for implement; echo "prd-context-exit=$?"`.
+   `<scripts>/prd context docs/prd/<slug> --area <area> --req <IDs> --for implement; echo "prd-context-exit=$?"`.
    `prd-context-exit=0` is current; `1` means a STALE source: re-read each code region the pack
    marks STALE before you rely on it (`STALE: the cited line's text is gone`,
    `STALE: the cited line's text appears <N> times`, `STALE: <path> is not in <sha>`); `2` is a
@@ -130,7 +133,7 @@ its implementation starts, by this report's SOURCES rule.
    refreshes it, never a hand edit: a change
    to any plugin file that `vendor` copies (its scripts, templates, language tables and the
    packs the PRD names) is followed, before the commit, by
-   `uv run --script <worktree>/<dir>/scripts/prd_hooks.py vendor docs/prd/<slug>`, its own Bash call,
+   `<worktree>/<dir>/scripts/prd hooks vendor docs/prd/<slug>`, its own Bash call,
    run from the builder's own worktree so it vendors your changed scripts; commit the
    `.prd-toolkit/` changes in the same commit as the change. Never an edit under `.prd-toolkit/` by
    hand, and never prd_hooks.py install.

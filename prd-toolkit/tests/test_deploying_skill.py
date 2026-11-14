@@ -205,7 +205,7 @@ def test_gate_forms_in_both_files():
         for line in path.read_text(encoding="utf-8").splitlines():
             for script, gate in (("prd_deploy.py", "prd-deploy-exit"), ("prd_lint.py", "prd-lint-exit"),
                                  ("prd_trace.py", "prd-trace-exit")):
-                if f"<scripts>/{script}" in line:
+                if f"<scripts>/{script}" in line or f"<scripts>/prd {script[4:-3].replace('_', '-')} " in line:
                     assert f'echo "{gate}=$?"' in line, (path.name, line)
 
 
@@ -222,7 +222,7 @@ def test_procedure_commands_are_one_per_call_with_literal_paths():
                 assert bad not in head, (bad, line)
     t = RUN.read_text(encoding="utf-8")
     for cmd in ("plan", "run", "confirm", "resume", "rollback", "check"):
-        assert f"uv run --script <scripts>/prd_deploy.py {cmd} docs/prd/<slug>" in t, cmd
+        assert f"<scripts>/prd deploy {cmd} docs/prd/<slug>" in t, cmd
     assert "One command per Bash call, with literal paths." in flat(RUN)
 
 
@@ -306,8 +306,8 @@ def test_r20_which_script_to_call():
     blocks = re.findall(r"```bash\n(.*?)```", RUN.read_text(encoding="utf-8"), re.S)
     for block in blocks:
         for line in block.splitlines():
-            if ".py" in line:
-                assert line.strip().startswith("uv run --script <scripts>/"), line
+            if ".py" in line or "<scripts>/" in line:
+                assert line.strip().startswith("<scripts>/prd "), line
 
 
 def test_failure_entry_is_written_with_prd_error_new():
@@ -365,7 +365,7 @@ def test_recover_procedure():
     assert "prd-deploy: failed step=<N> run=<id>" in two
     assert "recovered: no result after start" in two
     assert "a new run" in two
-    assert "uv run --script <scripts>/prd_deploy.py recover docs/prd/<slug> --run <id> --step <N> --reply" in RUN.read_text(encoding="utf-8")
+    assert "<scripts>/prd deploy recover docs/prd/<slug> --run <id> --step <N> --reply" in RUN.read_text(encoding="utf-8")
     assert "${CLAUDE_PLUGIN_ROOT}" not in "\n".join(re.findall(r"```bash\n(.*?)```", RUN.read_text(encoding="utf-8"), re.S))
 
 
@@ -379,8 +379,8 @@ def test_recover_replaces_never_work_around_for_a_killed_step():
 
 # The brief's sentence, with the command in a code block: every `<scripts>/prd_deploy.py` line carries its exit gate
 # (test_gate_forms_in_both_files), which a prose line cannot fit in 100 columns.
-BY_HAND = ("A deploy the owner did by hand is recorded with this command, its own Bash call: ```bash uv run --script "
-           "<scripts>/prd_deploy.py record docs/prd/<slug> --env <env> --commit <sha> --reply \"<the owner's words>\"; "
+BY_HAND = ("A deploy the owner did by hand is recorded with this command, its own Bash call: ```bash "
+           "<scripts>/prd deploy record docs/prd/<slug> --env <env> --commit <sha> --reply \"<the owner's words>\"; "
            "echo \"prd-deploy-exit=$?\" ``` It prints `run=<id>`. Commit its row as the close and run `prd_deploy.py check` on it")
 
 
@@ -414,9 +414,9 @@ def test_by_hand_record_during_a_stopped_run():
 
 LATER_STEP = "a later `--step` only for a step the owner's reply names"
 NEVER_ASK = "Never ask in the chat whether later steps are done."
-MULTI_CONFIRM = ("uv run --script <scripts>/prd_deploy.py confirm docs/prd/<slug> --run <id> --step <N> --reply '<the reply "
+MULTI_CONFIRM = ("<scripts>/prd deploy confirm docs/prd/<slug> --run <id> --step <N> --reply '<the reply "
                  "to step N>' --step <M> --reply '<the reply to step M>'; echo \"prd-deploy-exit=$?\"")
-MID_RUN_ENTRY = ('uv run --script <scripts>/prd_error.py new docs/prd/<slug> --title "<the error in one line>" --source '
+MID_RUN_ENTRY = ('<scripts>/prd error new docs/prd/<slug> --title "<the error in one line>" --source '
                  '"deploy run <run id>, step <N>"; echo "prd-error-exit=$?"')
 BRANCH_NOTE = "prd_deploy: the close is on <current>, not <branch>; push the close commit to <branch> too"
 
@@ -436,7 +436,7 @@ def test_085_mid_run_entry_is_left_uncommitted_and_the_close_carries_it():
     two = step(2)
     assert MID_RUN_ENTRY in two
     at = 0
-    for s in ("**An error found while the run is stopped.**", "prd_error.py new", "Do not commit it", "then resume",
+    for s in ("**An error found while the run is stopped.**", "<scripts>/prd error new", "Do not commit it", "then resume",
               "the close commit carries it", "`/prd-toolkit:prd-error E-<nnn>` after the close"):
         at = two.index(s, at)
     assert "the tracked tree has changes" in two

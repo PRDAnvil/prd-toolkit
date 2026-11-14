@@ -14,7 +14,7 @@ README = ROOT / "README.md"
 PLUGIN_PATH = "~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts"  # R22: a shell does not set CLAUDE_PLUGIN_ROOT
 INSTALL = f"uv run --script {PLUGIN_PATH}/prd_hooks.py install docs/prd/<slug>"  # the README: no Bash tool there
 CI = f"uv run --script {PLUGIN_PATH}/prd_hooks.py ci --github docs/prd/<slug>"
-SKILL_INSTALL = "uv run --script <scripts>/prd_hooks.py install docs/prd/<slug>"  # skills: R21
+SKILL_INSTALL = "<scripts>/prd hooks install docs/prd/<slug>"  # skills: R21
 
 
 def flat(path: Path) -> str:

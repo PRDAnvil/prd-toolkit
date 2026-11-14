@@ -289,7 +289,7 @@ def test_tester_example_runs_the_judge_from_the_repository_root():
 
 def _commands(text: str) -> list[str]:
     blocks = re.findall(r"```(?:bash)?\n(.*?)```", text, re.S)
-    spans = re.findall(r"`((?:uv run|git|rm|ls|mkdir|find|diff|python3?|\.prd-toolkit/prd) [^`]*)`", text)
+    spans = re.findall(r"`((?:uv run|git|rm|ls|mkdir|find|diff|python3?|[^`\s]*/prd) [^`]*)`", text)  # `<x>/prd <command>` is the launcher
     return [b for b in blocks] + spans
 
 
@@ -305,7 +305,7 @@ def test_no_plugin_root_variable_inside_a_command():
 # ---------------------------------------------------------------- 0.8.5, spec 13 (items 3, 6, A, 7): Task 14's pins
 
 PACK_CALL = 'uv run --script <plugin scripts>/prd_change.py pack docs/prd/<slug> <name> <X.Y.Z>; echo "prd-change-exit=$?"'
-PACK_INSTALL = "uv run --script <plugin scripts>/prd_hooks.py install docs/prd/<slug>"
+PACK_INSTALL = "<plugin scripts>/prd hooks install docs/prd/<slug>"
 PACK_DRY_RUN = "--dry-run 'no dry run (pack version only)'"
 TIMEOUT_COPY = "its `timeout` into the level's `Timeout` cell (blank when the pack has none)"
 MOVED = "`MOVED: line <L> is now line <M>`"
@@ -344,7 +344,7 @@ def test_085_authoring_and_adoption_copy_a_levels_timeout():
 
 
 # Fix round 2 (minors): the pack flow's install gate, the uncommitted .prd-toolkit/, its refusals, no numbering.
-PACK_INSTALL_GATE = 'uv run --script <plugin scripts>/prd_hooks.py install docs/prd/<slug>; echo "prd-hooks-exit=$?"'
+PACK_INSTALL_GATE = '<plugin scripts>/prd hooks install docs/prd/<slug>; echo "prd-hooks-exit=$?"'
 
 
 def test_085_fix2_pack_flow_install_gate_refusals_and_no_numbers():
@@ -356,4 +356,4 @@ def test_085_fix2_pack_flow_install_gate_refusals_and_no_numbers():
     for refusal in ("`the lines naming <name> disagree on its version or source`",
                     "`pack <name> <X.Y.Z> (<source>) not found; looked in: …`"):
         assert refusal in flow, refusal
-    assert not re.search(r" [123]\. `uv run", flow)
+    assert not re.search(r" [123]\. `(?:uv run|[^`]*?/prd )", flow)

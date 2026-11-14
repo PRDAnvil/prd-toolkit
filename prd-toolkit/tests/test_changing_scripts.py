@@ -31,10 +31,13 @@ def step(n: int) -> str:
 
 
 def commands(text: str, script: str) -> list[str]:
-    """Every backticked command that runs `script`, and every line of a bash block that does."""
+    """Every backticked command that runs `script`, and every line of a bash block that does, in either form:
+    `uv run --script <scripts>/prd_change.py bump …` or the launcher's `<scripts>/prd change bump …`."""
+    launcher = re.sub(r"prd_(\w+)\.py", lambda m: "<scripts>/prd " + m.group(1).replace("_", "-"), script)
     spans = re.findall(r"`(uv run --script [^`]*" + re.escape(script) + r"[^`]*)`", flat(text))
+    spans += re.findall(r"`(" + re.escape(launcher) + r"[^`]*)`", flat(text))
     blocks = [ln.strip() for b in re.findall(r"```bash\n(.*?)```", text, re.S) for ln in b.splitlines()
-              if script in ln]
+              if script in ln or launcher in ln]
     return spans + blocks
 
 
@@ -44,10 +47,10 @@ def test_skill_runs_each_prd_change_subcommand_as_its_own_gated_call():
     text = SKILL.read_text(encoding="utf-8")
     cmds = commands(text, "prd_change.py")
     for sub in ("ids next", "bump", "record", "approve"):
-        mine = [c for c in cmds if f"prd_change.py {sub} " in c]
+        mine = [c for c in cmds if f"prd_change.py {sub} " in c or f"prd change {sub} " in c]
         assert mine, sub
         for c in mine:
-            assert c.startswith("uv run --script <scripts>/prd_change.py "), c
+            assert c.startswith("<scripts>/prd change "), c
             assert c.endswith(GATE), c
             assert "&&" not in c and "|" not in c.replace("prd-change-exit", ""), c
             assert "CLAUDE_PLUGIN_ROOT" not in c, c
@@ -68,7 +71,7 @@ def test_skill_stops_on_a_vendored_copy_without_prd_change():
 
 def test_step_2_takes_each_new_id_from_ids_next():
     s = step(2)
-    assert "prd_change.py ids next docs/prd/<slug> <kind>" in s
+    assert "<scripts>/prd change ids next docs/prd/<slug> <kind>" in s
     for kind in ("`FR`", "`NFR`", "`UJ`", "`AC-<nnn>`", "`T-<nnn>`"):
         assert kind in s, kind
     assert "never count" in s
@@ -76,7 +79,8 @@ def test_step_2_takes_each_new_id_from_ids_next():
 
 def test_step_3_runs_bump_then_record_and_the_model_decides_judgment():
     s = step(3)
-    assert s.index("prd_change.py bump docs/prd/<slug> --base HEAD") < s.index("prd_change.py record docs/prd/<slug> --base HEAD")
+    assert (s.index("<scripts>/prd change bump docs/prd/<slug> --base HEAD")
+            < s.index("<scripts>/prd change record docs/prd/<slug> --base HEAD"))
     for needle in ("`needs judgment`", "Version rule", "`--bump`", "`patch`, `minor` or `major`",
                    "refused: the diff needs", "a needs-judgment bump must be decided first",
                    "replaces its own `pending` row", "never edit the version"):

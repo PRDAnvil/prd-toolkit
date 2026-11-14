@@ -378,7 +378,7 @@ PUBLISH_CMD = ROOT / "commands/prd-publish.md"
 
 def test_minor_stop_entry_and_deploy_entry_use_the_procedures_forms():
     r = flat(RUN)
-    assert ("prd_error.py new docs/prd/<slug> --title '<the stop in one line>' --source 'build <area> <IDs>' "
+    assert ("<scripts>/prd error new docs/prd/<slug> --title '<the stop in one line>' --source 'build <area> <IDs>' "
             "--touches <IDs> --evidence-file <SNAP>/stop-evidence.md; echo \"prd-error-exit=$?\"") in r
     d = flat(DEPLOY_RUN)
     assert ('--source "deploy run <run id>, failed step <N>"; echo "prd-error-exit=$?"') in d
@@ -387,7 +387,7 @@ def test_minor_stop_entry_and_deploy_entry_use_the_procedures_forms():
 
 def test_minor_deploy_names_prd_error_after_a_passing_regression_test():
     five = flat(DEPLOY_RUN).split("5. **Report.**", 1)[1]
-    assert "prd_error.py list docs/prd/<slug> --open; echo \"prd-error-exit=$?\"" in five
+    assert "<scripts>/prd error list docs/prd/<slug> --open; echo \"prd-error-exit=$?\"" in five
     assert ("for each `confirmed` entry whose `Touches:` names a block the run's `tests` step passed, name "
             "`/prd-toolkit:prd-error E-nnn` as the next step: it resolves the entry from this run's log") in five
 

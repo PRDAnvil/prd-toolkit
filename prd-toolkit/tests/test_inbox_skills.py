@@ -17,9 +17,9 @@ ADOPTING = SKILLS / "adopting-prds/SKILL.md"
 TESTING = SKILLS / "testing-from-prds/SKILL.md"
 DECISION_SKILLS = (CHANGING, ERROR, DEPLOYING, ADOPTING)
 
-WAIT = "uv run --script <scripts>/prd_gates.py wait docs/prd/<slug> <gate id>"
-SERVE = "uv run --script <scripts>/prd_gates.py serve docs/prd/<slug> --gate <gate id>"
-LIST = 'uv run --script <scripts>/prd_gates.py list docs/prd/<slug>; echo "prd-gates-exit=$?"'
+WAIT = "<scripts>/prd gates wait docs/prd/<slug> <gate id>"
+SERVE = "<scripts>/prd gates serve docs/prd/<slug> --gate <gate id>"
+LIST = '<scripts>/prd gates list docs/prd/<slug>; echo "prd-gates-exit=$?"'
 LIVE = "prd_gates: an inbox is already serving at <url>"
 RULES = (
     "**The skill never answers a gate.** Not through the page, not through `prd_gates.py answer`, not \"because the "
@@ -93,9 +93,9 @@ def test_each_skill_asks_through_the_inbox_with_its_gate_and_keeps_the_chat_rout
         assert f"through **The decision inbox** below, with the gate {gate}" in t, path.name
     chat = {
         CHANGING: ("The chat route: wait for explicit approval.",
-                   "uv run --script <scripts>/prd_change.py approve docs/prd/<slug> --reply '<the reply, verbatim>'"),
+                   "<scripts>/prd change approve docs/prd/<slug> --reply '<the reply, verbatim>'"),
         ERROR: ("**With no one to ask, commit the proposal and stop.**",
-                "uv run --script <scripts>/prd_error.py confirm docs/prd/<slug> <E-nnn> --reply '<the reply, verbatim>'"),
+                "<scripts>/prd error confirm docs/prd/<slug> <E-nnn> --reply '<the reply, verbatim>'"),
         DEPLOYING: ("With no one to ask, the run stays stopped and the report says so.",),
         ADOPTING: ("AskUserQuestion when the tool is available, otherwise the checklist file",
                    "A headless run stops with the area `extracted`"),
@@ -104,7 +104,7 @@ def test_each_skill_asks_through_the_inbox_with_its_gate_and_keeps_the_chat_rout
         t = flat(path.read_text(encoding="utf-8"))
         for needle in needles:
             assert needle in t, (path.name, needle)
-    assert ("uv run --script <scripts>/prd_deploy.py confirm docs/prd/<slug> --run <id> --step <N> --reply "
+    assert ("<scripts>/prd deploy confirm docs/prd/<slug> --run <id> --step <N> --reply "
             "'<the reply, verbatim>'") in flat(RUNNING_DEPLOY.read_text(encoding="utf-8"))
 
 
@@ -119,9 +119,9 @@ def test_each_outcome_is_continued_without_running_the_owner_script_again():
     r = flat(RUNNING_DEPLOY.read_text(encoding="utf-8"))
     assert "`deploying-from-prds` **The decision inbox**" in r and "`deploy-step:<run id>:<N>`" in r
     t = flat(ADOPTING.read_text(encoding="utf-8"))
-    assert ("uv run --script <scripts>/prd_confirm.py open docs/prd/<slug> --area <area> --summaries "
+    assert ("<scripts>/prd confirm open docs/prd/<slug> --area <area> --summaries "
             ".prd-confirm-<area>-summaries.json; echo \"prd-confirm-exit=$?\"") in t
-    assert t.index("prd_confirm.py open docs/prd/<slug>") < t.index("with the gate `adoption:<area>`")
+    assert t.index("<scripts>/prd confirm open docs/prd/<slug>") < t.index("with the gate `adoption:<area>`")
 
 
 def test_the_inbox_red_flags():
@@ -136,11 +136,11 @@ def test_the_testing_skill_states_the_signoff_rule():
 def test_no_plugin_root_variable_in_an_inbox_command():
     for path in DECISION_SKILLS:
         text = path.read_text(encoding="utf-8")
-        spans = re.findall(r"`([^`]*prd_(?:gates|confirm)\.py [^`]*)`", text)
-        commands = [c for c in spans if c.startswith("uv run")]
+        spans = re.findall(r"`([^`]*(?:prd_(?:gates|confirm)\.py|/prd (?:gates|confirm)) [^`]*)`", text)
+        commands = [c for c in spans if c.startswith("uv run") or re.match(r"\S*/prd (?:gates|confirm) ", c)]
         assert commands, path.name
         for c in commands:
-            assert "CLAUDE_PLUGIN_ROOT" not in c and c.startswith("uv run --script <scripts>/"), (path.name, c)
+            assert "CLAUDE_PLUGIN_ROOT" not in c and c.startswith("<scripts>/prd "), (path.name, c)
 
 
 # ---------------------------------------------------------------- the retarget refusal names no release

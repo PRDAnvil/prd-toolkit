@@ -18,10 +18,25 @@ def test_no_vendored_script_is_run_by_its_file():
     assert hits == []
 
 
-def test_plugin_path_lines_are_untouched():
-    n = sum(line.count("uv run --script <scripts>/") for p in tracked("skills", "commands", "agents")
-            for line in p.read_text(encoding="utf-8").splitlines())
-    assert n == 80        # 77 in skills, 2 in commands, 1 in agents, counted on bfb63da
+def test_no_skill_line_runs_a_script_by_its_file():
+    hits = [f"{p}:{n}" for p in tracked("skills", "commands", "agents", "templates")
+            for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
+            if re.search(r"uv run --script\s+\S*prd_\w+\.py", line)]
+    assert hits == []
+
+
+def test_every_scripts_command_uses_the_launcher():
+    n = sum(len(re.findall(r"<scripts>/prd [a-z][a-z-]*\b", p.read_text(encoding="utf-8")))
+            for p in tracked("skills", "commands", "agents"))
+    assert n >= 80        # the 80 `uv run --script <scripts>/` lines counted on 94a4ba2
+
+
+def test_every_scripts_definition_checks_for_the_launcher():
+    for p in tracked("skills", "commands"):
+        text = p.read_text(encoding="utf-8")
+        if "`<scripts>` is `.prd-toolkit` when" in text:
+            para = next(par for par in text.split("\n\n") if "`<scripts>` is `.prd-toolkit` when" in par)
+            assert "predates 0.8.8" in para and "`prd`" in para, p
 
 
 def _paragraphs(text: str) -> list[str]:

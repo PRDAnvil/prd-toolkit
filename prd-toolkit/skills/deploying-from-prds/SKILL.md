@@ -78,7 +78,7 @@ record it" change nothing below.
    did by hand is recorded with this command, its own Bash call:
 
    ```bash
-   uv run --script <scripts>/prd_deploy.py record docs/prd/<slug> --env <env> --commit <sha> --reply "<the owner's words>"; echo "prd-deploy-exit=$?"
+   <scripts>/prd deploy record docs/prd/<slug> --env <env> --commit <sha> --reply "<the owner's words>"; echo "prd-deploy-exit=$?"
    ```
 
    It prints `run=<id>`. Commit its row as the close and run `prd_deploy.py check` on it, with
@@ -95,9 +95,9 @@ paths, written with the skill's `<scripts>` path, never `${CLAUDE_PLUGIN_ROOT}`.
 
 - **`wait`, first.** Start it with the Bash tool's `run_in_background`, before the owner sees any
   URL, so no answer can come before it is watching:
-  `uv run --script <scripts>/prd_gates.py wait docs/prd/<slug> <gate id>`
+  `<scripts>/prd gates wait docs/prd/<slug> <gate id>`
 - **The URL.** Then start, also with `run_in_background`,
-  `uv run --script <scripts>/prd_gates.py serve docs/prd/<slug> --gate <gate id>`
+  `<scripts>/prd gates serve docs/prd/<slug> --gate <gate id>`
   and re-read its output until its first line appears:
   - `url=<url>`: give the owner that URL as a clickable link, beside what the step shows in the
     chat.
@@ -137,7 +137,7 @@ The rules:
 - **A deploy step's reply is never sent for the owner,** in the form or the CLI.
 - **The outcome's reply is not edited.** A `changes` outcome's reply is what the revision answers.
 - A `wait` that exits 1 means the gate changed: list again, never assume the answer. List with
-  `uv run --script <scripts>/prd_gates.py list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
+  `<scripts>/prd gates list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
   still listed is asked again from `wait`, and one that is gone is reported to the owner as it
   stands.
 

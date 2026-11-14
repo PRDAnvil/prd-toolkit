@@ -27,7 +27,7 @@ these rules:
 - `<scripts>` in the command below is the `Scripts:` line when your prompt has one; otherwise the
   Which-script rule of the `building-from-prds` skill decides it. Run the implement pack first,
   as its own Bash call, before you open any PRD file:
-  `uv run --script <scripts>/prd_context.py docs/prd/<slug> --area <area> --req <IDs> --for implement; echo "prd-context-exit=$?"`.
+  `<scripts>/prd context docs/prd/<slug> --area <area> --req <IDs> --for implement; echo "prd-context-exit=$?"`.
   On `1`, re-read each region marked STALE. Never pipe or filter it.
 - Write the unit tests first, one per unit T-id in your prompt, each citing `@prd <T-id>`, in a
   file that cites only unit T-ids; see them fail with the `unit` Levels harness command; then
@@ -51,7 +51,7 @@ these rules:
   `.claude-plugin/plugin.json` named `prd-toolkit` and its `scripts/prd_hooks.py`), `vendor`
   refreshes it, never a hand edit: a change to any plugin file that `vendor` copies (scripts,
   templates, language tables, the packs the PRD names) is followed, before the commit, by
-  `uv run --script <worktree>/<dir>/scripts/prd_hooks.py vendor docs/prd/<slug>`, its own Bash call,
+  `<worktree>/<dir>/scripts/prd hooks vendor docs/prd/<slug>`, its own Bash call,
   from the build worktree you are in, so it vendors your changed scripts; commit `.prd-toolkit/` in the
   same commit. Never an edit under `.prd-toolkit/` by hand, and never prd_hooks.py install.
 - Run each `enforced` Standards-registry linter on the files you changed that match its glob.

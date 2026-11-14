@@ -25,7 +25,8 @@ directory: that is the copy its hooks and CI run. Otherwise `<scripts>` is the p
 directory, written as a literal absolute path (in double quotes if it holds a space): the plugin
 root is two directories above the skill's base directory (Claude Code shows it as "Base
 directory for this skill" when the skill loads), and `<scripts>` is `<plugin root>/scripts`.
-Glob for `.prd-toolkit/*.py` once to decide, and use the same `<scripts>` for every command.
+Glob for `.prd-toolkit/prd*` once to decide (it lists `prd` and the `prd_*.py` scripts), and use
+the same `<scripts>` for every command.
 A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
@@ -36,7 +37,7 @@ predates 0.8.8: stop, and tell the user the same.
 Lint, the mechanical gate:
 
 ```bash
-uv run --script <scripts>/prd_lint.py docs/prd/<slug>; echo "prd-lint-exit=$?"
+<scripts>/prd lint docs/prd/<slug>; echo "prd-lint-exit=$?"
 ```
 
 The gate is the `prd-lint-exit=` value lint prints: `0` clean, `1` violations, `2` usage or internal error. Ignore the Bash call's own success; the trailing echo always succeeds. Use this form every time you run lint.
@@ -94,7 +95,7 @@ the old version). On a refusal, stop and report it.
   `the lines naming <name> disagree on its version or source`, the resolver's
   `pack <name> <X.Y.Z> (<source>) not found; looked in: …`, or uncommitted changes in the PRD
   folder (commit or set them aside first: it never mixes into another change).
-- Then `uv run --script <plugin scripts>/prd_hooks.py install docs/prd/<slug>; echo "prd-hooks-exit=$?"`,
+- Then `<plugin scripts>/prd hooks install docs/prd/<slug>; echo "prd-hooks-exit=$?"`,
   which re-vendors the pack. `.prd-toolkit/` stays uncommitted: `approve` stages the re-vendored
   pack and `.prd-toolkit/pack-sources.json` in the approval commit.
 - Then the five steps' step 4 (lint and the verdict, with no dry run) and step 5's approval as for
@@ -217,7 +218,7 @@ so you count instead of it.
 1. **Restate the change** in one sentence, then list everything it touches: FR, NFR and AC IDs,
    T-ids, error codes, `openapi.yaml` operations and responses, permissions, schema columns,
    fixtures, Observability rows. Then, as your first look at the PRD, run the pack for the area and the IDs the change touches, one command per Bash call:
-   `uv run --script <scripts>/prd_context.py docs/prd/<slug> --area <area> --req <IDs>; echo "prd-context-exit=$?"`.
+   `<scripts>/prd context docs/prd/<slug> --area <area> --req <IDs>; echo "prd-context-exit=$?"`.
    If you do not know the area, run the repo pack first (no `--area`); if you do not know the
    IDs, run the area pack (`--area` only) and list the touched IDs from it. Each is its own Bash
    call, with the same `prd-context-exit=` gate. Pass only the UJ, FR and NFR IDs, and a bug fix's `E-nnn`: map an AC, test case or error code to its requirement.
@@ -231,7 +232,7 @@ so you count instead of it.
    step 5 as a decision the user confirms. A value only the user knows (a name, URL, limit):
    ask, and stop until answered.
 2. **Edit the PRD.** New behaviour gets new IDs, each from `ids next`, its own Bash call:
-   `uv run --script <scripts>/prd_change.py ids next docs/prd/<slug> <kind>; echo "prd-change-exit=$?"`,
+   `<scripts>/prd change ids next docs/prd/<slug> <kind>; echo "prd-change-exit=$?"`,
    where `<kind>` is `FR`, `NFR`, `UJ`, `AC-<nnn>` (the next AC of block nnn) or `T-<nnn>` (the next
    T-id of requirement nnn). It prints the ID and reads the files on disk, so write each ID into the
    PRD before you ask for the next one of the same kind, and a new block's heading before its first
@@ -249,7 +250,7 @@ so you count instead of it.
    same. A revised block keeps its `Source:` line: refresh a STALE one to the current line and sha,
    and never drop it, because the next implement pack reads FR code from it. Set the PRD status to
    `In review`. **Linked PRDs.** When `links.md` has Consumers, run, after the edits and as its own
-   call, `uv run --script <scripts>/prd_links.py impact docs/prd/<slug>; echo "prd-links-exit=$?"`.
+   call, `<scripts>/prd links impact docs/prd/<slug>; echo "prd-links-exit=$?"`.
    `0`: no consumer cites a changed item; go on. `1` (a consumer cites a changed item) or `3` (a
    consumer was unreachable) stops this change: it crosses repositories, so hand it, the edits in
    the tree and nothing committed, to `/prd-toolkit:prd-change-set` (skill
@@ -267,12 +268,12 @@ so you count instead of it.
    repository. That row needs its own `/prd-toolkit:prd-change` there (a patch bump); until it
    lands, `check` reports `missing row`.
 3. **Bump the version** with the script, never by hand. First, its own call:
-   `uv run --script <scripts>/prd_change.py bump docs/prd/<slug> --base HEAD; echo "prd-change-exit=$?"`.
+   `<scripts>/prd change bump docs/prd/<slug> --base HEAD; echo "prd-change-exit=$?"`.
    The base is `HEAD` because the change stays uncommitted until step 5. It prints one line per
    changed item, `<level> <ID> <file>:<line> <reason>`, and `level <level>` last. Decide each
    `needs judgment` item by the Version rule, with its reason, and carry each decision to step 5.
    The level is the highest of all the items, the decided ones included. Then, its own call:
-   `uv run --script <scripts>/prd_change.py record docs/prd/<slug> --base HEAD --bump <level> --change '<the change, one line>'; echo "prd-change-exit=$?"`.
+   `<scripts>/prd change record docs/prd/<slug> --base HEAD --bump <level> --change '<the change, one line>'; echo "prd-change-exit=$?"`.
    `--bump` is `patch`, `minor` or `major`. `record` writes the version, `updated` (today), the §14
    row `| <version> | <date> | <change>; pending | <IDs> |` and the §11 rows: the added, retitled
    and removed blocks, and every §11 row's status from its block's `Status:` line. `refused: the diff needs major, not minor` means your level is below what
@@ -306,7 +307,7 @@ so you count instead of it.
    says why there is none), write `docs/prd/<slug>/.prd-review.json`, the file `approve` checks,
    in the shape **The verdict** of `${CLAUDE_PLUGIN_ROOT}/skills/changing-prds/reviewing-a-change.md`
    gives, filled from steps 1 to 4: `head` from `git rev-parse HEAD` and `digest` from
-   `uv run --script <scripts>/prd_change.py digest docs/prd/<slug>; echo "prd-change-exit=$?"`, each
+   `<scripts>/prd change digest docs/prd/<slug>; echo "prd-change-exit=$?"`, each
    its own call, `ready` `true` and `blockers` `[]`, and `"base": "<sha>"`, the full SHA from
    `git rev-parse HEAD` (its own Bash call), the base step 3's `bump --base HEAD` reads, so the
    inbox's approval card shows the owner the uncommitted change. For a change made for an
@@ -338,7 +339,7 @@ so you count instead of it.
    (writing each `'` as `'\''`) and step 4's record as `--dry-run`:
 
    ```bash
-   uv run --script <scripts>/prd_change.py approve docs/prd/<slug> --reply '<the reply, verbatim>' --dry-run '<the dry-run record>'; echo "prd-change-exit=$?"
+   <scripts>/prd change approve docs/prd/<slug> --reply '<the reply, verbatim>' --dry-run '<the dry-run record>'; echo "prd-change-exit=$?"
    ```
 
    `approve` runs every check before it writes (the verdict and its digest, lint, the dry-run
@@ -352,7 +353,7 @@ so you count instead of it.
    run step 4 again for them. **Inside a change set** (step 2) `approve` is not run, since its
    commit carries no `Change-set:` trailer: write the dry-run record in place of the row's `pending`
    (the one hand edit of a row `record` wrote), set the status `Approved`, check the
-   `prd-lint-exit=` value is `0`, rerun `uv run --script <scripts>/prd_block.py docs/prd/<slug>`,
+   `prd-lint-exit=` value is `0`, rerun `<scripts>/prd block docs/prd/<slug>`,
    delete any stale `.prd-review.json` and make the commit `running-a-change-set.md` step 3 gives,
    which stages `docs/prd/README.md` when it exists with the folder and CLAUDE.md. Only now may code
    change, and each behaviour commit cites its IDs (`Refs: FR-005`). Hand off with only the UJ, FR
@@ -384,9 +385,9 @@ paths, written with the skill's `<scripts>` path, never `${CLAUDE_PLUGIN_ROOT}`.
 
 - **`wait`, first.** Start it with the Bash tool's `run_in_background`, before the owner sees any
   URL, so no answer can come before it is watching:
-  `uv run --script <scripts>/prd_gates.py wait docs/prd/<slug> <gate id>`
+  `<scripts>/prd gates wait docs/prd/<slug> <gate id>`
 - **The URL.** Then start, also with `run_in_background`,
-  `uv run --script <scripts>/prd_gates.py serve docs/prd/<slug> --gate <gate id>`
+  `<scripts>/prd gates serve docs/prd/<slug> --gate <gate id>`
   and re-read its output until its first line appears:
   - `url=<url>`: give the owner that URL as a clickable link, beside what the step shows in the
     chat.
@@ -426,7 +427,7 @@ The rules:
 - **A deploy step's reply is never sent for the owner,** in the form or the CLI.
 - **The outcome's reply is not edited.** A `changes` outcome's reply is what the revision answers.
 - A `wait` that exits 1 means the gate changed: list again, never assume the answer. List with
-  `uv run --script <scripts>/prd_gates.py list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
+  `<scripts>/prd gates list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
   still listed is asked again from `wait`, and one that is gone is reported to the owner as it
   stands.
 

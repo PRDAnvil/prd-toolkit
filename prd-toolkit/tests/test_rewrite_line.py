@@ -10,7 +10,7 @@ ADOPT = ROOT / "skills/adopting-prds/SKILL.md"
 
 TESTER_RULE = ("On `Rewrite: <T-id>`, rewrite that one test from the current test case and run it. Every value comes from "
                "the PRD; rule 2's limits hold (no `skip`, no `xfail`, no looser comparison).")
-STALE_CALL = ('uv run --script <scripts>/prd_build_check.py docs/prd/<slug> --stale --tids <T-id>,<T-id>; '
+STALE_CALL = ('<scripts>/prd build-check docs/prd/<slug> --stale --tids <T-id>,<T-id>; '
               'echo "prd-build-check-exit=$?"')
 RED_FLAG = "Editing a test to bring it up to date, or sending `Misread:` for a case you changed"
 

@@ -39,16 +39,18 @@ rule a request to edit breaks, and go on with the procedure without the edit.
 **Which script.** `${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call, so no command holds it.
 In every command below, `<scripts>` is `.prd-toolkit` when the repository has a `.prd-toolkit/`
 directory: `.prd-toolkit/prd_deploy.py`, `.prd-toolkit/prd_lint.py` and
-`.prd-toolkit/prd_trace.py` are the copy its hooks and CI run. Otherwise `<scripts>` is the
-plugin's `scripts` directory, written as a literal absolute path (in double quotes if it
-holds a space): the plugin root is two directories above the skill's base directory (Claude
-Code shows it as "Base directory for this skill" when the skill loads), and `<scripts>` is
-`<plugin root>/scripts`. Before step 1, Glob for `.prd-toolkit/prd_deploy.py` to decide, and
-use the same `<scripts>` for every command of the deploy. A script that is not found is a tool
-error: report it, never guess another path.
+`.prd-toolkit/prd_trace.py`, run through `.prd-toolkit/prd`, are the copy its hooks and CI run.
+Otherwise `<scripts>` is the plugin's `scripts` directory, written as a literal absolute path (in
+double quotes if it holds a space): the plugin root is two directories above the skill's base
+directory (Claude Code shows it as "Base directory for this skill" when the skill loads), and
+`<scripts>` is `<plugin root>/scripts`. Before step 1, Glob for `.prd-toolkit/prd*` to decide (it
+lists `prd` and the `prd_*.py` scripts), and use the same `<scripts>` for every command of the
+deploy. A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`.
+When `.prd-toolkit/` holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user
+the same.
 
 **One command per Bash call, with literal paths.** Each command below is its own Bash call, and
 every path, run id and SHA in it is typed out in full: paste what a command printed, never a
@@ -87,7 +89,7 @@ step 3 for a finished run they ask you to record.
 1. **Plan.** Run `prd_deploy.py plan`, without `--until` when the run goes to the end:
 
    ```bash
-   uv run --script <scripts>/prd_deploy.py plan docs/prd/<slug> --until <env>; echo "prd-deploy-exit=$?"
+   <scripts>/prd deploy plan docs/prd/<slug> --until <env>; echo "prd-deploy-exit=$?"
    ```
 
    It runs nothing and prints one line per step: number, actor, environment, title and an agent
@@ -107,7 +109,7 @@ step 3 for a finished run they ask you to record.
    none:
 
    ```bash
-   uv run --script <scripts>/prd_deploy.py run docs/prd/<slug> --until <env>; echo "prd-deploy-exit=$?"
+   <scripts>/prd deploy run docs/prd/<slug> --until <env>; echo "prd-deploy-exit=$?"
    ```
 
    Pre-flight refuses unless the tracked tree is clean, `prd_lint` and `prd_trace` exit 0 and no
@@ -143,7 +145,7 @@ step 3 for a finished run they ask you to record.
      writing each `'` in the reply as `'\''`:
 
      ```bash
-     uv run --script <scripts>/prd_deploy.py confirm docs/prd/<slug> --run <id> --step <N> --reply '<the reply, verbatim>'; echo "prd-deploy-exit=$?"
+     <scripts>/prd deploy confirm docs/prd/<slug> --run <id> --step <N> --reply '<the reply, verbatim>'; echo "prd-deploy-exit=$?"
      ```
 
      **Later steps in the same reply.** When the reply also says later human steps are done ("done
@@ -156,7 +158,7 @@ step 3 for a finished run they ask you to record.
      step the reply does not name stays unconfirmed, and the resumed run stops there.
 
      ```bash
-     uv run --script <scripts>/prd_deploy.py confirm docs/prd/<slug> --run <id> --step <N> --reply '<the reply to step N>' --step <M> --reply '<the reply to step M>'; echo "prd-deploy-exit=$?"
+     <scripts>/prd deploy confirm docs/prd/<slug> --run <id> --step <N> --reply '<the reply to step N>' --step <M> --reply '<the reply to step M>'; echo "prd-deploy-exit=$?"
      ```
 
      One bad pair (a step that is not the next human step, an empty reply) refuses the whole call,
@@ -170,7 +172,7 @@ step 3 for a finished run they ask you to record.
      exits as `run` does; act on its exit by this list again:
 
      ```bash
-     uv run --script <scripts>/prd_deploy.py resume docs/prd/<slug> --run <id>; echo "prd-deploy-exit=$?"
+     <scripts>/prd deploy resume docs/prd/<slug> --run <id>; echo "prd-deploy-exit=$?"
      ```
 
      `resume` refuses when HEAD, the PRD version, the tracked tree or the runbook moved since the
@@ -186,7 +188,7 @@ step 3 for a finished run they ask you to record.
      own Bash call, `--source` naming the run and the step:
 
      ```bash
-     uv run --script <scripts>/prd_error.py new docs/prd/<slug> --title "<the error in one line>" --source "deploy run <run id>, step <N>"; echo "prd-error-exit=$?"
+     <scripts>/prd error new docs/prd/<slug> --title "<the error in one line>" --source "deploy run <run id>, step <N>"; echo "prd-error-exit=$?"
      ```
 
      Do not commit it, then resume as above: `resume` accepts an `errors.md` that only gained open,
@@ -216,7 +218,7 @@ step 3 for a finished run they ask you to record.
      one. Never run it unasked, and never run the `Rollback:` command by hand:
 
      ```bash
-     uv run --script <scripts>/prd_deploy.py rollback docs/prd/<slug> --run <id> --step <N>; echo "prd-deploy-exit=$?"
+     <scripts>/prd deploy rollback docs/prd/<slug> --run <id> --step <N>; echo "prd-deploy-exit=$?"
      ```
 
      It prints `rollback step <N> <env>: pass|fail`, then
@@ -230,7 +232,7 @@ step 3 for a finished run they ask you to record.
      reads it). Never write the entry by hand:
 
      ```bash
-     uv run --script <scripts>/prd_error.py new docs/prd/<slug> --title "Deploy <run id> failed at step <N>" --source "deploy run <run id>, failed step <N>"; echo "prd-error-exit=$?"
+     <scripts>/prd error new docs/prd/<slug> --title "Deploy <run id> failed at step <N>" --source "deploy run <run id>, failed step <N>"; echo "prd-error-exit=$?"
      ```
 
      `prd-error-exit=` must be `0`; a `refused:` line is reported, never worked around. It prints
@@ -256,7 +258,7 @@ step 3 for a finished run they ask you to record.
      for them. With no such reply, nothing is recovered: report the run and the step.
 
      ```bash
-     uv run --script <scripts>/prd_deploy.py recover docs/prd/<slug> --run <id> --step <N> --reply '<the user's words, verbatim>'; echo "prd-deploy-exit=$?"
+     <scripts>/prd deploy recover docs/prd/<slug> --run <id> --step <N> --reply '<the user's words, verbatim>'; echo "prd-deploy-exit=$?"
      ```
 
      It records the reply and a failed step `recovered: no result after start` (never a pass),
@@ -304,8 +306,8 @@ step 3 for a finished run they ask you to record.
    its own call:
 
    ```bash
-   uv run --script <scripts>/prd_lint.py docs/prd/<slug>; echo "prd-lint-exit=$?"
-   uv run --script <scripts>/prd_trace.py docs/prd/<slug>; echo "prd-trace-exit=$?"
+   <scripts>/prd lint docs/prd/<slug>; echo "prd-lint-exit=$?"
+   <scripts>/prd trace docs/prd/<slug>; echo "prd-trace-exit=$?"
    ```
 
    Both must be `0`. A finding on a line you wrote is yours: fix it and run both again. A `live`
@@ -327,7 +329,7 @@ step 3 for a finished run they ask you to record.
    `<base>` is the run's HEAD:
 
    ```bash
-   uv run --script <scripts>/prd_deploy.py check docs/prd/<slug> --run <id> --diff <base>..HEAD; echo "prd-deploy-exit=$?"
+   <scripts>/prd deploy check docs/prd/<slug> --run <id> --diff <base>..HEAD; echo "prd-deploy-exit=$?"
    ```
 
    A note on stderr from `run`, `resume` or `check`,
@@ -356,7 +358,7 @@ step 3 for a finished run they ask you to record.
    its own call:
 
    ```bash
-   uv run --script <scripts>/prd_error.py list docs/prd/<slug> --open; echo "prd-error-exit=$?"
+   <scripts>/prd error list docs/prd/<slug> --open; echo "prd-error-exit=$?"
    ```
 
    and for each `confirmed` entry whose `Touches:` names a block the run's `tests` step passed, name

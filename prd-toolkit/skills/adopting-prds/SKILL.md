@@ -29,18 +29,21 @@ directory: that is the copy its hooks and CI run. Otherwise `<scripts>` is the p
 directory, written as a literal absolute path (in double quotes if it holds a space): the plugin
 root is two directories above the skill's base directory (Claude Code shows it as "Base
 directory for this skill" when the skill loads), and `<scripts>` is `<plugin root>/scripts`.
-Glob for `.prd-toolkit/*.py` once to decide, and use the same `<scripts>` for every command.
+Glob for `.prd-toolkit/prd*` once to decide (it lists `prd` and the `prd_*.py` scripts), and use
+the same `<scripts>` for every command.
 A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`.
+When `.prd-toolkit/` holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user
+the same.
 A first adoption has no `.prd-toolkit/` until the hooks install, so it uses the plugin path; a later
 area in an adopted repo uses the vendored copy, so lint and trace match what CI runs.
 
 Lint, the mechanical gate:
 
 ```bash
-uv run --script <scripts>/prd_lint.py docs/prd/<slug>; echo "prd-lint-exit=$?"
+<scripts>/prd lint docs/prd/<slug>; echo "prd-lint-exit=$?"
 ```
 
 The gate is the `prd-lint-exit=` value lint prints: `0` clean, `1` violations, `2` usage or internal error. Ignore the Bash call's own success; the trailing echo always succeeds. Use this form every time you run lint.
@@ -139,7 +142,7 @@ a row `adopted` whose adoption has no §14 row is step 5 interrupted: resume at 
   an API called, an event consumed. Propose each; on the user's yes run `prd_links.py add` as its
   own call, `<location>` the other repository's root as a path from this one, or
   `<git URL>#<PRD folder>`:
-  `uv run --script <scripts>/prd_links.py add docs/prd/<slug> <location>; echo "prd-links-exit=$?"`.
+  `<scripts>/prd links add docs/prd/<slug> <location>; echo "prd-links-exit=$?"`.
   Lint reports the row cited nowhere until a test case cites an item with the `<prd>/` prefix
   and `prd_links.py sync docs/prd/<slug> <upstream>` copies it.
 - **Test roots:** list every directory that already holds the project's tests (find them with
@@ -243,7 +246,7 @@ requirement, `E-nnn` for an entry, `Q-nn` for a §13 question of the area, and f
 `<file under contracts/>:<key path from the named key>`, where `#n` is the n-th marker in one
 value and `~n` a last-resort collision suffix. Then open the area's answers file with them, one
 command per Bash call, written with the `<scripts>` path above, never `${CLAUDE_PLUGIN_ROOT}`:
-`uv run --script <scripts>/prd_confirm.py open docs/prd/<slug> --area <area> --summaries .prd-confirm-<area>-summaries.json; echo "prd-confirm-exit=$?"`.
+`<scripts>/prd confirm open docs/prd/<slug> --area <area> --summaries .prd-confirm-<area>-summaries.json; echo "prd-confirm-exit=$?"`.
 `prd-confirm-exit=0` wrote `.prd-confirm-<area>.json` with the summaries and no answers. `1` with
 `refused: .prd-confirm-<area>.json exists; …` means the area was opened before and its answers
 stay: go on. Any other refusal names what to fix: fix it, write the summaries again and open
@@ -318,7 +321,7 @@ item is answered.
 **How to ask.** Never make the user type IDs and decisions into one prompt. When the
 AskUserQuestion tool is available, ask with the AskUserQuestion tool, at most four requirements
 per call, one question per requirement, its header the ID. Its preview is the whole block and its `Source:` excerpt, as the `implement` pack prints them, for that one requirement, because a confirmation covers only what the user was shown. Run it once per requirement, one command per Bash call:
-`uv run --script <scripts>/prd_context.py docs/prd/<slug> --area <area> --for implement --req <ID>; echo "prd-context-exit=$?"`.
+`<scripts>/prd context docs/prd/<slug> --area <area> --for implement --req <ID>; echo "prd-context-exit=$?"`.
 The `prd-context-exit=` value must be `0` or `1`; `1` marks STALE regions, which the preview shows as they are. Never pipe, filter or truncate the pack's output (no `| head`, no `| grep`): `prd-context-exit=` then reports the filter's status, not the pack's. The
 options:
 
@@ -351,7 +354,7 @@ Before each suite dispatch, find the tests whose case changed after them, as its
 suite's T-ids (the `<scripts>` directory is the one the other steps use):
 
 ```bash
-uv run --script <scripts>/prd_build_check.py docs/prd/<slug> --stale --tids <T-id>,<T-id>; echo "prd-build-check-exit=$?"
+<scripts>/prd build-check docs/prd/<slug> --stale --tids <T-id>,<T-id>; echo "prd-build-check-exit=$?"
 ```
 
 `prd-build-check-exit=1` prints one `stale <T-id> <test path>: …` line per stale T-id: add a `Rewrite: <T-id>`
@@ -401,7 +404,7 @@ files; if a test case changed since, run step 4 again.
 3. **Trace,** before the user's approval and before any commit:
 
    ```bash
-   uv run --script <scripts>/prd_trace.py docs/prd/<slug>; echo "prd-trace-exit=$?"
+   <scripts>/prd trace docs/prd/<slug>; echo "prd-trace-exit=$?"
    ```
 
    `prd-trace-exit=2` is a tool error, never a pass: fix and rerun. A finding on `features/<area>.md`, or a `test-cites-live` finding that names one of the area's T-ids, blocks: set the row back to `confirmed` and return to step 4. Any other finding predates this area: show it to the user as pre-existing; it does not block.
@@ -428,8 +431,8 @@ files; if a test case changed since, run step 4 again.
    in place of `--github` for a GitLab project):
 
    ```bash
-   uv run --script <scripts>/prd_hooks.py install docs/prd/<slug>
-   uv run --script <scripts>/prd_hooks.py ci --github docs/prd/<slug>
+   <scripts>/prd hooks install docs/prd/<slug>
+   <scripts>/prd hooks ci --github docs/prd/<slug>
    ```
 
    A yes also commits `.prd-toolkit/` and the CI file. Hooks change no code; CI then gates every
@@ -446,9 +449,9 @@ paths, written with the skill's `<scripts>` path, never `${CLAUDE_PLUGIN_ROOT}`.
 
 - **`wait`, first.** Start it with the Bash tool's `run_in_background`, before the owner sees any
   URL, so no answer can come before it is watching:
-  `uv run --script <scripts>/prd_gates.py wait docs/prd/<slug> <gate id>`
+  `<scripts>/prd gates wait docs/prd/<slug> <gate id>`
 - **The URL.** Then start, also with `run_in_background`,
-  `uv run --script <scripts>/prd_gates.py serve docs/prd/<slug> --gate <gate id>`
+  `<scripts>/prd gates serve docs/prd/<slug> --gate <gate id>`
   and re-read its output until its first line appears:
   - `url=<url>`: give the owner that URL as a clickable link, beside what the step shows in the
     chat.
@@ -488,7 +491,7 @@ The rules:
 - **A deploy step's reply is never sent for the owner,** in the form or the CLI.
 - **The outcome's reply is not edited.** A `changes` outcome's reply is what the revision answers.
 - A `wait` that exits 1 means the gate changed: list again, never assume the answer. List with
-  `uv run --script <scripts>/prd_gates.py list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
+  `<scripts>/prd gates list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
   still listed is asked again from `wait`, and one that is gone is reported to the owner as it
   stands.
 

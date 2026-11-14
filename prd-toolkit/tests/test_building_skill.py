@@ -121,7 +121,7 @@ def test_gate_forms_in_both_files():
         for line in t.splitlines():
             for script, gate in (("prd_context.py", "prd-context-exit"), ("prd_lint.py", "prd-lint-exit"),
                                  ("prd_trace.py", "prd-trace-exit"), ("prd_build_check.py", "prd-build-check-exit")):
-                if f"<scripts>/{script}" in line:
+                if f"<scripts>/{script}" in line or f"<scripts>/prd {script[4:-3].replace('_', '-')} " in line:
                     assert f'echo "{gate}=$?"' in line, (path.name, line)
     t = RUN.read_text(encoding="utf-8")
     assert '--diff <base>..prd-round/<area>-<n> --sources <SNAP>/sources-<n>.txt; echo "prd-build-check-exit=$?"' in t
@@ -399,7 +399,7 @@ def test_minor4_trace_runs_before_the_close_commit():
     assert "`prd-trace-exit=2` stops the build like `1`" in close
     assert "reverts those blocks to `built`" in close
     lines = RUN.read_text(encoding="utf-8").split("8. **Close.**", 1)[1].splitlines()
-    trace = next(i for i, l in enumerate(lines) if "prd_trace.py" in l)
+    trace = next(i for i, l in enumerate(lines) if "<scripts>/prd trace " in l)
     commit = next(i for i, l in enumerate(lines) if l.strip().startswith("git commit"))
     assert trace < commit
 
@@ -634,7 +634,7 @@ def test_fixes_flag_in_command_and_preflight():
     c = flat(COMMAND)
     assert "--fixes E-nnn" in c and "also goes to `--req`" in c
     r = flat(RUN)
-    for s in ("prd_error.py list docs/prd/<slug> --open",
+    for s in ("<scripts>/prd error list docs/prd/<slug> --open",
               "refused: E-nnn is <state>; a fix starts from a confirmed entry"):
         assert s in r, s
 
@@ -680,7 +680,7 @@ def test_fixes_refusal_runs_first_in_step_1():
               "An entry absent from the `--open` output (resolved or unknown) is refused too"):
         assert s in r, s
     step1 = RUN.read_text(encoding="utf-8").split("1. **Preflight.**", 1)[1]
-    assert step1.index("prd_error.py list") < step1.index("prd_lint.py")
+    assert step1.index("<scripts>/prd error list") < step1.index("<scripts>/prd lint ")
 
 
 def test_unmark_line_and_not_passing_regression():
@@ -718,7 +718,7 @@ def test_r21_exceptions_in_the_callers_rules():
 # --- 0.8.3: the builder refreshes the vendored copy in the toolkit's own repository ---
 
 REFRESH_PINS = [
-    "prd_hooks.py vendor docs/prd/<slug>",
+    "`<worktree>/<dir>/scripts/prd hooks vendor docs/prd/<slug>`",
     "in the same commit",
     "never prd_hooks.py install",
     "Where it does (one directory with `.claude-plugin/plugin.json` named `prd-toolkit`",
@@ -759,7 +759,7 @@ def test_red_flag_quotes_a_hand_edit_under_the_vendored_copy():
 
 MOVED = "`MOVED: line <L> is now line <M>`"
 SOURCES_FILE = "<SNAP>/sources-<n>.txt"
-SOURCES_CALL = ('uv run --script <scripts>/prd_build_check.py docs/prd/<slug> --diff <base>..prd-round/<area>-<n> '
+SOURCES_CALL = ('<scripts>/prd build-check docs/prd/<slug> --diff <base>..prd-round/<area>-<n> '
                 f'--sources {SOURCES_FILE}; echo "prd-build-check-exit=$?"')
 
 
