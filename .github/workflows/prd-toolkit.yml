@@ -14,8 +14,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
-      - run: "uv run --script .prd-toolkit/prd_lint.py --ci docs/prd/prd-toolkit"
-      - run: "uv run --script .prd-toolkit/prd_hooks.py check --ci docs/prd/prd-toolkit"
+      - run: "sh .prd-toolkit/prd lint --ci docs/prd/prd-toolkit"
+      - run: "sh .prd-toolkit/prd hooks check --ci docs/prd/prd-toolkit"
 
   prd-trace:
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
-      - run: "uv run --script .prd-toolkit/prd_trace.py docs/prd/prd-toolkit --range ${{ github.event.pull_request.base.sha }}..HEAD"
+      - run: "sh .prd-toolkit/prd trace docs/prd/prd-toolkit --range ${{ github.event.pull_request.base.sha }}..HEAD"
 
   standards-1:
     runs-on: ubuntu-latest

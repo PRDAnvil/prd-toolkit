@@ -513,10 +513,10 @@ def ci_jobs(prd, prd_rel: str) -> list[CiJob]:
     from .rules.registries import standards_rows
 
     q = shlex.quote(prd_rel)
-    out = [CiJob("prd-lint", [f"uv run --script {VENDOR_DIR}/prd_lint.py --ci {q}", f"uv run --script {VENDOR_DIR}/prd_hooks.py check --ci {q}"]),
-           CiJob("prd-trace", [f"uv run --script {VENDOR_DIR}/prd_trace.py {q} --range {RANGE}"])]
+    out = [CiJob("prd-lint", [f"sh {VENDOR_DIR}/prd lint --ci {q}", f"sh {VENDOR_DIR}/prd hooks check --ci {q}"]),
+           CiJob("prd-trace", [f"sh {VENDOR_DIR}/prd trace {q} --range {RANGE}"])]
     if prd.links is not None:
-        out[0].script.append(f"uv run --script {VENDOR_DIR}/prd_links.py check --ci {q}")
+        out[0].script.append(f"sh {VENDOR_DIR}/prd links check --ci {q}")
     n = 0
     for row in standards_rows(prd):
         if row.decision == "enforced" and row.command:
@@ -535,7 +535,7 @@ def deploy_jobs(prd, prd_rel: str) -> list[CiJob]:
     ops = prd.operations
     q = shlex.quote(prd_rel)
     drift_envs = {r.env for r in ops.drift}
-    raw = [CiJob(f"drift-{env}", [f"uv run --script {VENDOR_DIR}/prd_drift.py {q} --env {shlex.quote(env)}"], True) for env in ops.environments if env in drift_envs]
+    raw = [CiJob(f"drift-{env}", [f"sh {VENDOR_DIR}/prd drift {q} --env {shlex.quote(env)}"], True) for env in ops.environments if env in drift_envs]
     for env in ops.environments:
         levels = [lv for s in ops.steps if s.env == env and s.tests for lv in s.tests]
         if not any(s.env == env and s.tests is not None for s in ops.steps):

@@ -37,8 +37,8 @@ def vendored(repo, *args):
 
 def test_prd_lint_job_runs_the_stale_check_second(prd):
     job = hooks.ci_jobs(model.load(prd), PRD)[0]
-    assert job.script == ["uv run --script .prd-toolkit/prd_lint.py --ci docs/prd/orders",
-                          "uv run --script .prd-toolkit/prd_hooks.py check --ci docs/prd/orders"]
+    assert job.script == ["sh .prd-toolkit/prd lint --ci docs/prd/orders",
+                          "sh .prd-toolkit/prd hooks check --ci docs/prd/orders"]
 
 
 def test_fresh_files_are_not_stale(repo):
@@ -144,7 +144,7 @@ def test_changing_prds_entry_change_cites_it_in_refs():
 
 # ---- 0.7: the links line ----
 
-LINKS_LINE = "uv run --script .prd-toolkit/prd_links.py check --ci docs/prd/orders"
+LINKS_LINE = "sh .prd-toolkit/prd links check --ci docs/prd/orders"
 
 
 def add_links(prd):

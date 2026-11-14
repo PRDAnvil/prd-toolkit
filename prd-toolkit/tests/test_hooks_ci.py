@@ -41,7 +41,7 @@ def test_model_keeps_harness_commands(prd):
 
 def test_lint_job_runs_ci_mode(prd):
     lint_job = jobs(prd)[0]
-    assert "uv run --script .prd-toolkit/prd_lint.py --ci docs/prd/orders" in lint_job.script
+    assert "sh .prd-toolkit/prd lint --ci docs/prd/orders" in lint_job.script
 
 
 def test_standards_job_uses_git_glob_pathspec(prd):
@@ -199,7 +199,7 @@ def test_deploy_jobs(prd):
     assert [j.name for j in dj] == ["drift-production", "test-deploy-staging", "test-deploy-production"]
     assert all(j.manual for j in dj) and not any(j.manual for j in jobs(prd))
     by = {j.name: j for j in dj}
-    assert by["drift-production"].script == ["uv run --script .prd-toolkit/prd_drift.py docs/prd/orders --env production"]
+    assert by["drift-production"].script == ["sh .prd-toolkit/prd drift docs/prd/orders --env production"]
     assert by["test-deploy-staging"].script == ["export PRD_ENV=staging TEST_ENV=staging; pytest tests/system",
                                                 "export PRD_ENV=staging TEST_ENV=staging; pytest tests/e2e"]
     assert by["test-deploy-production"].script == ["export PRD_ENV=production TEST_ENV=production; pytest tests/smoke"]
@@ -302,7 +302,7 @@ def test_test_deploy_exports_the_environment_for_a_compound_command(prd, tmp_pat
 # ---- 0.7: links.md adds the check line to prd-lint only ----
 
 def test_links_line_only_with_links_md(prd):
-    line = "uv run --script .prd-toolkit/prd_links.py check --ci docs/prd/orders"
+    line = "sh .prd-toolkit/prd links check --ci docs/prd/orders"
     assert not any(line in j.script for j in jobs(prd))
     (prd / "links.md").write_text(
         "# Links\n\n## Upstreams\n\n| Upstream | Location | Version | Commit | Needs |\n|---|---|---|---|---|\n\n"
@@ -310,3 +310,12 @@ def test_links_line_only_with_links_md(prd):
     by = {j.name: j for j in jobs(prd)}
     assert by["prd-lint"].script[-1] == line
     assert [s for j in by.values() for s in j.script].count(line) == 1
+
+
+def test_no_generated_line_uses_script_mode(prd):
+    loaded = model.load(prd)
+    jobs_all = hooks.ci_jobs(loaded, PRD) + hooks.deploy_jobs(loaded, PRD)
+    for text in (hooks.render_github(jobs_all), hooks.render_gitlab(jobs_all)):
+        assert "--script" not in text and "sh .prd-toolkit/prd lint --ci" in text
+        assert "sh .prd-toolkit/prd hooks check --ci" in text and "sh .prd-toolkit/prd trace " in text
+        assert "sh .prd-toolkit/prd drift " in text
