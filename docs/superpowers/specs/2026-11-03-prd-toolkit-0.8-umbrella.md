@@ -5,7 +5,7 @@
 > **Status:** Approved by the owner 2026-11-03
 > **Extends:** `2026-10-29-prd-toolkit-design.md` (the base spec) and the 0.2 to 0.7 addenda
 > (`2026-11-02-prd-toolkit-0.7-design.md` last).
-> **Governs:** the 0.8.0 to 0.8.9 specs. Each sub-release has its own spec, plan, build and
+> **Governs:** the 0.8.0 to 0.8.10 specs. Each sub-release has its own spec, plan, build and
 > acceptance record; where one of them and this note disagree, the sub-release spec wins for that
 > release and records the change in its Revisions note.
 
@@ -36,6 +36,11 @@
 > - §4 (owner, 2026-11-11): the lint-structure fixes (E-009 to E-017) and the full command names
 >   (`/prd-toolkit:prd-build`, not `/prd-build`) ship as 0.8.7, with no feature; best practices move
 >   to 0.8.8 and conversion to 0.8.9; their content is unchanged.
+> - §4 (owner, 2026-11-14): the invocation release is inserted as 0.8.8: the scripts started so
+>   that uv keeps no environment per script path and clone (PRDAnvil/prd-toolkit#2), and one `prd`
+>   command over them. Best practices move to 0.8.9 and conversion to 0.8.10; their content is
+>   unchanged. The order of what follows them is in
+>   `docs/superpowers/plans/2026-11-14-prd-toolkit-engine-ports.md`.
 
 ## 1. Why
 
@@ -104,8 +109,9 @@ Every sub-release keeps these:
 | **0.8.5** | Deploy and pack fixes from the first private-pack loop: one reply for consecutive human steps, an error entry recorded during a run, a `tests` step's own timeout, a close on another branch than the environment's, a `matches` Check for changing output, and `prd_change.py pack` for the PRD patch a pack release forces; STALE judged by the cited line; SOURCES lines checked against the round's hunks; the published page's diagrams as inline SVG; the tester guard checking every harness argument; parallel tests for the toolkit's own suite; complete §14 IDs cells | 0.8.4 |
 | **0.8.6** | The move to its own repository: the toolkit and its history leave `ihistand/claude-plugins` for PRDAnvil/prd-toolkit, with its own `prdanvil` marketplace and an MIT license, which vendoring copies into `.prd-toolkit/`; no script or skill changes | 0.8.5 |
 | **0.8.7** | Fixes and full command names, no feature: the lint-structure fixes E-009 to E-016 and E-017's flaky test, and every template, skill, command and script message naming the commands in full (`/prd-toolkit:prd-build`), as current Claude Code lists a plugin's commands only under the plugin's name | 0.8.6 |
-| **0.8.8** | Best-practice sources: found by Claude and approved by the user, or added by the user; recorded per pack or per PRD; turned into §5 rows or checklist items. Finding, installing or writing a skill or a pack when a PRD needs one, recorded in §6 | 0.8.0 |
-| **0.8.9** | Conversion: retarget an area or a whole PRD to another pack, with the `platform-word` findings as the worklist, contracts and Harness rebuilt, T-ids kept, and the old platform running until the new one is `verified` | 0.8.0, 0.8.8 |
+| **0.8.8** | Invocation: the git hook shims, the generated CI and the skills start the scripts so that uv keeps no environment per script path and clone (PRDAnvil/prd-toolkit#2), rewritten in an installed repository by `prd_hooks.py install` and `ci`; one `prd` command that runs each script under its own name; three small leftovers from the move | 0.8.7 |
+| **0.8.9** | Best-practice sources: found by Claude and approved by the user, or added by the user; recorded per pack or per PRD; turned into §5 rows or checklist items. Finding, installing or writing a skill or a pack when a PRD needs one, recorded in §6 | 0.8.0 |
+| **0.8.10** | Conversion: retarget an area or a whole PRD to another pack, with the `platform-word` findings as the worklist, contracts and Harness rebuilt, T-ids kept, and the old platform running until the new one is `verified` | 0.8.0, 0.8.9 |
 
 Spec for 0.8.0: `2026-11-03-prd-toolkit-0.8.0-design.md`. Spec for 0.8.1:
 `2026-11-03-prd-toolkit-0.8.1-design.md`. Spec for 0.8.2:
@@ -113,8 +119,9 @@ Spec for 0.8.0: `2026-11-03-prd-toolkit-0.8.0-design.md`. Spec for 0.8.1:
 `2026-11-06-prd-toolkit-0.8.3-backlog-design.md`. Spec for 0.8.4:
 `2026-11-04-prd-toolkit-0.8.4-prd-readmes-design.md`. Spec for 0.8.5:
 `2026-11-08-prd-toolkit-0.8.5-design.md`. Plan for 0.8.6, the move: `docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md`. Plan for 0.8.7, the fixes:
-`docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md`. Backlog for 0.8.8:
-`2026-11-08-prd-toolkit-0.8.6-backlog.md` (named for the release it was written for). The 0.8.8 and 0.8.9 specs are written when their turn
+`docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md`. Spec for 0.8.8, the invocation release:
+`2026-11-14-prd-toolkit-0.8.8-invocation-design.md`. Backlog for 0.8.9:
+`2026-11-08-prd-toolkit-0.8.6-backlog.md` (named for the release it was written for). The 0.8.9 and 0.8.10 specs are written when their turn
 comes, each through its own brainstorm.
 
 ## 5. Related work
