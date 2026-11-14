@@ -1,0 +1,5 @@
+markdown-it-py>=3.0
+mermaidx==0.11.3
+openapi-spec-validator>=0.7
+pyyaml>=6.0
+sqlglot>=25

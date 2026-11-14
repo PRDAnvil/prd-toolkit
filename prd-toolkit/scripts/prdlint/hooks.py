@@ -12,7 +12,8 @@ from pathlib import Path
 from . import change_approve
 
 VENDOR_DIR = ".prd-toolkit"
-VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py")
+VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "requirements.txt", "prd")
+LAUNCHER = "prd"  # the sh launcher: .prd-toolkit/prd
 MARKER = "# prd-toolkit hook"
 HOOKS = ("commit-msg", "pre-commit")
 BLOCK_TEMPLATE = "claude-block.md"

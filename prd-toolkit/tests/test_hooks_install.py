@@ -303,7 +303,8 @@ def test_every_vendored_script_runs_from_the_vendored_copy(repo):
         "prd_judge.py": [PRD, "T-999.9", "msg.txt"], "prd_change.py": ["digest", PRD],
         "prd_gates.py": ["list", PRD],
     }
-    assert set(calls) == set(hooks.VENDORED), set(hooks.VENDORED) ^ set(calls)
+    launcher_files = {"prd", "prd_dispatch.py", "requirements.txt"}  # the launcher trio is covered by test_vendor_copies_the_launcher
+    assert set(calls) == set(hooks.VENDORED) - launcher_files, set(hooks.VENDORED) ^ set(calls)
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     for name, args in calls.items():
         r = subprocess.run([sys.executable, f".prd-toolkit/{name}", *args], cwd=repo, capture_output=True, text=True, env=env)
@@ -373,3 +374,19 @@ def test_vendors_the_inbox_page(repo):
     assert hooks.check(repo, PLUGIN_ROOT) == []
     (repo / ".prd-toolkit/gates/inbox.html").write_text("old\n")
     assert hooks.check(repo, PLUGIN_ROOT) == [".prd-toolkit/gates/inbox.html differs from the plugin copy"]
+
+
+def test_vendor_copies_the_launcher(repo, tmp_path):
+    hooks.install(repo, PRD)
+    vendored = repo / ".prd-toolkit"
+    assert all((vendored / n).is_file() for n in ("prd", "prd_dispatch.py", "requirements.txt"))
+    assert os.access(vendored / hooks.LAUNCHER, os.X_OK)
+    env = {**os.environ, "UV_CACHE_DIR": str(tmp_path / "uv-cache")}
+    run = subprocess.run(["sh", ".prd-toolkit/prd", "--version"], cwd=repo, capture_output=True, text=True, env=env, timeout=300)
+    assert run.returncode == 0 and PLUGIN_VERSION in run.stdout, run.stdout + run.stderr
+
+
+def test_check_reports_missing_launcher(repo):
+    hooks.install(repo, PRD)
+    (repo / ".prd-toolkit/prd").unlink()
+    assert hooks.check(repo, PLUGIN_ROOT) == [".prd-toolkit/prd is missing"]
