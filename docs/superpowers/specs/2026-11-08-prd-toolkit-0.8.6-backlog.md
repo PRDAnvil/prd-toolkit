@@ -1,8 +1,8 @@
-# prd-toolkit 0.8.8: best-practice sources, and the next adopted area — backlog
+# prd-toolkit 0.8.9: best-practice sources, and the next adopted area — backlog
 
 > **Date:** 2026-11-08
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.8's own
+> **Status:** Backlog, not designed. Each item becomes a section and plan tasks in 0.8.9's own
 > brainstorm, or moves to a later release.
 > **Extends:** `2026-11-08-prd-toolkit-0.8.5-design.md` and the specs it extends, under
 > `2026-11-03-prd-toolkit-0.8-umbrella.md`.
@@ -18,6 +18,10 @@
 > - Renumbered (owner, 2026-11-11): 0.8.7 ships the lint-structure fixes and the full command names
 >   (`docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md`), so this backlog is 0.8.8's; the file
 >   keeps its name. Item 4 is done in 0.8.7. Item 5 joins: E-017 found it.
+> - Renumbered (owner, 2026-11-14): the invocation release is inserted as 0.8.8
+>   (`2026-11-14-prd-toolkit-0.8.8-invocation-design.md`), so this backlog is 0.8.9's; the file
+>   keeps its name. Item 3 leaves for 0.8.8. Item 5 leaves for the errors release that follows
+>   conversion (`docs/superpowers/plans/2026-11-14-prd-toolkit-engine-ports.md`, priority 5).
 
 ## 1. Backlog
 
