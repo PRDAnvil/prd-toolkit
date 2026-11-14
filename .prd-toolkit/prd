@@ -2,4 +2,6 @@
 # prd-toolkit launcher: one uv environment per requirements list, not per script path.
 here=$(cd "$(dirname "$0")" && pwd) || exit 2
 command -v uv >/dev/null 2>&1 || { echo "prd: uv is not on PATH; install uv" >&2; exit 2; }
-exec uv run --quiet --no-project --python ">=3.11" --with-requirements "$here/requirements.txt" python "$here/prd_dispatch.py" "$@"
+req="$here/requirements.txt"
+[ "${1-}" = publish ] && [ -f "$here/requirements-publish.txt" ] && req="$here/requirements-publish.txt"
+exec uv run --quiet --no-project --python ">=3.11" --with-requirements "$req" python "$here/prd_dispatch.py" "$@"

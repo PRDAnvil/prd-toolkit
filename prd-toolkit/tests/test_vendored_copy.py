@@ -17,3 +17,5 @@ def test_the_vendored_launcher_is_the_plugins_bytes_and_executable():
     for name in ("prd", "prd_dispatch.py", "requirements.txt"):
         assert (REPO / ".prd-toolkit" / name).read_bytes() == (PLUGIN_ROOT / "scripts" / name).read_bytes(), name
     assert (REPO / ".prd-toolkit/prd").stat().st_mode & 0o777 == 0o755
+    assert (REPO / ".prd-toolkit/requirements.txt").read_text() == "openapi-spec-validator>=0.7\npyyaml>=6.0\nsqlglot>=25\n"
+    assert not (REPO / ".prd-toolkit/requirements-publish.txt").exists()

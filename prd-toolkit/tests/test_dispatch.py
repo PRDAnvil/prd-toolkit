@@ -1,12 +1,14 @@
 """prd_dispatch.py: one `prd <command>` entry that runs the script of that name."""
 import ast
 import json
+import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import prd_dispatch
+from prdlint import hooks
 from conftest import edit
 
 PLUGIN_ROOT = Path(__file__).parent.parent
@@ -79,6 +81,21 @@ def test_dispatch_missing_script(tmp_path):
     assert r.stderr.strip() == f"prd: prd_lint.py is not in {tmp_path}; run prd_hooks.py install"
 
 
+def _name(dep):
+    return re.split(r"[<>=!~;\[ ]", dep, maxsplit=1)[0].lower()
+
+
 def test_requirements_is_the_headers_union():
-    union = sorted({dep for f in prd_dispatch.COMMANDS.values() for dep in header_deps(SCRIPTS / f)})
+    """requirements.txt: what the vendored scripts need; requirements-publish.txt: prd_publish.py's header, never vendored."""
+    vendored = [f for f in prd_dispatch.COMMANDS.values() if f in hooks.VENDORED]
+    union = sorted({dep for f in vendored for dep in header_deps(SCRIPTS / f)})
     assert (SCRIPTS / "requirements.txt").read_text().splitlines() == union
+    publish = sorted(header_deps(SCRIPTS / "prd_publish.py"))
+    assert (SCRIPTS / "requirements-publish.txt").read_text().splitlines() == publish
+    others = {_name(d) for f in prd_dispatch.COMMANDS.values() if f != "prd_publish.py" for d in header_deps(SCRIPTS / f)}
+    publish_only = {_name(d) for d in publish} - others
+    assert publish_only and not publish_only & {_name(d) for d in union}, publish_only
+    for name in ("requirements.txt", "requirements-publish.txt"):
+        data = (SCRIPTS / name).read_bytes()
+        assert data.endswith(b"\n") and not data.endswith(b"\n\n") and b"\r" not in data, name
+    assert "requirements-publish.txt" not in hooks.VENDORED

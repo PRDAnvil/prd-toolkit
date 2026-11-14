@@ -381,6 +381,8 @@ def test_vendor_copies_the_launcher(repo, tmp_path):
     vendored = repo / ".prd-toolkit"
     assert all((vendored / n).is_file() for n in ("prd", "prd_dispatch.py", "requirements.txt"))
     assert os.access(vendored / hooks.LAUNCHER, os.X_OK)
+    assert (vendored / "requirements.txt").read_text() == "openapi-spec-validator>=0.7\npyyaml>=6.0\nsqlglot>=25\n"
+    assert not (vendored / "requirements-publish.txt").exists()
     env = {**os.environ, "UV_CACHE_DIR": str(tmp_path / "uv-cache")}
     run = subprocess.run(["sh", ".prd-toolkit/prd", "--version"], cwd=repo, capture_output=True, text=True, env=env, timeout=300)
     assert run.returncode == 0 and PLUGIN_VERSION in run.stdout, run.stdout + run.stderr

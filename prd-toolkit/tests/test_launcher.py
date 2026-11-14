@@ -2,6 +2,7 @@
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).parent.parent
@@ -30,6 +31,10 @@ def test_launcher_two_clones_one_environment(tmp_path):
     cache = tmp_path / "cache"
     for name in ("clone a", "clone-b"):
         copy_scripts(tmp_path / name)
+        # the three vendored packages may already be in the base interpreter, which needs no environment at all;
+        # one small pinned package no interpreter here holds forces one, so the count proves "one, not two"
+        with open(tmp_path / name / "requirements.txt", "a") as f:
+            f.write("tomli-w==1.0.0\n")
         r = launch(tmp_path / name, "--version", cache=cache)
         assert r.returncode == 0, r.stderr
         assert r.stdout == "0.0.0-test\n"
@@ -83,3 +88,24 @@ def test_launcher_path_with_spaces(tmp_path):
 
 def test_launcher_is_executable():
     assert os.access(SCRIPTS / "prd", os.X_OK)
+
+
+def test_launcher_publish_uses_its_own_requirements(tmp_path):
+    """`prd publish` runs with requirements-publish.txt when it is beside the launcher: the vendored list lacks its packages."""
+    copy_scripts(tmp_path / "c")
+    for name in ("prd_publish.py", "requirements-publish.txt"):
+        shutil.copy2(SCRIPTS / name, tmp_path / "c" / name)
+    r = launch(tmp_path / "c", "publish", "--help", cache=tmp_path / "cache")
+    want = subprocess.run([sys.executable, str(SCRIPTS / "prd_publish.py"), "--help"], capture_output=True, text=True)
+    assert want.returncode == 0 and want.stdout.startswith("usage: prd_publish.py"), want.stderr
+    assert (r.returncode, r.stdout) == (0, want.stdout), r.stderr
+    # the environment holds the publish-only renderer, which neither requirements.txt nor the base interpreter has
+    assert list((tmp_path / "cache/environments-v2").glob("*/*/lib/python*/site-packages/mermaidx")), "no environment from requirements-publish.txt"
+
+
+def test_launcher_publish_without_its_file(tmp_path):
+    """A vendored copy has neither prd_publish.py nor requirements-publish.txt: the dispatcher, not the launcher, refuses."""
+    copy_scripts(tmp_path / "c")
+    r = launch(tmp_path / "c", "publish", cache=tmp_path / "cache")
+    here = (tmp_path / "c").resolve()
+    assert r.returncode == 2 and r.stderr == f"prd: prd_publish.py is not in {here}; run prd_hooks.py install\n", r.stderr
