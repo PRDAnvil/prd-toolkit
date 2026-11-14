@@ -138,10 +138,10 @@ def test_printed_line_is_appendable_sh(repo):
     lines = hooks.install(repo, PRD)
     line = next(x for x in lines if "add this line" in x)
     assert "exec" not in line and "before any `exit 0`" in line and "sh hook" in line
-    hook = '"$prd_top/.prd-toolkit/prd_git_hook.py"'
+    hook, launcher = '"$prd_top/.prd-toolkit/prd_git_hook.py"', '"$prd_top/.prd-toolkit/prd"'
     assert line.endswith(
-        f'{TOP}if [ -f {hook} ] && [ -d "$prd_top/{PRD}" ]; then {GUARD}; '
-        f'uv run --script {hook} commit-msg "$prd_top/{PRD}" "$@" || exit $?; else echo "{SKIP}" >&2; fi')
+        f'{TOP}if [ -f {hook} ] && [ -f {launcher} ] && [ -d "$prd_top/{PRD}" ]; then {GUARD}; '
+        f'sh {launcher} git-hook commit-msg "$prd_top/{PRD}" "$@" || exit $?; else echo "{SKIP}" >&2; fi')
 
 
 def test_appended_line_runs_and_propagates_failure(repo):
@@ -392,3 +392,138 @@ def test_check_reports_missing_launcher(repo):
     hooks.install(repo, PRD)
     (repo / ".prd-toolkit/prd").unlink()
     assert hooks.check(repo, PLUGIN_ROOT) == [".prd-toolkit/prd is missing"]
+
+
+# --- 0.8.8: the shims run the launcher (spec §4, §5) ---
+
+# The 0.8.7 templates/hooks/<hook>, with {{hook}} and {{prd}} as install substituted them.
+SHIM_087 = """#!/bin/sh
+# prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall
+top=$(git rev-parse --show-toplevel) || exit 1
+[ -f "$top/.prd-toolkit/prd_git_hook.py" ] && [ -d "$top/@PRD@" ] || { echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; exit 0; }
+command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }
+exec uv run --script "$top/.prd-toolkit/prd_git_hook.py" @HOOK@ "$top/@PRD@"@ARGS@
+"""
+
+# The line 0.8.7's install printed for a user's own commit-msg hook.
+APPENDED_087 = (f'{TOP}if [ -f "$prd_top/.prd-toolkit/prd_git_hook.py" ] && [ -d "$prd_top/{PRD}" ]; then {GUARD}; '
+                f'uv run --script "$prd_top/.prd-toolkit/prd_git_hook.py" commit-msg "$prd_top/{PRD}" "$@" || exit $?; '
+                f'else echo "{SKIP}" >&2; fi')
+
+
+def write_087_shims(repo, prd_rel=PRD):
+    for hook in hooks.HOOKS:
+        text = SHIM_087.replace("@HOOK@", hook).replace("@PRD@", prd_rel).replace("@ARGS@", ' "$@"' if hook == "commit-msg" else "")
+        (repo / ".git/hooks" / hook).write_text(text)
+
+
+def run_hook(repo, hook, *args):
+    """Run the installed shim in repo with a uv cache of its own: the worker's pytest base temp, never the session's test cache."""
+    env = {**os.environ, "UV_CACHE_DIR": str(repo.parent / "hook-uv-cache")}
+    return subprocess.run([str(repo / ".git/hooks" / hook), *args], cwd=repo, env=env, capture_output=True, text=True, timeout=300)
+
+
+def test_shim_uses_the_launcher(repo):
+    hooks.install(repo, PRD)
+    shim = (repo / ".git/hooks/pre-commit").read_text()
+    assert 'exec sh "$top/.prd-toolkit/prd" git-hook pre-commit "$top/docs/prd/orders"' in shim
+    assert "--script" not in shim
+    msg = (repo / ".git/hooks/commit-msg").read_text()
+    assert 'exec sh "$top/.prd-toolkit/prd" git-hook commit-msg "$top/docs/prd/orders" "$@"' in msg
+    for text in (shim, msg):
+        assert '[ -f "$top/.prd-toolkit/prd_git_hook.py" ] && [ -f "$top/.prd-toolkit/prd" ] && [ -d "$top/docs/prd/orders" ]' in text
+        assert GUARD in text
+
+
+def test_shim_skips_without_launcher(repo):  # a vendored copy older than 0.8.8
+    hooks.install(repo, PRD)
+    (repo / ".prd-toolkit/prd").unlink()
+    r = run_hook(repo, "pre-commit")
+    assert r.returncode == 0 and hooks.SKIP in r.stderr, r.stderr
+
+
+def test_shim_runs_launcher_without_exec_bit(repo):
+    hooks.install(repo, PRD)
+    (repo / ".prd-toolkit/prd").chmod(0o644)
+    r = run_hook(repo, "pre-commit")
+    assert r.returncode == 0 and hooks.SKIP not in r.stderr, r.stderr
+    shim = repo / ".git/hooks/pre-commit"  # without `sh`, the same shim cannot run the launcher: the bit is really gone
+    shim.write_text(shim.read_text().replace('exec sh "$top/.prd-toolkit/prd"', 'exec "$top/.prd-toolkit/prd"'))
+    assert run_hook(repo, "pre-commit").returncode != 0
+
+
+def test_shim_prd_path_with_space(repo):
+    odd = "docs/prd/my orders"
+    (repo / PRD).rename(repo / odd)
+    hooks.install(repo, odd)
+    assert f'exec sh "$top/.prd-toolkit/prd" git-hook pre-commit "$top/{odd}"' in (repo / ".git/hooks/pre-commit").read_text()
+    r = run_hook(repo, "pre-commit")
+    assert r.returncode == 0 and hooks.SKIP not in r.stderr, r.stderr
+    git(repo, "add", "src/app.py")  # the hook really checks the PRD at the spaced path: a boundary commit without Refs is refused
+    (repo / "m").write_text("Add x\n")
+    r = run_hook(repo, "commit-msg", str(repo / "m"))
+    assert r.returncode != 0 and "Refs" in r.stderr, r.stderr
+
+
+def test_append_line_uses_the_launcher():
+    line = hooks._append_line("commit-msg", PRD)
+    assert 'sh "$prd_top/.prd-toolkit/prd" git-hook commit-msg "$prd_top/docs/prd/orders" "$@"' in line
+    assert "--script" not in line and '[ -f "$prd_top/.prd-toolkit/prd" ]' in line
+    assert not hooks.OLD_FORM.search(line) and hooks.OLD_FORM.search(APPENDED_087)
+
+
+def test_install_rewrites_old_shims(repo):
+    hooks.install(repo, PRD)
+    write_087_shims(repo)
+    lines = hooks.install(repo, PRD)
+    assert "replaced .git/hooks/pre-commit (it used uv run --script)" in lines
+    assert "replaced .git/hooks/commit-msg (it used uv run --script)" in lines
+    assert not any(x.startswith("installed .git/hooks/") for x in lines)
+    assert hooks.check(repo, PLUGIN_ROOT) == []
+    assert "installed .git/hooks/pre-commit" in hooks.install(repo, PRD)  # a current shim is not "replaced"
+
+
+def test_check_reports_old_shim(repo):
+    hooks.install(repo, PRD)
+    write_087_shims(repo)
+    out = hooks.check(repo, PLUGIN_ROOT)
+    assert out == ["stale: .git/hooks/commit-msg; run prd_hooks.py install", "stale: .git/hooks/pre-commit; run prd_hooks.py install"]
+
+
+def test_check_with_prd_rel_reports_a_changed_shim(repo):
+    from prdlint import model
+
+    hooks.install(repo, PRD)
+    prd = model.load(repo / PRD)
+    assert [x for x in hooks.check(repo, PLUGIN_ROOT, prd, PRD) if ".git/hooks" in x] == []
+    shim = repo / ".git/hooks/pre-commit"
+    shim.write_text(shim.read_text() + "# edited\n")
+    assert [x for x in hooks.check(repo, PLUGIN_ROOT, prd, PRD) if ".git/hooks" in x] == ["stale: .git/hooks/pre-commit; run prd_hooks.py install"]
+    assert hooks.check(repo, PLUGIN_ROOT) == []  # without the PRD's path only the old form is judged
+
+
+def test_check_reports_old_appended_line(repo):  # a user's own hook holding the 0.8.7 appended line
+    hooks.install(repo, PRD)
+    (repo / ".git/hooks/pre-commit").unlink()
+    (repo / ".git/hooks/commit-msg").write_text(f"#!/bin/sh\necho mine\n{APPENDED_087}\n")
+    assert hooks.check(repo, PLUGIN_ROOT) == ["stale: .git/hooks/commit-msg; run prd_hooks.py install"]
+    (repo / ".git/hooks/commit-msg").write_text(f"#!/bin/sh\necho mine\n{hooks._append_line('commit-msg', PRD)}\n")
+    assert hooks.check(repo, PLUGIN_ROOT) == []
+    (repo / ".git/hooks/commit-msg").write_text("#!/bin/sh\necho mine\n")
+    assert hooks.check(repo, PLUGIN_ROOT) == []
+
+
+def test_check_without_installed_hooks_is_clean(repo):  # CI: a fresh checkout has no shim
+    hooks.install(repo, PRD)
+    [p.unlink() for p in (repo / ".git/hooks").glob("*")]
+    assert hooks.check(repo, PLUGIN_ROOT) == []
+
+
+def test_check_ci_ignores_installed_shims(repo):
+    hooks.install(repo, PRD)
+    write_087_shims(repo)
+    cli = [sys.executable, str(PLUGIN_ROOT / "scripts/prd_hooks.py"), "check"]
+    plain = subprocess.run([*cli, PRD], cwd=repo, capture_output=True, text=True)
+    ci = subprocess.run([*cli, "--ci", PRD], cwd=repo, capture_output=True, text=True)
+    assert "stale: .git/hooks/pre-commit; run prd_hooks.py install" in plain.stdout.splitlines(), plain.stdout + plain.stderr
+    assert (ci.returncode, ci.stderr) == (0, "") and "stale: .git/hooks/" not in ci.stdout, ci.stdout + ci.stderr

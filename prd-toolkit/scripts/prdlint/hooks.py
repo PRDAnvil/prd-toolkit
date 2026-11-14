@@ -246,11 +246,28 @@ GUARD = 'command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH
 SKIP = "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped"
 
 
+OLD_FORM = re.compile(r"^(?=.*uv run --script)(?=.*prd_git_hook\.py).*$", re.M)  # a 0.8.7 shim's or appended line
+
+
 def _append_line(hook: str, prd_rel: str) -> str:
-    """One sh line for an existing hook: skips on a branch without the copy or the PRD, blocks without uv."""
-    script, prd = f'"$prd_top/{VENDOR_DIR}/prd_git_hook.py"', f'"$prd_top/{_quote(prd_rel)}"'
-    return (f'prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f {script} ] && [ -d {prd} ]; then {GUARD}; '
-            f'uv run --script {script} {hook} {prd} "$@" || exit $?; else echo "{SKIP}" >&2; fi')
+    """One sh line for an existing hook: skips on a branch without the copy (or the launcher) or the PRD, blocks without uv;
+    runs the launcher through sh, so a lost executable bit cannot break a commit."""
+    script, launcher = f'"$prd_top/{VENDOR_DIR}/prd_git_hook.py"', f'"$prd_top/{VENDOR_DIR}/{LAUNCHER}"'
+    prd = f'"$prd_top/{_quote(prd_rel)}"'
+    return (f'prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f {script} ] && [ -f {launcher} ] && [ -d {prd} ]; then {GUARD}; '
+            f'sh {launcher} git-hook {hook} {prd} "$@" || exit $?; else echo "{SKIP}" >&2; fi')
+
+
+def _render(template_dir: Path, hook: str, prd_rel: str) -> str:
+    """The shim `install` writes for hook and the PRD at prd_rel."""
+    return (Path(template_dir) / hook).read_text(encoding="utf-8").replace("{{hook}}", hook).replace("{{prd}}", _quote(prd_rel))
+
+
+def _read(path: Path) -> str | None:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else None
+    except OSError:
+        return None
 
 
 def _append_message(hook: str, prd_rel: str, shown: str, why: str) -> str:
@@ -296,11 +313,12 @@ def install(repo_root: Path, prd_rel: str) -> list[str]:
         if path.exists() and not _ours(path):
             lines.append(_append_message(hook, prd_rel, shown, f"{shown}/{hook} already exists and was left alone"))
             continue
-        text = (_template_dir() / hook).read_text(encoding="utf-8").replace("{{hook}}", hook).replace("{{prd}}", _quote(prd_rel))
+        old = _read(path)
         with open(path, "w", encoding="utf-8", newline="\n") as f:
-            f.write(text)
+            f.write(_render(_template_dir(), hook, prd_rel))
         path.chmod(0o755)
-        lines.append(f"installed {shown}/{hook}")
+        lines.append(f"replaced {shown}/{hook} (it used uv run --script)" if old is not None and OLD_FORM.search(old)
+                     else f"installed {shown}/{hook}")
     return lines + _refresh(repo_root, module, tgts)
 
 
@@ -397,10 +415,31 @@ def check(repo_root: Path, plugin_root: Path, prd=None, prd_rel: str = "") -> li
             rel = f.relative_to(dest).as_posix()
             if f.is_file() and "__pycache__" not in f.parts and rel not in sources:
                 problems.append(f"{VENDOR_DIR}/{rel} is not in the plugin")
+    problems += _stale_shims(repo_root, plugin_root, prd_rel)
     if prd is not None:
         problems += _stale_packs(repo_root, prd)
         problems += stale_ci(repo_root, prd, prd_rel)
     return problems
+
+
+def _stale_shims(repo_root: Path, plugin_root: Path, prd_rel: str) -> list[str]:
+    """One line per stale installed hook: ours and not the rendered template (when prd_rel is not known, ours and of the
+    old form), or a user's own hook holding the 0.8.7 appended line. No installed hook is no finding, so a CI checkout
+    is clean; `check --ci` calls stale_ci alone and never comes here."""
+    hooks_dir, shown = _hooks_dir(repo_root)
+    out = []
+    for hook in HOOKS:
+        path = hooks_dir / hook
+        text = _read(path)
+        if text is None:
+            continue
+        if _ours(path) and prd_rel:
+            stale = text != _render(plugin_root / "templates/hooks", hook, prd_rel)
+        else:
+            stale = OLD_FORM.search(text) is not None
+        if stale:
+            out.append(f"stale: {shown}/{hook}; run prd_hooks.py install")
+    return out
 
 
 def uninstall(repo_root: Path) -> list[str]:
