@@ -57,7 +57,7 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 ## Lint CLI
 
 ```
-uv run --script .prd-toolkit/prd_lint.py docs/prd/<slug>   # a repo with hooks installed
+.prd-toolkit/prd lint docs/prd/<slug>   # a repo with hooks installed
 uv run --script prd-toolkit/scripts/prd_lint.py --list-rules
 uv run --script prd-toolkit/scripts/prd_lint.py --list-packs
 uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
@@ -100,8 +100,8 @@ map in `adoption.md`, and each area moves forward one state at a time:
 Step 3 of adoption confirms an area through a local form, not a list of questions in the chat:
 
 ```
-uv run --script .prd-toolkit/prd_confirm.py serve docs/prd/<slug> --area <area> [--summaries F] [--port N] [--no-open] [--idle-minutes N]
-uv run --script .prd-toolkit/prd_confirm.py status docs/prd/<slug> --area <area>
+.prd-toolkit/prd confirm serve docs/prd/<slug> --area <area> [--summaries F] [--port N] [--no-open] [--idle-minutes N]
+.prd-toolkit/prd confirm status docs/prd/<slug> --area <area>
 ```
 
 - `serve` builds the area's items: the as-built requirements, the open `E-nnn` entries that touch the
@@ -164,7 +164,7 @@ fails open.
 `testing.md` (falling back to `tests/`) for `@prd T-nnn.n` citations.
 
 ```
-uv run --script .prd-toolkit/prd_trace.py docs/prd/<slug>
+.prd-toolkit/prd trace docs/prd/<slug>
 uv run --script prd-toolkit/scripts/prd_trace.py docs/prd/<slug> --range BASE..HEAD
 ```
 
@@ -198,7 +198,7 @@ Git does not clone hooks, so each other clone runs the vendored copy once (the m
 block says so):
 
 ```
-uv run --script .prd-toolkit/prd_hooks.py install docs/prd/<slug>
+.prd-toolkit/prd hooks install docs/prd/<slug>
 ```
 
 Generate the merge-gate CI file, then commit it. `--github` writes
@@ -224,7 +224,7 @@ the hooks it wrote and leaves `.prd-toolkit/`:
 
 ```
 uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_hooks.py check docs/prd/<slug>
-uv run --script .prd-toolkit/prd_hooks.py uninstall docs/prd/<slug>
+.prd-toolkit/prd hooks uninstall docs/prd/<slug>
 ```
 
 `prd_hooks.py vendor` writes `.prd-toolkit/` exactly as `install` does, packs included, and nothing
@@ -301,7 +301,7 @@ each command and compares what it prints with the Deployed row (`version`) or wi
 something unparseable, which is never counted as drift.
 
 ```
-uv run --script .prd-toolkit/prd_drift.py docs/prd/<slug> --env production
+.prd-toolkit/prd drift docs/prd/<slug> --env production
 ```
 
 **CI.** `prd_hooks.py ci` adds a `drift-<env>` job only for an environment with rows in
@@ -412,10 +412,10 @@ entry for each; `prd_error.py` is the only writer.
    `prd_error.py check <base>..<head>` validates every change to the ledger in the range.
 
 ```
-uv run --script .prd-toolkit/prd_error.py new docs/prd/<slug> --title "<title>" --source "<where seen>"
-uv run --script .prd-toolkit/prd_error.py propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--touches FR-001,FR-002] [--recurrence E-mmm]
-uv run --script .prd-toolkit/prd_error.py list docs/prd/<slug> --open
-uv run --script .prd-toolkit/prd_error.py check docs/prd/<slug> <base>..<head>
+.prd-toolkit/prd error new docs/prd/<slug> --title "<title>" --source "<where seen>"
+.prd-toolkit/prd error propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--touches FR-001,FR-002] [--recurrence E-mmm]
+.prd-toolkit/prd error list docs/prd/<slug> --open
+.prd-toolkit/prd error check docs/prd/<slug> <base>..<head>
 ```
 
 **Known-failing tests.** A case marked `known-failing` on an open entry is a strict expected failure
@@ -508,10 +508,10 @@ YAML mappings; `code:` never does. `prd_links.py sync` copies the cited items, a
 that snapshot offline. Never edit it by hand.
 
 ```
-uv run --script .prd-toolkit/prd_links.py add docs/prd/<slug> <location> [--needs <value>]
-uv run --script .prd-toolkit/prd_links.py sync docs/prd/<slug> <upstream> [--ref <ref>]
-uv run --script .prd-toolkit/prd_links.py check docs/prd/<slug> [--ref <ref>] [--ci]
-uv run --script .prd-toolkit/prd_links.py impact docs/prd/<slug> [--base <ref>]
+.prd-toolkit/prd links add docs/prd/<slug> <location> [--needs <value>]
+.prd-toolkit/prd links sync docs/prd/<slug> <upstream> [--ref <ref>]
+.prd-toolkit/prd links check docs/prd/<slug> [--ref <ref>] [--ci]
+.prd-toolkit/prd links impact docs/prd/<slug> [--base <ref>]
 ```
 
 `check` compares each snapshot item with its upstream (`same`, `changed`, `removed`), reads each
@@ -634,11 +634,11 @@ prints the number alone. Within one `interface` number a field may be added, nev
 worktree; it never switches branches or pushes.
 
 ```
-uv run --script .prd-toolkit/prd_change.py ids next docs/prd/<slug> <FR|NFR|UJ|AC-<nnn>|T-<nnn>>
-uv run --script .prd-toolkit/prd_change.py bump docs/prd/<slug> --base HEAD
-uv run --script .prd-toolkit/prd_change.py record docs/prd/<slug> --base HEAD --bump <patch|minor|major> --change "<text>"
-uv run --script .prd-toolkit/prd_change.py digest docs/prd/<slug>
-uv run --script .prd-toolkit/prd_change.py approve docs/prd/<slug> --reply "<verbatim>" --dry-run "<record>" [--refs "<IDs>, E-nnn"]
+.prd-toolkit/prd change ids next docs/prd/<slug> <FR|NFR|UJ|AC-<nnn>|T-<nnn>>
+.prd-toolkit/prd change bump docs/prd/<slug> --base HEAD
+.prd-toolkit/prd change record docs/prd/<slug> --base HEAD --bump <patch|minor|major> --change "<text>"
+.prd-toolkit/prd change digest docs/prd/<slug>
+.prd-toolkit/prd change approve docs/prd/<slug> --reply "<verbatim>" --dry-run "<record>" [--refs "<IDs>, E-nnn"]
 ```
 
 - `prd_change.py ids next` prints the next free ID by `prd-format.md` decision 6, removed IDs and
@@ -697,10 +697,10 @@ diff, an error class, a deploy step, an adoption area and a sign-off. The sessio
 a gate before it gives you the URL, so it learns of the answer whichever client gave it.
 
 ```
-uv run --script .prd-toolkit/prd_gates.py serve docs/prd/<slug> [--gate <id>] [--port N] [--no-open] [--idle-minutes N]
-uv run --script .prd-toolkit/prd_gates.py wait docs/prd/<slug> <gate id> [--worktree <path>] [--timeout S]
-uv run --script .prd-toolkit/prd_build_check.py docs/prd/<slug> --stale --tids <T-ids>
-uv run --script .prd-toolkit/prd_deploy.py record docs/prd/<slug> --env <env> --commit <sha> --reply "<owner's words>"
+.prd-toolkit/prd gates serve docs/prd/<slug> [--gate <id>] [--port N] [--no-open] [--idle-minutes N]
+.prd-toolkit/prd gates wait docs/prd/<slug> <gate id> [--worktree <path>] [--timeout S]
+.prd-toolkit/prd build-check docs/prd/<slug> --stale --tids <T-ids>
+.prd-toolkit/prd deploy record docs/prd/<slug> --env <env> --commit <sha> --reply "<owner's words>"
 ```
 
 | Command | Does | Exit codes |

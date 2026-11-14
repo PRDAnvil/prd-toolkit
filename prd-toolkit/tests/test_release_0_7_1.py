@@ -31,8 +31,8 @@ def test_versions():
 
 def test_form_part_under_adopting():
     s = flat(section(README, "Adopting an existing repo"))
-    for needle in ("Confirming through the form", "prd_confirm.py serve", "--area", "--summaries", "--port",
-                   "--no-open", "--idle-minutes", "prd_confirm.py status", "url=http://127.0.0.1:",
+    for needle in ("Confirming through the form", ".prd-toolkit/prd confirm serve", "--area", "--summaries", "--port",
+                   "--no-open", "--idle-minutes", ".prd-toolkit/prd confirm status", "url=http://127.0.0.1:",
                    ".prd-confirm-<area>.json", ".git/info/exclude", "AskUserQuestion", "checklist", "headless",
                    "extracted"):
         assert needle in s, needle

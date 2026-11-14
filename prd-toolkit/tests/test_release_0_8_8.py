@@ -75,3 +75,22 @@ def test_the_launcher_is_named_where_a_vendored_copy_is_checked():
     rules = flat("skills/coordinating-prds/SKILL.md")
     assert "Call the starting repository's vendored launcher, `.prd-toolkit/prd links`." in rules
     assert "vendored `.prd-toolkit/prd_links.py`" not in rules
+
+
+def _readme_without_past_records() -> str:
+    """README.md minus the `## Changelog` and `## Known limits (...)` sections, which record past releases."""
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    kept = []
+    for section in re.split(r"(?m)^(?=## )", text):
+        if section.startswith("## Changelog") or section.startswith("## Known limits ("):
+            continue
+        kept.append(section)
+    return "".join(kept)
+
+
+def test_readme_runs_the_vendored_copy_through_the_launcher():
+    full = (ROOT / "README.md").read_text(encoding="utf-8")
+    text = _readme_without_past_records()
+    assert len(text) < len(full)          # the helper removed the past-record sections
+    assert ".prd-toolkit/prd " in text    # and the examples are still there
+    assert [l for l in text.splitlines() if re.search(r"uv run --script \S*\.prd-toolkit/", l)] == []
