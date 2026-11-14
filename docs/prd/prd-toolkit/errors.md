@@ -185,7 +185,7 @@ Recurrence of: -
 
 ### E-019 Seven eval scaffolds fail their own clean-tree check, so their cases never run
 Detected: 2026-11-14, eval run for prd-toolkit 0.8.8 (claude plugin eval, 2026-11-14)
-Classification: unclassified
+Classification: spec gap
 Evidence: claude plugin eval ./prd-toolkit --runs 1 --model sonnet --scaffold, 2026-11-14, on a5223fc's parent 5af6330
   7 of 59 cases did not run, each with: scaffold failed (exit 1)
   deploy-by-hand-records
@@ -201,6 +201,6 @@ Evidence: claude plugin eval ./prd-toolkit --runs 1 --model sonnet --scaffold, 2
   ?? docs/prd/README.md
   ?? docs/prd/greet/README.md
   The same scaffold exits 1 the same way from main at fdcf473 (prd-toolkit 0.8.7).
-Diagnosis: -
+Diagnosis: Reproduced twice by hand: `evals/deploy-close-live/scaffold.sh` exits 1 in an empty directory from this branch and from main at fdcf473 (0.8.7), so 0.8.8 did not cause it. Root cause: `evals/scaffolds/deploy_repo.py` (and the scaffold `review-edits-nothing` uses) runs the plugin `prd_hooks.py install`, then commits only `.gitignore` and `.prd-toolkit`; since prd-toolkit 0.8.4 `install` also writes the managed block in `CLAUDE.md` and the two README files under `docs/prd/`, which stay untracked, and seven scaffolds end with a clean-tree check (`git status --porcelain` must print nothing). The scaffolds were written before 0.8.4 (f818be0, 2026-11-01) and the later baselines ran single cases, so nothing noticed. Class against the PRD: no requirement, contract or test case covers the eval suite or its scaffolds (searched features/lint-cli.md, features/lint-structure.md, nfr.md and testing.md; adoption.md maps `prd-toolkit/skills/**` but not `prd-toolkit/evals/**`), so the PRD is silent. E-017, a defect in a test outside every adopted Boundary, was confirmed as a code bug; the same may be the owner's choice here. Any fix must keep the scaffold commits' fixed dates and check which graders pin a commit SHA, since committing three more files changes every later SHA.
 Resolution: -
 Recurrence of: -
