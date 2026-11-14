@@ -2,11 +2,16 @@
 
 > **Date:** 2026-11-14
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Draft, for the owner's review. The design in sections 2 to 9 was agreed in
-> conversation on 2026-11-14; this document is not yet approved.
+> **Status:** Approved by the owner 2026-11-14.
 > **Extends:** `2026-11-03-prd-toolkit-0.8-umbrella.md` (its 0.8.8 row) and the specs it extends.
 > **Needs:** 0.8.7 merged (it is: PR #10, bfb63da).
 > **Closes:** PRDAnvil/prd-toolkit#2, and item 3 of `2026-11-08-prd-toolkit-0.8.6-backlog.md`.
+
+> **Revisions.**
+> - §2 (plan, 2026-11-14): six eval graders match a script's file name in a command
+>   (`prd_links\.py`, `prd_judge\.py`). They are changed to accept both forms, in the task that
+>   changes the skill lines; the evals' prompts and baselines stay out of scope. The 80 plugin-path
+>   lines are 77 in skills, 2 in commands and 1 in agents.
 
 ## 1. Why
 
