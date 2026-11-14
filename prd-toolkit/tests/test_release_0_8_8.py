@@ -1,9 +1,11 @@
 """Pins for the 0.8.8 release: what the plugin tells a reader to type runs a vendored copy through the launcher."""
+import json
 import re
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
+REPO = ROOT.parent
 
 
 def tracked(*dirs: str) -> list[Path]:
@@ -111,3 +113,39 @@ def test_readme_says_how_to_run_the_vendored_copy():
     text = _readme_without_past_records()
     assert ".prd-toolkit/prd <command>" in text
     assert ".prd-toolkit/<script>.py" not in text
+
+
+def _entry(ver: str, nxt: str) -> str:
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    a = text.index("\n## Changelog\n")
+    c = text[a:text.index("\n## ", a + 1)]
+    return c[c.index(f"- **{ver}:**"):c.index(f"- **{nxt}:**")]
+
+
+def test_versions():
+    plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
+    assert plugin["version"] == "0.8.8"
+    assert "`prd` command" in plugin["description"]
+    market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
+    assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
+        ("0.8.8", plugin["description"])]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.8"
+    assert "Version 0.8.8." in (ROOT / "README.md").read_text(encoding="utf-8")
+
+
+def test_changelog_has_the_upgrade_note():
+    e = " ".join(_entry("0.8.8", "0.8.7").split())
+    for needle in ("prd_hooks.py install docs/prd/<slug>", "ci --github --force docs/prd/<slug>", "--force",
+                   ".prd-toolkit/prd hooks install docs/prd/<slug>", "core.hooksPath", "environments-v2", "6.2.3",
+                   "**Known limits:**", "E-019", "**Evals and proof:**"):
+        assert needle in e, needle
+
+
+def test_readme_has_the_prd_command_section():
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    heads = re.findall(r"(?m)^## (.+)$", text)
+    assert heads.index("The prd command") == heads.index("Lint CLI") - 1
+    s = text[text.index("\n## The prd command\n"):text.index("\n## Lint CLI\n")]
+    for needle in ("prd --help", "prd --version", ".prd-toolkit/prd", "publish", "sh .prd-toolkit/prd"):
+        assert needle in s, needle
+    assert len(s.strip().splitlines()) <= 20

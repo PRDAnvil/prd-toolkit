@@ -2,6 +2,53 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.8 baseline
+
+### The whole suite, after the move to the `prd` launcher (spec section 7)
+
+0.8.8 changes the command lines of every skill, command and agent (`uv run --script <scripts>/prd_<x>.py …` becomes
+`<scripts>/prd <x> …`) and the graders that match a script's name accept both forms, so the whole suite ran, not only
+new cases. Recorded 2026-11-14 on `feat/prd-toolkit-0.8.8`, model `sonnet`, Claude Code 2.1.325, plugin 0.8.7 (the
+manifest bump is the release commit). Every run used the same command form:
+
+```
+claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-publish \
+  --allow-tools Write Edit Bash Agent "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)"
+```
+
+1. **First run**, `--runs 1 -j 4`, all 59 cases, on 5af6330 (before the final-review fixes), 30 minutes: 46 passed;
+   overall score 0.85; mean delta over the no-plugin arm +0.37.
+   - 7 did not run, each `scaffold failed (exit 1)`: `deploy-by-hand-records`, `deploy-close-live`,
+     `deploy-close-staging-only`, `deploy-failure-no-improvise`, `deploy-stops-at-human`, `deploying-trigger` and
+     `review-edits-nothing`. Their scaffolds end with their own clean-tree check, and the plugin's `install` writes
+     `CLAUDE.md` and the READMEs under `docs/prd/`, which the scaffolds never commit (since 0.8.4). The same scaffolds
+     fail the same way on 0.8.7. Recorded as E-019 in the toolkit's `errors.md`. So no eval exercised the deploy
+     skill's command lines in this release.
+   - 2 failed for a real reason, found by this run and fixed before the release: `publishing-trigger` (0.50) and
+     `publish-summary-cites-area` (0.67). `prd publish`, run from the plugin in a repository whose `pyproject.toml`
+     sets `[tool.uv] exclude-newer`, could not resolve its requirements, because the launcher read uv's settings from
+     the working directory. The launcher now passes `--project` with its own directory, as `uv run --script` read
+     them from the script's.
+   - 4 scored below 1.00: `build-stale-sends-rewrite` (0.80), `changing-hands-off-to-change-set` (0.75),
+     `changing-uses-prd-change` (0.75), `inbox-deploy-step-not-sent` (0.67).
+2. **Reruns**, `--runs 3 -j 3`, one `--case` at a time, on a5223fc (with the fixes):
+
+| Case | Run 1 | Run 2 | Run 3 |
+|---|---|---|---|
+| `publishing-trigger` | 1.00 | 1.00 | 1.00 |
+| `publish-summary-cites-area` | 1.00 | 1.00 | 1.00 |
+| `build-stale-sends-rewrite` | 1.00 | 1.00 | 1.00 |
+| `changing-uses-prd-change` | 1.00 | 1.00 | 1.00 |
+| `inbox-deploy-step-not-sent` | 1.00 | 1.00 | 1.00 |
+| `changing-hands-off-to-change-set` | 0.75 | 0.75 | 0.75 |
+
+3. **The same case on 0.8.7** (fdcf473), `--runs 3`: `changing-hands-off-to-change-set` 0.75, 0.75, 0.75, with the
+   same grader, `stops-in-review`, failing each time. Not a regression of 0.8.8: the grader expects the PRD at a bumped
+   version when the change is handed to a change set, and the skill hands off before the bump.
+
+- **Result:** no case that 0.8.8 changed for the worse remains. 51 of the 59 cases pass, 7 cannot run (E-019), and 1
+  fails as it did on 0.8.7.
+
 ## 0.8.5 baseline
 
 ### Task 14: `deploy-confirms-named-steps` and `publish-own-artifact` (spec section 13)
