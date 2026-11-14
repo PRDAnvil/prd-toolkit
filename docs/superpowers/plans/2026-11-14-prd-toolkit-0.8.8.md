@@ -8,6 +8,8 @@
 
 **Tech stack:** POSIX `sh`, Python 3.11+, uv, pytest with pytest-xdist. No new Python dependency.
 
+**Execution (owner, 2026-11-14):** subagent-driven. Subagents run on Opus 5.5, or on a cheaper model where the task is mechanical enough for it (Task 8's wording, Task 0's baseline).
+
 **Spec:** `docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md`. Read it with this plan; where they differ, the spec wins and the difference is recorded in its Revisions note.
 
 ## Global constraints
