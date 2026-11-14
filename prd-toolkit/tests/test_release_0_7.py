@@ -29,7 +29,7 @@ def test_versions():
     assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
-    assert "links PRDs across repositories" in plugin["description"] and "/prd-change-set" in plugin["description"]
+    assert "links PRDs across repositories" in plugin["description"] and "/prd-toolkit:prd-change-set" in plugin["description"]
 
 
 def test_readme_version_spec_link_and_rules():

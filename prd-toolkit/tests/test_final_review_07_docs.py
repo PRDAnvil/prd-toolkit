@@ -12,7 +12,7 @@ def test_changing_prds_says_add_writes_the_upstreams_consumers_row():
     text = _flat(ROOT / "skills/changing-prds/SKILL.md")
     assert ("`prd_links.py add` writes the upstream's `links.md` Consumers row, uncommitted, in the upstream "
             "repository") in text
-    assert "its own `/prd-change` there (a patch bump)" in text
+    assert "its own `/prd-toolkit:prd-change` there (a patch bump)" in text
     assert "until it lands, `check` reports `missing row`" in text
 
 

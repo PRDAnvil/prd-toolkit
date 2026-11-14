@@ -26,7 +26,7 @@ def test_f1_a_revised_block_keeps_its_source_line():
 
 def test_f1_red_flag_quotes_the_dropped_source_excuse():
     flags = between(flat(CHANGING), "## Red Flags - STOP", "## Common Rationalizations")
-    assert '"/prd-build rewrites it"' in flags and "`Source:`" in flags
+    assert '"/prd-toolkit:prd-build rewrites it"' in flags and "`Source:`" in flags
 
 
 def test_f2_build_ids_are_joined_with_commas_for_req():

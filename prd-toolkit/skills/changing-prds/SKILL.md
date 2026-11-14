@@ -1,6 +1,6 @@
 ---
 name: changing-prds
-description: Use when changing what a system does in a repo that has a docs/prd/ folder - a new feature, a changed rule or status code, a bug fix that alters behaviour, a removed requirement, switching an area or the PRD to another pack or output language (its Target: or Pack: line) - or when /prd-change runs, or when asked to change code and let the PRD follow, or when an agent hits something the PRD does not say, or when a reviewed PRD change waits for the owner's approval (its gate approval:<branch>, in the chat or the decision inbox, prd_gates.py) and someone asks to approve it; the PRD changes first, with new IDs and a version bump, before any code
+description: Use when changing what a system does in a repo that has a docs/prd/ folder - a new feature, a changed rule or status code, a bug fix that alters behaviour, a removed requirement, switching an area or the PRD to another pack or output language (its Target: or Pack: line) - or when /prd-toolkit:prd-change runs, or when asked to change code and let the PRD follow, or when an agent hits something the PRD does not say, or when a reviewed PRD change waits for the owner's approval (its gate approval:<branch>, in the chat or the decision inbox, prd_gates.py) and someone asks to approve it; the PRD changes first, with new IDs and a version bump, before any code
 ---
 
 # Changing PRDs
@@ -14,7 +14,7 @@ by the user, before a line of code moves.
 **Violating the letter of these rules is violating the spirit.** "Tiny", "one line", "just
 reuse the number" and "the PRD can follow" change nothing below.
 
-**Review mode.** `/prd-change --review <dir>` reviews a change and edits nothing. Read
+**Review mode.** `/prd-toolkit:prd-change --review <dir>` reviews a change and edits nothing. Read
 `${CLAUDE_PLUGIN_ROOT}/skills/changing-prds/reviewing-a-change.md` whole and follow it instead of
 the steps below.
 
@@ -71,8 +71,8 @@ outputs, contracts and tests were built and checked under the old pack. Say, exa
 
 `retargeting an area is a conversion, which a later prd-toolkit release brings`
 
-and stop: no `/prd-change`, no version bump, no edit and no plan to move a status back to
-`approved`. The same holds for §1's `Pack:` line when an area without its own `Target:` line
+and stop: no `/prd-toolkit:prd-change`, no version bump, no edit and no plan to move a status back
+to `approved`. The same holds for §1's `Pack:` line when an area without its own `Target:` line
 holds such a block. Name the block and its status that refuse it. The area stays as it is; a new
 area under the other pack, for new outputs, is a separate change the user may ask for.
 
@@ -171,7 +171,7 @@ level.
 
 **A regression patch.** A change made for an `errors.md` entry (`prd-toolkit:handling-errors`)
 that only adds its regression test is a patch: a new test case under an unchanged AC, or a
-`known-failing: E-nnn` line added to an existing case, and the block, which returns to `approved` (its `Status:` line; `record` writes its §11 row) so `/prd-build <area> <IDs> --fixes E-nnn` can build the fix. Its §14
+`known-failing: E-nnn` line added to an existing case, and the block, which returns to `approved` (its `Status:` line; `record` writes its §11 row) so `/prd-toolkit:prd-build <area> <IDs> --fixes E-nnn` can build the fix. Its §14
 row names the entry (`record --change 'regression test for E-003'`), as `regression test for E-003`:
 `| 1.0.1 | <date> | regression test for E-003; <dry-run record> | FR-001, T-001.3 |`. A unit-only change records `no dry run (unit only)`; a non-unit regression T-id, new or marked, is
 dry-run as step 4 says. Its commits cite the entry: `Refs: FR-001, E-003`.
@@ -234,37 +234,37 @@ so you count instead of it.
    where `<kind>` is `FR`, `NFR`, `UJ`, `AC-<nnn>` (the next AC of block nnn) or `T-<nnn>` (the next
    T-id of requirement nnn). It prints the ID and reads the files on disk, so write each ID into the
    PRD before you ask for the next one of the same kind, and a new block's heading before its first
-   `AC-<nnn>`. Use the ID it prints; never count one yourself, however obvious the next number looks:
-   the count misses removed IDs and T-ids that survive only in §14. Changed and new requirements go to
-   `approved` in the block's `Status:` line; `record` (step 3) writes the §11 index from it. Revise every test case whose AC changed and write one,
-   with all seven elements, for every new AC. Revise `errors.yaml` (new code or changed
-   `status`), `openapi.yaml` (responses, `x-error-codes`, `x-prd-ids`) and every other contract
-   step 1 listed. If a block the change touches has a `Source:` line, run the pack again with
-   `--for implement` (its own Bash call, the same gate), re-read each region it marks STALE, and
-   rewrite that ref as `<path>:<current line> @<HEAD short sha>`. The STALE reasons:
-   `the cited line's text is gone`, `appears <N> times`, `<path> is not in <sha>`. A
-   `MOVED: line <L> is now line <M>` mark is no STALE (the exit stays `0`), but rewrite its
-   `Source:` as `<path>:<M> @<HEAD short sha>` all the same. A revised block keeps its
-   `Source:` line: refresh a STALE one to the current line and sha, and never drop it, because the
-   next implement pack reads FR code from it. Set the PRD status to `In review`.
-   **Linked PRDs.** When `links.md` has Consumers, run, after the edits and as its own call,
-   `uv run --script <scripts>/prd_links.py impact docs/prd/<slug>; echo "prd-links-exit=$?"`.
+   `AC-<nnn>`. Use the ID it prints; never count one yourself, however obvious the next number
+   looks: the count misses removed IDs and T-ids that survive only in §14. Changed and new
+   requirements go to `approved` in the block's `Status:` line; `record` (step 3) writes the §11
+   index from it. Revise every test case whose AC changed and write one, with all seven elements,
+   for every new AC. Revise `errors.yaml` (new code or changed `status`), `openapi.yaml` (responses,
+   `x-error-codes`, `x-prd-ids`) and every other contract step 1 listed. If a block the change
+   touches has a `Source:` line, run the pack again with `--for implement` (its own Bash call, the
+   same gate), re-read each region it marks STALE, and rewrite that ref as
+   `<path>:<current line> @<HEAD short sha>`. The STALE reasons: `the cited line's text is gone`,
+   `appears <N> times`, `<path> is not in <sha>`. A `MOVED: line <L> is now line <M>` mark is no
+   STALE (the exit stays `0`), but rewrite its `Source:` as `<path>:<M> @<HEAD short sha>` all the
+   same. A revised block keeps its `Source:` line: refresh a STALE one to the current line and sha,
+   and never drop it, because the next implement pack reads FR code from it. Set the PRD status to
+   `In review`. **Linked PRDs.** When `links.md` has Consumers, run, after the edits and as its own
+   call, `uv run --script <scripts>/prd_links.py impact docs/prd/<slug>; echo "prd-links-exit=$?"`.
    `0`: no consumer cites a changed item; go on. `1` (a consumer cites a changed item) or `3` (a
-   consumer was unreachable) stops this change: it crosses repositories, so hand it, the edits
-   in the tree and nothing committed, to `/prd-change-set` (skill `prd-toolkit:coordinating-prds`);
-   that is the only route for an edit to a cited item. Never skip a consumer the output names,
-   cloned or not. `2` is a usage error: fix the command. A repository whose `.prd-toolkit/` holds
-   no `prd_links.py` predates 0.7: stop, and tell the user to re-run `prd_hooks.py install
-   docs/prd/<slug>` from the plugin and commit `.prd-toolkit/`. When this change already runs
-   inside `/prd-change-set`, hand nothing back to it: before the record exists, its step 1 reads
-   this `impact` itself. Inside a change set (its `cs-<nnn>-<slug>` branch, with a record whose
-   rows name this PRD), exit `1` is expected when every consumer it names is a member, and `3`
-   when each unreachable one is a consumer the record's Log leaves out: go on, and step 5's
-   approval is the change set's (`running-a-change-set.md` step 3), its commit adding
-   `-m "Change-set: <start-prd>/CS-<nnn>"`.
-   **A new link.** When this change adds a link, `prd_links.py add` writes the upstream's
-   `links.md` Consumers row, uncommitted, in the upstream repository. That row needs its own
-   `/prd-change` there (a patch bump); until it lands, `check` reports `missing row`.
+   consumer was unreachable) stops this change: it crosses repositories, so hand it, the edits in
+   the tree and nothing committed, to `/prd-toolkit:prd-change-set` (skill
+   `prd-toolkit:coordinating-prds`); that is the only route for an edit to a cited item. Never skip
+   a consumer the output names, cloned or not. `2` is a usage error: fix the command. A repository
+   whose `.prd-toolkit/` holds no `prd_links.py` predates 0.7: stop, and tell the user to re-run
+   `prd_hooks.py install docs/prd/<slug>` from the plugin and commit `.prd-toolkit/`. When this
+   change already runs inside `/prd-toolkit:prd-change-set`, hand nothing back to it: before the
+   record exists, its step 1 reads this `impact` itself. Inside a change set (its `cs-<nnn>-<slug>`
+   branch, with a record whose rows name this PRD), exit `1` is expected when every consumer it
+   names is a member, and `3` when each unreachable one is a consumer the record's Log leaves out:
+   go on, and step 5's approval is the change set's (`running-a-change-set.md` step 3), its commit
+   adding `-m "Change-set: <start-prd>/CS-<nnn>"`. **A new link.** When this change adds a link,
+   `prd_links.py add` writes the upstream's `links.md` Consumers row, uncommitted, in the upstream
+   repository. That row needs its own `/prd-toolkit:prd-change` there (a patch bump); until it
+   lands, `check` reports `missing row`.
 3. **Bump the version** with the script, never by hand. First, its own call:
    `uv run --script <scripts>/prd_change.py bump docs/prd/<slug> --base HEAD; echo "prd-change-exit=$?"`.
    The base is `HEAD` because the change stays uncommitted until step 5. It prints one line per
@@ -343,38 +343,37 @@ so you count instead of it.
    `approve` runs every check before it writes (the verdict and its digest, lint, the dry-run
    record, the `pending` row), then writes the record in place of `pending`, sets the status
    `Approved`, runs `prd_block.py` and commits `docs(prd): approve <slug> <version>` with the reply
-   in its body. Never set the status, run `prd_block.py` or commit the PRD folder and CLAUDE.md with the trailer
-   `Refs: none (no behaviour change)` by hand: `approve` does all three, and stages
-   `docs/prd/README.md` when it exists with the folder (a change made for an
-   `errors.md` entry uses `Refs: <changed IDs>, E-nnn` on that commit instead: add
-   `--refs '<changed IDs>, E-nnn'`). A refusal names what to fix; `the PRD changed after its
-   review` means the files moved since step 4: run step 4 again for them. **Inside a change
-   set** (step 2) `approve` is not run, since its commit carries no `Change-set:` trailer: write
-   the dry-run record in place of the row's `pending` (the one hand edit of a row `record` wrote),
-   set the status `Approved`, check the
+   in its body. Never set the status, run `prd_block.py` or commit the PRD folder and CLAUDE.md with
+   the trailer `Refs: none (no behaviour change)` by hand: `approve` does all three, and stages
+   `docs/prd/README.md` when it exists with the folder (a change made for an `errors.md` entry uses
+   `Refs: <changed IDs>, E-nnn` on that commit instead: add `--refs '<changed IDs>, E-nnn'`). A
+   refusal names what to fix; `the PRD changed after its review` means the files moved since step 4:
+   run step 4 again for them. **Inside a change set** (step 2) `approve` is not run, since its
+   commit carries no `Change-set:` trailer: write the dry-run record in place of the row's `pending`
+   (the one hand edit of a row `record` wrote), set the status `Approved`, check the
    `prd-lint-exit=` value is `0`, rerun `uv run --script <scripts>/prd_block.py docs/prd/<slug>`,
    delete any stale `.prd-review.json` and make the commit `running-a-change-set.md` step 3 gives,
-   which stages `docs/prd/README.md` when it exists with the folder and CLAUDE.md.
-   Only now may code change, and each
-   behaviour commit cites its IDs (`Refs: FR-005`). Hand off with only the UJ, FR and NFR IDs
-   (map an AC, test case or error code to its requirement): hand off
-   `/prd-build <area> <IDs> --fixes E-nnn` when the change was made for a confirmed entry whose
-   route builds code (`code bug`, `spec gap`, `invalid requirement`, or `standard` when code must
-   follow, as `prd-toolkit:handling-errors` routes them); otherwise build with
-   `/prd-build <area> <changed IDs>`. Its close writes the status
-   moves and each `Source:` line, so there is no refresh to do. Code written outside `/prd-build`
-   is written from `/prd-context <area> <changed IDs> implement`. After the code commit, run the
-   implement pack again (its own Bash call, the same gate), then
-   rewrite each STALE `Source:` of a changed block as `<path>:<line> @<new short sha>` and commit
-   the PRD. A `Source:` refresh is provenance, not behaviour: it takes no version bump and no
-   §14 row, and the status stays Approved with no re-approval.
-   Close: when the change touched `testing.md` or `operations.md`, a generated CI include is stale (a new level, an
-   environment, a `tests` step or a Drift row changes it). If `.gitlab/prd-toolkit.yml` or
-   `.github/workflows/prd-toolkit.yml` exists, regenerate each one present, one command per Bash call, and commit the file:
-   `uv run --script .prd-toolkit/prd_hooks.py ci --<forge> --force docs/prd/<slug>`. Then confirm with
-   `uv run --script .prd-toolkit/prd_hooks.py check --ci docs/prd/<slug>` (it prints nothing when the files are
-   current). The merge gate's generated job runs that same `check --ci`, so a change merged with the old CI fails there. A change made for an `errors.md`
-   entry cites it in `Refs:` beside the requirement it touches (`Refs: FR-002, E-003`).
+   which stages `docs/prd/README.md` when it exists with the folder and CLAUDE.md. Only now may code
+   change, and each behaviour commit cites its IDs (`Refs: FR-005`). Hand off with only the UJ, FR
+   and NFR IDs (map an AC, test case or error code to its requirement): hand off
+   `/prd-toolkit:prd-build <area> <IDs> --fixes E-nnn` when the change was made for a confirmed
+   entry whose route builds code (`code bug`, `spec gap`, `invalid requirement`, or `standard` when
+   code must follow, as `prd-toolkit:handling-errors` routes them); otherwise build with
+   `/prd-toolkit:prd-build <area> <changed IDs>`. Its close writes the status moves and each
+   `Source:` line, so there is no refresh to do. Code written outside `/prd-toolkit:prd-build` is
+   written from `/prd-toolkit:prd-context <area> <changed IDs> implement`. After the code commit,
+   run the implement pack again (its own Bash call, the same gate), then rewrite each STALE
+   `Source:` of a changed block as `<path>:<line> @<new short sha>` and commit the PRD. A `Source:`
+   refresh is provenance, not behaviour: it takes no version bump and no §14 row, and the status
+   stays Approved with no re-approval. Close: when the change touched `testing.md` or
+   `operations.md`, a generated CI include is stale (a new level, an environment, a `tests` step or
+   a Drift row changes it). If `.gitlab/prd-toolkit.yml` or `.github/workflows/prd-toolkit.yml`
+   exists, regenerate each one present, one command per Bash call, and commit the file:
+   `uv run --script .prd-toolkit/prd_hooks.py ci --<forge> --force docs/prd/<slug>`. Then confirm
+   with `uv run --script .prd-toolkit/prd_hooks.py check --ci docs/prd/<slug>` (it prints nothing
+   when the files are current). The merge gate's generated job runs that same `check --ci`, so a
+   change merged with the old CI fails there. A change made for an `errors.md` entry cites it in
+   `Refs:` beside the requirement it touches (`Refs: FR-002, E-003`).
 
 ## The decision inbox
 
@@ -448,7 +447,8 @@ The rules:
   above. A never-approved draft goes back to `prd-toolkit:authoring-prds`.
 - A dry-run slot holding a unit T-id, or no T-id at all.
 - A dry-run question dismissed without an exact quote of the PRD line that answers it.
-- "/prd-build rewrites it", so a revised block's `Source:` line is dropped instead of refreshed.
+- "/prd-toolkit:prd-build rewrites it", so a revised block's `Source:` line is dropped instead of
+  refreshed.
 - An edit to a contract item of a PRD whose `links.md` has Consumers with no `impact` run, or a
   consumer "skipped" because it is not cloned here.
 - "I can't find a pack called "demo"" with `--list-packs` never run. A search of the repository

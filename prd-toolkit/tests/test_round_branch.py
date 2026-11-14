@@ -14,7 +14,7 @@ FIRST_CHECK = ("Run `git merge-base --is-ancestor <Base> HEAD` and `git branch -
                "if the first fails or the second is not the `Branch:` line, change nothing and report "
                "`QUESTIONS: worktree is not on the build branch`.")
 PROMPT_LINES = "Scripts: <scripts directory, as an absolute path>\nBase: <sha>\nBranch: prd-round/<area>-<n>\n"
-CLOSE_LINE = "<ID>: verified with no build-gate test; its proof is the deploy gate at /prd-deploy"
+CLOSE_LINE = "<ID>: verified with no build-gate test; its proof is the deploy gate at /prd-toolkit:prd-deploy"
 RED_FLAG = "Dispatching the builder with `isolation: worktree`, or letting it commit on the build branch"
 DIFF_CALL = ("uv run --script <scripts>/prd_build_check.py docs/prd/<slug> --diff <base>..prd-round/<area>-<n> "
              "--sources <SNAP>/sources-<n>.txt; "

@@ -1,6 +1,6 @@
 ---
 name: deploying-from-prds
-description: Use when deploying, releasing to production or shipping to staging from a repo that has a docs/prd/ folder - "deploy to production", "ship it to staging", /prd-deploy - when a stopped or failed deploy run needs its human step answered, a rollback or a retry, or when asked to record a deploy in the PRD; prd_deploy.py runs the runbook, the caller relays each human step's reply verbatim, records a failure in errors.md, and closes with Deployed rows and verified → live
+description: Use when deploying, releasing to production or shipping to staging from a repo that has a docs/prd/ folder - "deploy to production", "ship it to staging", /prd-toolkit:prd-deploy - when a stopped or failed deploy run needs its human step answered, a rollback or a retry, or when asked to record a deploy in the PRD; prd_deploy.py runs the runbook, the caller relays each human step's reply verbatim, records a failure in errors.md, and closes with Deployed rows and verified → live
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/deploying-from-prds/running-a-deploy.md` whole before anything else
@@ -59,11 +59,11 @@ record it" change nothing below.
 5. **A failure stops the deploy.** Show the step, the output tails and the `Rollback:` command,
    and ask. Run `rollback` only on the user's yes in their own words. Every failure gets its
    open `Classification: unclassified` entry in `errors.md`, rolled back or not, then the close.
-6. **Code, tests and the runbook are never edited during a deploy.** The fix for a failed step
-   is a change (`prd-toolkit:changing-prds`, then `/prd-build`, then a new run); a runbook that
-   is wrong is a gap for `prd-toolkit:changing-prds`. An error found while a run is stopped is
-   recorded with `prd_error.py new` and left uncommitted: `resume` accepts it, and the close
-   commits it.
+6. **Code, tests and the runbook are never edited during a deploy.** The fix for a failed step is a
+   change (`prd-toolkit:changing-prds`, then `/prd-toolkit:prd-build`, then a new run); a runbook
+   that is wrong is a gap for `prd-toolkit:changing-prds`. An error found while a run is stopped is
+   recorded with `prd_error.py new` and left uncommitted: `resume` accepts it, and the close commits
+   it.
 7. **The close is committed and checked.** Deployed rows for the environments the run reached,
    `live` only after a production finish, no version bump and no §14 row, a commit with
    `Refs:`, then `prd_deploy.py check` from the run's HEAD. A failing check is fixed and rerun
@@ -74,16 +74,16 @@ record it" change nothing below.
    second rollback, a resume of a failed run: the script refuses each. Report it and stop. A new
    run starts only when the user asks for one after seeing the failure.
 9. **A deploy done by hand is recorded, never written.** When the owner deployed through the
-   service's own UI, or any way but `/prd-deploy`, no run is started. A deploy the owner did by
-   hand is recorded with this command, its own Bash call:
+   service's own UI, or any way but `/prd-toolkit:prd-deploy`, no run is started. A deploy the owner
+   did by hand is recorded with this command, its own Bash call:
 
    ```bash
    uv run --script <scripts>/prd_deploy.py record docs/prd/<slug> --env <env> --commit <sha> --reply "<the owner's words>"; echo "prd-deploy-exit=$?"
    ```
 
    It prints `run=<id>`. Commit its row as the close and run `prd_deploy.py check` on it, with
-   `--run <id> --diff <HEAD before the close>..HEAD`. Never write a Deployed row yourself. A
-   by-hand record moves no status: `verified → live` waits for a `/prd-deploy` run whose tests
+   `--run <id> --diff <HEAD before the close>..HEAD`. Never write a Deployed row yourself. A by-hand
+   record moves no status: `verified → live` waits for a `/prd-toolkit:prd-deploy` run whose tests
    pass on that environment. The report says so. A record made while a run is stopped at a human
    step falls under the Red Flag "A close committed while a run waits at a human step".
 
@@ -200,7 +200,7 @@ Quoted from runs without this skill (evals/baselines/deploying-from-prds.md), ex
 | "They asked me to send the step in the inbox for them." | Sending it is answering it. Give the URL, wait for the outcome, and resume on the owner's own reply. |
 | "They're in a meeting, so nobody can answer; the run just stays stopped." | A busy owner is not a headless run. Start `wait`, give the URL, and resume when their outcome comes. |
 | "I'll give them the confirm command to run themselves." | That routes around the step instead of answering it. Show the step's `Do:` and `Check:`, ask, and pass the reply verbatim. |
-| "It's just the greeting text; I'll fix it and carry on." | Code edited during a deploy was never built or verified, and the commit deployed is not the one the PRD records. Record the failure; the fix is a change through `prd-toolkit:changing-prds` and `/prd-build`, then a new run. |
+| "It's just the greeting text; I'll fix it and carry on." | Code edited during a deploy was never built or verified, and the commit deployed is not the one the PRD records. Record the failure; the fix is a change through `prd-toolkit:changing-prds` and `/prd-toolkit:prd-build`, then a new run. |
 | "The runbook's check is wrong, so I'll correct it and rerun." | A wrong runbook is a PRD gap. It goes to `prd-toolkit:changing-prds`; the run that failed is recorded as it failed. |
 | "It's rolled back, so there is nothing to record." | The failure happened whether or not it was undone. Every failed step gets an open `unclassified` `errors.md` entry naming the run and the step. |
 | "They'll obviously want it rolled back." | A rollback changes an environment. It runs only on the user's yes in their own words, after they saw the failure. |
@@ -209,7 +209,7 @@ Quoted from runs without this skill (evals/baselines/deploying-from-prds.md), ex
 | "The script is slow, or its run was denied, so I ran the steps myself." | Steps run by hand have no log, no timeout and no stop at the human step, and the close cannot record them. Stop and tell the user which command to allow. |
 | "Staging passed, so the requirements are live." | `live` means running in production. A run that did not reach production moves no status. |
 | "Recording a deploy changes the PRD, so it gets a version." | Deployed rows and `verified → live` are progress, not behaviour: no version bump and no §14 row. |
-| "They deployed it by hand, so the toolkit cannot record it." | `prd_deploy.py record` logs the owner's words and writes that environment's row; the close is committed and checked like any other. It moves no status: `live` waits for a `/prd-deploy` run. |
+| "They deployed it by hand, so the toolkit cannot record it." | `prd_deploy.py record` logs the owner's words and writes that environment's row; the close is committed and checked like any other. It moves no status: `live` waits for a `/prd-toolkit:prd-deploy` run. |
 | "Their note about steps 3 and 4 came before the run reached them, so it can't confirm them." | The note is the owner's reply to the stopped step, written after the run stopped there. A later step it names goes in the same `confirm`, with the owner's words; a step it does not name stays unconfirmed. |
 | "An error turned up while the run waits; commit the entry first." | A commit moves HEAD and `resume` refuses the run. Record it with `prd_error.py new`, leave it uncommitted, resume; the close commits it. |
 | "The close has to reach the release branch; I'll push it." | The push is the owner's. Tell them which branch the note names and which commit; never push. |
@@ -219,7 +219,7 @@ Quoted from runs without this skill (evals/baselines/deploying-from-prds.md), ex
 
 - **prd-toolkit:changing-prds** takes a failed step's fix and a wrong runbook: the PRD changes
   first, with a new version.
-- **prd-toolkit:building-from-prds** (`/prd-build`) builds that change and takes a block that
-  pre-flight refused as `built`; a deploy starts from `verified`.
+- **prd-toolkit:building-from-prds** (`/prd-toolkit:prd-build`) builds that change and takes a block
+  that pre-flight refused as `built`; a deploy starts from `verified`.
 - **prd-toolkit:authoring-prds** writes the Environments, the runbook and the smoke cases a
   deploy runs.

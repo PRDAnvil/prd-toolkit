@@ -158,3 +158,27 @@ Touches: FR-024
 Diagnosis: The header-mismatch finding is built with line 1 (structure.py:193) although the table's own line is known (the parsed table's line). Every other adoption.md finding points at the line to fix, a row at its own line, so this one sends the author to the file's heading instead of the header row.
 Resolution: T-024.7 [integration], PRD 6.2.2, fixed in 628895739af3e88bdf9c9d19fa6f3173638e0a54
 Recurrence of: -
+
+### E-017 test_validator_fails_defect fails when uv prints `Installed 1 package` on stderr
+Detected: 2026-11-11, user report (/prd-error)
+Classification: code bug
+Confirmed: 2026-11-11, "Confirm the class (form)"
+Evidence: User report (/prd-error), 2026-11-11: test_builtin_packs.py::test_validator_fails_defect is flaky.
+  It sometimes fails when uv prints "Installed 1 package" on stderr.
+  First seen during the move to PRDAnvil/prd-toolkit (0.8.6, 2026-11-10).
+Diagnosis: Reproduced: the unit harness narrowed to `tests/test_builtin_packs.py` failed on both runs (run 1 `[no-purpose]`, run 2 `[not-md]`, 26 passed each), with `assert 'g: missing purpose' in 'Installed 1 package in 1ms'`. Root cause: the test's `_run` helper starts the document pack's validator as `uv run --script <validator>` without `--quiet`, and asserts on the first stderr line. The first validator run in each session builds the script's environment and uv prints `Installed 1 package` there; which parametrized case gets it depends on xdist scheduling, so a different case fails each time. Since NFR-019 (E-008) the session deletes `environments-v2` at the end of every run, so a narrowed run always rebuilds it; the full suite passes when another test builds the environment first. The test breaks testing.md Harness, Lifecycle: "A test runs a CLI script as a subprocess with the test's own interpreter, `python <repo>/prd-toolkit/scripts/<script>` (not `uv run --script`, whose own stderr lines would break the stderr assertions)". The validator itself is right, and the pack manifest the test checks already runs it as `uv run --quiet --script`. No AC covers the validator and the test cites no T-id: both sit outside every adopted area's Boundary.
+Resolution: -
+Recurrence of: -
+
+### E-018 `prd_error.py check` reports `Detected: changed` on entries whose only change is the move's SHA remap (c8f48cf)
+Detected: 2026-11-11, user report (/prd-error)
+Classification: code bug
+Confirmed: 2026-11-11, "Confirm the class (form)"
+Evidence: User report (/prd-error), 2026-11-11: prd_error.py check over a range that includes c8f48cf
+  reports `Detected: changed` on E-001..E-006 and E-009..E-013.
+  c8f48cf is the move's filter-repo SHA remap (0.8.6): it rewrote old-repo SHAs in docs/prd to the new ones, provenance only.
+  Seen on the E-009 close (check over the whole loop exited 1, every finding from an older commit) and on the E-010 close (95d26dd, check over ae00c13..HEAD failing on c8f48cf findings).
+  A check started after c8f48cf (c8f48cf..HEAD) exits 0.
+Diagnosis: not a defect: reproduced, `prd_error.py check docs/prd/prd-toolkit c8f48cf~1..HEAD` exits 1 with `Detected: changed` on E-001 to E-006 and E-009 to E-013, and the same check from c8f48cf exits 0. The findings are true: c8f48cf rewrote those entries' `Detected:` lines (for example `model.py:713 @d1a4146` became `@1cde4cc`), and `_structure` in `prdlint/errors.py` reports any `Detected:` that differs between two commits. The toolkit holds ledger lines fixed on purpose: changing-prds says of the errors.md ledger "existing entries stay as written", and running-an-error.md step 6 says "a changed `Detected:` line) cannot be fixed by an edit, and history is never rewritten, so report it with its commit". The move broke that rule once, deliberately, so every check over a range that spans c8f48cf reports it; a check from c8f48cf on is clean and stays clean. No PRD line covers `prd_error.py`: its `errors` area is not adopted. Accepting a provenance-only rewrite would be a new feature, not a fix.
+Resolution: not a defect: the check is right: c8f48cf rewrote the `Detected:` lines of E-001 to E-006 and E-009 to E-013 once, during the move, and the toolkit keeps ledger lines as written ("existing entries stay as written"); a check from c8f48cf on exits 0
+Recurrence of: -

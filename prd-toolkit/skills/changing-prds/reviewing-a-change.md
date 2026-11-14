@@ -12,9 +12,9 @@ owner asked for and an edit you would undo before the end are all edits. The ver
 PRD's digest: an edit made here either moves it, so `approve` refuses the verdict, or puts text
 the owner never reviewed under their approval.
 
-`/prd-change --review <dir> [--base <ref>]` reviews the change in the PRD folder `<dir>`, in
-whatever checkout or worktree holds it, edited and not yet recorded or recorded. Run every
-command from the root of the repository that holds `<dir>`, with the `<scripts>` that
+`/prd-toolkit:prd-change --review <dir> [--base <ref>]` reviews the change in the PRD folder
+`<dir>`, in whatever checkout or worktree holds it, edited and not yet recorded or recorded. Run
+every command from the root of the repository that holds `<dir>`, with the `<scripts>` that
 `changing-prds`' **Which script.** paragraph picks, one command per Bash call with literal paths,
 and the gate that ends each command read as that skill says. The base is `--base <ref>` when the
 command gives one; otherwise the branch's upstream, from `git rev-parse --abbrev-ref @{upstream}`
@@ -76,15 +76,17 @@ not move. Otherwise `ready` is `false` and `blockers` holds one line per reason:
 `the PRD changed during the review`. Never write `ready: true` over a blocker.
 Review mode writes no `refs`; `changing-prds` step 4 adds it for a change made for an `errors.md` entry.
 
-The order a client runs: `bump`, then this review, then `record` at the level the verdict gives, then lint and trace; `record` does not change the digest, so the verdict stays valid.
-A client starts it headless as `claude -p "/prd-change --review <dir>" --output-format json`, with
-the plugin loaded and the tools `Read`, `Grep`, `Glob`, `Bash` and `Agent`.
+The order a client runs: `bump`, then this review, then `record` at the level the verdict gives,
+then lint and trace; `record` does not change the digest, so the verdict stays valid. A client
+starts it headless as `claude -p "/prd-toolkit:prd-change --review <dir>" --output-format json`,
+with the plugin loaded and the tools `Read`, `Grep`, `Glob`, `Bash` and `Agent`.
 
 ## The report
 
 The last message is the verdict as written, in a `json` block, and then one line per request made
-with the review that was not done: `not edited: <the request> (<the file and line it would
-change>); make it with /prd-change, then review again`. Nothing else is changed by saying so.
+with the review that was not done:
+`not edited: <the request> (<the file and line it would change>); make it with /prd-toolkit:prd-change, then review again`.
+Nothing else is changed by saying so.
 
 ## Red Flags - STOP
 
@@ -101,7 +103,7 @@ change>); make it with /prd-change, then review again`. Nothing else is changed 
 
 | Excuse | Reality |
 |---|---|
-| "The user asked for the fix, so it's allowed." | Review mode edits nothing, whoever asks. The fix is a `/prd-change`, then a new review. |
+| "The user asked for the fix, so it's allowed." | Review mode edits nothing, whoever asks. The fix is a `/prd-toolkit:prd-change`, then a new review. |
 | "Fixing the AC first gives a cleaner verdict." | The verdict reviews the change as it stands. A fixed AC is a change nobody reviewed. |
 | "It's one word; the digest barely matters." | Any byte moves the digest, and the gate then offers nothing to approve. |
 | "I'll record the bump too, it saves the client a call." | `record` is the client's step after the verdict. Review mode writes only the verdict. |

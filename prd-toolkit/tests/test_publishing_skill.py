@@ -1,4 +1,4 @@
-"""The publishing-prds skill, /prd-publish and their evals (spec §10)."""
+"""The publishing-prds skill, /prd-toolkit:prd-publish and their evals (spec §10)."""
 import json
 import re
 import subprocess
@@ -49,7 +49,7 @@ def test_frontmatter():
 
 def test_description_triggers_on_publishing_a_prd():
     d = frontmatter(SKILL)["description"]
-    for s in ("a repo that has a docs/prd/ folder", "/prd-publish", "publish", "share", "page", "HTML", "Artifact",
+    for s in ("a repo that has a docs/prd/ folder", "/prd-toolkit:prd-publish", "publish", "share", "page", "HTML", "Artifact",
               "business", "error logs", "prd_publish.py", "summaries that cite their IDs"):
         assert s in d, s
     for path in (SKILL, COMMAND):
@@ -175,7 +175,7 @@ def test_a_summary_says_only_what_its_area_says():
     assert "**A summary says only what its area's lines say.**" in s
     assert "not even as \"not supported yet\"" in s
     assert "The page is still published" in s
-    assert "`/prd-change`" in s
+    assert "`/prd-toolkit:prd-change`" in s
     two = step(2)
     assert "`features/<area>.md`" in two and "`nfr.md`" in two
     assert "An area with no FR or NFR block gets no summary" in two
@@ -393,7 +393,7 @@ def test_the_summaries_file_is_deleted_after_the_render():
 
 
 def test_the_report_names_the_untracked_page():
-    assert "(untracked in the repository: move or delete it before the next `/prd-build`)" in step(5)
+    assert "(untracked in the repository: move or delete it before the next `/prd-toolkit:prd-build`)" in step(5)
 
 
 PLUGIN_SCRIPT = "/abs/plugin/scripts/prd_publish.py"

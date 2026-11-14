@@ -1,4 +1,4 @@
-"""Routing: /prd-context, the changing-prds and adopting-prds wording, and the managed block."""
+"""Routing: /prd-toolkit:prd-context, the changing-prds and adopting-prds wording, and the managed block."""
 import re
 from pathlib import Path
 
@@ -11,9 +11,10 @@ from test_adoption_file import adopt
 ROOT = Path(__file__).parent.parent
 CHANGING = ROOT / "skills/changing-prds/SKILL.md"
 
-BULLET = ("To learn what an area does, run `/prd-context <area>` and work from its pack; read whole PRD\n"
-          "  files only to edit them. Build an approved change with `/prd-build <area> <IDs>`. Code\n"
-          "  implements the PRD; it never defines behaviour the PRD lacks.")
+BULLET = ("To learn what an area does, run `/prd-toolkit:prd-context <area>` and work from its pack; read\n"
+          "  whole PRD files only to edit them. Build an approved change with\n"
+          "  `/prd-toolkit:prd-build <area> <IDs>`. Code implements the PRD; it never defines behaviour the PRD\n"
+          "  lacks.")
 
 
 def section(path: Path, start: str, end: str) -> str:
@@ -36,7 +37,8 @@ def test_block_bullet():
 def test_block_stays_small(prd):
     adopt(prd, "".join(f"| area-{i:02} | adopted | `src/a{i}/**` |\n" for i in range(20)))
     add_required_skills(prd, 4)
-    assert len(prd_block.render_block(model.load(prd), "docs/prd/orders").encode()) < 1536
+    # 1.5 KiB until 0.8.7, whose full command names (`/prd-toolkit:prd-change`) add 12 bytes each.
+    assert len(prd_block.render_block(model.load(prd), "docs/prd/orders").encode()) < 1792
 
 
 def test_changing_step_1_runs_the_decide_pack():
@@ -54,7 +56,7 @@ def test_changing_step_1_runs_the_decide_pack():
 
 def test_changing_step_5_hands_off_to_prd_build():
     step5 = section(CHANGING, "5. **Approval, then commit.**", "## Red Flags")
-    assert "/prd-build <area> <changed IDs>" in step5 and "Code written outside `/prd-build`" in step5
+    assert "/prd-toolkit:prd-build <area> <changed IDs>" in step5 and "Code written outside `/prd-toolkit:prd-build`" in step5
 
 
 def test_adopting_previews_come_from_the_implement_pack():
@@ -150,8 +152,8 @@ def test_pack_output_is_never_filtered():
 
 def test_changing_step_5_keeps_the_refresh_for_code_outside_prd_build():
     step5 = " ".join(section(CHANGING, "5. **Approval, then commit.**", "## Red Flags").split())
-    after = step5[step5.index("Code written outside `/prd-build`"):]
-    assert "/prd-context <area> <changed IDs> implement" in after
+    after = step5[step5.index("Code written outside `/prd-toolkit:prd-build`"):]
+    assert "/prd-toolkit:prd-context <area> <changed IDs> implement" in after
     assert "After the code commit, run the implement pack again" in after
     assert "rewrite each STALE `Source:` of a changed block as `<path>:<line> @<new short sha>` and commit the PRD" in after
     assert "provenance, not behaviour" in after and "no version bump and no §14 row" in after
@@ -206,12 +208,12 @@ def test_adoption_writes_the_runbook_as_built():
 
 def test_build_close_leaves_deploy_gate_tests_to_prd_deploy():
     t = flat(RUNNING_BUILD)
-    assert "deploy-gate tests run at `/prd-deploy`" in t
+    assert "deploy-gate tests run at `/prd-toolkit:prd-deploy`" in t
 
 
 def test_block_names_the_deployer():
     t = (ROOT / "templates/claude-block.md").read_text()
-    assert "/prd-deploy" in t and "never run a runbook command yourself" in " ".join(t.split())
+    assert "/prd-toolkit:prd-deploy" in t and "never run a runbook command yourself" in " ".join(t.split())
 
 
 def test_format_has_the_runbook_grammar():

@@ -87,8 +87,8 @@ def test_adopting_skill_names_adoption_md_not_section_8_table():
 
 # --- the block's change line names the adopted areas (0.8.2, spec section 17 fix 4) ---
 
-NEW_LINE = "- Every behaviour change starts with `/prd-change` (`prd-toolkit:changing-prds`), before code."
-ADOPTED_LINE = "- Every behaviour change in an adopted area starts with `/prd-change`, before code."
+NEW_LINE = "- Every behaviour change starts with `/prd-toolkit:prd-change` (`prd-toolkit:changing-prds`), before code."
+ADOPTED_LINE = "- Every behaviour change in an adopted area starts with `/prd-toolkit:prd-change`, before code."
 LINKS_MD = ("# Links\n\n## Upstreams\n\n| Upstream | Location | Version | Commit | Needs |\n|---|---|---|---|---|\n\n"
             "## Consumers\n\n| Consumer | Location |\n|---|---|\n| reports | `../reports` |\n")
 
@@ -118,8 +118,8 @@ def test_change_line_linked_with_adoption(prd):
     adopt(prd, "| import | adopted | `src/**` |\n")
     (prd / "links.md").write_text(LINKS_MD, encoding="utf-8")
     block = _block(prd)
-    assert ("- Every behaviour change in an adopted area starts with `/prd-change`, before code; one to a cited\n"
-            "  item, with `/prd-change-set`.") in block
+    assert ("- Every behaviour change in an adopted area starts with `/prd-toolkit:prd-change`, before code; one\n"
+            "  to a cited item, with `/prd-toolkit:prd-change-set`.") in block
     assert "(`prd-toolkit:changing-prds`)" not in block.split("Gap rule")[0].split("- Every behaviour")[1]
     assert "{{" not in block
     assert all(len(ln) <= 100 for ln in block.splitlines())

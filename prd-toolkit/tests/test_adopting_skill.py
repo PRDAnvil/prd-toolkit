@@ -1,4 +1,4 @@
-"""The adopting-prds skill, its per-area extract prompt and the /prd-adopt command."""
+"""The adopting-prds skill, its per-area extract prompt and the /prd-toolkit:prd-adopt command."""
 import re
 from pathlib import Path
 
@@ -10,7 +10,7 @@ EXTRACT = ROOT / "skills/adopting-prds/extract-prompt.md"
 COMMAND = ROOT / "commands/prd-adopt.md"
 DESCRIPTION = (
     "Use when bringing an existing codebase or one of its areas under a PRD - \"adopt this repo\", \"write a "
-    "PRD for what this already does\", \"reverse-engineer the requirements\", /prd-adopt - extracts as-built "
+    "PRD for what this already does\", \"reverse-engineer the requirements\", /prd-toolkit:prd-adopt - extracts as-built "
     "requirements with sources, confirms intent with the user, and closes each area with characterization "
     "tests run by prd-tester"
 )

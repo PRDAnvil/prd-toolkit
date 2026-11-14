@@ -390,7 +390,7 @@ def validate_answer(item: Item, decision: Any, text: Any, acs: Any) -> tuple[str
     if decision not in ALLOWED[item.kind]:
         raise Refused(f"decision {decision} is not allowed for a {item.kind}")
     if item.confirmed is not None:
-        raise Refused(f"{item.id} is confirmed in errors.md; change it through /prd-error")
+        raise Refused(f"{item.id} is confirmed in errors.md; change it through /prd-toolkit:prd-error")
     if text is not None and not isinstance(text, str):
         raise Refused("text must be a string")
     text = (text or "").strip()

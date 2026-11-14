@@ -1,4 +1,4 @@
-"""changing-prds calls prd_change.py for the bookkeeping, and /prd-change --review runs reviewing-a-change.md
+"""changing-prds calls prd_change.py for the bookkeeping, and /prd-toolkit:prd-change --review runs reviewing-a-change.md
 (spec 0.8.1 §4 and §6)."""
 import json
 import re
@@ -131,7 +131,7 @@ def test_skill_no_longer_says_bump_ignores_block_status():
 
 def test_skill_points_at_review_mode():
     t = flat(SKILL.read_text(encoding="utf-8"))
-    assert "/prd-change --review <dir>" in t and "reviewing-a-change.md" in t
+    assert "/prd-toolkit:prd-change --review <dir>" in t and "reviewing-a-change.md" in t
 
 
 def test_id_rules_name_ids_next_and_uj():

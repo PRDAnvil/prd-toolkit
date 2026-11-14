@@ -42,7 +42,7 @@ work against the PRD:
 
 | Task | Edits in the PRD | Context pack |
 |---|---|---|
-| New sub-project | a new area: `features/<area>.md`, `test-cases/<area>.yaml`, a row in `adoption.md` when the project is adopted | `/prd-context` without an area |
+| New sub-project | a new area: `features/<area>.md`, `test-cases/<area>.yaml`, a row in `adoption.md` when the project is adopted | `/prd-toolkit:prd-context` without an area |
 | Addition | new FR or UJ blocks in an existing area | `decide`, then `implement` |
 | Update | changed blocks and a version bump | `decide`, then `implement` |
 | Bug fix | the `E-nnn` entry resolved; its `known-failing` case passes | `decide`, then `implement`, for the IDs the entry touches |
@@ -273,11 +273,11 @@ Tests: T-012.1 [integration], T-012.2 [unit]  (test-cases/import.yaml)
 Traces: UJ-02; `orders.order_key` UNIQUE; fixture orders/one_existing
 ```
 
-An optional `Source: <path>:<line> @<sha>` field line (continuation lines allowed) records the
-code a block was read from when an existing system is adopted. An `as-built` block must have one
-(`index-consistent`). `Source:` means where the code that implements the block is: provenance for
-an `as-built` block, a pointer for a built one (`/prd-build` writes it at close). It is optional
-outside `as-built`.
+An optional `Source: <path>:<line> @<sha>` field line (continuation lines allowed) records the code
+a block was read from when an existing system is adopted. An `as-built` block must have one
+(`index-consistent`). `Source:` means where the code that implements the block is: provenance for an
+`as-built` block, a pointer for a built one (`/prd-toolkit:prd-build` writes it at close). It is
+optional outside `as-built`.
 
 - `Status:` is `approved`, `built`, `verified`, `live`, `as-built` or `removed`, optionally
   followed by `(since X.Y.Z)`. `live` always carries `since`. Status moves go
@@ -362,7 +362,7 @@ T-012.2:
   entry must be in `errors.md` and still open; a resolved or unknown entry is a `test-refs`
   violation. The test for such a case is a strict expected failure in the harness's own way (pytest
   `xfail(strict=True)`, jest `test.failing`) and its citation reads `@prd <T-id> known-failing <E-nnn>`.
-  A `/prd-build --fixes E-nnn` removes the line before its step 7 trace: once its T-id passes, or, at a
+  A `/prd-toolkit:prd-build --fixes E-nnn` removes the line before its step 7 trace: once its T-id passes, or, at a
   deploy-gate level, once the tester's un-mark is committed; no other build edits one.
 - `symptom:` (optional, beside `known-failing:` only) is what the run shows while the bug is open, in plain
   language, one observable symptom. The test then treats only that symptom as the expected failure. A
@@ -508,13 +508,13 @@ refer to (levels, environments, fixtures).
   (`bash tools/gate.sh <level>`) is not one. A build command that excludes the deploy-gate path
   (`--ignore`, `--ignore-glob`, `--deselect`) or selects its tests by an expression (`-m`, `-k`) is
   not reported: `pytest tests --ignore tests/system` and `pytest -m "not system" tests` pass.
-- Levels: an optional `Timeout` column, found by its header name as `Environment` is, gives a level's
-  timeout at `/prd-deploy` in whole seconds, at least 1 (`runbook-tests` reports any other value). A
-  blank cell or no column means the default, 600 s. A `tests` step runs each level with its own
-  Timeout; `Run:`, `Check:` and `Rollback:` commands keep the default; a `--timeout` given to
-  `prd_deploy.py` overrides every one of them, 600 included. The timeout message names the value that
-  applied: `timed out after <N> s (the <level> level's Timeout)`, `(--timeout)` or `(the default)`. A
-  pack level's `timeout:` is copied into this cell.
+- Levels: an optional `Timeout` column, found by its header name as `Environment` is, gives a
+  level's timeout at `/prd-toolkit:prd-deploy` in whole seconds, at least 1 (`runbook-tests` reports
+  any other value). A blank cell or no column means the default, 600 s. A `tests` step runs each
+  level with its own Timeout; `Run:`, `Check:` and `Rollback:` commands keep the default; a
+  `--timeout` given to `prd_deploy.py` overrides every one of them, 600 included. The timeout
+  message names the value that applied: `timed out after <N> s (the <level> level's Timeout)`,
+  `(--timeout)` or `(the default)`. A pack level's `timeout:` is copied into this cell.
 - Levels: each `Harness command` is **one simple command** in backticks, such as
   `` `uv run pytest tests` ``; the `prd-tester` guard runs nothing else. It blocks a command whose
   first word is `cd`, `env`, `sh`, `bash`, `zsh`, `eval` or `exec`; one containing `$`, `{` or
@@ -625,7 +625,7 @@ Two optional tables follow the runbook.
 
 `## Deployed` is the PRD's record of what each environment runs: the caller writes one row per
 environment at a deploy run's close, replacing that environment's earlier row. A missing table
-means nothing is deployed yet. A deploy the owner did by hand, outside `/prd-deploy`, is recorded with
+means nothing is deployed yet. A deploy the owner did by hand, outside `/prd-toolkit:prd-deploy`, is recorded with
 `prd_deploy.py record <prd dir> --env <env> --commit <sha> --reply "<owner's words>"`, which writes a
 run log marked `by: hand` and that environment's row, runs nothing and moves no status; the caller never writes that row directly. `## Drift` lists the checks run against a live environment; `Check`
 is `version` or `config` (`drift-rows`; a `schema` row is reported as arriving in prd-toolkit 0.6,

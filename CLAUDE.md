@@ -76,19 +76,21 @@ Omit needless words, use the active voice, and be specific.
 
 The PRD at `docs/prd/prd-toolkit` (version 6.2.2) is the authority.
 
-- To learn what an area does, run `/prd-context <area>` and work from its pack; read whole PRD
-  files only to edit them. Build an approved change with `/prd-build <area> <IDs>`. Code
-  implements the PRD; it never defines behaviour the PRD lacks.
-- Every behaviour change in an adopted area starts with `/prd-change`, before code.
-- Gap rule: if the PRD is silent on what you need, stop and raise it with `/prd-change`.
-  Do not guess or read the code to fill the gap.
-- Deploy with `/prd-deploy`; never run a runbook command yourself.
-- A bug, a failing test, an error or a failed deploy goes to `/prd-error` (skill
+- To learn what an area does, run `/prd-toolkit:prd-context <area>` and work from its pack; read
+  whole PRD files only to edit them. Build an approved change with
+  `/prd-toolkit:prd-build <area> <IDs>`. Code implements the PRD; it never defines behaviour the PRD
+  lacks.
+- Every behaviour change in an adopted area starts with `/prd-toolkit:prd-change`, before code.
+- Gap rule: if the PRD is silent on what you need, stop and raise it with
+  `/prd-toolkit:prd-change`. Do not guess or read the code to fill the gap.
+- Deploy with `/prd-toolkit:prd-deploy`; never run a runbook command yourself.
+- A bug, a failing test, an error or a failed deploy goes to `/prd-toolkit:prd-error` (skill
   `prd-toolkit:handling-errors`) before any code changes.
 - Commits cite IDs: `Refs: FR-012`.
 - Run `.prd-toolkit/prd_hooks.py install` once per clone:
   `uv run --script .prd-toolkit/prd_hooks.py install docs/prd/prd-toolkit`.
-- Lint runs inside the prd-toolkit skills; after any PRD edit, finish through `/prd-change`.
+- Lint runs inside the prd-toolkit skills; after any PRD edit, finish through
+  `/prd-toolkit:prd-change`.
 
 Required skills:
 - `superpowers:writing-skills` for a change to `prd-toolkit/skills/**`

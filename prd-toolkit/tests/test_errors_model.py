@@ -4,7 +4,7 @@ from conftest import edit, fired, lint
 from prdlint import model
 
 ENTRY = '''### E-002 Greeting drops a word
-Detected: 2026-11-03, user report (/prd-error)
+Detected: 2026-11-03, user report (/prd-toolkit:prd-error)
 Classification: code bug
 Confirmed: 2026-11-03, "yes, it's a code bug"
 Touches: FR-001
@@ -44,7 +44,7 @@ def test_entry_fields(prd):
     e = model.load(prd).errors_ledger["E-002"]
     assert (e.title, e.state, e.confirmed) == ("Greeting drops a word", "confirmed", ("2026-11-03", "yes, it's a code bug"))
     assert e.evidence == ['`greet "Ana Maria"` prints `Hello, Ana!`', "and exits 0"] and e.recurrence == "E-001"
-    assert e.detected == "2026-11-03, user report (/prd-error)"
+    assert e.detected == "2026-11-03, user report (/prd-toolkit:prd-error)"
     assert e.diagnosis.startswith("AC-001.1") and e.resolution == "-"
     assert e.detected_line == line_of(prd, "Detected: 2026-11-03")
     assert e.confirmed_line == line_of(prd, "Confirmed:")
@@ -75,7 +75,7 @@ def test_fixture_ledger_is_clean(prd):
 
 
 def test_bad_detected(prd):
-    entry(prd, **{"2026-11-03,__user__report__(/prd-error)": "yesterday"})
+    entry(prd, **{"2026-11-03,__user__report__(/prd-toolkit:prd-error)": "yesterday"})
     n = line_of(prd, "Detected: yesterday")
     assert [(f.rule, f.message, f.line) for f in lint(prd) if f.rule == "error-entries"] == [
         ("error-entries", 'E-002: Detected: must be "<YYYY-MM-DD>, <source>"', n)]

@@ -1,4 +1,4 @@
-"""The deploying-from-prds skill, its caller procedure running-a-deploy.md and /prd-deploy."""
+"""The deploying-from-prds skill, its caller procedure running-a-deploy.md and /prd-toolkit:prd-deploy."""
 import re
 from pathlib import Path
 
@@ -119,7 +119,7 @@ def test_d6_steps_run_by_hand_when_the_script_is_slow_or_denied():
 
 def test_description_is_a_deploy_trigger():
     d = frontmatter(SKILL)["description"]
-    for s in ("docs/prd/", "/prd-deploy", "production", "staging", "stopped or failed deploy run", "record"):
+    for s in ("docs/prd/", "/prd-toolkit:prd-deploy", "production", "staging", "stopped or failed deploy run", "record"):
         assert s in d, s
     for path in (SKILL, COMMAND):
         for value in frontmatter(path).values():
@@ -315,7 +315,7 @@ def test_failure_entry_is_written_with_prd_error_new():
     assert "prd_error.py new" in two and '--source "deploy run <run id>, failed step <N>"' in two
     assert "Add the entry with Edit" not in two and "never rewrite `errors.md` with Write" not in two
     assert "the entry stays open and unclassified" in two
-    assert "/prd-error E-<nnn>" in two and "next step" in two
+    assert "/prd-toolkit:prd-error E-<nnn>" in two and "next step" in two
 
 
 def test_a_reply_may_name_the_run_as_the_only_one_stopped_at_the_step():
@@ -327,7 +327,7 @@ def test_a_reply_may_name_the_run_as_the_only_one_stopped_at_the_step():
 
 def test_r28_missing_deploy_gate_test_routes_to_a_tester_only_build():
     two = step(2)
-    assert ("the missing test goes to `/prd-build <area> <IDs>` with that block's ID, whose tester-only round "
+    assert ("the missing test goes to `/prd-toolkit:prd-build <area> <IDs>` with that block's ID, whose tester-only round "
             "writes it without a builder or a status change") in two
 
 
@@ -397,7 +397,7 @@ def test_by_hand_never_write_a_deployed_row():
 
 
 def test_by_hand_record_moves_no_status():
-    assert ("A by-hand record moves no status: `verified → live` waits for a `/prd-deploy` run whose tests pass on that "
+    assert ("A by-hand record moves no status: `verified → live` waits for a `/prd-toolkit:prd-deploy` run whose tests pass on that "
             "environment.") in flat(SKILL)
 
 
@@ -437,7 +437,7 @@ def test_085_mid_run_entry_is_left_uncommitted_and_the_close_carries_it():
     assert MID_RUN_ENTRY in two
     at = 0
     for s in ("**An error found while the run is stopped.**", "prd_error.py new", "Do not commit it", "then resume",
-              "the close commit carries it", "`/prd-error E-<nnn>` after the close"):
+              "the close commit carries it", "`/prd-toolkit:prd-error E-<nnn>` after the close"):
         at = two.index(s, at)
     assert "the tracked tree has changes" in two
     assert "An error found while a run is stopped is recorded with `prd_error.py new` and left uncommitted" in flat(SKILL)

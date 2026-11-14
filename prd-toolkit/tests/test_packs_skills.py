@@ -232,7 +232,7 @@ def test_changing_refuses_a_retarget_verbatim():
     s = section(CHANGING, "## Packs and retargeting")
     assert f"`{REFUSAL}`" in s
     assert "`built`, `verified` or `live`" in s
-    assert "no `/prd-change`, no version bump, no edit and no plan to move a status back" in s
+    assert "no `/prd-toolkit:prd-change`, no version bump, no edit and no plan to move a status back" in s
     assert "An output-language change, or a pack change on an area with no `built`, `verified` or `live` block" in s
 
 

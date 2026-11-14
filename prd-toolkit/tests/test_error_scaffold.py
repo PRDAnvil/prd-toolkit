@@ -42,7 +42,7 @@ def test_every_state_is_clean_lints_and_traces(built):
     # R10: the managed CLAUDE.md block, as approval writes it, committed (it routes a plain prompt to the skills)
     claude = (repo / "CLAUDE.md").read_text(encoding="utf-8")
     assert "<!-- prd-toolkit:start -->" in claude and "<!-- prd-toolkit:end -->" in claude
-    assert "goes to `/prd-error` (skill `prd-toolkit:handling-errors`) before any code changes" in " ".join(claude.split())
+    assert "goes to `/prd-toolkit:prd-error` (skill `prd-toolkit:handling-errors`) before any code changes" in " ".join(claude.split())
     assert git(repo, "ls-files", "CLAUDE.md").strip() == "CLAUDE.md"
     r = tool(repo, ".prd-toolkit/prd_block.py", PRD, "--check")
     assert r.returncode == 0, r.stdout + r.stderr

@@ -36,8 +36,10 @@ Version 6.2.2 · Approved · Owner: Ivan Histand · Updated 2026-11-10
 
 ## Reading and changing it
 
-- Read `prd.md`, then the area you care about. With the plugin: `/prd-status` for where every
-  requirement stands, `/prd-context <area>` for one area, `/prd-publish` for a readable page.
-- Don't edit these files by hand. A change in behaviour starts with `/prd-change` and is built
-  with `/prd-build`; a bug starts with `/prd-error`. Lint and the git hooks check every commit.
+- Read `prd.md`, then the area you care about. With the plugin: `/prd-toolkit:prd-status` for
+  where every requirement stands, `/prd-toolkit:prd-context <area>` for one area,
+  `/prd-toolkit:prd-publish` for a readable page.
+- Don't edit these files by hand. A change in behaviour starts with `/prd-toolkit:prd-change` and
+  is built with `/prd-toolkit:prd-build`; a bug starts with `/prd-toolkit:prd-error`. Lint and the
+  git hooks check every commit.
 <!-- prd-toolkit:end -->

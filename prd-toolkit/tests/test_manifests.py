@@ -12,7 +12,7 @@ def test_descriptions_match_and_name_new_commands():
     entry = next(p for p in market["plugins"] if p["name"] == "prd-toolkit")
     assert plugin["description"] == entry["description"]
     assert plugin["version"] == entry["version"]
-    for cmd in ("/prd-build", "/prd-status", "/prd-deploy", "/prd-change-set"):
+    for cmd in ("/prd-toolkit:prd-build", "/prd-toolkit:prd-status", "/prd-toolkit:prd-deploy", "/prd-toolkit:prd-change-set"):
         assert cmd in plugin["description"]
 
 

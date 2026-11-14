@@ -1,6 +1,6 @@
 ---
 name: adopting-prds
-description: Use when bringing an existing codebase or one of its areas under a PRD - "adopt this repo", "write a PRD for what this already does", "reverse-engineer the requirements", /prd-adopt - extracts as-built requirements with sources, confirms intent with the user, and closes each area with characterization tests run by prd-tester
+description: Use when bringing an existing codebase or one of its areas under a PRD - "adopt this repo", "write a PRD for what this already does", "reverse-engineer the requirements", /prd-toolkit:prd-adopt - extracts as-built requirements with sources, confirms intent with the user, and closes each area with characterization tests run by prd-tester
 ---
 
 # Adopting PRDs
@@ -158,8 +158,8 @@ a row `adopted` whose adoption has no §14 row is step 5 interrupted: resume at 
 
 ### 1. Bound
 
-The user picks the area. An area named in the request (or in `/prd-adopt`'s argument) is picked.
-Otherwise show the map, recommend one area and why, and stop for the user's pick.
+The user picks the area. An area named in the request (or in `/prd-toolkit:prd-adopt`'s argument) is
+picked. Otherwise show the map, recommend one area and why, and stop for the user's pick.
 
 - Show the area's Boundary and the files it matches; correct it if the user does.
 - **The area's pack.** List the packs, its own Bash call:

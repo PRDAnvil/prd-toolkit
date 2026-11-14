@@ -27,7 +27,7 @@ Recurrence of: -
 CONFIRMED = 'Confirmed: 2026-11-03, "yes, it is a code bug"'
 
 
-def entry(n=2, title="Greeting drops a word", detected="2026-11-03, user report (/prd-error)", cls="code bug",
+def entry(n=2, title="Greeting drops a word", detected="2026-11-03, user report (/prd-toolkit:prd-error)", cls="code bug",
           confirmed=CONFIRMED, resolution="-"):
     lines = [f"### E-{n:03d} {title}", f"Detected: {detected}", f"Classification: {cls}"]
     if confirmed:
@@ -110,7 +110,7 @@ def test_moved_before(repo):
 
 def test_detected_changed(repo):
     base = start(repo, entry())
-    put(repo, ledger(entry(detected="2026-11-04, user report (/prd-error)")))
+    put(repo, ledger(entry(detected="2026-11-04, user report (/prd-toolkit:prd-error)")))
     assert check(repo, base) == [pre() + "Detected: changed"]
 
 

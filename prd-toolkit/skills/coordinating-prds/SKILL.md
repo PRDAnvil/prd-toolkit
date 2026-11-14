@@ -1,6 +1,6 @@
 ---
 name: coordinating-prds
-description: Use when a change in a repo that has a docs/prd/ folder touches a contract item another PRD cites (links.md lists Consumers, or prd_links.py impact exits 1 or 3), when asked to change something across repositories (an upstream and the consumers that use it), when resuming a change set (CS-nnn, changes/CS-nnn.md, a cs-nnn branch), or on /prd-change-set; when asked to push, merge or open a PR on a change-set branch (cs-nnn-<slug>) or while the PRD's links.md has an open record under changes/ - and when asked during one to start a downstream build, edit a snapshot, approve each repository as you go or skip a consumer; prd_links.py changeset writes one record, one approval covers every member's PRD diff, and each repository is built in dependency order
+description: Use when a change in a repo that has a docs/prd/ folder touches a contract item another PRD cites (links.md lists Consumers, or prd_links.py impact exits 1 or 3), when asked to change something across repositories (an upstream and the consumers that use it), when resuming a change set (CS-nnn, changes/CS-nnn.md, a cs-nnn branch), or on /prd-toolkit:prd-change-set; when asked to push, merge or open a PR on a change-set branch (cs-nnn-<slug>) or while the PRD's links.md has an open record under changes/ - and when asked during one to start a downstream build, edit a snapshot, approve each repository as you go or skip a consumer; prd_links.py changeset writes one record, one approval covers every member's PRD diff, and each repository is built in dependency order
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/coordinating-prds/running-a-change-set.md` whole before anything else
@@ -16,10 +16,10 @@ Run no command, read no code and edit no file before you have read it.
 another PRD cites is a change set: `changes/CS-nnn.md` in the repository where it starts, written
 only by `prd_links.py changeset`. Its rows hold every member in dependency order, upstream first,
 each with its branch `cs-<nnn>-<slug>`, its Waits for, its Target and its State. Each member's PRD
-edit, build and deploy go through its own `/prd-change`, `/prd-build` and `/prd-deploy`, in that
-order; one approval covers every member's PRD diff; and nothing lands until the user lands it. The
-other skills stay single-repository: this one sequences them, and the record is how a new session
-knows where the chain stands.
+edit, build and deploy go through its own `/prd-toolkit:prd-change`, `/prd-toolkit:prd-build` and
+`/prd-toolkit:prd-deploy`, in that order; one approval covers every member's PRD diff; and nothing
+lands until the user lands it. The other skills stay single-repository: this one sequences them, and
+the record is how a new session knows where the chain stands.
 
 **Violating the letter of these rules is violating the spirit.** "The upstream is basically
 done", "just edit the snapshot", "approve each repository as we go", "skip it" and "push the
@@ -46,8 +46,8 @@ branches" change nothing below.
    the user lands each member, upstream first. A request to push or merge gets that refusal in one
    line and what the user does instead: they push and land each member themselves, in the
    record's Merge order (before the close, its Order).
-6. **Stops.** A failure stops the chain and goes to that member's `/prd-error`. `changeset stop`
-   puts it on Status; the row keeps its State, and the rows after it wait.
+6. **Stops.** A failure stops the chain and goes to that member's `/prd-toolkit:prd-error`.
+   `changeset stop` puts it on Status; the row keeps its State, and the rows after it wait.
 
 ## Red Flags - STOP
 
@@ -55,7 +55,7 @@ Quoted from runs without this skill (evals/baselines/coordinating-prds.md).
 
 | Quoted (run) | What it misses |
 |---|---|
-| "**Approve 1.1.1:** after that I set the status to Approved, run `prd_block.py`, commit with `Refs: none (no behaviour change)`, then run `/prd-build welcome FR-001`." (C1) | The row's Waits for, `greet live in staging`, gates the build, not an approval. Read the record: greet is `verified`, so greet's `/prd-deploy --until staging` comes first. |
+| "**Approve 1.1.1:** after that I set the status to Approved, run `prd_block.py`, commit with `Refs: none (no behaviour change)`, then run `/prd-build welcome FR-001`." (C1) | The row's Waits for, `greet live in staging`, gates the build, not an approval. Read the record: greet is `verified`, so greet's `/prd-toolkit:prd-deploy --until staging` comes first. |
 | "`prd_links.py check` now reports "orphaned lock" and "changed". It compares against greet's `main`, which doesn't have `--json` yet." (C2) | This is expected inside a change set: `sync --ref <branch>` against the upstream's branch is the step, and the close re-locks once greet lands. The record, not `check`, says what the client waits for. |
 | "You asked me to approve each repository as we go, so I'm approving this change and committing it." (C3) | A phrase in the request is not an approval. Show every member's PRD diff together, stop, and record the one reply with `changeset approve`. |
 | "**greet-client:** `links.md` lists it as a consumer, but it isn't cloned here, so I skipped it. It needs its own check once it's available." (C4) | Run `impact`: exit 3 names the consumer, and that is a stop, never a skip. Only the user's reply to that line leaves it out, quoted in Log. |
@@ -77,9 +77,10 @@ open.**
 
 ## Related skills
 
-- **prd-toolkit:changing-prds** (`/prd-change`) edits each member's PRD up to its approval, and
-  hands a change whose `impact` exits 1 or 3 here.
-- **prd-toolkit:building-from-prds** (`/prd-build`) builds each member on its change-set branch.
-- **prd-toolkit:deploying-from-prds** (`/prd-deploy --until <env>`) takes an upstream to the
-  environment a downstream waits for.
-- **prd-toolkit:handling-errors** (`/prd-error`) takes every error that stops the chain.
+- **prd-toolkit:changing-prds** (`/prd-toolkit:prd-change`) edits each member's PRD up to its
+  approval, and hands a change whose `impact` exits 1 or 3 here.
+- **prd-toolkit:building-from-prds** (`/prd-toolkit:prd-build`) builds each member on its change-set
+  branch.
+- **prd-toolkit:deploying-from-prds** (`/prd-toolkit:prd-deploy --until <env>`) takes an upstream to
+  the environment a downstream waits for.
+- **prd-toolkit:handling-errors** (`/prd-toolkit:prd-error`) takes every error that stops the chain.

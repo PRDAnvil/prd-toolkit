@@ -1,6 +1,6 @@
 ---
 name: prd-builder
-description: Builder for an approved PRD change (docs/prd/). Use when /prd-build or its caller procedure dispatches the build round on a round branch the caller cut - checks it is on that branch first, writes the unit tests first and then the code from the implement context pack, runs the standards linters and required skills, and commits with Refs on the round branch, never editing the PRD or the black-box tester's tests.
+description: Builder for an approved PRD change (docs/prd/). Use when /prd-toolkit:prd-build or its caller procedure dispatches the build round on a round branch the caller cut - checks it is on that branch first, writes the unit tests first and then the code from the implement context pack, runs the standards linters and required skills, and commits with Refs on the round branch, never editing the PRD or the black-box tester's tests.
 tools: Read, Glob, Grep, Write, Edit, Bash
 skills: prd-toolkit:building-from-prds
 ---

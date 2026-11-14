@@ -1,4 +1,4 @@
-"""The coordinating-prds skill, its caller procedure running-a-change-set.md, /prd-change-set, and the hand-offs into it
+"""The coordinating-prds skill, its caller procedure running-a-change-set.md, /prd-toolkit:prd-change-set, and the hand-offs into it
 from changing-prds, running-a-build.md, authoring-prds, adopting-prds and the CLAUDE.md block (spec 0.7 §6, §9)."""
 import re
 from pathlib import Path
@@ -28,7 +28,7 @@ RULES = (  # spec §9, verbatim
     "A downstream build never starts before its Waits for holds.",
     "A snapshot changes only through `prd_links.py sync`, never by editing it.",
     "Nothing is pushed, merged or opened as a PR.",
-    "A failure stops the chain and goes to that member's `/prd-error`.",
+    "A failure stops the chain and goes to that member's `/prd-toolkit:prd-error`.",
 )
 
 
@@ -73,7 +73,7 @@ def test_reads_procedure_first():
 def test_description_names_the_triggers_of_spec_9():
     d = frontmatter(SKILL)["description"]
     for s in ("a repo that has a docs/prd/ folder", "a contract item another PRD cites", "across repositories",
-              "CS-nnn", "/prd-change-set", "prd_links.py changeset", "one approval", "dependency order"):
+              "CS-nnn", "/prd-toolkit:prd-change-set", "prd_links.py changeset", "one approval", "dependency order"):
         assert s in d, s
     for s in ("start a downstream build", "edit a snapshot", "approve each repository as you go", "skip a consumer",
               "push"):
@@ -124,8 +124,8 @@ def test_slash_commands_also_named_as_skills():
     """O-a: a headless run registers only `prd-toolkit:<command>`; the text names the skill form beside the command."""
     for path in (SKILL, RUN):
         t = flat(path)
-        for cmd, skill in (("/prd-change", "prd-toolkit:changing-prds"), ("/prd-build", "prd-toolkit:building-from-prds"),
-                           ("/prd-deploy", "prd-toolkit:deploying-from-prds"), ("/prd-error", "prd-toolkit:handling-errors")):
+        for cmd, skill in (("/prd-toolkit:prd-change", "prd-toolkit:changing-prds"), ("/prd-toolkit:prd-build", "prd-toolkit:building-from-prds"),
+                           ("/prd-toolkit:prd-deploy", "prd-toolkit:deploying-from-prds"), ("/prd-toolkit:prd-error", "prd-toolkit:handling-errors")):
             assert cmd in t and skill in t, (path.name, cmd)
     assert "`prd-toolkit:<command>`" in flat(RUN)
 
@@ -236,8 +236,8 @@ def test_step_4_build_in_order():
     assert "`live in` an earlier environment than its State is refused" in four
     # R-F4: never past the Target; a further deploy follows the close, in Merge order
     assert "A `set` past the row's Target is refused too" in four
-    assert four.index("/prd-build") < four.index("prd_links.py sync --ref <branch>")  # the build runs it (Important 3)
-    assert "/prd-deploy --until <env>" in four and "deploying-from-prds" in four
+    assert four.index("/prd-toolkit:prd-build") < four.index("prd_links.py sync --ref <branch>")  # the build runs it (Important 3)
+    assert "/prd-toolkit:prd-deploy --until <env>" in four and "deploying-from-prds" in four
     assert "prd_links.py changeset set" in four and "state=" in four
     assert "refuses a State that skips its Waits for" in four
 
@@ -246,7 +246,7 @@ def test_step_5_stops():
     five = step(5)
     assert "prd_links.py changeset stop" in five
     assert "the row keeps its State" in five  # the plan's ruling: a stop goes on Status
-    assert "/prd-error" in five and "prd-toolkit:handling-errors" in five
+    assert "/prd-toolkit:prd-error" in five and "prd-toolkit:handling-errors" in five
     assert "--amendment" in five and "approved alone" in five
     assert "A new session resumes from the record alone" in five
     assert "prd_links.py changeset abandon" in five
@@ -351,7 +351,7 @@ def test_changing_prds_runs_impact_after_the_restate_and_hands_off():
     assert 'uv run --script <scripts>/prd_links.py impact docs/prd/<slug>; echo "prd-links-exit=$?"' in para
     assert "When `links.md` has Consumers" in para
     assert "`1`" in para and "`3`" in para and "stops this change" in para
-    assert "/prd-change-set" in para and "prd-toolkit:coordinating-prds" in para
+    assert "/prd-toolkit:prd-change-set" in para and "prd-toolkit:coordinating-prds" in para
     assert "that is the only route for an edit to a cited item" in para
     assert "Inside a change set" in para
 
@@ -398,7 +398,7 @@ def test_no_plugin_root_variable_inside_a_bash_command():
 
 LINKS = ("# Links\n\n## Upstreams\n\n| Upstream | Location | Version | Commit | Needs |\n|---|---|---|---|---|\n\n"
          "## Consumers\n\n| Consumer | Location |\n|---|---|\n| reports | `../reports` |\n")
-ROLE = "`/prd-change-set`"
+ROLE = "`/prd-toolkit:prd-change-set`"
 
 
 def test_block_names_the_coordination_role_only_with_links(prd):
@@ -419,7 +419,8 @@ def test_block_with_links_stays_small(prd):
     (prd / "links.md").write_text(LINKS, encoding="utf-8")
     adopt(prd, "".join(f"| area-{i:02} | adopted | `src/a{i}/**` |\n" for i in range(20)))
     add_required_skills(prd, 4)
-    assert len(prd_block.render_block(model.load(prd), "docs/prd/orders").encode()) < 1536
+    # 1.5 KiB until 0.8.7, whose full command names (`/prd-toolkit:prd-change`) add 12 bytes each.
+    assert len(prd_block.render_block(model.load(prd), "docs/prd/orders").encode()) < 1792
 
 
 # --- fix round 1 (review of 5094a60; rulings R-11b, R-11c, R-11d) ---
@@ -446,16 +447,16 @@ def test_r11c_one_record_drives_agent_steps_run_from_the_members_root():
     assert "`git -C <root>`, never a `cd`" in para
     assert "(`prd_deploy.py` dispatches no agent)" in para
     assert ("Anything that dispatches an agent runs in a session started in that member's root: `changing-prds` "
-            "step 4's dry run and `/prd-build`, because the builder's round is cut as a `prd-round/<area>-<n>` branch "
+            "step 4's dry run and `/prd-toolkit:prd-build`, because the builder's round is cut as a `prd-round/<area>-<n>` branch "
             "in the session's own worktree and the tester's guard binds to the session's own repository.") in para
     assert "changeset log <record> '<prd>: step <n> runs from <root>'" in para  # R-11e's Log line
-    assert '"Continue with `/prd-change-set CS-<nnn>` from `<root>`" (headless: `prd-toolkit:prd-change-set CS-<nnn>`)' in para
+    assert '"Continue with `/prd-toolkit:prd-change-set CS-<nnn>` from `<root>`" (headless: `prd-toolkit:prd-change-set CS-<nnn>`)' in para
     assert "A build or a deploy dispatches" not in t and "A build or deploy of a member" not in t
     assert "for a dry run or a build that runs from another member's root" in t
     assert "Its dry run dispatches an agent, so step 2 runs whole in the session whose repository is the member" in step(2)
     four = step(4)
     assert "from a session started in its root" in four
-    assert "`/prd-deploy --until <env>` runs before it, from this session" in four
+    assert "`/prd-toolkit:prd-deploy --until <env>` runs before it, from this session" in four
     assert "A build of a member other than this session's repository stops here" in four
 
 
@@ -498,7 +499,7 @@ def test_changing_prds_missing_links_script_and_no_second_hand_off():
     t = flat(CHANGING)
     assert "A repository whose `.prd-toolkit/` holds no `prd_links.py` predates 0.7: stop" in t
     assert "re-run `prd_hooks.py install docs/prd/<slug>`" in t
-    assert "When this change already runs inside `/prd-change-set`, hand nothing back to it" in t
+    assert "When this change already runs inside `/prd-toolkit:prd-change-set`, hand nothing back to it" in t
 
 
 def test_rationalization_waits_row():
