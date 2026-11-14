@@ -21,13 +21,14 @@ whoever asks: a push or merge request gets one line naming that rule and the Mer
 close, the record's Order and each row's State), and the procedure goes on.
 
 **Which script.** `${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call, so no command holds it.
-Every command below runs a repository's vendored copy, `<root>/.prd-toolkit/prd_links.py`, with
-`<root>` that repository's root as an absolute path, typed out (in double quotes if it holds a
-space). Record commands run the starting repository's copy; `impact` and `sync` run the copy of the
-member they name. A member with no `.prd-toolkit/prd_links.py` stops step 1: tell the user to run
-`prd_hooks.py install docs/prd/<prd>` from the plugin in that repository (the README's form) and
-commit `.prd-toolkit/`. A script that is not found is a tool error: report it, never guess another
-path.
+Every command below runs a repository's vendored launcher, `<root>/.prd-toolkit/prd links …`, which
+runs that copy's `prd_links.py`, with `<root>` that repository's root as an absolute path, typed out
+(in double quotes if it holds a space). Record commands run the starting repository's copy; `impact`
+and `sync` run the copy of the member they name. A member with no `.prd-toolkit/prd` or no
+`.prd-toolkit/prd_links.py` (never installed, or vendored before prd-toolkit 0.8.8) stops step 1:
+tell the user to run `prd_hooks.py install docs/prd/<prd>` from the plugin in that repository (the
+README's form) and commit `.prd-toolkit/`. A script that is not found is a tool error: report it,
+never guess another path.
 
 **Names.** `<start>` and `<start-prd>` are the starting repository's root and PRD slug; `<root>`
 and `<prd>` a member's. `<upstream>` is an upstream member's PRD slug (its Upstreams row's name in

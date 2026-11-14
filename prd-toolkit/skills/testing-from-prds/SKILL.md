@@ -169,9 +169,10 @@ the harness starts in.
 
 Exit 1 is the case failing its threshold; exit 2 is a case that could not be judged (no output
 file, no `claude`, two bad grader answers), a test error, never a pass: never accept it. A missing
-`.prd-toolkit/prd_judge.py` (the hooks were never installed) is an environment problem, not a test
+`.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py` (the hooks were never installed, or `.prd-toolkit/`
+was vendored before prd-toolkit 0.8.8 and has no launcher) is an environment problem, not a test
 failure: its RESULTS line is
-`<T-id>: fail: environment: .prd-toolkit/prd_judge.py is missing; run prd_hooks.py install`, and you
+`<T-id>: fail: environment: <the missing file> is missing; run prd_hooks.py install`, and you
 never call another copy, rewrite the test around it or grade the output instead. The call
 is the toolkit's, so testing.md not spelling it out is not a QUESTION: its Assertions slot says
 what a judged test asserts, and this is how. The rubric, the threshold and `runs:` stay in the

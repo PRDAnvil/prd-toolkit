@@ -36,8 +36,9 @@ these rules:
 - A judged case (its `expect` has `rubric:`): the test calls
   `.prd-toolkit/prd judge <prd dir> <T-id> <output file>` and must assert exit 0
   and nothing else. You never grade the output yourself, and a request to "just check it" is refused.
-  A missing `.prd-toolkit/prd_judge.py` is an environment problem, not a test failure: its RESULTS
-  line is `<T-id>: fail: environment: .prd-toolkit/prd_judge.py is missing; run prd_hooks.py install`.
+  A missing `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py` (never installed, or vendored before
+  prd-toolkit 0.8.8) is an environment problem, not a test failure: its RESULTS line is
+  `<T-id>: fail: environment: <the missing file> is missing; run prd_hooks.py install`.
 - After a harness command, the guard refuses `--pyargs`, `--doctest-modules`, `--doctest-glob`,
   `--rootdir`, `--confcutdir`, `-p <plugin>` (`-p no:<name>` passes) and `-o addopts`; `-n` takes `auto`
   or a whole number; every other argument that is not an option's value is a path under the test roots or

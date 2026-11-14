@@ -27,7 +27,7 @@ SPEC = REPO / "docs/superpowers/specs/2026-11-03-prd-toolkit-0.8.0-design.md"
 README = ROOT / "README.md"
 FORMAT = ROOT / "references/prd-format.md"
 CONTRACT_TYPES = ROOT / "references/contract-types.md"
-MISSING_JUDGE = "`<T-id>: fail: environment: .prd-toolkit/prd_judge.py is missing; run prd_hooks.py install`"
+MISSING_JUDGE = "`<T-id>: fail: environment: <the missing file> is missing; run prd_hooks.py install`"
 
 
 def flat(path: Path) -> str:
@@ -95,10 +95,12 @@ def test_document_pack_names_the_judge_on_the_runner():
 
 def test_missing_judge_is_an_environment_problem():
     s = section(TESTING, "## A judged case")
-    assert "A missing `.prd-toolkit/prd_judge.py` (the hooks were never installed) is an environment problem, not a test failure" in s
+    assert ("A missing `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py` (the hooks were never installed, or `.prd-toolkit/` "
+            "was vendored before prd-toolkit 0.8.8 and has no launcher) is an environment problem, not a test failure") in s
     assert MISSING_JUDGE in s
     t = flat(TESTER)
-    assert "A missing `.prd-toolkit/prd_judge.py` is an environment problem, not a test failure" in t and MISSING_JUDGE in t
+    assert ("A missing `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py` (never installed, or vendored before prd-toolkit "
+            "0.8.8) is an environment problem, not a test failure") in t and MISSING_JUDGE in t
     assert "and so is a judged test that finds no `.prd-toolkit/prd_judge.py`" in flat(ERRORS)
 
 
