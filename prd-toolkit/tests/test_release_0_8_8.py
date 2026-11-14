@@ -37,3 +37,17 @@ def test_skills_say_what_to_do_without_the_launcher():
         paras = [p for p in _paragraphs((ROOT / rel).read_text(encoding="utf-8")) if "prd_hooks.py install" in p]
         assert paras, rel
         assert any("`.prd-toolkit/prd`" in p for p in paras), rel
+
+
+def test_the_launcher_is_named_where_a_vendored_copy_is_checked():
+    def flat(rel: str) -> str:
+        return " ".join((ROOT / rel).read_text(encoding="utf-8").split())
+
+    # a 0.8.7 copy passes the 0.6 and 0.8.1 checks, then the close's `.prd-toolkit/prd hooks` lines find no launcher
+    assert ("When `.prd-toolkit/` holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user the same."
+            in flat("skills/changing-prds/SKILL.md"))
+    assert ("and so is a judged test that finds no `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py`"
+            in flat("skills/handling-errors/SKILL.md"))
+    rules = flat("skills/coordinating-prds/SKILL.md")
+    assert "Call the starting repository's vendored launcher, `.prd-toolkit/prd links`." in rules
+    assert "vendored `.prd-toolkit/prd_links.py`" not in rules

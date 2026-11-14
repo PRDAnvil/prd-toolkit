@@ -101,7 +101,7 @@ def test_missing_judge_is_an_environment_problem():
     t = flat(TESTER)
     assert ("A missing `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py` (never installed, or vendored before prd-toolkit "
             "0.8.8) is an environment problem, not a test failure") in t and MISSING_JUDGE in t
-    assert "and so is a judged test that finds no `.prd-toolkit/prd_judge.py`" in flat(ERRORS)
+    assert "and so is a judged test that finds no `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py`" in flat(ERRORS)
 
 
 # ---------------------------------------------------------------- Important 5: the document pack's parsing conventions

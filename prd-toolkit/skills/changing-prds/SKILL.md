@@ -30,7 +30,8 @@ A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`. When `.prd-toolkit/` holds no `prd_change.py`, the vendored copy predates
-0.8.1: stop, and tell the user the same.
+0.8.1: stop, and tell the user the same. When `.prd-toolkit/` holds no `prd`, the vendored copy
+predates 0.8.8: stop, and tell the user the same.
 
 Lint, the mechanical gate:
 
