@@ -27,7 +27,7 @@ LIST_PACKS = "uv run --script <plugin scripts>/prd_lint.py --list-packs" + GATE
 PLUGIN_SCRIPTS = ("`<plugin scripts>` is the plugin's own `scripts` directory as a literal absolute path, even in a "
                   "repository that has `.prd-toolkit/`: `--list-packs` lists what is on this machine and is not a gate, "
                   "and a vendored copy lists only the packs it vendored")
-JUDGE = "uv run --script .prd-toolkit/prd_judge.py <prd dir> <T-id> <output file>"
+JUDGE = ".prd-toolkit/prd judge <prd dir> <T-id> <output file>"
 REFUSAL = "retargeting an area is a conversion, which a later prd-toolkit release brings"
 
 
@@ -289,7 +289,7 @@ def test_tester_example_runs_the_judge_from_the_repository_root():
 
 def _commands(text: str) -> list[str]:
     blocks = re.findall(r"```(?:bash)?\n(.*?)```", text, re.S)
-    spans = re.findall(r"`((?:uv run|git|rm|ls|mkdir|find|diff|python3?) [^`]*)`", text)
+    spans = re.findall(r"`((?:uv run|git|rm|ls|mkdir|find|diff|python3?|\.prd-toolkit/prd) [^`]*)`", text)
     return [b for b in blocks] + spans
 
 

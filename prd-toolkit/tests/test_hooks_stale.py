@@ -134,7 +134,7 @@ def flat(path):
 def test_changing_prds_close_reruns_ci():
     text = flat(SKILL)
     assert "touched `testing.md` or `operations.md`" in text
-    assert re.search(r"`uv run --script \.prd-toolkit/prd_hooks\.py ci --<forge> --force docs/prd/<slug>`", text)
+    assert re.search(r"`\.prd-toolkit/prd hooks ci --<forge> --force docs/prd/<slug>`", text)
     assert "check --ci" in text
 
 

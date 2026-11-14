@@ -47,7 +47,7 @@ runs in that member's own session, as its step 4 does. Before step 2 or step 4 o
 not this session's repository, log where the chain stops, `<n>` being the step:
 
 ```bash
-uv run --script <start>/.prd-toolkit/prd_links.py changeset log <record> '<prd>: step <n> runs from <root>'; echo "prd-links-exit=$?"
+<start>/.prd-toolkit/prd links changeset log <record> '<prd>: step <n> runs from <root>'; echo "prd-links-exit=$?"
 ```
 
 then the record write, and stop with: "Continue with `/prd-toolkit:prd-change-set CS-<nnn>` from
@@ -99,7 +99,7 @@ Text with no record is a new change set: step 1.
    `changing-prds`, the edits are already in the tree. Run:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py impact <start>/docs/prd/<start-prd>; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links impact <start>/docs/prd/<start-prd>; echo "prd-links-exit=$?"
    ```
 
    Each `consumer <prd>: <item>` line names a member. Show the user the `changed:` and `consumer`
@@ -111,7 +111,7 @@ Text with no record is a new change set: step 1.
    no one to ask, stop here: nothing is committed in any member. Then:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset new <start>/docs/prd/<start-prd> --title '<the change in one line>' --member <root> --member <root>; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset new <start>/docs/prd/<start-prd> --title '<the change in one line>' --member <root> --member <root>; echo "prd-links-exit=$?"
    ```
 
    One `--member` per other member's root; the starting repository is a member already. `new`
@@ -124,7 +124,7 @@ Text with no record is a new change set: step 1.
    consumer the user left out:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset log <record> '<prd> stays out: "<the reply, verbatim>"'; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset log <record> '<prd> stays out: "<the reply, verbatim>"'; echo "prd-links-exit=$?"
    ```
 
    Then the record write.
@@ -148,7 +148,7 @@ Text with no record is a new change set: step 1.
    downstream's own in-review commit follows its dry run):
 
    ```bash
-   uv run --script <root>/.prd-toolkit/prd_links.py sync <root>/docs/prd/<prd> <upstream> --ref <branch>; echo "prd-links-exit=$?"
+   <root>/.prd-toolkit/prd links sync <root>/docs/prd/<prd> <upstream> --ref <branch>; echo "prd-links-exit=$?"
    ```
 
    A sync refused after the upstream's in-review commit means the downstream cites something the
@@ -159,7 +159,7 @@ Text with no record is a new change set: step 1.
    record write:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset set <record> <prd> version=<X.Y.Z> ids=<IDs>; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset set <record> <prd> version=<X.Y.Z> ids=<IDs>; echo "prd-links-exit=$?"
    ```
 3. **One approval.** Show every member's PRD diff together and stop. For each member, each its
    own call: `git -C <root> diff <default branch>...<branch> -- docs/prd/<prd>` (the in-review
@@ -171,7 +171,7 @@ Text with no record is a new change set: step 1.
    `In review`. Then:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset approve <record> --reply '<the reply, verbatim>'; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset approve <record> --reply '<the reply, verbatim>'; echo "prd-links-exit=$?"
    ```
 
    Then the record write, and in Order each member's approval commit as `changing-prds` step 5
@@ -198,7 +198,7 @@ Text with no record is a new change set: step 1.
    record write:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset set <record> <prd> 'state=<state>'; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset set <record> <prd> 'state=<state>'; echo "prd-links-exit=$?"
    ```
 
    `changeset set` refuses a State that skips its Waits for: the row's upstream has not reached
@@ -211,7 +211,7 @@ Text with no record is a new change set: step 1.
 5. **Stops.** A failed build, a human step without a reply, or an error stops the chain:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset stop <record> <prd> '<reason>'; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset stop <record> <prd> '<reason>'; echo "prd-links-exit=$?"
    ```
 
    Then the record write. The stop goes on Status (`stopped: <prd>: <reason>`) and in Log, and the
@@ -221,7 +221,7 @@ Text with no record is a new change set: step 1.
    its diff shown and approved alone, by a reply to that diff:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset approve <record> --reply '<the reply, verbatim>' --amendment; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset approve <record> --reply '<the reply, verbatim>' --amendment; echo "prd-links-exit=$?"
    ```
 
    Then the record write and the member's approval commit, as in step 3. The next `changeset set`
@@ -229,14 +229,14 @@ Text with no record is a new change set: step 1.
    (**Where to enter**). When the user gives the change up, in their own words:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset abandon <record> '<the user's reason>'; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset abandon <record> '<the user's reason>'; echo "prd-links-exit=$?"
    ```
 
    Then the record write; the branches stay for the user.
 6. **Close.** When every row has reached its Target:
 
    ```bash
-   uv run --script <start>/.prd-toolkit/prd_links.py changeset close <record>; echo "prd-links-exit=$?"
+   <start>/.prd-toolkit/prd links changeset close <record>; echo "prd-links-exit=$?"
    ```
 
    Then the record write. `close` writes the Merge order, upstream first. The toolkit pushes and
@@ -246,7 +246,7 @@ Text with no record is a new change set: step 1.
    then a commit with `Refs: none (no behaviour change)` and the trailer, each its own call):
 
    ```bash
-   uv run --script <root>/.prd-toolkit/prd_links.py sync <root>/docs/prd/<prd> <upstream>; echo "prd-links-exit=$?"
+   <root>/.prd-toolkit/prd links sync <root>/docs/prd/<prd> <upstream>; echo "prd-links-exit=$?"
    ```
 
    Production deploys stay per repository, through `/prd-toolkit:prd-deploy`, in Merge order. Report

@@ -88,7 +88,7 @@ The PRD at `docs/prd/prd-toolkit` (version 6.2.2) is the authority.
   `prd-toolkit:handling-errors`) before any code changes.
 - Commits cite IDs: `Refs: FR-012`.
 - Run `.prd-toolkit/prd_hooks.py install` once per clone:
-  `uv run --script .prd-toolkit/prd_hooks.py install docs/prd/prd-toolkit`.
+  `.prd-toolkit/prd hooks install docs/prd/prd-toolkit`.
 - Lint runs inside the prd-toolkit skills; after any PRD edit, finish through
   `/prd-toolkit:prd-change`.
 

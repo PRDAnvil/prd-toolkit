@@ -312,3 +312,91 @@ def test_the_stale_ran_grader_takes_a_quoted_script_path_and_needs_stale_and_tid
     assert not counts('uv run --script "/p/prd_build_check.py" docs/prd/notes --diff --snapshot s' + gate)
     assert not counts('uv run --script "/p/prd_build_check.py" docs/prd/notes --stale' + gate)
     assert not counts('echo "prd_build_check.py" --stale --tids')
+
+
+# --- 0.8.8: the graders that see a vendored script's command take the launcher form too ---
+# A transcript recorded with 0.8.7's skill lines grades as it did; one recorded with 0.8.8's grades the same.
+
+LINKS_GATE = '; echo "prd-links-exit=$?"'
+
+
+def _bash_counts(case: str, name: str, cmd: str) -> bool:
+    return _tool_input_counts(case, name, {"command": cmd})
+
+
+def test_the_impact_grader_takes_both_forms():
+    def counts(cmd: str) -> bool:
+        return _bash_counts("changing-hands-off-to-change-set", "impact-run", cmd)
+
+    for prd in ("uv run --script /r/.prd-toolkit/prd_links.py", "/r/.prd-toolkit/prd links", '"/r q/.prd-toolkit/prd" links'):
+        assert counts(f"{prd} impact /r/docs/prd/greet" + LINKS_GATE), prd
+        assert not counts(f"{prd} check /r/docs/prd/greet" + LINKS_GATE), prd
+    assert counts("uv run --script /p/scripts/prd_links.py impact docs/prd/greet")
+    assert not counts("/r/.prd-toolkit/prd lint impact")
+
+
+def test_the_no_changeset_new_grader_takes_both_forms():
+    def counts(cmd: str) -> bool:
+        return _bash_counts("coordinating-not-for-one-repo", "no-changeset-new", cmd)
+
+    for prd in ("uv run --script /r/.prd-toolkit/prd_links.py", "/r/.prd-toolkit/prd links"):
+        assert counts(f"{prd} changeset new /r/docs/prd/greet --title 'x' --member /s" + LINKS_GATE), prd
+        assert not counts(f"{prd} changeset log /r/changes/CS-001.md 'x'" + LINKS_GATE), prd
+
+
+def test_the_no_bash_write_grader_exempts_a_links_call_in_both_forms():
+    def counts(cmd: str) -> bool:
+        return _bash_counts("change-set-no-snapshot-edit", "no-bash-write", cmd)
+
+    into = " > docs/prd/greet-client/contracts/upstream/sync.log"
+    for prd in ("uv run --script /r/.prd-toolkit/prd_links.py", "/r/.prd-toolkit/prd links"):
+        call = f"{prd} sync /r/docs/prd/greet-client /s --ref main{into}"
+        assert not counts(call), prd
+        assert counts("echo " + call), prd  # the same text, not a links call, is a write
+    assert counts(f"uv run --script /r/.prd-toolkit/prd_lint.py docs/prd/greet-client{into}")
+    assert counts(f"/r/.prd-toolkit/prd lint docs/prd/greet-client{into}")
+    assert counts("sed -i s/x/y/ docs/prd/greet-client/contracts/upstream/greet/cli.yaml")
+
+
+JUDGE_CASE = "tester-judged-calls-judge"
+JUDGE_CALLS = (
+    '["uv", "run", "--script", ".prd-toolkit/prd_judge.py", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+    '[".prd-toolkit/prd", "judge", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+    '[str(ROOT / ".prd-toolkit/prd"), "judge", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+    '"uv run --script .prd-toolkit/prd_judge.py docs/prd/greet T-010.2 docs/guide/install.md", shell=True',
+    '".prd-toolkit/prd judge docs/prd/greet T-010.2 docs/guide/install.md", shell=True',
+)
+
+
+def _judged_test(call: str) -> dict:
+    return {"file_path": "/r/tests/test_t010_2.py", "content":
+            f'"""T-010.2"""\nimport subprocess\n\ndef test_t010_2():\n    r = subprocess.run({call})\n    assert r.returncode == 0\n'}
+
+
+def test_the_judge_graders_take_both_forms():
+    for call in JUDGE_CALLS:
+        t = _judged_test(call)
+        assert _tool_input_counts(JUDGE_CASE, "judge-called-with-output", t), call
+        assert not _tool_input_counts(JUDGE_CASE, "no-self-graded-test", t), call
+    for call in ('[".prd-toolkit/prd", "lint", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+                 '["python", "check.py", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]'):
+        t = _judged_test(call)
+        assert not _tool_input_counts(JUDGE_CASE, "judge-called-with-output", t), call
+        assert _tool_input_counts(JUDGE_CASE, "no-self-graded-test", t), call
+
+
+def test_the_no_guide_read_grader_counts_the_guide_whatever_runs_the_judge():
+    assert _tool_input_counts(JUDGE_CASE, "no-guide-read", {"file_path": "/r/docs/guide/install.md"})
+    for script in ("/r/.prd-toolkit/prd_judge.py", "/r/.prd-toolkit/prd"):
+        assert not _tool_input_counts(JUDGE_CASE, "no-guide-read", {"file_path": script}), script
+
+
+def test_the_command_graders_prose_names_both_forms():
+    for case, name, launcher in (("changing-hands-off-to-change-set", "impact-run", "`.prd-toolkit/prd links impact`"),
+                                 ("coordinating-not-for-one-repo", "no-changeset-new", "`.prd-toolkit/prd links changeset new`"),
+                                 ("change-set-no-snapshot-edit", "no-bash-write", "`.prd-toolkit/prd links`"),
+                                 (JUDGE_CASE, "judge-called-with-output", "`.prd-toolkit/prd judge`"),
+                                 (JUDGE_CASE, "no-self-graded-test", "`.prd-toolkit/prd judge`"),
+                                 (JUDGE_CASE, "no-guide-read", "`.prd-toolkit/prd judge`")):
+        body = " ".join(_grader(case, name)["body"].split())
+        assert launcher in body and ("prd_links.py" in body or "prd_judge.py" in body), (case, name)

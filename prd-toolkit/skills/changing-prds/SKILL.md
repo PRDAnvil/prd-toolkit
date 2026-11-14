@@ -369,8 +369,8 @@ so you count instead of it.
    `operations.md`, a generated CI include is stale (a new level, an environment, a `tests` step or
    a Drift row changes it). If `.gitlab/prd-toolkit.yml` or `.github/workflows/prd-toolkit.yml`
    exists, regenerate each one present, one command per Bash call, and commit the file:
-   `uv run --script .prd-toolkit/prd_hooks.py ci --<forge> --force docs/prd/<slug>`. Then confirm
-   with `uv run --script .prd-toolkit/prd_hooks.py check --ci docs/prd/<slug>` (it prints nothing
+   `.prd-toolkit/prd hooks ci --<forge> --force docs/prd/<slug>`. Then confirm
+   with `.prd-toolkit/prd hooks check --ci docs/prd/<slug>` (it prints nothing
    when the files are current). The merge gate's generated job runs that same `check --ci`, so a
    change merged with the old CI fails there. A change made for an `errors.md` entry cites it in
    `Refs:` beside the requirement it touches (`Refs: FR-002, E-003`).

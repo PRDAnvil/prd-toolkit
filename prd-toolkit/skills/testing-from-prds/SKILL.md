@@ -147,7 +147,7 @@ A test case whose `expect` has `rubric:` (and `threshold:`, and no `output:`) is
 model grader scores the output against the rubric, and `prd_judge.py` runs it. Its test produces
 or locates the output (for a `doc:` target, the file at its `outline` entry's `path`) and calls
 the judge with all three positionals, the PRD folder, the T-id and the output file:
-`uv run --script .prd-toolkit/prd_judge.py <prd dir> <T-id> <output file>`. The test runs that one
+`.prd-toolkit/prd judge <prd dir> <T-id> <output file>`. The test runs that one
 command and asserts exit 0 and nothing else. In pytest:
 
 ```python
@@ -159,7 +159,7 @@ ROOT = Path(__file__).resolve().parents[2]  # tests/judged/<file> -> the reposit
 
 def test_install_guide_judged():
     """@prd T-010.2"""
-    r = subprocess.run(["uv", "run", "--script", ".prd-toolkit/prd_judge.py",
+    r = subprocess.run([".prd-toolkit/prd", "judge",
                         "docs/prd/greet", "T-010.2", "docs/guide/install.md"], cwd=ROOT)
     assert r.returncode == 0
 ```
