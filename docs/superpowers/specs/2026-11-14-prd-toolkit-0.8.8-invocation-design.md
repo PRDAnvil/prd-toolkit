@@ -23,6 +23,7 @@
 >   lines are 77 in skills, 2 in commands and 1 in agents.
 > - §3.1, §3.3 (build, 2026-11-14): requirements.txt holds only the three packages the vendored scripts need; prd_publish.py's five are in an unvendored requirements-publish.txt, which the launcher uses for `prd publish` when the file is beside it. The union pulled a publish-only, date-pinned package into every hook run, which failed in a host repository whose uv settings exclude newer packages. `--no-config` was refused: it would also drop a user's own uv.toml.
 > - §5 (build, 2026-11-14): `prd_hooks.py check --ci` does not inspect installed hook shims; the plain `check` does. A CI checkout has no installed hooks, and `scripts/ci-local.sh` runs `check --ci` in a developer's clone.
+> - §3.1 (build, 2026-11-14): the uv line gains `--project "$here"`, so uv reads its settings from the launcher's directory as `--script` read them from the script's, and a launcher in the plugin does not apply the host repository's uv settings; found by the eval run, where `prd publish` failed in a repository with `exclude-newer`.
 
 ## 1. Why
 

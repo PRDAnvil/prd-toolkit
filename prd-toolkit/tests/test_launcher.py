@@ -122,3 +122,42 @@ def test_launcher_ignores_cdpath(tmp_path, cdpath):
     for argv in (["sh", ".prd-toolkit/prd"], [".prd-toolkit/prd"]):
         r = subprocess.run([*argv, "--version"], cwd=host, env=env, capture_output=True, text=True)
         assert (r.returncode, r.stdout, r.stderr) == (0, "0.0.0-test\n", ""), (argv, r.stderr)
+
+
+def _force_an_environment(dest: Path) -> None:
+    """One small pinned package no interpreter here holds: the launcher must resolve, so uv's settings apply."""
+    with open(dest / "requirements.txt", "a") as f:
+        f.write("tomli-w==1.0.0\n")
+
+
+def test_plugin_launcher_ignores_host_uv_settings(tmp_path):
+    """A launcher outside the host reads uv's settings from its own directory, as `--script` read them from the
+    script's: the host's exclude-newer, which no package satisfies, does not apply."""
+    plugin = tmp_path / "plugin/scripts"
+    copy_scripts(plugin)
+    _force_an_environment(plugin)
+    host = tmp_path / "host"
+    host.mkdir()
+    (host / "pyproject.toml").write_text('[project]\nname = "h"\nversion = "0"\n\n[tool.uv]\nexclude-newer = "2000-01-01T00:00:00Z"\n')
+    r = launch(plugin, "--version", cache=tmp_path / "cache", cwd=host)
+    assert (r.returncode, r.stdout) == (0, "0.0.0-test\n"), r.stderr
+    assert sorted(p.name for p in host.iterdir()) == ["pyproject.toml"]
+
+
+def test_launcher_keeps_the_callers_cwd(tmp_path):
+    """uv reads its settings from the launcher's directory, but a relative argument still resolves against the caller's cwd."""
+    copy_scripts(tmp_path / "c")
+    work = tmp_path / "work"
+    (work / "rel/prd").mkdir(parents=True)
+    r = launch(tmp_path / "c", "status", "rel/prd", cache=tmp_path / "cache", cwd=work)
+    assert r.returncode == 2
+    assert r.stderr == f"prd_status: {(work / 'rel/prd').resolve().as_posix()}: no prd.md\n"
+
+
+def test_launcher_writes_nothing_beside_itself(tmp_path):
+    copy_scripts(tmp_path / "c")
+    before = sorted(p.name for p in (tmp_path / "c").iterdir())
+    for args in (("--version",), ("status", str(tmp_path / "missing"))):
+        launch(tmp_path / "c", *args, cache=tmp_path / "cache", cwd=tmp_path)
+    assert sorted(p.name for p in (tmp_path / "c").iterdir()) == before
+    assert not (tmp_path / ".venv").exists() and not (tmp_path / "uv.lock").exists()
