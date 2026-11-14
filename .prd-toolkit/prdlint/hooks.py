@@ -244,17 +244,20 @@ GUARD = 'command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH
 
 
 SKIP = "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped"
+SKIP_PREDATES = "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped"
 
 
 OLD_FORM = re.compile(r"^(?=.*uv run --script)(?=.*prd_git_hook\.py).*$", re.M)  # a 0.8.7 shim's or appended line
 
 
 def _append_line(hook: str, prd_rel: str) -> str:
-    """One sh line for an existing hook: skips on a branch without the copy (or the launcher) or the PRD, blocks without uv;
+    """One sh line for an existing hook: skips on a branch whose copy predates the launcher, or without the copy or the PRD,
+    each with its own message; blocks without uv;
     runs the launcher through sh, so a lost executable bit cannot break a commit."""
     script, launcher = f'"$prd_top/{VENDOR_DIR}/prd_git_hook.py"', f'"$prd_top/{VENDOR_DIR}/{LAUNCHER}"'
     prd = f'"$prd_top/{_quote(prd_rel)}"'
-    return (f'prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f {script} ] && [ -f {launcher} ] && [ -d {prd} ]; then {GUARD}; '
+    return (f'prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f {script} ] && [ ! -f {launcher} ]; then echo "{SKIP_PREDATES}" >&2; '
+            f'elif [ -f {script} ] && [ -f {launcher} ] && [ -d {prd} ]; then {GUARD}; '
             f'sh {launcher} git-hook {hook} {prd} "$@" || exit $?; else echo "{SKIP}" >&2; fi')
 
 

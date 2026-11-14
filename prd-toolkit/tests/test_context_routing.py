@@ -161,7 +161,10 @@ def test_changing_step_5_keeps_the_refresh_for_code_outside_prd_build():
 
 
 def test_block_names_hook_install():
-    assert "Run `.prd-toolkit/prd_hooks.py install` once per clone" in (ROOT / "templates/claude-block.md").read_text()
+    # the sentence names no script file: an agent reading a script path runs it by its shebang, one environment per clone
+    text = (ROOT / "templates/claude-block.md").read_text()
+    assert "- Install the hooks once per clone:\n  `.prd-toolkit/prd hooks install {{prd_path}}`.\n" in text
+    assert "prd_hooks.py" not in text
 
 
 def test_block_renders_the_install_command_with_the_prd_path(prd):

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pyyaml>=6.0", "sqlglot>=25", "openapi-spec-validator>=0.7", "markdown-it-py>=3.0", "mermaidx==0.11.3"]
+# dependencies = ["openapi-spec-validator>=0.7", "pyyaml>=6.0", "sqlglot>=25"]
 # ///
 """Run one prd-toolkit script by its command name. Exit 2 on an unknown command; otherwise the script's own exit code."""
 import ast
@@ -15,6 +15,7 @@ _NAMES = (
     "git-hook", "hooks", "judge", "links", "lint", "publish", "status", "trace",
 )
 COMMANDS = {name: f"prd_{name.replace('-', '_')}.py" for name in _NAMES}
+PLUGIN_ONLY = ("publish",)  # commands whose script install never vendors
 
 
 def _summary(script: Path) -> str:
@@ -34,9 +35,11 @@ def _version(here: Path) -> str:
 
 
 def _help(here: Path) -> str:
+    """The usage line, then the commands whose script is beside the dispatcher (a vendored copy has no publish)."""
     lines = ["usage: prd <command> [arguments]"]
-    width = max(map(len, COMMANDS))
-    for name in sorted(COMMANDS):
+    present = sorted(name for name, script in COMMANDS.items() if (here / script).is_file())
+    width = max(map(len, present), default=0)
+    for name in present:
         lines.append(f"{name.ljust(width)}  {_summary(here / COMMANDS[name])}".rstrip())
     return "\n".join(lines) + "\n"
 
@@ -54,6 +57,9 @@ def main(argv: list[str]) -> int:
         sys.stderr.write(f"prd: unknown command '{argv[0]}'\ncommands: {', '.join(sorted(COMMANDS))}\n")
         return 2
     path = here / script
+    if not path.is_file() and argv[0] in PLUGIN_ONLY and (here / "VERSION").is_file():  # VERSION: a vendored copy
+        sys.stderr.write(f"prd: {argv[0]} runs from the plugin, not from a vendored copy\n")
+        return 2
     if not path.is_file():
         sys.stderr.write(f"prd: {script} is not in {here}; run prd_hooks.py install\n")
         return 2

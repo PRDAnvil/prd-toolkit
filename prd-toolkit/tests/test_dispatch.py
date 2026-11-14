@@ -99,3 +99,46 @@ def test_requirements_is_the_headers_union():
         data = (SCRIPTS / name).read_bytes()
         assert data.endswith(b"\n") and not data.endswith(b"\n\n") and b"\r" not in data, name
     assert "requirements-publish.txt" not in hooks.VENDORED
+
+
+def vendored_copy(dest, *scripts):
+    """A vendored-copy layout: the dispatcher with a VERSION beside it, and only the scripts named."""
+    shutil.copy(SCRIPTS / "prd_dispatch.py", dest / "prd_dispatch.py")
+    (dest / "VERSION").write_text("0.0.0-test\n")
+    for name in scripts:
+        shutil.copy(SCRIPTS / name, dest / name)
+    return dest / "prd_dispatch.py"
+
+
+def test_plugin_only_is_what_install_never_vendors():
+    assert prd_dispatch.PLUGIN_ONLY == ("publish",)
+    assert set(prd_dispatch.PLUGIN_ONLY) == {c for c, f in prd_dispatch.COMMANDS.items() if f not in hooks.VENDORED}
+
+
+def test_dispatch_plugin_only_command_in_a_vendored_copy(tmp_path):
+    here = tmp_path.resolve()
+    r = _run(vendored_copy(tmp_path), "publish", "docs/prd/x")
+    assert (r.returncode, r.stdout, r.stderr) == (2, "", "prd: publish runs from the plugin, not from a vendored copy\n")
+    r = _run(tmp_path / "prd_dispatch.py", "lint")  # a vendored script that is missing: install does bring it
+    assert (r.returncode, r.stderr) == (2, f"prd: prd_lint.py is not in {here}; run prd_hooks.py install\n")
+
+
+def test_dispatch_publish_missing_outside_a_vendored_copy(tmp_path):
+    r = run_copy(tmp_path, "publish")  # no VERSION: not a vendored copy, the existing message
+    assert (r.returncode, r.stderr) == (2, f"prd: prd_publish.py is not in {tmp_path.resolve()}; run prd_hooks.py install\n")
+
+
+def test_dispatch_help_lists_only_the_scripts_present(tmp_path):
+    r = _run(vendored_copy(tmp_path, "prd_lint.py", "prd_status.py"), "--help")
+    lines = r.stdout.splitlines()
+    assert r.returncode == 0 and lines[0] == "usage: prd <command> [arguments]"
+    assert [ln.split()[0] for ln in lines[1:]] == ["lint", "status"]
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    r = run_copy(empty, "--help")  # no script beside the dispatcher at all
+    assert (r.returncode, r.stdout) == (0, "usage: prd <command> [arguments]\n")
+
+
+def test_dispatch_header_is_requirements_txt():
+    """Run by its own header, the vendored dispatcher must not pull the publish-only packages."""
+    assert sorted(header_deps(SCRIPTS / "prd_dispatch.py")) == (SCRIPTS / "requirements.txt").read_text().splitlines()

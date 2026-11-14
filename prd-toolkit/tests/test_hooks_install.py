@@ -125,6 +125,7 @@ GUARD = 'command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH
 
 
 SKIP = "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped"
+SKIP_PREDATES = "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped"
 TOP = 'prd_top="$(git rev-parse --show-toplevel)" || exit 1; '
 
 
@@ -140,7 +141,8 @@ def test_printed_line_is_appendable_sh(repo):
     assert "exec" not in line and "before any `exit 0`" in line and "sh hook" in line
     hook, launcher = '"$prd_top/.prd-toolkit/prd_git_hook.py"', '"$prd_top/.prd-toolkit/prd"'
     assert line.endswith(
-        f'{TOP}if [ -f {hook} ] && [ -f {launcher} ] && [ -d "$prd_top/{PRD}" ]; then {GUARD}; '
+        f'{TOP}if [ -f {hook} ] && [ ! -f {launcher} ]; then echo "{SKIP_PREDATES}" >&2; '
+        f'elif [ -f {hook} ] && [ -f {launcher} ] && [ -d "$prd_top/{PRD}" ]; then {GUARD}; '
         f'sh {launcher} git-hook commit-msg "$prd_top/{PRD}" "$@" || exit $?; else echo "{SKIP}" >&2; fi')
 
 
@@ -435,11 +437,51 @@ def test_shim_uses_the_launcher(repo):
         assert GUARD in text
 
 
-def test_shim_skips_without_launcher(repo):  # a vendored copy older than 0.8.8
+def test_shim_skips_without_launcher(repo):  # a vendored copy older than 0.8.8: the skip says so, not "no .prd-toolkit/"
+    assert hooks.SKIP_PREDATES == SKIP_PREDATES and hooks.SKIP == SKIP
     hooks.install(repo, PRD)
     (repo / ".prd-toolkit/prd").unlink()
+    (repo / "m").write_text("Add x\n")
+    for hook, args in (("pre-commit", ()), ("commit-msg", (str(repo / "m"),))):
+        r = run_hook(repo, hook, *args)
+        assert (r.returncode, r.stderr) == (0, SKIP_PREDATES + "\n"), (hook, r.stderr)
+    import shutil
+    shutil.rmtree(repo / ".prd-toolkit")  # no copy at all: the general message, as before
     r = run_hook(repo, "pre-commit")
-    assert r.returncode == 0 and hooks.SKIP in r.stderr, r.stderr
+    assert (r.returncode, r.stderr) == (0, SKIP + "\n"), r.stderr
+
+
+def test_appended_line_skips_without_launcher(repo):
+    (repo / ".git/hooks/commit-msg").write_text("#!/bin/sh\necho mine\n")
+    line = appended(hooks.install(repo, PRD))
+    hook = repo / ".git/hooks/commit-msg"
+    hook.write_text(f"#!/bin/sh\n{line}\n")
+    hook.chmod(0o755)
+    (repo / ".prd-toolkit/prd").unlink()
+    (repo / "m").write_text("Add x\n")
+    r = subprocess.run([str(hook), str(repo / "m")], cwd=repo, capture_output=True, text=True)
+    assert (r.returncode, r.stderr) == (0, SKIP_PREDATES + "\n"), r.stderr
+
+
+# The 0.8.8 shim as the branch wrote it before the predates-0.8.8 skip line: one guard line, one skip message.
+SHIM_088_FIRST = """#!/bin/sh
+# prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall
+top=$(git rev-parse --show-toplevel) || exit 1
+[ -f "$top/.prd-toolkit/prd_git_hook.py" ] && [ -f "$top/.prd-toolkit/prd" ] && [ -d "$top/@PRD@" ] || { echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; exit 0; }
+command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }
+exec sh "$top/.prd-toolkit/prd" git-hook pre-commit "$top/@PRD@"
+"""
+
+
+def test_check_reports_a_shim_without_the_predates_skip(repo):
+    from prdlint import model
+
+    hooks.install(repo, PRD)
+    (repo / ".git/hooks/pre-commit").write_text(SHIM_088_FIRST.replace("@PRD@", PRD))
+    prd = model.load(repo / PRD)
+    assert _shim_lines(hooks.check(repo, PLUGIN_ROOT, prd, PRD)) == ["stale: .git/hooks/pre-commit; run prd_hooks.py install"]
+    assert "installed .git/hooks/pre-commit" in hooks.install(repo, PRD)
+    assert _shim_lines(hooks.check(repo, PLUGIN_ROOT, prd, PRD)) == []
 
 
 def test_shim_runs_launcher_without_exec_bit(repo):

@@ -14,7 +14,7 @@ The PRD at `{{prd_path}}` (version {{version}}) is the authority.
 - A bug, a failing test, an error or a failed deploy goes to `/prd-toolkit:prd-error` (skill
   `prd-toolkit:handling-errors`) before any code changes.
 - Commits cite IDs: `Refs: FR-012`.
-- Run `.prd-toolkit/prd_hooks.py install` once per clone:
+- Install the hooks once per clone:
   `.prd-toolkit/prd hooks install {{prd_path}}`.
 - Lint runs inside the prd-toolkit skills; after any PRD edit, finish through
   `/prd-toolkit:prd-change`.

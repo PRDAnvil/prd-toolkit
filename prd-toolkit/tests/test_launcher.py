@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 PLUGIN_ROOT = Path(__file__).parent.parent
 SCRIPTS = PLUGIN_ROOT / "scripts"
 
@@ -104,8 +106,19 @@ def test_launcher_publish_uses_its_own_requirements(tmp_path):
 
 
 def test_launcher_publish_without_its_file(tmp_path):
-    """A vendored copy has neither prd_publish.py nor requirements-publish.txt: the dispatcher, not the launcher, refuses."""
+    """A vendored copy has neither prd_publish.py nor requirements-publish.txt: the dispatcher, not the launcher, refuses,
+    and names the plugin, since install never vendors publish."""
     copy_scripts(tmp_path / "c")
     r = launch(tmp_path / "c", "publish", cache=tmp_path / "cache")
-    here = (tmp_path / "c").resolve()
-    assert r.returncode == 2 and r.stderr == f"prd: prd_publish.py is not in {here}; run prd_hooks.py install\n", r.stderr
+    assert r.returncode == 2 and r.stderr == "prd: publish runs from the plugin, not from a vendored copy\n", r.stderr
+
+
+@pytest.mark.parametrize("cdpath", [".:/tmp", "/tmp"])
+def test_launcher_ignores_cdpath(tmp_path, cdpath):
+    """A relative invocation from the repository root, as hooks and CI make it, with CDPATH set in the environment."""
+    host = tmp_path / "host"
+    copy_scripts(host / ".prd-toolkit")
+    env = {**os.environ, "UV_CACHE_DIR": str(tmp_path / "cache"), "CDPATH": cdpath}
+    for argv in (["sh", ".prd-toolkit/prd"], [".prd-toolkit/prd"]):
+        r = subprocess.run([*argv, "--version"], cwd=host, env=env, capture_output=True, text=True)
+        assert (r.returncode, r.stdout, r.stderr) == (0, "0.0.0-test\n", ""), (argv, r.stderr)
