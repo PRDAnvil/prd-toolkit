@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_deploy\.py rollback'
+input_match: '(?:prd_deploy\.py|/prd(?:\\")?\s+deploy) rollback'
 min: 0
 max: 0
 ---

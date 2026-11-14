@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_deploy\.py check'
+input_match: '(?:prd_deploy\.py|/prd(?:\\")?\s+deploy) check'
 min: 1
 ---
 

@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_deploy\.py(?:\\")?\s+confirm\b(?:[^"\\]|\\.)*?--step\s+3\s+--reply\s+(?:''[^'']*same session|\\"(?:[^"\\]|\\.)*?same session)(?:[^"\\]|\\.)*?--step\s+4\s+--reply\s+(?:''[^'']*same session|\\"(?:[^"\\]|\\.)*?same session)'
+input_match: '(?:prd_deploy\.py(?:\\")?|/prd(?:\\")?\s+deploy)\s+confirm\b(?:[^"\\]|\\.)*?--step\s+3\s+--reply\s+(?:''[^'']*same session|\\"(?:[^"\\]|\\.)*?same session)(?:[^"\\]|\\.)*?--step\s+4\s+--reply\s+(?:''[^'']*same session|\\"(?:[^"\\]|\\.)*?same session)'
 min: 1
 ---
 

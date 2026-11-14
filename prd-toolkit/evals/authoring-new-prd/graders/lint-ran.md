@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_lint\.py'
+input_match: 'prd_lint\.py|/prd(?:\\")?\s+lint(?![\w.-])'
 min: 1
 ---
 

@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_(?:gates|confirm)\.py(?:\\")?\s+serve\b'
+input_match: '(?:prd_(?:gates|confirm)\.py(?:\\")?|/prd(?:\\")?\s+(?:gates|confirm))\s+serve\b'
 min: 0
 max: 0
 ---

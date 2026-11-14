@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_deploy\.py(?:\\")?\s+(?:confirm|recover)\b(?:[^"\\]|\\.)*?--step\s+5\b'
+input_match: '(?:prd_deploy\.py(?:\\")?|/prd(?:\\")?\s+deploy)\s+(?:confirm|recover)\b(?:[^"\\]|\\.)*?--step\s+5\b'
 min: 0
 max: 0
 ---
