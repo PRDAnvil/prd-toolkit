@@ -127,6 +127,27 @@ def test_ci_refuses_existing_include_without_force(repo):
     assert r.returncode == 0 and "mine" not in (repo / ".gitlab/prd-toolkit.yml").read_text()
 
 
+def test_ci_refuses_a_vendored_copy_without_the_launcher(repo):
+    """A 0.8.7 copy has no .prd-toolkit/prd: a workflow that runs `sh .prd-toolkit/prd` would fail in CI, so none is written."""
+    (repo / ".prd-toolkit").mkdir()
+    (repo / ".prd-toolkit/prd_git_hook.py").write_text("# 0.8.7\n")
+    for args in (["--github", "--force"], ["--gitlab"]):
+        r = run(repo, "ci", *args, PRD)
+        assert (r.returncode, r.stdout) == (2, ""), r.stdout + r.stderr
+        assert r.stderr == f"prd_hooks: .prd-toolkit/ predates 0.8.8 (no .prd-toolkit/prd); run prd_hooks.py install {PRD} first\n"
+    assert not (repo / ".github").exists() and not (repo / ".gitlab").exists()
+    (repo / ".prd-toolkit/prd").write_text("#!/bin/sh\n")
+    assert run(repo, "ci", "--github", PRD).returncode == 0
+
+
+def test_ci_without_a_vendored_copy_still_writes(repo):
+    """No .prd-toolkit/ at all: `ci` writes the file as before (install vendors the copy it runs)."""
+    assert not (repo / ".prd-toolkit").exists()
+    r = run(repo, "ci", "--github", PRD)
+    assert (r.returncode, r.stdout, r.stderr) == (0, "wrote .github/workflows/prd-toolkit.yml\n", "")
+    assert "sh .prd-toolkit/prd lint --ci" in (repo / ".github/workflows/prd-toolkit.yml").read_text()
+
+
 def test_ci_identical_file_is_not_a_refusal(repo):
     run(repo, "ci", "--gitlab", PRD)
     assert run(repo, "ci", "--gitlab", PRD).returncode == 0

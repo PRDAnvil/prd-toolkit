@@ -98,6 +98,23 @@ def test_check_ci_never_reports_vendored_drift(repo):
     assert run(repo, "check", PRD).returncode == 1  # plain check still sees the drift
 
 
+def test_install_names_a_stale_workflow(repo):
+    """install refreshes the copy, never the CI file; it prints the stale line `check --ci` would fail the next PR on."""
+    run(repo, "ci", "--github", PRD)
+    old = (repo / GITHUB).read_text().replace("sh .prd-toolkit/prd lint --ci", "uv run --script .prd-toolkit/prd_lint.py --ci")
+    (repo / GITHUB).write_text(old)  # the 0.8.7 form
+    lines = hooks.install(repo, PRD)
+    assert lines[-1] == f"stale: {GITHUB}: re-run prd_hooks.py ci --github --force", lines
+    assert (repo / GITHUB).read_text() == old
+    assert not any("prd_block.py" in x for x in lines)
+    run(repo, "ci", "--github", "--force", PRD)
+    assert not any(x.startswith("stale: ") for x in hooks.install(repo, PRD))
+
+
+def test_install_without_ci_files_names_none(repo):
+    assert not any(x.startswith("stale: ") for x in hooks.install(repo, PRD))
+
+
 def test_check_without_ci_from_vendored_copy_still_refused(repo):
     hooks.install(repo, PRD)
     assert vendored(repo, "check", PRD).returncode == 2

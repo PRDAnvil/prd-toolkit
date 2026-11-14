@@ -282,7 +282,13 @@ def _read(path: Path) -> str | None:
         return None
 
 
-def _append_message(hook: str, prd_rel: str, shown: str, why: str) -> str:
+REPLACE = "replace its uv run --script … prd_git_hook.py line"  # a user's own hook holding the 0.8.7 line
+
+
+def _append_message(hook: str, prd_rel: str, shown: str, why: str, existing: str | None = None) -> str:
+    """What to do with a hook install leaves alone: add the line, or, when it holds the 0.8.7 line, replace that line."""
+    if existing is not None and OLD_FORM.search(existing):
+        return f"{why}; {REPLACE} in {shown}/{hook} with this line: " + _append_line(hook, prd_rel)
     return (f"{why}; add this line to {shown}/{hook} (an sh hook; place it before any `exit 0` in it): "
             + _append_line(hook, prd_rel))
 
@@ -317,13 +323,13 @@ def install(repo_root: Path, prd_rel: str) -> list[str]:
     hooks_dir, shown = _hooks_dir(repo_root)
     if configured:
         for hook in HOOKS:
-            lines.append(_append_message(hook, prd_rel, shown, f"core.hooksPath is set to {configured}; no shim written"))
-        return lines + _refresh(repo_root, module, tgts)
+            lines.append(_append_message(hook, prd_rel, shown, f"core.hooksPath is set to {configured}; no shim written", _read(hooks_dir / hook)))
+        return lines + _refresh(repo_root, module, tgts) + _install_stale_ci(repo_root, prd_rel)
     hooks_dir.mkdir(parents=True, exist_ok=True)
     for hook in HOOKS:
         path = hooks_dir / hook
         if path.exists() and not _ours(path):
-            lines.append(_append_message(hook, prd_rel, shown, f"{shown}/{hook} already exists and was left alone"))
+            lines.append(_append_message(hook, prd_rel, shown, f"{shown}/{hook} already exists and was left alone", _read(path)))
             continue
         old = _read(path)
         with open(path, "w", encoding="utf-8", newline="\n") as f:
@@ -331,7 +337,14 @@ def install(repo_root: Path, prd_rel: str) -> list[str]:
         path.chmod(0o755)
         lines.append(f"replaced {shown}/{hook} (it used uv run --script)" if old is not None and OLD_FORM.search(old)
                      else f"installed {shown}/{hook}")
-    return lines + _refresh(repo_root, module, tgts)
+    return lines + _refresh(repo_root, module, tgts) + _install_stale_ci(repo_root, prd_rel)
+
+
+def _install_stale_ci(repo_root: Path, prd_rel: str) -> list[str]:
+    """install never rewrites a CI file; it names each present one `check --ci` would report, so the next step shows at once."""
+    from .model import load  # local: the model imports this package
+
+    return _stale_ci_files(repo_root, load(Path(repo_root) / prd_rel), prd_rel)
 
 
 def _refresh(repo_root: Path, module, tgts) -> list[str]:
@@ -348,7 +361,6 @@ def stale_ci(repo_root: Path, prd, prd_rel: str) -> list[str]:
     """One line per stale managed block (CLAUDE.md, the PRD's README, the parent README) and per CI include present whose
     text differs from what `prd_hooks.py ci` would write now. A block with a broken marker is one stale line naming the
     file and the problem, so the check exits 1, not 2."""
-    jobs = ci_jobs(prd, prd_rel) + deploy_jobs(prd, prd_rel)
     out = []
     module, tgts = _blocks(repo_root, prd_rel)
     if change_approve._ignored(Path(repo_root), "CLAUDE.md"):
@@ -359,6 +371,13 @@ def stale_ci(repo_root: Path, prd, prd_rel: str) -> list[str]:
             out.append(f"stale: {_shown(repo_root, path)}; run prd_block.py {prd_rel}")
     except module.BlockError as e:
         out.append(f"stale: {_relative_message(repo_root, str(e))}; run prd_block.py {prd_rel}")
+    return out + _stale_ci_files(repo_root, prd, prd_rel)
+
+
+def _stale_ci_files(repo_root: Path, prd, prd_rel: str) -> list[str]:
+    """One line per CI include present whose text differs from what `prd_hooks.py ci` would write now."""
+    jobs = ci_jobs(prd, prd_rel) + deploy_jobs(prd, prd_rel)
+    out = []
     for kind, rel in CI_FILES.items():
         path = Path(repo_root) / rel
         if path.is_file() and path.read_text(encoding="utf-8") != (render_gitlab if kind == "gitlab" else render_github)(jobs, prd.operations.secrets):
@@ -449,12 +468,14 @@ def _stale_shims(repo_root: Path, plugin_root: Path, prd_rel: str) -> list[str]:
         text = _read(path)
         if text is None:
             continue
-        if _ours(path) and prd_rel:
+        ours = _ours(path)
+        if ours and prd_rel:
             stale = _shim_pattern(plugin_root / "templates/hooks", hook).fullmatch(text) is None
         else:
             stale = OLD_FORM.search(text) is not None
         if stale:
-            out.append(f"stale: {shown}/{hook}; run prd_hooks.py install")
+            # install rewrites only our own shims; a user's own hook is fixed by hand, with the line install prints
+            out.append(f"stale: {shown}/{hook}; " + ("run prd_hooks.py install" if ours else f"{REPLACE} with the line prd_hooks.py install prints"))
     return out
 
 

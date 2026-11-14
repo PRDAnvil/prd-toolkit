@@ -502,15 +502,60 @@ def test_check_with_prd_rel_reports_a_changed_shim(repo):
     assert hooks.check(repo, PLUGIN_ROOT) == []  # without the PRD's path only the old form is judged
 
 
+REPLACE_STALE = "replace its uv run --script … prd_git_hook.py line with the line prd_hooks.py install prints"
+
+
 def test_check_reports_old_appended_line(repo):  # a user's own hook holding the 0.8.7 appended line
     hooks.install(repo, PRD)
     (repo / ".git/hooks/pre-commit").unlink()
     (repo / ".git/hooks/commit-msg").write_text(f"#!/bin/sh\necho mine\n{APPENDED_087}\n")
-    assert hooks.check(repo, PLUGIN_ROOT) == ["stale: .git/hooks/commit-msg; run prd_hooks.py install"]
+    assert hooks.check(repo, PLUGIN_ROOT) == [f"stale: .git/hooks/commit-msg; {REPLACE_STALE}"]
     (repo / ".git/hooks/commit-msg").write_text(f"#!/bin/sh\necho mine\n{hooks._append_line('commit-msg', PRD)}\n")
     assert hooks.check(repo, PLUGIN_ROOT) == []
     (repo / ".git/hooks/commit-msg").write_text("#!/bin/sh\necho mine\n")
     assert hooks.check(repo, PLUGIN_ROOT) == []
+
+
+def _replace_message(lines, hook):
+    return next(x for x in lines if f"/{hook}" in x and "replace" in x)
+
+
+def test_install_says_replace_for_a_users_hook_holding_the_old_line(repo):
+    """install never edits a hook that is not ours; on the 0.8.7 line it says to replace that line, not to add one."""
+    own = repo / ".git/hooks/commit-msg"
+    own.write_text(f"#!/bin/sh\necho mine\n{APPENDED_087}\n")
+    lines = hooks.install(repo, PRD)
+    assert own.read_text() == f"#!/bin/sh\necho mine\n{APPENDED_087}\n"
+    msg = _replace_message(lines, "commit-msg")
+    assert "add this line" not in msg
+    assert msg == (".git/hooks/commit-msg already exists and was left alone; replace its uv run --script … prd_git_hook.py line "
+                   "in .git/hooks/commit-msg with this line: " + hooks._append_line("commit-msg", PRD))
+
+
+def test_check_is_clean_after_the_user_replaces_the_line(repo):
+    own = repo / ".git/hooks/commit-msg"
+    own.write_text(f"#!/bin/sh\necho mine\n{APPENDED_087}\necho after\n")
+    msg = _replace_message(hooks.install(repo, PRD), "commit-msg")
+    assert hooks.check(repo, PLUGIN_ROOT) == [f"stale: .git/hooks/commit-msg; {REPLACE_STALE}"]
+    new = msg[msg.index(TOP):]
+    own.write_text(own.read_text().replace(APPENDED_087, new))  # what the user does
+    assert hooks.check(repo, PLUGIN_ROOT) == []
+
+
+def test_hookspath_hook_with_the_old_line(repo, tmp_path_factory):
+    """core.hooksPath: install writes no shim; on the 0.8.7 line both install and check say to replace it."""
+    other = tmp_path_factory.mktemp("own-hooks")
+    git(repo, "config", "core.hooksPath", str(other))
+    (other / "commit-msg").write_text(f"#!/bin/sh\n{APPENDED_087}\n")
+    lines = hooks.install(repo, PRD)
+    msg = _replace_message(lines, "commit-msg")
+    assert msg.startswith(f"core.hooksPath is set to {other}; no shim written; replace its uv run --script … prd_git_hook.py line in ")
+    assert msg.endswith("with this line: " + hooks._append_line("commit-msg", PRD))
+    assert any("add this line" in x and "/pre-commit" in x for x in lines)  # no hook there yet: add, as before
+    out = [x for x in hooks.check(repo, PLUGIN_ROOT) if x.startswith("stale: ")]
+    assert len(out) == 1 and out[0].endswith(f"/commit-msg; {REPLACE_STALE}"), out
+    (other / "commit-msg").write_text(f"#!/bin/sh\n{msg[msg.index(TOP):]}\n")
+    assert [x for x in hooks.check(repo, PLUGIN_ROOT) if x.startswith("stale: ")] == []
 
 
 def test_check_without_installed_hooks_is_clean(repo):  # CI: a fresh checkout has no shim
