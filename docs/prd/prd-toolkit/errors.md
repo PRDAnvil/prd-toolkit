@@ -182,3 +182,25 @@ Evidence: User report (/prd-error), 2026-11-11: prd_error.py check over a range 
 Diagnosis: not a defect: reproduced, `prd_error.py check docs/prd/prd-toolkit c8f48cf~1..HEAD` exits 1 with `Detected: changed` on E-001 to E-006 and E-009 to E-013, and the same check from c8f48cf exits 0. The findings are true: c8f48cf rewrote those entries' `Detected:` lines (for example `model.py:713 @d1a4146` became `@1cde4cc`), and `_structure` in `prdlint/errors.py` reports any `Detected:` that differs between two commits. The toolkit holds ledger lines fixed on purpose: changing-prds says of the errors.md ledger "existing entries stay as written", and running-an-error.md step 6 says "a changed `Detected:` line) cannot be fixed by an edit, and history is never rewritten, so report it with its commit". The move broke that rule once, deliberately, so every check over a range that spans c8f48cf reports it; a check from c8f48cf on is clean and stays clean. No PRD line covers `prd_error.py`: its `errors` area is not adopted. Accepting a provenance-only rewrite would be a new feature, not a fix.
 Resolution: not a defect: the check is right: c8f48cf rewrote the `Detected:` lines of E-001 to E-006 and E-009 to E-013 once, during the move, and the toolkit keeps ledger lines as written ("existing entries stay as written"); a check from c8f48cf on exits 0
 Recurrence of: -
+
+### E-019 Seven eval scaffolds fail their own clean-tree check, so their cases never run
+Detected: 2026-11-14, eval run for prd-toolkit 0.8.8 (claude plugin eval, 2026-11-14)
+Classification: unclassified
+Evidence: claude plugin eval ./prd-toolkit --runs 1 --model sonnet --scaffold, 2026-11-14, on a5223fc's parent 5af6330
+  7 of 59 cases did not run, each with: scaffold failed (exit 1)
+  deploy-by-hand-records
+  deploy-close-live
+  deploy-close-staging-only
+  deploy-failure-no-improvise
+  deploy-stops-at-human
+  deploying-trigger
+  review-edits-nothing
+  Each scaffold ends with: test -z "$(git status --porcelain)"
+  Run by hand in an empty directory, evals/deploy-close-live/scaffold.sh exits 1 and leaves:
+  ?? CLAUDE.md
+  ?? docs/prd/README.md
+  ?? docs/prd/greet/README.md
+  The same scaffold exits 1 the same way from main at fdcf473 (prd-toolkit 0.8.7).
+Diagnosis: -
+Resolution: -
+Recurrence of: -
