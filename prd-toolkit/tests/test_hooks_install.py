@@ -527,3 +527,53 @@ def test_check_ci_ignores_installed_shims(repo):
     ci = subprocess.run([*cli, "--ci", PRD], cwd=repo, capture_output=True, text=True)
     assert "stale: .git/hooks/pre-commit; run prd_hooks.py install" in plain.stdout.splitlines(), plain.stdout + plain.stderr
     assert (ci.returncode, ci.stderr) == (0, "") and "stale: .git/hooks/" not in ci.stdout, ci.stdout + ci.stderr
+
+
+def _shim_lines(lines):
+    return [x for x in lines if "/hooks/" in x and x.startswith("stale: ")]
+
+
+def test_check_outside_git_is_not_an_error(prd):
+    """A vendored copy in a folder that is no git checkout: the shim loop adds nothing and raises nothing."""
+    from prdlint import model
+
+    root = prd.parent.parent.parent
+    assert model.git_toplevel(root) is None, "the test folder is inside a git checkout"
+    hooks.vendor(root, PRD)
+    assert hooks.check(root, PLUGIN_ROOT) == []
+    (root / ".prd-toolkit/prd_lint.py").write_text("# changed\n")
+    assert hooks.check(root, PLUGIN_ROOT) == [".prd-toolkit/prd_lint.py differs from the plugin copy"]
+    r = subprocess.run([sys.executable, str(PLUGIN_ROOT / "scripts/prd_hooks.py"), "check", PRD], cwd=root, capture_output=True, text=True)
+    assert r.returncode in (0, 1) and "internal error" not in r.stderr, r.stdout + r.stderr
+
+
+def test_check_two_prds_one_shim_is_not_stale(repo):
+    """One shim per hook names the PRD installed last; checking another PRD of the same repository is no finding."""
+    import shutil
+
+    from prdlint import model
+
+    other = "docs/prd/other"
+    shutil.copytree(repo / PRD, repo / other)
+    hooks.install(repo, PRD)
+    for rel in (PRD, other):
+        assert _shim_lines(hooks.check(repo, PLUGIN_ROOT, model.load(repo / rel), rel)) == [], rel
+    write_087_shims(repo)
+    for rel in (PRD, other):
+        assert _shim_lines(hooks.check(repo, PLUGIN_ROOT, model.load(repo / rel), rel)) == [
+            "stale: .git/hooks/commit-msg; run prd_hooks.py install", "stale: .git/hooks/pre-commit; run prd_hooks.py install"], rel
+
+
+def test_check_reports_a_damaged_own_shim(repo):
+    """Our marker, a body that differs from the template other than in the PRD path: stale, never an exception."""
+    from prdlint import model
+
+    hooks.install(repo, PRD)
+    prd = model.load(repo / PRD)
+    shim = repo / ".git/hooks/pre-commit"
+    text = shim.read_text()
+    shim.write_text(text.replace('exec sh "$top/.prd-toolkit/prd" git-hook', 'exec sh "$top/.prd-toolkit/prd" lint'))
+    assert _shim_lines(hooks.check(repo, PLUGIN_ROOT, prd, PRD)) == ["stale: .git/hooks/pre-commit; run prd_hooks.py install"]
+    shim.write_text("\n".join(ln for ln in text.split("\n") if "[ -d" not in ln))  # no PRD path left to read
+    assert hooks._ours(shim)
+    assert _shim_lines(hooks.check(repo, PLUGIN_ROOT, prd, PRD)) == ["stale: .git/hooks/pre-commit; run prd_hooks.py install"]

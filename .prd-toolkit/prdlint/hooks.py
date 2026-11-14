@@ -263,6 +263,18 @@ def _render(template_dir: Path, hook: str, prd_rel: str) -> str:
     return (Path(template_dir) / hook).read_text(encoding="utf-8").replace("{{hook}}", hook).replace("{{prd}}", _quote(prd_rel))
 
 
+_QUOTED = r'(?:[^"\\\n]|\\.)+'  # a non-empty `_quote`d string: no bare `"`, `\` or newline; escapes allowed
+
+
+def _shim_pattern(template_dir: Path, hook: str) -> "re.Pattern[str]":
+    """The template for hook with every `{{prd}}` matching one and the same `_quote`d PRD path, whichever PRD it is."""
+    parts = (Path(template_dir) / hook).read_text(encoding="utf-8").replace("{{hook}}", hook).split("{{prd}}")
+    out = re.escape(parts[0])
+    for i, part in enumerate(parts[1:]):
+        out += (f"(?P<prd>{_QUOTED})" if i == 0 else "(?P=prd)") + re.escape(part)
+    return re.compile(out)
+
+
 def _read(path: Path) -> str | None:
     try:
         return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else None
@@ -423,10 +435,14 @@ def check(repo_root: Path, plugin_root: Path, prd=None, prd_rel: str = "") -> li
 
 
 def _stale_shims(repo_root: Path, plugin_root: Path, prd_rel: str) -> list[str]:
-    """One line per stale installed hook: ours and not the rendered template (when prd_rel is not known, ours and of the
-    old form), or a user's own hook holding the 0.8.7 appended line. No installed hook is no finding, so a CI checkout
-    is clean; `check --ci` calls stale_ci alone and never comes here."""
-    hooks_dir, shown = _hooks_dir(repo_root)
+    """One line per stale installed hook: ours and not the current template for any PRD path (when prd_rel is not known,
+    ours and of the old form), or a user's own hook holding the 0.8.7 appended line. Which PRD a shim names is never a
+    finding: a repository may hold several PRDs and one shim per hook. No installed hook, or no git checkout, is no
+    finding, so a CI checkout is clean; `check --ci` calls stale_ci alone and never comes here."""
+    try:
+        hooks_dir, shown = _hooks_dir(repo_root)
+    except (OSError, subprocess.CalledProcessError):
+        return []
     out = []
     for hook in HOOKS:
         path = hooks_dir / hook
@@ -434,7 +450,7 @@ def _stale_shims(repo_root: Path, plugin_root: Path, prd_rel: str) -> list[str]:
         if text is None:
             continue
         if _ours(path) and prd_rel:
-            stale = text != _render(plugin_root / "templates/hooks", hook, prd_rel)
+            stale = _shim_pattern(plugin_root / "templates/hooks", hook).fullmatch(text) is None
         else:
             stale = OLD_FORM.search(text) is not None
         if stale:
