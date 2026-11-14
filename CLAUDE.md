@@ -66,6 +66,7 @@ Skills enforce discipline, not just inform:
   pull request.
 - **Commits** cite the PRD IDs they touch (`Refs: FR-012`), or `Refs: none (no behaviour change)`.
 - **Hooks:** never `--no-verify`, and never bare `git stash`.
+- **Check ranges:** `.prd-toolkit/prd error check docs/prd/prd-toolkit <range>` over a range that spans c8f48cf (the move's SHA rewrite) reports `Detected: changed` on older entries; start the range after it.
 
 ## Writing
 

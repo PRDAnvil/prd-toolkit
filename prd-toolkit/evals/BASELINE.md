@@ -1,5 +1,7 @@
 # `prd-toolkit` eval baseline
 
+Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived until 0.8.6.
+
 ## 0.8.5 baseline
 
 ### Task 14: `deploy-confirms-named-steps` and `publish-own-artifact` (spec section 13)
