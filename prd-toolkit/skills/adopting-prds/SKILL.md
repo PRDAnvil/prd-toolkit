@@ -36,9 +36,9 @@ When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy preda
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`.
 When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell
-the user the same.
-When `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists, the user also runs
-`prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commits both together.
+the user the same and, when `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists,
+also to run `prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commit both
+together.
 A first adoption has no `.prd-toolkit/` until the hooks install, so it uses the plugin path; a later
 area in an adopted repo uses the vendored copy, so lint and trace match what CI runs.
 

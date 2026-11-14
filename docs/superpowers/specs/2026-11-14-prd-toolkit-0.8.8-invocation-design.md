@@ -49,6 +49,8 @@
 >   `uv run --quiet --script ${PACK}/validate_outline.py` from the vendored copy, so a PRD naming the `document` pack adds
 >   one environment per clone on every lint. Fixing it bumps the pack's version, which every PRD naming the pack must
 >   follow with a patch; it goes in the next release. This is what remains of #2.
+> - §3.1 (final review, 2026-11-14): the launcher finds its directory with `CDPATH= cd -- "$(dirname -- "$0")"`, so an
+>   exported CDPATH cannot send it elsewhere.
 
 ## 1. Why
 
@@ -76,7 +78,7 @@ template, and the 18 skill and agent lines that name a `.prd-toolkit/` path. The
 Three leftovers from the move (section 8).
 
 **Out:** the 80 skill lines that run the plugin's own scripts (one path per installed version, so
-a fixed 17 environments per version); the README's examples; the evals' text; Windows without
+a fixed 17 environments per version); the README's examples (both superseded: see Revisions); the evals' text; Windows without
 `sh`; removing the scripts' uv headers. The `document` pack's validator line, run by file from
 the vendored copy (a known limit: see Revisions).
 
@@ -126,7 +128,7 @@ exec uv run --quiet --no-project --python ">=3.11" \
   `.claude-plugin/plugin.json` otherwise).
 - An unknown command: exit 2, stderr `prd: unknown command '<x>'`, then the command names.
 - A command whose script file is missing (a vendored copy older than the dispatcher's table):
-  exit 2, stderr `prd: <script> is not in <dir>; run prd_hooks.py install`.
+  exit 2, stderr `prd: <script> is not in <dir>; run prd_hooks.py install` (superseded: see Revisions).
 - `prd_tester_guard.py` is not a command: it is a Claude Code hook, not vendored, and reads a
   payload on stdin.
 
@@ -169,7 +171,8 @@ scripts in `COMMANDS`.
   shims; `prd_hooks.py ci --force` rewrites the workflow. `install` prints one line when it replaced
   a shim of the old form.
 - `prd_hooks.py check` reports an installed shim that differs from the vendored template, as it
-  already reports a stale block or CI file: `stale: <hooks dir>/<hook>; run prd_hooks.py install`.
+  already reports a stale block or CI file: `stale: <hooks dir>/<hook>; run prd_hooks.py install`
+  (superseded: see Revisions).
   A hook the user appended by hand to their own script is reported only when its line holds
   `uv run --script` and `prd_git_hook.py`.
 - A repository that has not reinstalled keeps working: its 0.8.7 shims run the 0.8.7 vendored

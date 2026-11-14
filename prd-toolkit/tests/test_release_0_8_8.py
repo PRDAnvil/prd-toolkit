@@ -31,9 +31,10 @@ def test_every_scripts_command_uses_the_launcher():
     assert n >= 80        # the 80 `uv run --script <scripts>/` lines counted on 94a4ba2
 
 
-CI_CLAUSE = ("predates 0.8.8: stop, and tell the user the same. When `.github/workflows/prd-toolkit.yml` or "
-             "`.gitlab/prd-toolkit.yml` exists, the user also runs `prd_hooks.py ci --<forge> --force docs/prd/<slug>` "
-             "from the plugin and commits both together.")
+# one sentence: the CI step is part of the 0.8.8 stop, so an agent in a healthy repository has nothing to recite
+CI_CLAUSE = ("predates 0.8.8: stop, and tell the user the same and, when `.github/workflows/prd-toolkit.yml` or "
+             "`.gitlab/prd-toolkit.yml` exists, also to run `prd_hooks.py ci --<forge> --force docs/prd/<slug>` "
+             "from the plugin and commit both together.")
 
 
 def test_every_scripts_definition_checks_for_the_launcher():
@@ -44,6 +45,7 @@ def test_every_scripts_definition_checks_for_the_launcher():
         if "`<scripts>` is `.prd-toolkit` when" in text:
             para = " ".join(next(par for par in text.split("\n\n") if "`<scripts>` is `.prd-toolkit` when" in par).split())
             assert "When `.prd-toolkit/` exists but holds no `prd`," in para and CI_CLAUSE in para, p
+            assert "the user also runs" not in para, p
             visited.append(p.relative_to(ROOT).as_posix())
     assert len(visited) == 8, visited
 
@@ -77,7 +79,7 @@ def test_the_launcher_is_named_where_a_vendored_copy_is_checked():
         return " ".join((ROOT / rel).read_text(encoding="utf-8").split())
 
     # a 0.8.7 copy passes the 0.6 and 0.8.1 checks, then the close's `.prd-toolkit/prd hooks` lines find no launcher
-    assert ("When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user the same."
+    assert ("When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user the same and,"
             in flat("skills/changing-prds/SKILL.md"))
     assert ("and so is a judged test that finds no `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py`"
             in flat("skills/handling-errors/SKILL.md"))
