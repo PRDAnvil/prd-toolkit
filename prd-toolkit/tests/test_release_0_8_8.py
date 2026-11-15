@@ -49,7 +49,7 @@ def test_every_scripts_definition_checks_for_the_launcher():
             assert "When `.prd-toolkit/` exists but holds no `prd`," in para and CI_CLAUSE in para, p
             assert "the user also runs" not in para, p
             visited.append(p.relative_to(ROOT).as_posix())
-    assert len(visited) == 8, visited
+    assert len(visited) == 9, visited  # 0.8.11: sourcing-practices/running-practices.md
 
 
 def test_every_launcher_command_in_a_skill_exists():
