@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. Version 0.8.8.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means. Version 0.8.9.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -23,7 +23,9 @@ for 0.8.3 [docs/superpowers/specs/2026-11-06-prd-toolkit-0.8.3-backlog-design.md
 for 0.8.4 [docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.4-prd-readmes-design.md](../docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.4-prd-readmes-design.md),
 for 0.8.5 [docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md](../docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md),
 for 0.8.6, the move to PRDAnvil, the plan [docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md](../docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md),
-and for 0.8.7, the fixes, the plan [docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md](../docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md).
+for 0.8.7, the fixes, the plan [docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md](../docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md),
+for 0.8.8 [docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md](../docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md),
+and for 0.8.9 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md).
 
 ## Install
 
@@ -96,6 +98,39 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 - `--list-rules` prints the 40 rules and each one's severity. `--sample-tids N` prints up to N randomly chosen T-ids for the authoring
   dry run, one per line with the test-case file that holds it (`T-003.1 test-cases/nfr.yaml`), never a `level: unit` case; it exits 1 with `prd_lint: no non-unit T-ids to sample`
   when the PRD has none.
+
+## Help
+
+```
+.prd-toolkit/prd help                    # the index: every entry key and every rule name
+.prd-toolkit/prd help --key block.ac     # one field of the PRD grammar
+.prd-toolkit/prd help --rule ac-ears     # one lint rule
+.prd-toolkit/prd help --json             # the whole catalogue as one JSON document
+```
+
+- `prd help` answers what a field of a PRD or a lint finding means. The catalogue holds 43 entries,
+  one per field of the PRD grammar (a section, a block line, a test-case key, a marker, a kind of
+  ID), and the 40 lint rules each carry a description: what the rule checks and how to clear its
+  finding. It takes no PRD folder and reads none.
+- With no option it prints the index: one line per entry, its key and its name, then an empty line,
+  then one line per rule, its name and its severity.
+- `--key <key>` prints the entry: its name, `What:`, `Why:`, its formatting `Rules:`, the rules it
+  is `Checked by:` with each one's description, and `See:`, a heading of `references/prd-format.md`.
+  `--rule <name>` prints the rule's severity, its description and `Checks:`, the entries it checks.
+- `--json` (or `--json=1`) prints one object on one line:
+  `{"interface": 1, "kind": "help", "entries": [{"key", "name", "what", "why", "rules", "checked_by", "see"}, …], "rules": {"<name>": {"severity", "description"}, …}}`.
+  An entry has `rules`, `checked_by` and `see` only when the catalogue gives them. With `--key` the
+  document holds that entry and every rule; with `--rule`, that rule and the entries it checks. A
+  client reads it once and looks each key and rule up itself. `--interface` prints `1`.
+- An unknown key or rule, a usage error or a catalogue that cannot be read is exit 2, with one line
+  on stderr (`prd_help: no entry '<key>'`) and, with `--json`, the document
+  `{"interface": 1, "kind": "help", "error": "<message>"}`. Exit 1 is never used.
+- The setting `PRD_HELP_FILE` names another catalogue file to read in place of the shipped one,
+  `references/help.yaml` (`.prd-toolkit/help.yaml` in a vendored copy). Lint's own output does not
+  change: it never prints a description.
+- A copy vendored before 0.8.9 has no `help` command: its launcher answers
+  `prd: unknown command 'help'` with exit 2. Run `install` again to get it (see the
+  changelog).
 
 ## Adopting an existing repo
 
@@ -874,6 +909,9 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
+- **0.8.9:** a help catalogue, `prd help`. The meaning of a PRD's fields and of a lint finding was only in `references/prd-format.md` and in the rules' code, so a person had to know where to look and a client had to keep its own copy. Now `prd help` prints it (see Help): the index with no option, one field with `--key`, one lint rule with `--rule`, and the whole catalogue as one JSON document with `--json`, which a client reads once. The catalogue, `references/help.yaml`, has 43 entries, one per field of the PRD grammar, each with what it is, why it is there, its formatting rules and the lint rules that check it; and each of the 40 lint rules now carries a description, what it checks and how to clear its finding. The setting `PRD_HELP_FILE` names another catalogue file. Nothing existing changes: lint prints no description, `--list-rules`, the finding lines and every `--json` document are byte for byte what they were, and `interface` stays 1. The toolkit's own PRD is 6.3.0, with the new area `help` (UJ-02, FR-033 to FR-039) verified. See the [design spec](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md).
+  - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). A repository gets the command with its next `.prd-toolkit/prd hooks install docs/prd/<slug>` run from the 0.8.9 plugin (`<plugin>/scripts/prd hooks install docs/prd/<slug>`), which vendors `prd_help.py` and `help.yaml`; commit `.prd-toolkit/`. Until then its launcher answers `prd help` with `prd: unknown command 'help'` and exit 2, and everything else works as before. No hook, CI file or skill line changes.
+  - **Evals:** the eval suite was not rerun: no skill, command or agent text changed. The 0.8.8 baseline in `evals/BASELINE.md` stands, E-019 included.
 - **0.8.8:** one `prd` command, and no uv environment per clone. `uv run --script` keeps one cached environment per script path, so every clone and worktree that vendors the toolkit added environments of its own on each hook run, CI job and skill command ([issue #2](https://github.com/PRDAnvil/prd-toolkit/issues/2)). Now one launcher, `<scripts>/prd <command>`, runs every script (see The prd command), and every hook shim, generated CI line, skill, command and agent line, and the README's vendored-copy examples, run it; uv keeps one environment per requirements list, shared by every clone and worktree. The scripts keep their uv headers and still run by their file. The toolkit's own PRD is 6.2.3. See the [design spec](../docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md).
   - **Upgrade:**
     - Update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Once per repository, run from the 0.8.8 plugin `<plugin>/scripts/prd hooks install docs/prd/<slug>` and then, when a generated CI file exists, `<plugin>/scripts/prd hooks ci --github --force docs/prd/<slug>` (or `--gitlab`), where `<plugin>` is the plugin's install path, `~/.claude/plugins/cache/prdanvil/prd-toolkit/0.8.8`; and commit `.prd-toolkit/`, the CI file, `CLAUDE.md` and the READMEs in one commit. Either step alone fails CI: `install` alone leaves the workflow stale, and `ci` is refused until the vendored copy is 0.8.8.
