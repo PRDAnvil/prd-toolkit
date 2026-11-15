@@ -451,7 +451,7 @@
 
 - key: marker.assumption
   name: Assumption marker
-  what: "A marker `[ASSUMPTION A-nn: text]` in any text file of the PRD: a stated guess about intent."
+  what: "A marker `[ASSUMPTION A-nn: text]` in a Markdown, YAML, SQL or JSON file of the PRD: a stated guess about intent."
   why: It shows where the PRD rests on a guess, so the owner can confirm it.
   rules:
     - "The form is `[ASSUMPTION A-nn: text]`, with an ID of two digits."
@@ -462,7 +462,7 @@
 
 - key: marker.needs_clarification
   name: Clarification marker
-  what: "A marker `[NEEDS CLARIFICATION: question]` in any text file of the PRD: a question the PRD cannot answer yet."
+  what: "A marker `[NEEDS CLARIFICATION: question]` in a Markdown, YAML, SQL or JSON file of the PRD: a question the PRD cannot answer yet."
   why: It stops the PRD from being reviewed or approved with an open question in it.
   rules:
     - "The form is `[NEEDS CLARIFICATION: question]`."
