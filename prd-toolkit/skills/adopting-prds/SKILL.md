@@ -114,11 +114,13 @@ a row `adopted` whose adoption has no §14 row is step 5 interrupted: resume at 
 - **Copy:** `mkdir -p docs/prd/<slug>`, then Read each file under
   `${CLAUDE_PLUGIN_ROOT}/templates/prd/` and Write it to the same relative path under
   `docs/prd/<slug>/` (Glob `**/*` in the template lists them; each `.gitkeep` sits beside a
-  README.md and may be skipped). Never copy with a shell command: a sandbox that denies the
+  README.md and may be skipped), every file except `practices.md`, which `/prd-toolkit:prd-practices`
+  writes when it records a source. Never copy with a shell command: a sandbox that denies the
   plugin folder as a copy source blocks `cp`, and Read and Write are the granted tools.
 - **Fill the project-wide sections from the repo**, as `prd-toolkit:authoring-prds` phases 1
   and 2 say: the stack (§1), the glossary (§3), standards rows from detected linter configs (§5)
-  and skills rows from this session's skills listing (§6), every row's Decision `proposed`; the
+  and skills rows from this session's skills listing (§6), every row's Decision `proposed` (step 1
+  offers `/prd-toolkit:prd-practices` for each area's best-practice sources and skills); the
   four `{{…}}` slots; each optional contract populated or declared `Not applicable`; the
   Harness in `testing.md`, with `Test roots:`; for the Levels table, ask the user which Gate
   (`build` or `deploy`) each level runs at, and never keep the template's Gate silently. A level
@@ -177,6 +179,11 @@ picked. Otherwise show the map, recommend one area and why, and stop for the use
   area whose pack is the PRD's default (§1's `Pack:` line, or `service` when there is none) needs
   no `Target:` line. Never write one the user has not confirmed: unconfirmed, the proposal is a
   §13 question.
+- **Practices.** Offer `/prd-toolkit:prd-practices <area>` (skill `prd-toolkit:sourcing-practices`):
+  it proposes the area's best-practice sources, read and quoted, with the practices, standards rows
+  and skills they give. On the owner's yes, for the first area run it now, and step 5's gates decide
+  its rows with the bootstrap's; for a later area run it after step 5, as its own
+  `/prd-toolkit:prd-change`, never inside the area's change.
 - The first area renames the template's `features/core.md` and `test-cases/core.yaml` to
   `features/<area>.md` and `test-cases/<area>.yaml`. A later area Reads the template's two
   files (`${CLAUDE_PLUGIN_ROOT}/templates/prd/features/core.md`, `test-cases/core.yaml`) and
@@ -394,7 +401,10 @@ files; if a test case changed since, run step 4 again.
      `proposed` rows; an `awaiting <who>` row carries through), then its phases 5 and 6:
      `In review`, lint and the checklist, and the `prd-tester` dry run.
    - Later area: `prd-toolkit:changing-prds` step 4, lint and the dry run of the area's T-ids,
-     and every question in `${CLAUDE_PLUGIN_ROOT}/references/quality-checklist.md` for the area.
+     and every question in `${CLAUDE_PLUGIN_ROOT}/references/quality-checklist.md` for the area,
+     with, when the folder holds `practices.md`, each practice with Applies to `prd` that
+     `<scripts>/prd practices docs/prd/<slug>; echo "prd-practices-exit=$?"` lists (its own Bash
+     call), answered yes or no with the PRD line that shows it.
    - Either way, run the dry run's commands one command per Bash call, with literal paths
      (dispatching.md's first rule).
    - A failed dry run follows `prd-toolkit:authoring-prds`: a full round, or a harness-only round. Decide before asking: a round is harness-only when every question names testing.md's Harness as the file that should have answered it, which the dry-run report's questions must name. Then a late answer that touches another file makes it a full round.

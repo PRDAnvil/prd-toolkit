@@ -325,7 +325,14 @@ tree, or a branch off the default branch, in step 1) and resumes the build at st
      or the rubric item that answers it, as a tester QUESTION is, and the builder is dispatched
      again, the prompt adding the line `Answered: "<the quote>"`, as the next round of the
      block's T-ids (**Rounds**); only a gap neither the outline nor the rubric answers stops the
-     build. A UNIT line that is not `pass` fails the round, and the next builder round carries it
+     build. When the implement pack has a Practices part that is not `None.`, the report holds one
+     line per item: `P-nn: followed` or `P-nn: not applicable (<why>)` under CHANGES, or
+     `P-nn: not followed (<why>)` under QUESTIONS; an item with no line fails the judgment of the
+     report. A `P-nn: not followed (<why>)` line is handled as a required skill that cannot be
+     found is (the builder writes both as QUESTIONS): a question for the owner that stops the
+     build as a PRD gap does, quoted in the stop report; the answer goes through
+     `/prd-toolkit:prd-change` (the practice reworded or removed) or a new build. A UNIT line
+     that is not `pass` fails the round, and the next builder round carries it
      as its `Failure:`, with the quote of that T-id's test case and its unit test as
      `Failing test:`. A failed round merges nothing (step 3): run step 3's round again, on a new
      round branch from the unchanged build branch, as the next round of each of its unit T-ids.
