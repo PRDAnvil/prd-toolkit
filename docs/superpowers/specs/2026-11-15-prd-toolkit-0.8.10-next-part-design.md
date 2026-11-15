@@ -2,7 +2,7 @@
 
 > **Date:** 2026-11-15
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Draft, for the owner's review.
+> **Status:** Approved by the owner 2026-11-15. Plan: `../plans/2026-11-15-prd-toolkit-0.8.10.md`.
 > **Extends:** `2026-11-03-prd-toolkit-0.8-umbrella.md` and the priority plan
 > `../plans/2026-11-14-prd-toolkit-engine-ports.md` (its 0.8.10 row).
 > **Needs:** 0.8.9 (released).
