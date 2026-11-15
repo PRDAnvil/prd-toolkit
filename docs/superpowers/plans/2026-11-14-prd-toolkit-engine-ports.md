@@ -54,12 +54,12 @@ new Python dependency in any phase.
 |---|---|---|---|---|---|
 | 1 | **0.8.7** | Released: merged to `main` | 0.8.7 plan | done | — |
 | 2 | **0.8.8** | **Invocation**, built on `feat/prd-toolkit-0.8.8` and waiting for the owner's word to push: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; engine | built | 0.8.7 |
-| 3 | **0.8.9** | **Help catalogue:** a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | not sized | the `prd` command |
+| 3 | **0.8.9** | **Help catalogue:** a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | not sized | 0.8.8 |
 | 4 | **0.8.10** | **Next part in the status report:** an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | not sized | 0.8.8 |
 | 5 | **0.8.11** | **Best-practice sources**, and finding, installing or writing a skill or pack a PRD needs, with pack authoring from an example repository | umbrella row, backlog item 1 | large | 0.8.0 |
 | 6 | **0.8.12** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
-| 7 | **0.8.13** | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | engine; backlog item 5 | small | none |
-| 8 | **0.8.14** | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
+| 7 | after 0.8.12 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | engine; backlog item 5 | small | none |
+| 8 | after 0.8.12 | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
 | 9 | after | **Antigravity wrapper** (phase 4), if its spike passes | engine | large, uncertain | the `prd` command |
 | — | every release | **One area adopted** in the toolkit's own PRD: `lint-ids` next, then `lint-testcases` | backlog item 2's policy | medium each | the release that last reshaped the area |
 | — | 2.0.0 roadmap | **Signed approvals** | engine | medium | one of its three triggers |
@@ -75,9 +75,9 @@ Why this order:
 - **Then the two features, with no further inserts.** Best practices has been moved back seven
   times since 2026-11-03, each time by a fixes release. The owner moved it once more on
   2026-11-14, for a defect that grows daily. After that, fixes ride with a feature release or
-  wait.
-- **The help catalogue and the Next part before best practices** (owner, 2026-11-14). Both are
-  small, both serve any client as much as the terminal, and each is its own release: 0.8.9 gives
+  wait. (The owner then inserted the help catalogue and the Next part on 2026-11-14, below.)
+- **The help catalogue and the Next part before best practices** (owner, 2026-11-14). Both serve
+  any client as much as the terminal, and each is its own release: 0.8.9 gives
   a client the format's fields and the lint rules as data, 0.8.10 tells it what a PRD needs next.
 - **Errors after the features** because it is small and nothing waits on it; E-017 stays
   `confirmed` meanwhile, as the owner chose on 2026-11-11.
@@ -95,7 +95,7 @@ written; port ideas, not code.
 
 ## Carried items
 
-Everything still open from 0.8.7 and the 0.8.8 and 0.8.9 backlog. Items already done (backlog
+Everything still open from 0.8.7 and the backlog (now 0.8.11's). Items already done (backlog
 items 2 and 4, the lint-structure fixes E-009 to E-016, E-018, the full command names) are not
 listed.
 

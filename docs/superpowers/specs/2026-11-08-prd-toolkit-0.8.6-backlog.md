@@ -21,7 +21,7 @@
 > - Renumbered (owner, 2026-11-14): the invocation release is inserted as 0.8.8
 >   (`2026-11-14-prd-toolkit-0.8.8-invocation-design.md`), so this backlog is 0.8.9's; the file
 >   keeps its name. Item 3 leaves for 0.8.8. Item 5 leaves for the errors release that follows
->   conversion (`docs/superpowers/plans/2026-11-14-prd-toolkit-engine-ports.md`, priority 5).
+>   conversion (see the priority plan, `docs/superpowers/plans/2026-11-14-prd-toolkit-engine-ports.md`).
 > - Renumbered (owner, 2026-11-14): a help catalogue (0.8.9) and a Next part in the status report
 >   (0.8.10) are inserted after 0.8.8, so this backlog is 0.8.11's; the file keeps its name. Item 1
 >   gains pack authoring from an example repository. Item 3 is done in 0.8.8, with the limits its

@@ -43,8 +43,8 @@ claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-p
 | `changing-hands-off-to-change-set` | 0.75 | 0.75 | 0.75 |
 
 3. **The same case on 0.8.7** (fdcf473), `--runs 3`: `changing-hands-off-to-change-set` 0.75, 0.75, 0.75, with the
-   same grader, `stops-in-review`, failing each time. Not a regression of 0.8.8: the grader expects the PRD at a bumped
-   version when the change is handed to a change set, and the skill hands off before the bump.
+   same grader, `stops-in-review`, failing each time. Not a regression of 0.8.8: the grader (`stops-in-review`)
+   expects a version other than 1.0.2 and the status In review; the skill's hand-off leaves the version unbumped.
 
 - **Result:** no case that 0.8.8 changed for the worse remains. 51 of the 59 cases pass, 7 cannot run (E-019), and 1
   fails as it did on 0.8.7.
