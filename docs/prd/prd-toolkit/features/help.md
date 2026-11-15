@@ -18,7 +18,7 @@ Flow: 1. run `prd help` and read the index of entry keys and rule names
 Traces: FR-033, FR-034, FR-035, FR-036
 
 ### FR-033 Print the index
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prd_help.py:57 @858bb3b
 Acceptance (EARS):
 - AC-033.1 When run with no option, the help command shall print one line per catalogue entry,
@@ -50,7 +50,7 @@ Tests: T-034.1 [integration], T-034.2 [integration], T-034.3 [integration]  (tes
 Traces: UJ-02; cli:prd_help
 
 ### FR-035 Print the catalogue as one JSON document
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prd_help.py:35 @858bb3b
 Acceptance (EARS):
 - AC-035.1 When run with `--json`, the help command shall print on stdout one JSON object on one
@@ -113,7 +113,7 @@ Tests: T-036.1 [integration], T-036.2 [integration], T-036.3 [integration], T-03
 Traces: UJ-02; cli:prd_help; `prdlint/interface.py`
 
 ### FR-037 The catalogue it reads, and what the shipped one covers
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/helpcat.py:25 @858bb3b
 Acceptance (EARS):
 - AC-037.1 While the setting `PRD_HELP_FILE` is set and not empty, the help command shall read
@@ -126,9 +126,12 @@ Acceptance (EARS):
   lists under `prd_help.keys`; every key in it shall be unique; and the `name` of `kind.UJ`,
   `kind.FR`, `kind.NFR`, `kind.T`, `kind.E` and `kind.CS` shall be `User journey`, `Requirement`,
   `Quality requirement`, `Test case`, `Error` and `Change set`.
+- AC-037.4 The shipped catalogue shall hold the entries `kind.S`, named `Source`, and `kind.P`, named
+  `Practice`, and the entries `file.practices`, `table.sources` and `table.practices`, and each of the
+  five shall name the lint rule `practices` in its `checked_by`.
 Errors: -
 Edge cases: the shipped catalogue may hold more entries than the listed keys → AC-037.3; a key writes `_` where the PRD's own YAML key has `-` (`case.known_failing` for `known-failing:`), and the entry's `rules` name the real spelling; `see` is the text of a heading of `references/prd-format.md`, a name for a reader, since that file is not vendored
-Tests: T-037.1 [integration], T-037.2 [integration], T-037.3 [integration]  (test-cases/help.yaml)
+Tests: T-037.1 [integration], T-037.2 [integration], T-037.3 [integration], T-037.4 [integration]  (test-cases/help.yaml)
 Traces: cli:prd_help; setting `PRD_HELP_FILE` (contracts/config.yaml)
 
 ### FR-038 Every lint rule carries a description

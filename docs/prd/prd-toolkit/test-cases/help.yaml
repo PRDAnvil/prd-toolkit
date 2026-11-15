@@ -13,7 +13,7 @@
 #   A run written as a mapping {env: …, command: …} adds that env for that run only.
 #   "the description of <rule>" is the value at rules.<rule>.description of the document
 #   `python HELP --json` prints in the same case; the PRD does not fix its wording.
-#   RULES = the 40 rule names of T-003.1 (test-cases/lint-cli.yaml), sorted; `platform-word` is the
+#   RULES = the 41 rule names of T-003.1 (test-cases/lint-cli.yaml), sorted; `platform-word` is the
 #   only one of severity warn.
 
 T-033.1:
@@ -37,7 +37,7 @@ T-033.1:
         "glossary-synonym  error", "id-format  error", "id-removed-reused  error", "id-unique  error",
         "index-consistent  error", "judged-case  error", "language-table  error", "links-format  error",
         "markers-open  error", "nfr-bound  error", "open-questions-empty  error", "pack-resolves  error",
-        "placeholder  error", "platform-word  warn", "production-gate  error", "registries  error",
+        "placeholder  error", "platform-word  warn", "practices  error", "production-gate  error", "registries  error",
         "runbook-env  error", "runbook-steps  error", "runbook-tests  error", "schema-refs  error",
         "sections  error", "snapshot-cited  error", "sufficiency  error", "test-cases-consistent  error",
         "test-level  error", "test-refs  error", "upstream-refs  error", "vague-word  error"]
@@ -485,6 +485,32 @@ T-037.3:
         - "every string of the list at `prd_help.keys` in <repo>/docs/prd/prd-toolkit/contracts/cli.yaml (read with yaml.safe_load) is the `key` of an entry of the document's `entries`"
         - "no two entries of `entries` have the same `key`"
         - "the entries with the keys kind.UJ, kind.FR, kind.NFR, kind.T, kind.E and kind.CS have the `name` `User journey`, `Requirement`, `Quality requirement`, `Test case`, `Error` and `Change set`, in that order"
+    effects: []
+    errors: []
+    leaks: none
+
+T-037.4:
+  ac: AC-037.4
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --json                 # PRD_HELP_FILE unset: the shipped catalogue
+      - python HELP --rule practices
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's `entries` holds an entry with the key `kind.S` and the `name` `Source`, and one with the key `kind.P` and the `name` `Practice`"
+        - "run_1's `entries` holds an entry with each of the keys file.practices, table.sources and table.practices"
+        - "each of the five entries with the keys kind.S, kind.P, file.practices, table.sources and table.practices has a `checked_by` list that holds `practices`"
+        - "run_2's first stdout line is `practices (error)`, and its last stdout line starts with `Checks: ` and, split after that at `, `, names each of the five keys kind.S, kind.P, file.practices, table.sources and table.practices"
     effects: []
     errors: []
     leaks: none

@@ -1,0 +1,246 @@
+# Fixture practices/repo: a scratch repository holding an orders PRD folder with a practices.md (two sources, one
+# declined; three practices, one for the PRD), a section 5 row that names S-01, two adopted areas, and the files their
+# Boundaries match; one key per file (its path relative to the repository root) and its full text.
+docs/prd/orders/adoption.md: |
+  # Adoption map
+
+  | Area | State | Boundary |
+  |---|---|---|
+  | import | adopted | `src/orders/**`, `tests/test_import.py` |
+  | reports | adopted | `docs/reports/*.md` |
+docs/prd/orders/contracts/errors.yaml: |
+  IMPORT_NO_HEADER:
+    meaning: The import file has no header line.
+    when: The first line of the file is not the header.
+    status: 2
+    message: The import file has no header line.
+    log_level: error
+    retryable: false
+    metric: orders_import_no_header_total
+docs/prd/orders/errors.md: |
+  # Error ledger
+
+  No entries yet. Add `### E-001 <title>` when the first error is diagnosed.
+docs/prd/orders/features/import.md: |
+  # Import
+
+  ### FR-001 Refuse a file with no header
+  Status: verified
+  Acceptance (EARS):
+  - AC-001.1 If the import file has no header line, the importer shall exit 2 with error IMPORT_NO_HEADER.
+  Errors: IMPORT_NO_HEADER (contracts/errors.yaml)
+  Tests: T-001.1 [integration]  (test-cases/import.yaml)
+docs/prd/orders/features/reports.md: |
+  # Reports
+
+  ### FR-002 Print the monthly report
+  Status: verified
+  Acceptance (EARS):
+  - AC-002.1 When asked for a month, the report command shall print one line per order of that month.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/reports.yaml)
+docs/prd/orders/nfr.md: |
+  # Non-functional requirements
+
+  ## Observability
+
+  Not applicable: the fixture has no running service.
+docs/prd/orders/operations.md: |
+  # Operations
+
+  No environment: the orders tool is not deployed.
+docs/prd/orders/practices.md: |
+  # Practices
+
+  ## Sources
+
+  | ID | Title | Location | Covers | Read | Decision |
+  |---|---|---|---|---|---|
+  | S-01 | Python style guide | https://example.com/python-style | Python | 2026-11-01 | approved |
+  | S-02 | Team notes — imports | `docs/notes/imports.md` | the importer | 2026-11-02 | declined |
+
+  ## Practices
+
+  | ID | Source | Object (glob) | Applies to | Practice |
+  |---|---|---|---|---|
+  | P-01 | S-01 | `src/**/*.py` | code | Each public function has a docstring. |
+  | P-02 | S-01 | `tests/*.py` | code | Each test names the case it proves in its docstring. |
+  | P-03 | S-01 | - | prd | Each acceptance criterion names one observable result. |
+docs/prd/orders/prd.md: |
+  ---
+  prd: orders
+  version: 1.0.0
+  status: Approved
+  owner: Sample Owner
+  updated: 2026-11-01
+  ---
+
+  # Orders service
+
+  ## 1. Metadata & stack
+
+  - Language: Python 3.12
+  - Not applicable: `contracts/openapi.yaml` — no HTTP API
+  - Not applicable: `contracts/schema.sql` — no database
+  - Not applicable: `contracts/events.md` — no events or jobs
+  - Not applicable: `contracts/permissions.yaml` — no roles
+  - Not applicable: `contracts/config.yaml` — no settings
+  - Not applicable: `contracts/data-classification.yaml` — no stored personal data
+  - Not applicable: `contracts/dependencies/` — no third-party service
+  - Not applicable: `contracts/fixtures/` — no fixture data
+
+  ## 2. Summary & goals
+
+  The orders tool imports order files and prints a monthly report on a developer's machine.
+
+  Goals:
+
+  - Import a 10,000-row file in under 60 seconds.
+
+  ## 3. Glossary
+
+  | Term | Meaning | Banned synonyms |
+  |---|---|---|
+  | order | A customer's request for goods, stored once per order key | purchase |
+
+  ## 4. Architecture
+
+  The importer stores orders; the report command reads them.
+
+  ## 5. Standards registry
+
+  | Object (glob) | Linter command | Rules live in | Applies to | Decision |
+  |---|---|---|---|---|
+  | `src/**/*.py` | `python3 -m py_compile` | `pyproject.toml`, S-01 | code | enforced |
+
+  ## 6. Skills registry
+
+  Not applicable: the fixture requires no skill.
+
+  ## 7. Contract types
+
+  | Type | Files (glob) | Validator |
+  |---|---|---|
+  | errors | `contracts/errors.yaml` | built-in |
+
+  ## 8. Adoption map
+
+  See adoption.md.
+
+  ## 9. Versioning
+
+  - Breaking: removing a report line or an exit code.
+
+  ## 10. Design & UI
+
+  Not applicable: the service has no user interface.
+
+  ## 11. Requirement index
+
+  | ID | Title | Status | File | Since |
+  |---|---|---|---|---|
+  | FR-001 | Refuse a file with no header | verified | features/import.md | 1.0.0 |
+  | FR-002 | Print the monthly report | verified | features/reports.md | 1.0.0 |
+
+  ## 12. Assumptions index
+
+  | ID | Assumption | Status |
+  |---|---|---|
+
+  ## 13. Open questions
+
+  None.
+
+  ## 14. Changelog
+
+  | Version | Date | Change | IDs |
+  |---|---|---|---|
+  | 1.0.0 | 2026-11-01 | Initial release; no dry run (fixture) | FR-001, FR-002 |
+docs/prd/orders/test-cases/import.yaml: |
+  T-001.1:
+    ac: AC-001.1
+    level: integration
+    target: code:importer.import_file
+    environment: local
+    identity: none
+    preconditions: []
+    input: {content: "K-1,2026-10-01"}
+    expect:
+      output: {exit: 2}
+      effects: []
+      errors: [IMPORT_NO_HEADER]
+      leaks: none
+docs/prd/orders/test-cases/reports.yaml: |
+  T-002.1:
+    ac: AC-002.1
+    level: integration
+    target: code:report.print_month
+    environment: local
+    identity: none
+    preconditions: []
+    input: {month: "2026-10"}
+    expect:
+      output: {exit: 0}
+      effects: []
+      errors: []
+      leaks: none
+docs/prd/orders/testing.md: |
+  # Testing
+
+  ## Levels
+
+  | Level | Harness command | Environment | Gate |
+  |---|---|---|---|
+  | unit | `pytest tests/unit` | local | build |
+  | integration | `pytest tests/integration` | local | build |
+
+  ## Harness
+
+  - **Lifecycle.** Nothing runs between tests; each test runs the importer or the report command itself.
+  - **Environment switch.** Not applicable: one test environment, `local`.
+  - **Database access.** Not applicable: no database.
+  - **Tools on the runner.** python3 on PATH; `tests/` sits at the repository root.
+  - **Clean state.** Every test starts from its own temporary directory.
+  - **Persistent environments.** Not applicable: no test environment keeps data.
+  - **Layout.** `tests/<level>/test_<area>.py`; each test's docstring cites its T-id. Test roots: `tests/`
+  - **HTTP requests.** Not applicable: no HTTP API.
+  - **Fixtures.** Not applicable: the cases give their input inline.
+  - **Browser identity.** Not applicable: no user interface.
+  - **Assertions.** Fields a case does not list are not asserted.
+  - **Waits.** Not applicable: every command runs to completion first.
+  - **Effects.** Not applicable: the cases assert output only.
+  - **Leaks.** Not applicable: no classified data.
+  - **Acceptance.** Not applicable: no acceptance level.
+
+  ## Environments
+
+  | Environment | Purpose | Access | Base URL | Database | Logs |
+  |---|---|---|---|---|---|
+  | local | a developer's checkout | anyone with a clone | none | none | the command's output |
+
+  ## Leak checks
+
+  | Sink | Read from | Scanned for |
+  |---|---|---|
+  | command output | the test captures stdout and stderr | nothing: no classified data |
+
+  ## Fixtures
+
+  | Fixture | Creates | Load | Teardown |
+  |---|---|---|---|
+
+  ## Sign-offs
+
+  | T-id | Owner | Date | Result |
+  |---|---|---|---|
+docs/reports/monthly.md: |
+  # Monthly report
+
+  One line per order of the month.
+src/orders/importer.py: |
+  """The orders importer."""
+
+
+  def import_file(path):
+      """Import one order file."""
+      return path
