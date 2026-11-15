@@ -71,7 +71,7 @@ def standards_rows(prd: Prd) -> list[StandardsRow]:
     return rows
 
 
-@rule("registries")
+@rule("registries", description="Checks the section 5 and 6 registries: each Decision is one of its table's values, no row is proposed while the PRD is Approved, an enforced standard has a backticked linter command on PATH, and a required skill is installed. Fix the Decision or the command, install the skill, or mark a skill built into Claude Code recommended.")
 def registries(prd: Prd) -> Iterator[Finding]:
     approved = prd.frontmatter.get("status", "").strip() == "Approved"
     ci = os.environ.get("PRD_LINT_CI") == "1"  # prd_lint.py --ci: skip the checks that depend on the machine
@@ -108,7 +108,7 @@ MIGRATION_HINT = " (prd-toolkit 0.5 runbook format)"
 _RUN_SHAPE = "step {n}: {label} must be one backticked command or tests <level>[, <level>]"
 
 
-@rule("runbook-steps")
+@rule("runbook-steps", description="Checks the operations.md runbook: steps numbered from 1 with no gap, each with (actor: agent|human) (env: <environment>), an agent step's Run:, Check: and Rollback: in their forms, a human step's Do: and Check:, and no label twice. Rewrite the step to the form the message gives.")
 def runbook_steps(prd: Prd) -> Iterator[Finding]:
     text = prd.docs.get("operations.md")
     if text is None:
@@ -181,7 +181,7 @@ def _git_accepts_branch(name: str) -> bool:
         return True  # no git on the runner: nothing to refuse with
 
 
-@rule("runbook-env")
+@rule("runbook-env", description="Checks that operations.md Environments has a Production column with yes or no on every row and at least one yes, and a valid branch name or blank in each Branch cell, that every environment there is also in testing.md Environments, and that each runbook step and Deployed or Drift row names an environment of both tables. Add the environment to both tables or correct the name the message gives, add the Production column or set a row's Production to yes or no, and write a valid branch name or leave the Branch blank.")
 def runbook_env(prd: Prd) -> Iterator[Finding]:
     if "operations.md" not in prd.docs:
         return
@@ -221,7 +221,7 @@ def runbook_env(prd: Prd) -> Iterator[Finding]:
         yield from check(d.env, d.line, "Drift row: ")
 
 
-@rule("production-gate")
+@rule("production-gate", description="Checks that the first runbook step on each production environment is a human step or directly follows one. Add a human approval step just before it.")
 def production_gate(prd: Prd) -> Iterator[Finding]:
     steps = prd.operations.steps
     for env in sorted(production_envs(prd)):
@@ -233,7 +233,7 @@ def production_gate(prd: Prd) -> Iterator[Finding]:
                           f"step {steps[i].number} deploys {env} with no human step at or just before it")
 
 
-@rule("runbook-tests")
+@rule("runbook-tests", description="Checks that each level a runbook tests step names is in testing.md Levels with Gate deploy and a Harness command, and that each Timeout cell is a whole number of seconds of at least 1. Add or fix the level's row, or name a deploy-gate level.")
 def runbook_tests(prd: Prd) -> Iterator[Finding]:
     for level, cell in prd.testing.timeouts.items():
         if cell and not (re.fullmatch(r"[0-9]+", cell) and int(cell) >= 1):
@@ -252,7 +252,7 @@ def runbook_tests(prd: Prd) -> Iterator[Finding]:
                 yield Finding("operations.md", line, "runbook-tests", f"step {s.number}: level '{level}' has no Harness command")
 
 
-@rule("drift-rows")
+@rule("drift-rows", description="Checks that each Drift row's Check is version or config, and that a config row has contracts/config.yaml. Use one of the two checks, or add the config contract.")
 def drift_rows(prd: Prd) -> Iterator[Finding]:
     for d in prd.operations.drift:
         if d.check == "schema":

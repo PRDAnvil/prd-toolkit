@@ -12,7 +12,8 @@ from pathlib import Path
 from . import change_approve
 
 VENDOR_DIR = ".prd-toolkit"
-VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "requirements.txt", "prd")
+VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "prd_help.py", "requirements.txt", "prd")
+HELP_FILE = "help.yaml"  # references/help.yaml in the plugin, .prd-toolkit/help.yaml vendored (AC-037.2)
 LAUNCHER = "prd"  # the sh launcher: .prd-toolkit/prd
 MARKER = "# prd-toolkit hook"
 HOOKS = ("commit-msg", "pre-commit")
@@ -88,6 +89,8 @@ def _source_files(scripts: Path, templates: Path) -> dict[str, Path]:
             files[f"{JUDGE_DIR}/{f.relative_to(templates.parent / JUDGE_DIR).as_posix()}"] = f
     for f in sorted((scripts.parent / "references" / LANGUAGES_DIR).glob("*.yaml")):
         files[f"{LANGUAGES_DIR}/{f.name}"] = f
+    if (scripts.parent / "references" / HELP_FILE).is_file():  # the help catalogue prd_help.py reads beside it
+        files[HELP_FILE] = scripts.parent / "references" / HELP_FILE
     if (scripts.parent / LICENSE_FILE).is_file():  # the vendored copy carries the plugin's license notice
         files[LICENSE_FILE] = scripts.parent / LICENSE_FILE
     return files

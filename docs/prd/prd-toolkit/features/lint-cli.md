@@ -57,7 +57,7 @@ Acceptance (EARS):
   `<name> <severity>`, the severity `error` or `warn`, one per line sorted by name, and exit 0,
   whether or not a folder argument is given and without reading it.
 Errors: -
-Edge cases: 0.8.0 registers 40 rules, `platform-word` the only `warn` one; the format changed from names only in 2.0.0, a break the owner accepted for 0.8.0 (§9)
+Edge cases: 0.8.0 registers 40 rules, `platform-word` the only `warn` one; the format changed from names only in 2.0.0, a break the owner accepted for 0.8.0 (§9); a rule's description (FR-038) is `prd_help.py`'s to print, and `--list-rules` prints the name and severity only
 Tests: T-003.1 [integration]  (test-cases/lint-cli.yaml)
 Traces: cli:prd_lint; `prdlint/registry.py` RULES
 

@@ -124,7 +124,7 @@ def _exists_fixture(prd: Prd, name: str) -> bool:
 # ---------------------------------------------------------------- rules
 
 
-@rule("ac-has-test")
+@rule("ac-has-test", description="Checks that every live acceptance criterion of a requirement that is not removed has at least one test case whose ac: names it. Add a case to the area's test-cases file with ac: set to that AC.")
 def ac_has_test(prd: Prd):
     covered = {str(tc.data.get("ac")) for tc in _cases(prd)}
     for b in prd.blocks:
@@ -135,7 +135,7 @@ def ac_has_test(prd: Prd):
                 yield Finding(b.file, ac.line, "ac-has-test", f"{ac.id} has no test case whose ac: is {ac.id}")
 
 
-@rule("test-cases-consistent")
+@rule("test-cases-consistent", description="Checks that each block's Tests line names its test-cases file, that the file exists and holds an entry for every T-id listed, at the level the line gives, and that every test case is cited by a Tests line naming its file. End the Tests line with (test-cases/<area>.yaml) for a file that exists, add the missing entry or Tests item, or make the level on the line and in the case agree.")
 def test_cases_consistent(prd: Prd):
     entries = {(tc.file, tc.id): tc for tc in prd.test_cases}
     cited: set[tuple[str | None, str]] = set()
@@ -265,7 +265,7 @@ def _overlaps(prd: Prd):
                 yield b, d, dp
 
 
-@rule("test-level")
+@rule("test-level", description="Checks that testing.md's Levels table has a Gate column whose values are build or deploy, that no build-gate Harness command would collect a deploy-gate level's tests, and that each test case's level: is a row of that table. Add the level or the Gate value, or exclude the deploy-gate path from the build command with --ignore.")
 def test_level(prd: Prd):
     t = prd.testing
     if "testing.md" in prd.docs and t.levels_line:
@@ -285,7 +285,7 @@ def test_level(prd: Prd):
             yield Finding(tc.file, _line(tc, "level"), "test-level", f"{tc.id}: level '{level}' is not a row of the Levels table in testing.md")
 
 
-@rule("sufficiency")
+@rule("sufficiency", description="Checks that each test-cases file parses as YAML mapping each T-id to a mapping, and that each case has the eight sufficiency elements: ac, level, environment and identity as strings, target as <kind>:<name> of a known kind, preconditions as a list, a non-empty input, and expect with output (unless judged), effects and errors lists and leaks; an acceptance case also needs steps: and signoff:. Fix the YAML, or fill the element the message names in its form, with a target kind that is built in, a pack's, or a section 7 custom type. An entry named .md or .yaml in the PRD folder that is not a file is reported here too; rename or remove it.")
 def sufficiency(prd: Prd):
     # parse errors, non-mapping files and non-mapping cases are reported by the loader
     kinds = target_kinds(prd)
@@ -343,7 +343,7 @@ def _needs_every_item(threshold: float, n: int) -> str | None:
             f"write {float(down):.4g} to allow one miss, or 1.0")
 
 
-@rule("judged-case")
+@rule("judged-case", description="Checks a judged case's expect: rubric a non-empty list of distinct non-empty strings, threshold a number in (0, 1], runs an integer of at least 1, and no output beside rubric; it warns when a threshold below 1.0 still needs every rubric item. Fix the key the message names, or lower the threshold to allow one miss.")
 def judged_case(prd: Prd):
     for tc in _cases(prd):
         if not is_judged(tc):
@@ -380,7 +380,7 @@ def judged_case(prd: Prd):
             yield bad("output", "a judged case has no expect.output")
 
 
-@rule("test-refs")
+@rule("test-refs", description="Checks that each test case's references resolve: ac names an AC of the requirement its T-id is numbered for, preconditions name fixtures in testing.md and contracts/fixtures/ or mock services in contracts/dependencies/, input.file, error codes, refs entries, environment, identity and target exist, known-failing names an open errors.md entry and has a symptom: beside it (a warning when it has none), and a symptom: has a known-failing: beside it. Point the reference at something that exists or add what it names; delete a known-failing: line whose entry is resolved, and a symptom: with no known-failing: beside it.")
 def test_refs(prd: Prd):
     all_acs = {ac.id for b in prd.blocks for ac in b.acs}
     errors_yaml = prd.yaml.get("contracts/errors.yaml")
@@ -480,7 +480,7 @@ def test_refs(prd: Prd):
                 yield bad("target", f"target {target}: '{name}' is not an item of the {kind} files (items: {', '.join(sorted(customs[kind]))})")
 
 
-@rule("deny-tested")
+@rule("deny-tested", description="Checks that every deny cell of contracts/permissions.yaml has a role with a test identity and a test case with target op:<operation>, that identity and a non-empty expect.errors. Give the role an identity, or add the case that proves the denial.")
 def deny_tested(prd: Prd):
     perms = prd.yaml.get("contracts/permissions.yaml")
     if not isinstance(perms, dict):
@@ -536,7 +536,7 @@ def _line_of(text: str, value: str, default: int = 1) -> int:
     return text.count("\n", 0, i) + 1 if i >= 0 else default
 
 
-@rule("classified-fixtures")
+@rule("classified-fixtures", description="Checks that no fixture file under contracts/fixtures/ holds a real-looking email, phone number or SSN in a column contracts/data-classification.yaml classifies pii, and that no test case's inline input holds one in any value. Use a synthetic form: an example.com address, a 555-01xx phone number, or an SSN starting 000, 666 or 9.")
 def classified_fixtures(prd: Prd):
     pii = _pii_columns(prd)
 

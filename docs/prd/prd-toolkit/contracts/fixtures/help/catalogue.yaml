@@ -1,0 +1,18 @@
+- key: block.ac
+  name: Acceptance criterion
+  what: One testable statement of what the system does.
+  why: Each criterion gets a test case.
+  rules:
+    - "`- AC-nnn.n <text>`, where nnn is the requirement's number."
+    - The text starts with an EARS opener.
+  checked_by: [ac-ears, platform-word]
+  see: Requirement blocks
+- key: kind.FR
+  name: Requirement
+  what: One thing the system does.
+  why: A build is verified against it.
+- key: marker.assumption
+  name: Assumption marker
+  what: A guess the author made — written where it applies.
+  why: An open assumption blocks approval.
+  checked_by: [ac-ears]

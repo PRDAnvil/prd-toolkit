@@ -115,7 +115,7 @@ def _exists(prd: Prd, path: str) -> bool:
     return p.is_file()
 
 
-@rule("frontmatter")
+@rule("frontmatter", description="Checks prd.md's frontmatter keys: prd a lowercase slug equal to the folder name, version X.Y.Z, status Draft, In review or Approved, a non-empty owner, updated YYYY-MM-DD, an optional language of two or three lowercase letters, and a valid sql-dialect when contracts/schema.sql exists. Correct the key the message names.")
 def frontmatter(prd: Prd):
     fm = prd.frontmatter
     f = lambda key, msg: Finding("prd.md", _fm_line(prd, key), "frontmatter", msg)  # noqa: E731
@@ -145,14 +145,14 @@ def frontmatter(prd: Prd):
                 yield f("sql-dialect", f"'sql-dialect: {dialect}' is not a sqlglot dialect ({exc})")
 
 
-@rule("language-table")
+@rule("language-table", description="Checks that the language the frontmatter names (en when it names none) has a usable table, the toolkit's own or one in a pack the PRD names. Set language: to a code that has a table, or fix or restore the table file the message names.")
 def language_table(prd: Prd):
     why = languages.problem(prd)
     if why:
         yield Finding("prd.md", _fm_line(prd, "language"), "language-table", why)
 
 
-@rule("sections")
+@rule("sections", description="Checks prd.md's fourteen numbered sections, once each and in order, with no other, the mandatory files, never marked Not applicable, a section 1 Not applicable line for each absent optional contract, the section 8 body and the adoption.md table, and testing.md's Harness slots, once each and in order, with a Test roots list. Add, move, rename or delete what the message names, exactly as prd-format.md spells it.")
 def sections(prd: Prd):
     actual = [(s.number, s.title) for s in prd.sections]
     expected = list(enumerate(SECTION_TITLES, 1))
@@ -273,7 +273,7 @@ def _scalars(node, line: int) -> Iterator[tuple[int, str]]:
         yield line, node
 
 
-@rule("placeholder")
+@rule("placeholder", description="Checks prose and YAML values for unfilled template slots: TBD, TODO, ???, a template variable, and in prose a bare angle-bracket name. Fill the slot, or put literal angle-bracket text in backticks.")
 def placeholder(prd: Prd):
     for rel, n, text in _visible_prose(prd):
         m = _PLACEHOLDER.search(text)
@@ -305,7 +305,7 @@ def _removed_ac_lines(b) -> set[int]:
     return out
 
 
-@rule("vague-word")
+@rule("vague-word", description="Checks each live AC line, and each line of an NFR, for a word of the language table's vague list (such as fast or secure) on a line with no number outside its IDs. Replace the word with a measurable bound, such as within 200 ms.")
 def vague_word(prd: Prd):
     table = languages.for_prd(prd)
     if table is None:
@@ -330,7 +330,7 @@ def vague_word(prd: Prd):
                 yield f
 
 
-@rule("markers-open")
+@rule("markers-open", description="Checks that no clarification marker remains in the PRD's Markdown prose (code spans and blocks aside) or its YAML, SQL and JSON files, comments included, outside contracts/fixtures/, upstream snapshots and change-set records, once the status is In review or Approved. Answer the question and delete the marker, or move the status back to Draft.")
 def markers_open(prd: Prd):
     if _status(prd) not in ("In review", "Approved"):
         return
@@ -344,7 +344,7 @@ _ASSUMPTION_STATUS = ("open", "confirmed", "corrected")
 _AWAITING = re.compile(r"awaiting \S.*")  # intent only a named person can confirm; allowed while Approved
 
 
-@rule("assumption-indexed")
+@rule("assumption-indexed", description="Checks that every ASSUMPTION marker carries an A-nn ID with a row in the section 12 index, that each row's status is open, confirmed, corrected or awaiting a named person, and that none is open while the PRD is Approved. Add the ID or the row, or settle the assumption and update its status.")
 def assumption_indexed(prd: Prd):
     rows = {r.cells[0].strip("`"): r for r in prd.assumptions if r.cells}
     for rel, n, text in all_lines(prd):
@@ -361,7 +361,7 @@ def assumption_indexed(prd: Prd):
             yield Finding("prd.md", r.line, "assumption-indexed", f"{aid} is open while the PRD is Approved")
 
 
-@rule("open-questions-empty")
+@rule("open-questions-empty", description="Checks that section 13 is the single line None. when the PRD is Approved. Answer each open question in the PRD, then replace the list with None.")
 def open_questions_empty(prd: Prd):
     if _status(prd) != "Approved":
         return
@@ -374,7 +374,7 @@ def open_questions_empty(prd: Prd):
         yield Finding("prd.md", sec.line, "open-questions-empty", "section 13 must be 'None.' when the PRD is Approved")
 
 
-@rule("glossary-synonym")
+@rule("glossary-synonym", description="Checks prose for a word the section 3 glossary lists as a banned synonym of a term. Use the glossary's term instead.")
 def glossary_synonym(prd: Prd):
     s3 = next((s for s in prd.sections if s.number == 3), None)
     if not s3:

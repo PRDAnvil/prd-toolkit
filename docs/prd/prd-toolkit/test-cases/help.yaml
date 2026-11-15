@@ -1,0 +1,592 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path.
+#   "python" is the interpreter running the tests (sys.executable); a CLI case runs
+#   `python <repo>/prd-toolkit/scripts/prd_help.py ...` as a subprocess (testing.md Harness, Lifecycle).
+#   HELP = <repo>/prd-toolkit/scripts/prd_help.py
+#   LINT = <repo>/prd-toolkit/scripts/prd_lint.py
+#   FIX  = the absolute path of fixture help/catalogue,
+#          <repo>/docs/prd/prd-toolkit/contracts/fixtures/help/catalogue.yaml (testing.md Fixtures).
+#   A case whose preconditions name help/catalogue runs every command with PRD_HELP_FILE=FIX,
+#   unless a run gives its own env. Every other case runs with PRD_HELP_FILE unset (testing.md
+#   Harness, Subprocess environment), so it reads the catalogue the toolkit ships.
+#   A run written as a mapping {env: …, command: …} adds that env for that run only.
+#   "the description of <rule>" is the value at rules.<rule>.description of the document
+#   `python HELP --json` prints in the same case; the PRD does not fix its wording.
+#   RULES = the 40 rule names of T-003.1 (test-cases/lint-cli.yaml), sorted; `platform-word` is the
+#   only one of severity warn.
+
+T-033.1:
+  ac: AC-033.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    command: python HELP
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines: ["block.ac  Acceptance criterion", "kind.FR  Requirement", "marker.assumption  Assumption marker", "",
+        "ac-ears  error", "ac-has-test  error", "assumption-indexed  error", "change-sets  error",
+        "classified-fixtures  error", "contracts-valid  error", "deny-tested  error", "drift-rows  error",
+        "error-codes  error", "error-entries  error", "fr-has-ac  error", "frontmatter  error",
+        "glossary-synonym  error", "id-format  error", "id-removed-reused  error", "id-unique  error",
+        "index-consistent  error", "judged-case  error", "language-table  error", "links-format  error",
+        "markers-open  error", "nfr-bound  error", "open-questions-empty  error", "pack-resolves  error",
+        "placeholder  error", "platform-word  warn", "production-gate  error", "registries  error",
+        "runbook-env  error", "runbook-steps  error", "runbook-tests  error", "schema-refs  error",
+        "sections  error", "snapshot-cited  error", "sufficiency  error", "test-cases-consistent  error",
+        "test-level  error", "test-refs  error", "upstream-refs  error", "vague-word  error"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-034.1:
+  ac: AC-034.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --key block.ac
+      - python HELP --json
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's stdout lines (str.splitlines()) are exactly these ten, in order: `Acceptance criterion (block.ac)`; `What: One testable statement of what the system does.`; `Why: Each criterion gets a test case.`; `Rules:`; ``- `- AC-nnn.n <text>`, where nnn is the requirement's number.``; `- The text starts with an EARS opener.`; `Checked by:`; `- ac-ears: ` followed by the description of ac-ears in run_2's document; `- platform-word: ` followed by the description of platform-word in run_2's document; `See: Requirement blocks`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-034.2:
+  ac: AC-034.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    command: python HELP --key kind.FR
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines: ["Requirement (kind.FR)", "What: One thing the system does.", "Why: A build is verified against it."]
+    effects: []
+    errors: []
+    leaks: none
+
+T-034.3:
+  ac: AC-034.2
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --rule ac-ears
+      - python HELP --rule vague-word   # no entry of the fixture names it
+      - python HELP --rule platform-word
+      - python HELP --json
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's stdout lines are exactly three: `ac-ears (error)`; the description of ac-ears in run_4's document; `Checks: block.ac, marker.assumption`"
+        - "run_2's stdout lines are exactly two: `vague-word (error)`; the description of vague-word in run_4's document"
+        - "run_3's stdout lines are exactly three: `platform-word (warn)`; the description of platform-word in run_4's document; `Checks: block.ac`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-035.1:
+  ac: AC-035.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    command: python HELP --json
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_keys_at:
+        "": [interface, kind, entries, rules]
+        entries.0: [key, name, what, why, rules, checked_by, see]
+        entries.1: [key, name, what, why]
+        entries.2: [key, name, what, why, checked_by]
+        rules.ac-ears: [severity, description]
+      stdout_json_at:
+        interface: 1
+        kind: help
+        entries:
+          - key: block.ac
+            name: Acceptance criterion
+            what: One testable statement of what the system does.
+            why: Each criterion gets a test case.
+            rules: ["`- AC-nnn.n <text>`, where nnn is the requirement's number.", The text starts with an EARS opener.]
+            checked_by: [ac-ears, platform-word]
+            see: Requirement blocks
+          - {key: kind.FR, name: Requirement, what: One thing the system does., why: A build is verified against it.}
+          - {key: marker.assumption, name: Assumption marker, what: "A guess the author made — written where it applies.", why: An open assumption blocks approval., checked_by: [ac-ears]}
+        rules.ac-ears.severity: error
+        rules.platform-word.severity: warn
+      stdout_contains: "made — written"      # the dash as itself, in UTF-8 (the bytes e2 80 94)
+      stdout_not_contains: "\\u2014"
+      relations:
+        - "the keys of the document's `rules` object are exactly RULES, in that order"
+    effects: []
+    errors: []
+    leaks: none
+
+T-035.2:
+  ac: AC-035.2
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --json --key kind.FR
+      - python HELP --json --rule ac-ears
+      - python HELP --json --rule vague-word   # no entry of the fixture names it
+      - python HELP --json
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout_json_at:
+          entries: [{key: kind.FR, name: Requirement, what: One thing the system does., why: A build is verified against it.}]
+      run_2:
+        stdout_json_keys_at:
+          rules: [ac-ears]
+        stdout_json_at:
+          entries.0.key: block.ac
+          entries.1.key: marker.assumption
+          rules.ac-ears.severity: error
+      run_3:
+        stdout_json_keys_at:
+          rules: [vague-word]
+        stdout_json_at:
+          entries: []
+      relations:
+        - "run_1's `rules` object equals run_4's `rules` object"
+        - "run_2's `entries` list holds exactly two entries, equal to entries 0 and 2 of run_4's `entries`"
+        - "run_2's `rules.ac-ears` equals run_4's `rules.ac-ears`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-035.3:
+  ac: AC-035.3
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --json=1
+      - python HELP --json
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's stdout equals run_2's stdout, byte for byte"
+    effects: []
+    errors: []
+    leaks: none
+
+T-035.4:
+  ac: AC-035.4
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --interface
+      - python HELP --interface --json=2
+      - {env: {PRD_HELP_FILE: <tmp>/missing.yaml}, command: python HELP --interface --key nothing}   # the file does not exist
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout: "1\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-036.1:
+  ac: AC-036.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --key block.nothing
+      - python HELP --rule no-such-rule
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout: ""
+        stderr: "prd_help: no entry 'block.nothing'\n"
+      run_2:
+        exit: 2
+        stdout: ""
+        stderr: "prd_help: no rule 'no-such-rule'\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-036.2:
+  ac: AC-036.2
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    cwd: <tmp>
+    env: {COLUMNS: "40"}
+    runs:
+      - python HELP --key block.ac --rule ac-ears
+      - python HELP --bogus
+      - python HELP extra
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+      run_1:
+        stderr: "usage: prd_help.py [-h] [--key KEY | --rule RULE] [--json] [--interface]\nprd_help.py: error: argument --rule: not allowed with argument --key\n"
+      run_2:
+        stderr: "usage: prd_help.py [-h] [--key KEY | --rule RULE] [--json] [--interface]\nprd_help.py: error: unrecognized arguments: --bogus\n"
+      run_3:
+        stderr: "usage: prd_help.py [-h] [--key KEY | --rule RULE] [--json] [--interface]\nprd_help.py: error: unrecognized arguments: extra\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-036.3:
+  ac: AC-036.3
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+      - "write <tmp>/b2.yaml with the text `key: a.b\\n` (a mapping, not a list)"
+      - "write <tmp>/b3.yaml with the three lines `- key: a.b`, `  name: A`, `  what: W`"
+      - "write <tmp>/b4.yaml with the eight lines `- key: a.b`, `  name: A`, `  what: W`, `  why: Y`, `- key: a.b`, `  name: B`, `  what: W`, `  why: Y`"
+      - "write <tmp>/b5.yaml with the five lines `- key: a.b`, `  name: A`, `  what: W`, `  why: Y`, `  checked_by: [ac-ears, no-such-rule]`"
+      - "write <tmp>/b6.yaml with the one line `- [`"
+      - "write <tmp>/b7.yaml with the one line `- just text`"
+      - "write <tmp>/b8.yaml with the five lines `- key: a.b`, `  name: A`, `  what: W`, `  why: Y`, `  rules: one rule`"
+      - "write <tmp>/b9.yaml with the five lines `- key: a.b`, `  name: A`, `  what: W`, `  why: Y`, `  see: [a, b]`"
+      - "write <tmp>/b10.yaml with the four lines `- key: a.b`, `  name: \"\"`, `  what: W`, `  why: Y`"
+    cwd: <tmp>
+    runs:
+      - {env: {PRD_HELP_FILE: <tmp>/b1.yaml}, command: python HELP}                    # the file does not exist
+      - {env: {PRD_HELP_FILE: <tmp>/b2.yaml}, command: python HELP}
+      - {env: {PRD_HELP_FILE: <tmp>/b3.yaml}, command: python HELP --key a.b}
+      - {env: {PRD_HELP_FILE: <tmp>/b4.yaml}, command: python HELP --rule ac-ears}
+      - {env: {PRD_HELP_FILE: <tmp>/b5.yaml}, command: python HELP}
+      - {env: {PRD_HELP_FILE: <tmp>/b6.yaml}, command: python HELP}
+      - {env: {PRD_HELP_FILE: <tmp>/b7.yaml}, command: python HELP}
+      - {env: {PRD_HELP_FILE: <tmp>/b8.yaml}, command: python HELP}
+      - {env: {PRD_HELP_FILE: <tmp>/b9.yaml}, command: python HELP}
+      - {env: {PRD_HELP_FILE: <tmp>/b10.yaml}, command: python HELP --key nothing}     # the catalogue wins over the unknown key
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr_not_contains: Traceback
+      run_1:
+        stderr: "prd_help: <tmp>/b1.yaml: no such file\n"
+      run_2:
+        stderr: "prd_help: <tmp>/b2.yaml: top level must be a list\n"
+      run_3:
+        stderr: "prd_help: <tmp>/b3.yaml: entry 1: missing 'why'\n"
+      run_4:
+        stderr: "prd_help: <tmp>/b4.yaml: entry 2: duplicate key 'a.b'\n"
+      run_5:
+        stderr: "prd_help: <tmp>/b5.yaml: entry 1: checked_by names no rule 'no-such-rule'\n"
+      run_6:
+        stderr_single_line_starts: "prd_help: <tmp>/b6.yaml: YAML parse error: "
+      run_7:
+        stderr: "prd_help: <tmp>/b7.yaml: entry 1: must be a mapping\n"
+      run_8:
+        stderr: "prd_help: <tmp>/b8.yaml: entry 1: 'rules' must be a list of strings\n"
+      run_9:
+        stderr: "prd_help: <tmp>/b9.yaml: entry 1: 'see' must be a string\n"
+      run_10:
+        stderr: "prd_help: <tmp>/b10.yaml: entry 1: missing 'name'\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-036.4:
+  ac: AC-036.4
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: [help/catalogue]
+  input:
+    setup:
+      - "write <tmp>/b2.yaml with the text `key: a.b\\n` (a mapping, not a list)"
+    cwd: <tmp>
+    runs:
+      - python HELP --json --key block.nothing
+      - python HELP --json --rule no-such-rule
+      - python HELP --json --bogus
+      - {env: {PRD_HELP_FILE: <tmp>/b2.yaml}, command: python HELP --json}
+  expect:
+    output:
+      each_run:
+        exit: 2
+      run_1:
+        stdout_json: {interface: 1, kind: help, error: "no entry 'block.nothing'"}
+        stderr: "prd_help: no entry 'block.nothing'\n"
+      run_2:
+        stdout_json: {interface: 1, kind: help, error: "no rule 'no-such-rule'"}
+        stderr: "prd_help: no rule 'no-such-rule'\n"
+      run_3:
+        stdout_json: {interface: 1, kind: help, error: "unrecognized arguments: --bogus"}
+        stderr_first_line_starts: "usage: prd_help.py"
+        stderr_last_line: "prd_help.py: error: unrecognized arguments: --bogus"
+      run_4:
+        stdout_json: {interface: 1, kind: help, error: "<tmp>/b2.yaml: top level must be a list"}
+        stderr: "prd_help: <tmp>/b2.yaml: top level must be a list\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-036.5:
+  ac: AC-036.5
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - {env: {PRD_HELP_FILE: <tmp>/missing.yaml}, command: python HELP --json=2}   # the file does not exist, and is not read
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout_json: {interface: 1, kind: help, error: "unsupported interface 2; this toolkit speaks 1"}
+        stderr: "prd_help: unsupported interface 2; this toolkit speaks 1\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-037.1:
+  ac: AC-037.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+      - "write <tmp>/one.yaml with the four lines `- key: a.b`, `  name: Only entry`, `  what: W`, `  why: Y`"
+    cwd: <tmp>
+    runs:
+      - {env: {PRD_HELP_FILE: <tmp>/one.yaml}, command: python HELP --json}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout_json_at:
+          entries: [{key: a.b, name: Only entry, what: W, why: Y}]
+    effects: []
+    errors: []
+    leaks: none
+
+T-037.2:
+  ac: AC-037.2
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --json                                         # PRD_HELP_FILE unset
+      - {env: {PRD_HELP_FILE: ""}, command: python HELP --json}    # PRD_HELP_FILE empty
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's stdout equals run_2's stdout, byte for byte"
+        - "run_1's `entries` list holds an entry whose `key` is `kind.UJ` (the shipped catalogue, not the fixture, which has none)"
+    effects: []
+    errors: []
+    leaks: none
+
+T-037.3:
+  ac: AC-037.3
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  refs: [contracts/cli.yaml]
+  input:
+    cwd: <tmp>
+    command: python HELP --json     # PRD_HELP_FILE unset: the shipped catalogue
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      relations:
+        - "every string of the list at `prd_help.keys` in <repo>/docs/prd/prd-toolkit/contracts/cli.yaml (read with yaml.safe_load) is the `key` of an entry of the document's `entries`"
+        - "no two entries of `entries` have the same `key`"
+        - "the entries with the keys kind.UJ, kind.FR, kind.NFR, kind.T, kind.E and kind.CS have the `name` `User journey`, `Requirement`, `Quality requirement`, `Test case`, `Error` and `Change set`, in that order"
+    effects: []
+    errors: []
+    leaks: none
+
+T-038.1:
+  ac: AC-038.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - python HELP --json
+      - python LINT --list-rules
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_2's stdout lines, each split at its one space into a name and a severity, give the same names in the same order as the keys of run_1's `rules` object, and each rule's `severity` in run_1 equals the severity on its run_2 line"
+        - "every `description` in run_1's `rules` object is a string of one or more characters that holds no `\\n` and no `\\r`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-038.2:
+  ac: AC-038.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, M1]     # as test-cases/lint-cli.yaml defines them: the orders folder with one contracts-valid finding
+    cwd: <tmp>
+    runs:
+      - python HELP --json
+      - python LINT --list-rules
+      - python LINT docs/prd/orders
+      - python LINT --json docs/prd/orders
+  expect:
+    output:
+      run_1:
+        exit: 0
+      run_2:
+        exit: 0
+      run_3:
+        exit: 1
+        stdout: "docs/prd/orders/contracts/errors.yaml:41: contracts-valid: duplicate key 'FORBIDDEN' (first at line 25, again at line 41)\n"
+      run_4:
+        exit: 1
+        stdout_json_keys_at:
+          findings.0: [file, line, rule, severity, message]
+      relations:
+        - "no `description` value of one or more characters in run_1's `rules` object appears as a substring of run_2's stdout, of run_3's stdout, or of any `message` value in the `findings` of run_4's parsed document (a description that is the empty string is not compared)"
+        - "every stdout line of run_2 is a rule name of run_1's `rules` object, one space, and `error` or `warn`, and nothing else"
+    effects: []
+    errors: []
+    leaks: none
+
+T-038.3:
+  ac: AC-038.3
+  level: unit
+  target: code:prdlint.registry.rule
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    call: "register a rule with `prdlint.registry.rule(<a new name>)`, giving no description, then build the help document"
+  expect:
+    output:
+      return: "`prdlint.registry.DESCRIPTION[<the name>]` is `\"\"`, and the help document's `rules.<the name>` is `{\"severity\": \"error\", \"description\": \"\"}`"
+    effects:
+      - "the registry is put back as it was when the test ends"
+    errors: []
+    leaks: none
+
+T-039.1:
+  ac: AC-039.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+      - load fixture repo/vendored into <tmp>/.prd-toolkit (testing.md Fixtures, its check included)
+    cwd: <tmp>
+    runs:
+      - python <tmp>/.prd-toolkit/prd_help.py --json
+      - python HELP --json
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's stdout equals run_2's stdout, byte for byte"
+        - "<tmp>/.prd-toolkit/help.yaml exists and is byte-identical to <repo>/prd-toolkit/references/help.yaml"
+    effects: []
+    errors: []
+    leaks: none

@@ -124,13 +124,13 @@ def _entry(ver: str, nxt: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.8"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     assert "`prd` command" in plugin["description"]
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.8", plugin["description"])]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.8"
-    assert "Version 0.8.8." in (ROOT / "README.md").read_text(encoding="utf-8")
+        (plugin["version"], plugin["description"])]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in (ROOT / "README.md").read_text(encoding="utf-8")
 
 
 def test_changelog_has_the_upgrade_note():

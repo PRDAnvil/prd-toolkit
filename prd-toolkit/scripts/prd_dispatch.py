@@ -12,7 +12,7 @@ from pathlib import Path
 
 _NAMES = (
     "block", "build-check", "change", "confirm", "context", "deploy", "drift", "error", "gates",
-    "git-hook", "hooks", "judge", "links", "lint", "publish", "status", "trace",
+    "git-hook", "help", "hooks", "judge", "links", "lint", "publish", "status", "trace",
 )
 COMMANDS = {name: f"prd_{name.replace('-', '_')}.py" for name in _NAMES}
 PLUGIN_ONLY = ("publish",)  # commands whose script install never vendors

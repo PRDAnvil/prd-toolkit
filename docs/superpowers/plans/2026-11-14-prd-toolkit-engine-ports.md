@@ -53,8 +53,8 @@ new Python dependency in any phase.
 | # | Release | Contents | From | Size | Needs |
 |---|---|---|---|---|---|
 | 1 | **0.8.7** | Released: merged to `main` | 0.8.7 plan | done | — |
-| 2 | **0.8.8** | **Invocation**, built on `feat/prd-toolkit-0.8.8` and waiting for the owner's word to push: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; engine | built | 0.8.7 |
-| 3 | **0.8.9** | **Help catalogue:** a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | not sized | 0.8.8 |
+| 2 | **0.8.8** | **Invocation**, released: merged to `main`: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; engine | done | 0.8.7 |
+| 3 | **0.8.9** | **Help catalogue**, delivered: a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | done | 0.8.8 |
 | 4 | **0.8.10** | **Next part in the status report:** an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | not sized | 0.8.8 |
 | 5 | **0.8.11** | **Best-practice sources**, and finding, installing or writing a skill or pack a PRD needs, with pack authoring from an example repository | umbrella row, backlog item 1 | large | 0.8.0 |
 | 6 | **0.8.12** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
@@ -62,6 +62,7 @@ new Python dependency in any phase.
 | 8 | after 0.8.12 | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
 | 9 | after | **Antigravity wrapper** (phase 4), if its spike passes | engine | large, uncertain | the `prd` command |
 | — | every release | **One area adopted** in the toolkit's own PRD: `lint-ids` next, then `lint-testcases` | backlog item 2's policy | medium each | the release that last reshaped the area |
+| — | before 1.0.0 | **A production release path** (PRDAnvil/prd-toolkit#14): tagged releases from a commit that passed CI and the evals, each with its upgrade note; a marketplace entry on the latest release, with pinning and rollback; a standalone `prd` install for macOS and Linux; one version everywhere, checked by CI; a vendored copy that records the release it came from. A prerequisite for 1.0.0 (owner, 2026-11-14) | issue #14 | not sized | the `prd` command (0.8.8) |
 | — | 2.0.0 roadmap | **Signed approvals** | engine | medium | one of its three triggers |
 
 Why this order:
@@ -87,6 +88,14 @@ Why this order:
 `adoption.md` lists 21 areas; 2 are adopted. At one per release that is 19 more releases, and
 `lint-structure` alone produced eight errors and a fixes release. This is the largest item on the
 list. It needs its own decision: adopt faster, group small areas, or drop the 1.0.0 condition.
+
+**What 1.0.0 waits on.** Two things: every area adopted (above), and the production release path
+of issue #14 (owner, 2026-11-14). Today a merge to `main` is the release: there are no tags, the
+marketplace entry follows the default branch, and the version is kept by hand in four places. The
+issue's design points: a `prd` on the PATH never replaces a repository's own `.prd-toolkit/prd`;
+the name is checked for clashes; downloads carry checksums; and the release runs from the
+toolkit PRD's own `operations.md` runbook through `/prd-toolkit:prd-deploy`. It is not ordered
+among the 0.8.x releases; it takes its place when 1.0.0 is planned.
 
 **prd-engine already prototyped priorities 5 and 6.** Its REQ-019 (best-practice sources, derived
 standards, skill acquisition) and REQ-020 (platform conversion, vocabulary warnings), with
