@@ -188,16 +188,16 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-045 | Work: furthest along first | verified | features/status-next.md |  |
 | FR-046 | Nothing waits | verified | features/status-next.md |  |
 | FR-047 | A sentence ends with one full stop | verified | features/status-next.md |  |
-| UJ-04 | An owner records where good practice comes from, and a builder is given the practices that apply | approved | features/practices.md |  |
-| FR-048 | Read the sources and practices of practices.md | approved | features/practices.md |  |
-| FR-049 | The lint rule practices | approved | features/practices.md |  |
-| FR-050 | List the sources and practices | approved | features/practices.md |  |
-| FR-051 | Print the record as one JSON document | approved | features/practices.md |  |
-| FR-052 | Refuse what it cannot read | approved | features/practices.md |  |
-| FR-053 | The launcher and a vendored copy answer the same | approved | features/practices.md |  |
-| FR-054 | The next source and practice ID | approved | features/practices.md |  |
-| FR-055 | The Practices part of the implement context pack | approved | features/practices.md |  |
-| FR-056 | A pack's sources | approved | features/practices.md |  |
+| UJ-04 | An owner records where good practice comes from, and a builder is given the practices that apply | built | features/practices.md |  |
+| FR-048 | Read the sources and practices of practices.md | built | features/practices.md |  |
+| FR-049 | The lint rule practices | built | features/practices.md |  |
+| FR-050 | List the sources and practices | built | features/practices.md |  |
+| FR-051 | Print the record as one JSON document | built | features/practices.md |  |
+| FR-052 | Refuse what it cannot read | built | features/practices.md |  |
+| FR-053 | The launcher and a vendored copy answer the same | built | features/practices.md |  |
+| FR-054 | The next source and practice ID | built | features/practices.md |  |
+| FR-055 | The Practices part of the implement context pack | built | features/practices.md |  |
+| FR-056 | A pack's sources | built | features/practices.md |  |
 
 ## 12. Assumptions index
 

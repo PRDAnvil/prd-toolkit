@@ -20,7 +20,8 @@ stated here. How the skill `/prd-toolkit:prd-practices` proposes sources, practi
 specified in this PRD.
 
 ### UJ-04 An owner records where good practice comes from, and a builder is given the practices that apply
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prd_practices.py:1 @5d03191
 Flow: 1. take each new ID from `prd change ids next docs/prd/<slug> S` or `… P` and write the row in `practices.md`
       → 2. run `prd lint` and fix what the rule `practices` reports
       → 3. run `prd practices docs/prd/<slug>` to read the record, or add `--paths` and the files a change touches
@@ -29,7 +30,8 @@ Flow: 1. take each new ID from `prd change ids next docs/prd/<slug> S` or `… P
 Traces: FR-048, FR-049, FR-050, FR-051, FR-052, FR-053, FR-054, FR-055, FR-056
 
 ### FR-048 Read the sources and practices of practices.md
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prdlint/practices.py:1 @5d03191
 Acceptance (EARS):
 - AC-048.1 If the PRD folder holds no regular file named exactly `practices.md` directly in it, the
   practices loader shall return no source and no practice, and shall not read a `practices.md` in a
@@ -53,7 +55,8 @@ Tests: T-048.1 [integration], T-048.2 [integration], T-048.3 [integration]  (tes
 Traces: UJ-04; cli:prd_practices; `prdlint/practices.py`
 
 ### FR-049 The lint rule practices
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prdlint/rules/practices.py:1 @5d03191
 Flow: 1. load the folder → 2. read `practices.md` with the practices loader (FR-048)
       → 3. check each source row, each practice row and each section 5 row → 4. report each fault at its row's line
 Acceptance (EARS):
@@ -101,7 +104,8 @@ Tests: T-049.1 [integration], T-049.2 [integration], T-049.3 [integration], T-04
 Traces: UJ-04; cli:prd_lint; `prdlint/rules/practices.py`
 
 ### FR-050 List the sources and practices
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prd_practices.py:47 @5d03191
 Acceptance (EARS):
 - AC-050.1 When run on a PRD folder with no option, the practices command shall print one line per
   source, in the Sources table's order, `<id> (<decision>, read <read>): <title>, <location>; covers <covers>`,
@@ -122,7 +126,8 @@ Tests: T-050.1 [integration], T-050.2 [integration], T-050.3 [integration]  (tes
 Traces: UJ-04; cli:prd_practices; `prdlint/trace.py` glob_re (the section 5 glob matching)
 
 ### FR-051 Print the record as one JSON document
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prd_practices.py:34 @5d03191
 Acceptance (EARS):
 - AC-051.1 When run with `--json`, the practices command shall print on stdout one JSON object on one
   line, ending in a newline, and nothing else,
@@ -147,7 +152,8 @@ Tests: T-051.1 [integration], T-051.2 [integration], T-051.3 [integration], T-05
 Traces: UJ-04; cli:prd_practices; `prdlint/interface.py`
 
 ### FR-052 Refuse what it cannot read
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prd_practices.py:39 @5d03191
 Acceptance (EARS):
 - AC-052.1 If the folder argument names no directory, or a directory with no regular file named exactly
   `prd.md`, the practices command shall print one stderr line, `prd_practices: ` followed by the text
@@ -178,7 +184,8 @@ Tests: T-052.1 [integration], T-052.2 [integration], T-052.3 [integration], T-05
 Traces: UJ-04; cli:prd_practices; `prdlint/interface.py`
 
 ### FR-053 The launcher and a vendored copy answer the same
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prd_dispatch.py:15 @5d03191
 Acceptance (EARS):
 - AC-053.1 When run through the launcher's dispatcher as `prd_dispatch.py practices <arguments>` (what
   `prd practices <arguments>` runs), the practices command shall print what
@@ -193,7 +200,8 @@ Tests: T-053.1 [integration], T-053.2 [integration]  (test-cases/practices.yaml)
 Traces: UJ-04; cli:prd_practices; fixture repo/vendored
 
 ### FR-054 The next source and practice ID
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prdlint/change.py:54 @5d03191
 Acceptance (EARS):
 - AC-054.1 When `prd change ids next <prd_dir> S` is run, the change command shall print the next free
   source ID on one stdout line and exit 0: `S-` and the highest number found plus 1, written with at
@@ -214,7 +222,8 @@ Tests: T-054.1 [integration], T-054.2 [integration], T-054.3 [integration], T-05
 Traces: UJ-04; cli:prd_change; `prdlint/change.py` next_id
 
 ### FR-055 The Practices part of the implement context pack
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prdlint/context.py:16 @5d03191
 Acceptance (EARS):
 - AC-055.1 When run with `--for implement` and an area on a PRD folder that holds `practices.md`, the
   context command shall print a part `Practices`
@@ -247,7 +256,8 @@ Tests: T-055.1 [integration], T-055.2 [integration], T-055.3 [integration], T-05
 Traces: UJ-04; cli:prd_context; `prdlint/context.py` PARTS
 
 ### FR-056 A pack's sources
-Status: approved
+Status: built
+Source: prd-toolkit/scripts/prdlint/packs.py:22 @5d03191
 Acceptance (EARS):
 - AC-056.1 When a pack's `pack.yaml` holds the key `sources`, a list each of whose items is a mapping whose
   `title`, `location` and `covers` are strings, the manifest loader shall accept the manifest, so that
