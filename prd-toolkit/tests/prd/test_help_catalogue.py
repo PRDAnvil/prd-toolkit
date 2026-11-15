@@ -1,7 +1,9 @@
 """The catalogue the help command reads (FR-037), and a vendored copy's answer (FR-039)."""
 import yaml
 
-from help_support import CLI_YAML, SHIPPED, assert_json_at, json_doc, run, vendored, write_lines  # noqa: F401
+from help_support import (  # noqa: F401  (vendored_fixture registers the fixture `vendored`)
+    CLI_YAML, SHIPPED, assert_json_at, json_doc, run, vendored_fixture, write_lines,
+)
 
 
 def test_catalogue_from_setting(tmp_path):
