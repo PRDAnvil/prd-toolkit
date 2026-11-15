@@ -85,6 +85,7 @@
     - "Read is the date the source was read, `YYYY-MM-DD`, a day of the calendar."
     - "Each `S-nn` a section 5 row names in its Rules live in cell is a source of the Sources table, and an approved one."
   checked_by: [practices]
+  see: practices.md
 
 - key: kind.P
   name: Practice
@@ -95,6 +96,7 @@
     - "Source names an `S-nn` of the Sources table that is approved, or proposed while the PRD is not Approved."
     - "Applies to is `code` or `prd`; a code practice has a glob in Object (glob), not empty and not `-`."
   checked_by: [practices]
+  see: practices.md
 
 - key: block.title
   name: Title
@@ -502,6 +504,7 @@
     - "Without the file the PRD has no practices, and the rule `practices` reports nothing."
     - "`prd practices docs/prd/<slug>` lists both tables; with `--paths` it lists only the code practices whose glob matches one or more of the paths."
   checked_by: [practices]
+  see: practices.md
 
 - key: table.sources
   name: Sources table
@@ -512,6 +515,7 @@
     - "Each ID is `S-` and two digits, once in the table."
     - "Decision is `approved`, `declined` or `proposed`, and no longer `proposed` once the PRD is Approved; Read is a date `YYYY-MM-DD`."
   checked_by: [practices]
+  see: practices.md
 
 - key: table.practices
   name: Practices table
@@ -523,3 +527,4 @@
     - "Source is an `S-nn` of the Sources table that is approved, or proposed while the PRD is not Approved."
     - "Applies to is `code` or `prd`; a code practice has a glob in Object (glob)."
   checked_by: [practices]
+  see: practices.md

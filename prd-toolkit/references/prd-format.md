@@ -484,6 +484,74 @@ in State. The branch in every member is `cs-<nnn>-<slug>`.
 matched by `^Change-set:[ \t]*([a-z][a-z0-9-]*/CS-\d{3})[ \t]*$` (multiline). When `<prd>` is this
 repository's PRD, the record must exist; elsewhere only the form is checked.
 
+## practices.md
+
+Optional, directly in the PRD folder beside `prd.md`: where a platform's good practice comes from, and
+the practices taken from it. A `practices.md` in a subfolder is not the record. With no `practices.md`
+a PRD has no sources and no practices, the rule `practices` reports nothing, and the implement context
+pack has no Practices part. The empty file is `templates/prd/practices.md`.
+
+```
+# Practices
+
+## Sources
+
+| ID | Title | Location | Covers | Read | Decision |
+|---|---|---|---|---|---|
+| S-01 | Python style guide | https://example.com/python-style | Python | 2026-11-01 | approved |
+| S-02 | Team notes on imports | `docs/notes/imports.md` | the importer | 2026-11-02 | declined |
+
+## Practices
+
+| ID | Source | Object (glob) | Applies to | Practice |
+|---|---|---|---|---|
+| P-01 | S-01 | `src/**/*.py` | code | Each public function has a docstring. |
+| P-02 | S-01 | - | prd | Each acceptance criterion names one observable result. |
+```
+
+Each table is the first pipe table under its level-2 heading, `## Sources` or `## Practices`; a
+heading or a table that is missing reads as no rows of that kind. The header row is not checked: the
+cells are read by position, in the orders above, so keep the columns in that order. A row is split as
+a section 5 row is (a `|` inside backticks does not end a cell), each cell is stripped, a missing cell
+reads as empty, and the cells after the last column are ignored. Backticks are removed from a
+source's ID, Location, Read and Decision and from a practice's ID, Source, Object (glob) and Applies
+to; Title, Covers and Practice are read as written.
+
+- **ID:** `S-nn` for a source and `P-nn` for a practice: the letter, `-` and two digits, never reused,
+  once in its table. `prd change ids next docs/prd/<slug> S` and `… P` print the next free one: the
+  highest number in the table, a declined source included, or in the IDs cells of the §14 changelog,
+  where a removed one survives, plus 1; `S-01` and `P-01` when there is none.
+- **Title, Covers:** the source's name, and what it is a source for (a platform, a language, a tool or
+  an activity).
+- **Location:** a URL, or a path inside the repository in backticks. Lint never reads or fetches it.
+- **Read:** the date the source's content was read, `YYYY-MM-DD`, a day of the calendar.
+- **Decision:** `approved`, `declined` or `proposed`. A `proposed` source blocks approval: lint reports
+  one while the PRD's `status` is `Approved`. A `declined` source stays in the table.
+- **Source:** the `S-nn` of the Sources table the practice was taken from: an `approved` source, or a
+  `proposed` one while the PRD is not `Approved`, so one change can propose a source with its
+  practices.
+- **Object (glob):** the files a `code` practice applies to, in backticks, a glob as a section 5 row's
+  (the whole path against the glob, `**/` zero or more folders, `**` any characters, `*` any characters
+  but `/`, `?` one character but `/`); `-` for a practice about the PRD itself. A `code` practice needs
+  one. A glob that matches no file is no finding.
+- **Applies to:** `code` or `prd`. A `code` practice whose glob matches a path of the area enters the
+  implement context pack's Practices part as `<id> (<source>): <practice>`, or the part says `None.`; a
+  `prd` practice never enters a pack.
+- **Practice:** one sentence a reader can answer yes or no to.
+
+A rule a linter can check is a section 5 row instead, and the row names its source by writing the
+`S-nn` in its Rules live in cell beside the rule file (`` `pyproject.toml`, S-01 ``). Each `S-nn` a
+Rules live in cell names (not part of a longer word: `CS-01` names none) must be a source of the
+Sources table that is `approved`, or `proposed` while the PRD is not `Approved`.
+
+The rule `practices` (severity `error`) reports, at the row's line: a malformed or repeated ID, a
+Decision that is none of the three, a `proposed` source on an `Approved` PRD, a practice whose Source is
+not in the table or not approved, an Applies to that is not `code` or `prd`, a `code` practice with no
+glob, a Read that is not a date, and a section 5 row that names a missing or unapproved source.
+`prd practices docs/prd/<slug>` lists the sources and then the practices, every row included;
+`--paths <path> …` lists only the `code` practices whose glob matches one of the paths; `--json` prints
+`{"interface": 1, "kind": "practices", "sources": […], "practices": […]}`.
+
 ## testing.md
 
 ```
