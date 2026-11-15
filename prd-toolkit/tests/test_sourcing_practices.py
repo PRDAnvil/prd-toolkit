@@ -152,11 +152,11 @@ def test_every_gated_command_has_its_gate_and_one_command_per_call():
 
 def test_plugin_manager_forms_are_the_confirmed_ones():
     t = flat(RUN)
-    for form in ("claude plugin marketplace list --json", "claude plugin list --available --json",
+    for form in ("claude plugin marketplace list --json", "claude plugin list --json",
                  "claude plugin install <plugin>@<marketplace> --scope <scope>",
                  "claude plugin marketplace add <source>"):
         assert form in t, form
-    assert "~/.claude/plugins/known_marketplaces.json" in t
+    assert "`<installLocation>/.claude-plugin/marketplace.json`" in t
     for forbidden in ("`--marketplace`", "`-y`", "`--accept-command`"):
         assert forbidden in t, forbidden  # named, as flags never passed
     assert "never pass" in t.lower() or "never passes" in t.lower()
@@ -191,15 +191,33 @@ SOURCE_COLUMNS = ["ID", "Title", "Location", "Covers", "Read", "Decision"]
 PRACTICE_COLUMNS = ["ID", "Source", "Object (glob)", "Applies to", "Practice"]
 
 
-def test_template_headers_are_the_loader_columns():
-    from prdlint import practices
+FIELD_OF = {"ID": "id", "Title": "title", "Location": "location", "Covers": "covers", "Read": "read",
+            "Decision": "decision", "Source": "source", "Object (glob)": "glob", "Applies to": "applies_to",
+            "Practice": "practice"}
+
+
+def test_template_headers_are_the_loader_columns(tmp_path):
+    from prdlint import model, practices
+    from test_template import fill
     t = TEMPLATE.read_text(encoding="utf-8")
     assert t.startswith('<!-- Format: references/prd-format.md, "practices.md". -->')
     assert _header(t, "Sources") == SOURCE_COLUMNS
     assert _header(t, "Practices") == PRACTICE_COLUMNS
-    # the loader reads by position: one column per field, line excluded
-    assert len(SOURCE_COLUMNS) == len([f for f in dataclasses.fields(practices.Source) if f.name != "line"])
-    assert len(PRACTICE_COLUMNS) == len([f for f in dataclasses.fields(practices.Practice) if f.name != "line"])
+    # one data row per table, each cell its column's name: the real loader must read each cell into the field of
+    # the column the template's header names there, so a reordered header (or loader) fails here
+    d = fill(tmp_path / "docs/prd/sample", project="sample", owner="Sample Owner", date="2026-10-29")
+    text = (d / "practices.md").read_text(encoding="utf-8") if (d / "practices.md").exists() else t
+    for heading, cols in (("Sources", SOURCE_COLUMNS), ("Practices", PRACTICE_COLUMNS)):
+        sep = "|" + "---|" * len(cols)
+        text = text.replace(f"## {heading}\n\n| " + " | ".join(cols) + " |\n" + sep + "\n",
+                            f"## {heading}\n\n| " + " | ".join(cols) + " |\n" + sep + "\n| " + " | ".join(
+                                f"v-{c}" for c in cols) + " |\n", 1)
+    (d / "practices.md").write_text(text, encoding="utf-8")
+    record = practices.load(model.load(d))
+    assert len(record.sources) == 1 and len(record.practices) == 1
+    for row, cols in ((record.sources[0], SOURCE_COLUMNS), (record.practices[0], PRACTICE_COLUMNS)):
+        for c in cols:
+            assert getattr(row, FIELD_OF[c]) == f"v-{c}", (c, row)
 
 
 def test_template_has_no_data_rows(tmp_path):
@@ -245,6 +263,7 @@ def test_checklist_takes_the_prd_practices():
     t = flat(CHECKLIST)
     assert "## The PRD's own practices" in CHECKLIST.read_text(encoding="utf-8")
     assert "`prd practices docs/prd/<slug>`" in t and "Applies to `prd`" in t
+    assert "the practice lines whose second value in the parentheses is `prd`" in t
 
 
 # --- the edits ---
@@ -259,8 +278,9 @@ def test_authoring_and_adopting_offer_the_command_and_answer_the_prd_practices()
 
 def test_changing_versions_practices_and_answers_them():
     t = flat(CHANGING)
-    assert ("A change to `practices.md` is decided by the same table: a new source or practice is minor, a practice "
-            "reworded with its meaning kept is patch, and a removed practice or a source moved to `declined` is minor.") in t
+    assert ("A change to `practices.md` is decided by the Level table, read this way: a new source or practice is "
+            "minor, a practice reworded with its meaning kept is patch, and a removed practice or a source moved to "
+            "`declined` is minor.") in t
     assert "<scripts>/prd practices docs/prd/<slug>" in t and "with the PRD line that shows it" in t
 
 
@@ -269,5 +289,47 @@ def test_builder_reports_each_practice_and_the_caller_asks():
         t = flat(path)
         for s in ("`P-nn: followed`", "`P-nn: not applicable (<why>)`", "`P-nn: not followed (<why>)`", "Practices"):
             assert s in t, (path.name, s)
+    b = BUILDING.read_text(encoding="utf-8")
+    report = b.split("## The report", 1)[1].split("## Red Flags", 1)[0]
+    changes = report.split("CHANGES", 1)[1].split("UNIT", 1)[0]
+    assert "P-nn: followed" in changes and "P-nn: not applicable (<why>)" in changes  # the CHANGES lines
+    assert "No new field: the report keeps its five." in flat(BUILDING)
     r = flat(RUN_BUILD)
     assert "`P-nn: not followed (<why>)`" in r and "a required skill that cannot be found" in r
+    assert "an item with no line fails the round" in r
+
+
+# --- the review's findings, pinned by their key sentences ---
+
+def test_f1_only_added_marketplaces_and_their_catalogues():
+    t = flat(RUN)
+    assert "A plugin is a candidate only when its marketplace is a `name` that this listing printed." in t
+    assert "Never use `claude plugin list --available`" in t
+    assert "with the `installLocation` the marketplace listing printed for it (never a path written from memory)" in t
+    for block in re.findall(r"```bash\n(.*?)```", RUN.read_text(encoding="utf-8"), re.S):
+        assert "--available" not in block
+
+
+def test_f2_rows_are_written_with_the_owners_decision():
+    t = flat(RUN)
+    assert "Every row is written with the Decision the owner gave in step 7, never `proposed`" in t
+    assert "They are not written into the PRD here: step 8 writes each kept row with the Decision the owner gave." in t
+    assert "| proposed |" not in RUN.read_text(encoding="utf-8")
+
+
+def test_f7_a_marketplace_not_added_gets_no_row():
+    t = flat(RUN)
+    assert "names a plugin of a marketplace the listing did not print. It gets no §6 row in this change." in t
+
+
+def test_f9_the_skill_commit_takes_only_its_file_and_never_force_adds():
+    t = RUN.read_text(encoding="utf-8")
+    assert 'git commit -m "skill <name> for <slug> <version>"' in t
+    line = next(ln for ln in t.splitlines() if 'git commit -m "skill <name>' in ln)
+    assert line.rstrip().endswith("-- .claude/skills/<name>/SKILL.md")
+    assert "git check-ignore -q .claude/skills/<name>/SKILL.md" in t and "never `git add -f`" in flat(RUN)
+
+
+def test_f15_at_most_five_practices_per_target():
+    for path in (SKILL, RUN):
+        assert "at most five practices per target unless the owner asks for more" in flat(path), path.name
