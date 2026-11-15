@@ -15,7 +15,7 @@ from prdlint import deps  # noqa: E402
 for _module, _package in (("yaml", "pyyaml"), ("sqlglot", "sqlglot"), ("openapi_spec_validator", "openapi-spec-validator")):
     deps.require(_module, _package)
 
-from prdlint import interface, model, status  # noqa: E402
+from prdlint import interface, model, nextpart, status  # noqa: E402
 
 
 def _display_root(root: Path) -> str:
@@ -54,14 +54,19 @@ def _main(argv: list[str]) -> int:
         if prd.adoption_unmigrated:
             print(f"prd_status: {prd.root.as_posix()}/prd.md: {model.UNMIGRATED}", file=sys.stderr)
             return 2
-        items = status.build_status(prd, model.repo_root(prd.root), _display_root(prd.root))
+        repo_root = model.repo_root(prd.root)
+        items = status.build_status(prd, repo_root, _display_root(prd.root))
+        upcoming = nextpart.next_items(prd, repo_root, items)
     except model.NotAPrd as e:
         print(f"prd_status: {e}", file=sys.stderr)
         return 2
     except Exception as e:
         print(f"prd_status: internal error: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
-    sys.stdout.write(status.render_document(prd, items) if args.json else status.render_text(items))
+    if args.json:
+        sys.stdout.write(status.render_document(prd, items, [i.to_dict() for i in upcoming]))
+    else:
+        sys.stdout.write(nextpart.render_text(upcoming) + status.render_text(items))
     return 0
 
 

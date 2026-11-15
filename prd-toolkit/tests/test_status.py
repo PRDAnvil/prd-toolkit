@@ -54,7 +54,7 @@ def items_with_error(prd_repo):
 def test_parts_in_order(prd_repo, cli):
     code, out, _ = cli(prd_repo / "docs/prd/orders")
     assert code == 0
-    assert [h[3:] for h in out.splitlines() if h.startswith("## ")] == list(status.PARTS)
+    assert [h[3:] for h in out.splitlines() if h.startswith("## ")] == ["Next", *status.PARTS]  # Next first (AC-040.1)
 
 
 def test_counts_by_area(items):
@@ -97,7 +97,7 @@ def test_json_matches_text_and_is_deterministic(prd_repo, cli):
     assert a[1] == b[1] and a[1].endswith("\n")
     doc = json.loads(a[1])
     assert doc["kind"] == "status" and doc["interface"] == 1
-    assert [(x["part"], x["id"]) for x in doc["items"]] == expected
+    assert [(x["part"], x["id"]) for x in doc["items"] if x["part"] != "Next"] == expected  # Next first (AC-041.1)
 
 
 def test_usage_error_prints_nothing(tmp_path, cli):
