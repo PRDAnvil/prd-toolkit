@@ -1,9 +1,9 @@
 ---
 prd: prd-toolkit
-version: 6.3.0
+version: 6.4.0
 status: Approved
 owner: Ivan Histand
-updated: 2026-11-14
+updated: 2026-11-15
 ---
 
 <!-- Format: references/prd-format.md, "prd.md sections". -->
@@ -179,6 +179,15 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-037 | The catalogue it reads, and what the shipped one covers | verified | features/help.md |  |
 | FR-038 | Every lint rule carries a description | verified | features/help.md |  |
 | FR-039 | A vendored copy answers the same | verified | features/help.md |  |
+| UJ-03 | A person or a program asks what the PRD needs next | verified | features/status-next.md |  |
+| FR-040 | The Next part comes first in the text report | verified | features/status-next.md |  |
+| FR-041 | The Next items in the JSON document | verified | features/status-next.md |  |
+| FR-042 | The order of the items, each listed once | verified | features/status-next.md |  |
+| FR-043 | Broken: what must be fixed before anything else is trusted | verified | features/status-next.md |  |
+| FR-044 | Waiting on you: the decisions only the owner can make | verified | features/status-next.md |  |
+| FR-045 | Work: furthest along first | verified | features/status-next.md |  |
+| FR-046 | Nothing waits | verified | features/status-next.md |  |
+| FR-047 | A sentence ends with one full stop | verified | features/status-next.md |  |
 
 ## 12. Assumptions index
 
@@ -210,3 +219,4 @@ None.
 | 6.2.2 | 2026-11-10 | §2 Getting started names the commands in full, /prd-toolkit:prd-new and the rest, as current Claude Code lists them; no dry run (wording only) | - |
 | 6.2.3 | 2026-11-14 | for prd-toolkit 0.8.8: section 1 names the launcher prd-toolkit/scripts/prd beside the CLI scripts, and the vendored launcher the hooks and CI run; section 2 Getting started installs the hooks with .prd-toolkit/prd hooks install, and its Out of scope line drops the other plugins and the web/ docs site, which the repository has not held since the move; adoption.md maps the launcher, prd_dispatch.py and requirements.txt in trace-and-hooks and requirements-publish.txt in publish; no dry run (wording only) | - |
 | 6.3.0 | 2026-11-14 | a new area help for prd-toolkit 0.8.9, written before its code: prd_help.py (prd help) prints a catalogue of every field of the PRD grammar and every lint rule as an index, one entry (--key), one rule (--rule) or one JSON document (--json), refuses an unknown key or rule, a usage error and a catalogue it cannot use with exit 2, reads the setting PRD_HELP_FILE, and answers the same from a vendored copy; every lint rule carries a description that lint never prints (FR-003 Edge cases); contracts/cli.yaml gains prd_help, contracts/config.yaml PRD_HELP_FILE, testing.md the fixture help/catalogue and the assertion keys stdout_json_at, stdout_json_keys_at and relations, adoption.md the adopted row help; dry run T-034.3, T-035.3, 0 open questions, 1 dismissed by quote (two earlier dry runs over ten T-ids: 4 gaps fixed) | UJ-02, FR-003, FR-033, FR-034, FR-035, FR-036, FR-037, FR-038, FR-039, AC-033.1, AC-034.1, AC-034.2, AC-035.1, AC-035.2, AC-035.3, AC-035.4, AC-036.1, AC-036.2, AC-036.3, AC-036.4, AC-036.5, AC-037.1, AC-037.2, AC-037.3, AC-038.1, AC-038.2, AC-038.3, AC-039.1, T-033.1, T-034.1, T-034.2, T-034.3, T-035.1, T-035.2, T-035.3, T-035.4, T-036.1, T-036.2, T-036.3, T-036.4, T-036.5, T-037.1, T-037.2, T-037.3, T-038.1, T-038.2, T-038.3, T-039.1 |
+| 6.4.0 | 2026-11-15 | a new area status-next for prd-toolkit 0.8.10, written before its code: prd status starts with a part Next, the ordered list of what the PRD needs (lint and trace findings, stopped deploy runs, open errors, gates, questions, a draft, then deploy, verify, build and adopt work, or idle when nothing waits), each item one sentence with the command that does it, in the text report and first in the --json items with the keys part, id, text, kind, ids, area, command and waits_on; contracts/cli.yaml gains prd_status, testing.md the fixtures status-next/base, status-next/empty and status-next/files, a Setup steps section with the git variables its runs drop, the assertion keys next_part_lines and next_items_json and the rule that a test builds a citation-shaped text from parts, adoption.md the adopted row status-next; dry run T-042.2, T-043.3, T-043.1, T-043.4, T-043.7, T-044.3, T-044.4, T-045.1, T-047.1, 0 open questions, 1 dismissed by quote (two earlier dry runs over sixteen T-ids: 3 gaps fixed) | UJ-03, FR-040, FR-041, FR-042, FR-043, FR-044, FR-045, FR-046, FR-047, AC-040.1, AC-040.2, AC-040.3, AC-041.1, AC-041.2, AC-042.1, AC-042.2, AC-042.3, AC-043.1, AC-043.2, AC-043.3, AC-043.4, AC-044.1, AC-044.2, AC-044.3, AC-045.1, AC-045.2, AC-045.3, AC-045.4, AC-046.1, AC-046.2, AC-047.1, T-040.1, T-040.2, T-040.3, T-041.1, T-041.2, T-042.1, T-042.2, T-042.3, T-043.1, T-043.2, T-043.3, T-043.4, T-043.5, T-043.6, T-043.7, T-043.8, T-044.1, T-044.2, T-044.3, T-044.4, T-044.5, T-044.6, T-045.1, T-045.2, T-045.3, T-045.4, T-046.1, T-046.2, T-047.1 |

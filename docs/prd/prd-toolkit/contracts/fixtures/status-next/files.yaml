@@ -1,0 +1,66 @@
+# Fixture status-next/files: the texts the status-next setup steps write (testing.md, Setup steps), one key per
+# text, each the file's full content.
+errors_confirmed: |
+  # Error ledger
+
+  ### E-001 The importer stops at row 1000
+  Detected: 2026-11-03, a run on the October file
+  Classification: code bug
+  Confirmed: 2026-11-04, "Yes, it is a code bug."
+  Touches: FR-003
+  Resolution: -
+  Recurrence of: -
+
+  ### E-002 A monthly report printed no total
+  Detected: 2026-11-05, a reader of the October report
+  Classification: unclassified
+  Touches: FR-006
+  Resolution: -
+  Recurrence of: -
+errors_proposed: |
+  # Error ledger
+
+  ### E-001 The importer stops at row 1000
+  Detected: 2026-11-03, a run on the October file
+  Classification: code bug
+  Touches: FR-003
+  Resolution: -
+  Recurrence of: -
+errors_question: |
+  # Error ledger
+
+  ### E-001 Why does the importer stop at row 1000?
+  Detected: 2026-11-03, a run on the October file
+  Classification: code bug
+  Confirmed: 2026-11-04, "Yes, it is a code bug."
+  Touches: FR-003
+  Resolution: -
+  Recurrence of: -
+adoption: |
+  # Adoption map
+
+  | Area | State | Boundary |
+  |---|---|---|
+  | import | adopted | `src/import/**` |
+  | reports | adopted | `src/reports/**` |
+  | billing | extracted | `src/billing/**` |
+  | export | extracted | `src/export/**` |
+  | audit | not started | `src/audit/**` |
+features_billing: |
+  # Billing
+features_export: |
+  # Export
+answers_billing: |
+  {}
+log_failed: |
+  {"kind": "header", "run": "20261110T090000Z-all", "prd": "docs/prd/orders", "version": "1.0.0"}
+  {"kind": "step", "step": 1, "env": "staging", "actor": "agent", "result": "fail"}
+log_unfinished: |
+  {"kind": "header", "run": "20261110T100000Z-all", "prd": "docs/prd/orders", "version": "1.0.0"}
+  {"kind": "start", "step": 1, "env": "staging"}
+log_human: |
+  {"kind": "header", "run": "20261111T090000Z-all", "prd": "docs/prd/orders", "version": "1.0.0"}
+  {"kind": "step", "step": 1, "env": "staging", "actor": "agent", "result": "pass"}
+  {"kind": "step", "step": 2, "env": "production", "actor": "human", "result": "human"}
+log_unreadable: |
+  not a JSON line

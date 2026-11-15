@@ -1,0 +1,365 @@
+# Fixture status-next/base: a repository holding the orders PRD folder and one test file, one key per file
+# (its path relative to the repository root) and its full text.
+docs/prd/orders/contracts/errors.yaml: |
+  IMPORT_NO_HEADER:
+    meaning: The import file has no header line.
+    when: The first line of the file is not the header.
+    status: 2
+    message: The import file has no header line.
+    log_level: error
+    retryable: false
+    metric: orders_import_no_header_total
+docs/prd/orders/errors.md: |
+  # Error ledger
+
+  No entries yet. Add `### E-001 <title>` when the first error is diagnosed.
+docs/prd/orders/features/import.md: |
+  # Import
+
+  ### FR-001 Refuse a file with no header
+  Status: approved
+  Acceptance (EARS):
+  - AC-001.1 If the import file has no header line, the importer shall exit 2 with error IMPORT_NO_HEADER.
+  Errors: IMPORT_NO_HEADER (contracts/errors.yaml)
+  Tests: T-001.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-002 Skip a duplicate order
+  Status: built
+  Acceptance (EARS):
+  - AC-002.1 When an imported row's order key already exists, the importer shall skip the row.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-003 Store a new order
+  Status: verified
+  Acceptance (EARS):
+  - AC-003.1 When an imported row has a new order key, the importer shall store the row.
+  Errors: -
+  Tests: T-003.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-004 Count the imported rows
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-004.1 When an import ends, the importer shall print the number of rows it stored.
+  Errors: -
+  Tests: T-004.1 [integration]  (test-cases/import.yaml)
+docs/prd/orders/features/reports.md: |
+  # Reports
+
+  ### FR-005 Print the monthly report
+  Status: approved
+  Acceptance (EARS):
+  - AC-005.1 When asked for a month, the report command shall print one line per order of that month.
+  Errors: -
+  Tests: T-005.1 [integration], T-005.2 [judged]  (test-cases/reports.yaml)
+
+  ### FR-006 Total the monthly report
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-006.1 When it prints a monthly report, the report command shall end it with the month's total.
+  Errors: -
+  Tests: T-006.1 [integration]  (test-cases/reports.yaml)
+
+  ### FR-007 Refuse an unknown month
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-007.1 If the month has no orders, the report command shall print nothing and exit 1.
+  Errors: -
+  Tests: T-007.1 [integration]  (test-cases/reports.yaml)
+docs/prd/orders/nfr.md: |
+  # Non-functional requirements
+
+  ## Observability
+
+  Not applicable: the fixture has no running service.
+docs/prd/orders/operations.md: |
+  # Operations
+
+  ## Environments
+
+  | Environment | URL | Production |
+  |---|---|---|
+  | staging | https://orders-staging.example.com | no |
+  | production | https://orders.example.com | yes |
+
+  ## Runbook
+
+  1. Deploy to staging (actor: agent) (env: staging)
+     Run: `./deploy.sh staging`
+     Check: `./deploy.sh staging --status` prints `ok`
+  2. Approve production (actor: human) (env: production)
+     Do: read the staging result and reply "deploy production"
+     Check: the reply says "deploy production"
+  3. Deploy to production (actor: agent) (env: production)
+     Run: `./deploy.sh production`
+     Check: `./deploy.sh production --status` prints `ok`
+docs/prd/orders/prd.md: |
+  ---
+  prd: orders
+  version: 1.0.0
+  status: Approved
+  owner: Sample Owner
+  updated: 2026-11-01
+  ---
+
+  # Orders service
+
+  ## 1. Metadata & stack
+
+  - Language: Python 3.12
+  - Not applicable: `contracts/openapi.yaml` — no HTTP API
+  - Not applicable: `contracts/schema.sql` — no database
+  - Not applicable: `contracts/events.md` — no events or jobs
+  - Not applicable: `contracts/permissions.yaml` — no roles
+  - Not applicable: `contracts/config.yaml` — no settings
+  - Not applicable: `contracts/data-classification.yaml` — no stored personal data
+  - Not applicable: `contracts/dependencies/` — no third-party service
+  - Not applicable: `contracts/fixtures/` — no fixture data
+
+  ## 2. Summary & goals
+
+  The orders service imports order files and prints monthly reports.
+
+  Goals:
+
+  - Import a 10,000-row file in under 60 seconds.
+
+  ## 3. Glossary
+
+  | Term | Meaning | Banned synonyms |
+  |---|---|---|
+  | order | A customer's request for goods, stored once per order key | purchase |
+
+  ## 4. Architecture
+
+  The importer stores orders; the report command reads them.
+
+  ## 5. Standards registry
+
+  Not applicable: the fixture runs no linter.
+
+  ## 6. Skills registry
+
+  Not applicable: the fixture requires no skill.
+
+  ## 7. Contract types
+
+  | Type | Files (glob) | Validator |
+  |---|---|---|
+  | errors | `contracts/errors.yaml` | built-in |
+
+  ## 8. Adoption map
+
+  Not applicable: new project.
+
+  ## 9. Versioning
+
+  - Breaking: removing a report line or an exit code.
+
+  ## 10. Design & UI
+
+  Not applicable: the service has no user interface.
+
+  ## 11. Requirement index
+
+  | ID | Title | Status | File | Since |
+  |---|---|---|---|---|
+  | FR-001 | Refuse a file with no header | approved | features/import.md | 1.0.0 |
+  | FR-002 | Skip a duplicate order | built | features/import.md | 1.0.0 |
+  | FR-003 | Store a new order | verified | features/import.md | 1.0.0 |
+  | FR-004 | Count the imported rows | live | features/import.md | 1.0.0 |
+  | FR-005 | Print the monthly report | approved | features/reports.md | 1.0.0 |
+  | FR-006 | Total the monthly report | live | features/reports.md | 1.0.0 |
+  | FR-007 | Refuse an unknown month | live | features/reports.md | 1.0.0 |
+
+  ## 12. Assumptions index
+
+  | ID | Assumption | Status |
+  |---|---|---|
+
+  ## 13. Open questions
+
+  None.
+
+  ## 14. Changelog
+
+  | Version | Date | Change | IDs |
+  |---|---|---|---|
+  | 1.0.0 | 2026-11-01 | Initial release; no dry run (fixture) | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007 |
+docs/prd/orders/test-cases/import.yaml: |
+  T-001.1:
+    ac: AC-001.1
+    level: integration
+    target: code:importer.import_file
+    environment: local
+    identity: none
+    preconditions: []
+    input: {content: "K-1,2026-10-01"}
+    expect:
+      output: {exit: 2}
+      effects: []
+      errors: [IMPORT_NO_HEADER]
+      leaks: none
+
+  T-002.1:
+    ac: AC-002.1
+    level: integration
+    target: code:importer.import_file
+    environment: local
+    identity: none
+    preconditions: []
+    input: {rows: ["K-1", "K-1"]}
+    expect:
+      output: {stored: 1, skipped: 1}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-003.1:
+    ac: AC-003.1
+    level: integration
+    target: code:importer.import_file
+    environment: local
+    identity: none
+    preconditions: []
+    input: {rows: ["K-2"]}
+    expect:
+      output: {stored: 1, skipped: 0}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-004.1:
+    ac: AC-004.1
+    level: integration
+    target: code:importer.import_file
+    environment: local
+    identity: none
+    preconditions: []
+    input: {rows: ["K-3", "K-4"]}
+    expect:
+      output: {printed: "2 rows stored"}
+      effects: []
+      errors: []
+      leaks: none
+docs/prd/orders/test-cases/reports.yaml: |
+  T-005.1:
+    ac: AC-005.1
+    level: integration
+    target: code:reports.monthly
+    environment: local
+    identity: none
+    preconditions: []
+    input: {month: "2026-10"}
+    expect:
+      output: {lines: 2}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-005.2:
+    ac: AC-005.1
+    level: judged
+    target: code:reports.monthly
+    environment: local
+    identity: none
+    preconditions: []
+    input: {month: "2026-10"}
+    expect:
+      rubric:
+        - Each line names one order
+        - The lines follow the order dates
+      threshold: 0.9
+      effects: []
+      errors: []
+      leaks: none
+
+  T-006.1:
+    ac: AC-006.1
+    level: integration
+    target: code:reports.monthly
+    environment: local
+    identity: none
+    preconditions: []
+    input: {month: "2026-10"}
+    expect:
+      output: {last_line: "total 2"}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-007.1:
+    ac: AC-007.1
+    level: integration
+    target: code:reports.monthly
+    environment: local
+    identity: none
+    preconditions: []
+    input: {month: "1999-01"}
+    expect:
+      output: {exit: 1, stdout: ""}
+      effects: []
+      errors: []
+      leaks: none
+docs/prd/orders/testing.md: |
+  # Testing
+
+  ## Levels
+
+  | Level | Harness command | Environment | Gate |
+  |---|---|---|---|
+  | unit | `pytest tests/unit` | local | build |
+  | integration | `pytest tests/integration` | local | build |
+  | judged | `pytest tests/judged` | local | build |
+
+  ## Harness
+
+  - **Lifecycle.** Nothing runs between tests; each test runs the importer or the report command itself.
+  - **Environment switch.** Not applicable: one test environment, `local`.
+  - **Database access.** Not applicable: no database.
+  - **Tools on the runner.** python3 on PATH; `tests/` sits at the repository root.
+  - **Clean state.** Every test starts from its own temporary directory.
+  - **Persistent environments.** Not applicable: no test environment keeps data.
+  - **Layout.** `tests/<level>/test_<area>.py`; each test's docstring cites its T-id, e.g. `@prd T-001.1`. Test roots: `tests/`
+  - **HTTP requests.** Not applicable: no HTTP API.
+  - **Fixtures.** Not applicable: the cases give their input inline.
+  - **Browser identity.** Not applicable: no user interface.
+  - **Assertions.** Fields a case does not list are not asserted.
+  - **Waits.** Not applicable: every command runs to completion first.
+  - **Effects.** Not applicable: the cases assert output only.
+  - **Leaks.** Not applicable: no classified data.
+  - **Acceptance.** Not applicable: no acceptance level.
+
+  ## Environments
+
+  | Environment | Purpose | Access | Base URL | Database | Logs |
+  |---|---|---|---|---|---|
+  | local | a developer's checkout | anyone with a clone | none | none | the command's output |
+  | staging | the service before release | the team | https://orders-staging.example.com | none | `./deploy.sh staging --logs` |
+  | production | the live service | the team | https://orders.example.com | none | `./deploy.sh production --logs` |
+
+  ## Leak checks
+
+  | Sink | Read from | Scanned for |
+  |---|---|---|
+  | command output | the test captures stdout and stderr | nothing: no classified data |
+
+  ## Fixtures
+
+  | Fixture | Creates | Load | Teardown |
+  |---|---|---|---|
+
+  ## Sign-offs
+
+  | T-id | Owner | Date | Result |
+  |---|---|---|---|
+tests/test_orders.py: |
+  """Stand-in tests of the orders fixture: each line below cites one T-id."""
+  # @prd T-001.1
+  # @prd T-002.1
+  # @prd T-003.1
+  # @prd T-004.1
+  # @prd T-005.1
+  # @prd T-005.2
+  # @prd T-006.1
+  # @prd T-007.1

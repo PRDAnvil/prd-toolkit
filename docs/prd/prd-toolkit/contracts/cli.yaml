@@ -55,6 +55,33 @@ prd_publish:
     missing_package: "stderr: prd_publish: missing Python package '<package>'. Run with: uv run --script prd_publish.py …, or: pip install pyyaml sqlglot openapi-spec-validator markdown-it-py (FR-010)"
   exit_codes:
     2: "missing dependency (FR-010)"
+prd_status:
+  # Only what the status-next area needs so far; the status area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_status.py [--json] [--interface] [prd_dir]; through the launcher, prd status"
+  encoding: "stdout and stderr are UTF-8 whatever the locale when run as a script (FR-040)"
+  next_text_line: "stdout, text: <n>. <text>, one line per Next item after the line ## Next and one empty line, <n> counting from 1 (FR-040)"
+  next_run_line: "stdout, text: two spaces, run: and the item's command, the line after an item that has a command (FR-040)"
+  next_item:
+    part: "string: Next (FR-041)"
+    id: "string or null: the gate's ID for a gate item, the entry's ID for an error-open item, null for every other kind (FR-041)"
+    text: "string: the item's sentence (FR-043 to FR-047)"
+    kind: "string: one of next_kinds (FR-042)"
+    ids: "list of strings: the IDs the item concerns, in the PRD's order; empty when none (FR-041)"
+    area: "string or null: the area of a verify, build or adopt item or of an adoption gate (FR-041)"
+    command: "string or null: the Claude Code command that does it, by its full name; for verify and build, /prd-toolkit:prd-build <area> and the block IDs, each after one space (FR-041, FR-045)"
+    waits_on: "string or null: you, agent, or null for idle (FR-041)"
+  next_kinds:
+    - lint
+    - deploy-stopped
+    - error-open
+    - gate
+    - question
+    - draft
+    - deploy
+    - verify
+    - build
+    - adopt
+    - idle
 prd_help:
   invocation: "uv run --script prd-toolkit/scripts/prd_help.py [--key KEY | --rule RULE] [--json] [--interface]; through the launcher, prd help"
   arguments:

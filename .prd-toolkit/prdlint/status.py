@@ -183,7 +183,9 @@ def render_json(items: list[StatusItem]) -> str:
     return json.dumps([asdict(i) for i in items], indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
-def render_document(prd, items: list[StatusItem]) -> str:
+def render_document(prd, items: list[StatusItem], first: list[dict] | None = None) -> str:
+    """`first` is the Next part's items (FR-041), put before every other item."""
     from . import interface
     fm = prd.frontmatter
-    return interface.dump("status", {"prd": fm.get("prd"), "version": fm.get("version"), "items": [asdict(i) for i in items]})
+    return interface.dump("status", {"prd": fm.get("prd"), "version": fm.get("version"),
+                                     "items": list(first or []) + [asdict(i) for i in items]})

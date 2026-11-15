@@ -190,4 +190,14 @@ specified first, as the `help` area was, in a new area the adoption map marks `a
 
 ## Revisions
 
-None yet.
+- **2026-11-15, while the requirements were written** (each is carried by an acceptance criterion):
+  - **The finding's path.** The lint and trace sentences quote the finding as `<file>:<line>: <rule>: <message>`,
+    with `<file>` the path inside the PRD folder, whatever the working directory (§5).
+  - **The command's IDs** are joined by single spaces (`/prd-toolkit:prd-build reports FR-005 FR-006 FR-007`);
+    only the sentence joins them with `, ` and ` and ` (§4, §5).
+  - **A human step confirmed and not resumed** is a `deploy-stopped` item: a run the Deployed part reports
+    `stopped (human)` makes one unless a `deploy-step` gate of that run is pending (§4).
+  - **A wrapped section 13 item** is one question: a line indented under a `- ` item joins it (§4).
+  - **Fixtures** are small repositories (a PRD folder and a test file), since trace needs the citing tests (§7).
+  - **Eight requirements**, not one per tier: the order, the listed-once rules, `idle` and the full-stop rule
+    each have their own (§7).

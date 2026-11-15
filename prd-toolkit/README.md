@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means. Version 0.8.9.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. Version 0.8.10.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -25,7 +25,8 @@ for 0.8.5 [docs/superpowers/specs/2026-11-08-prd-toolkit-0.8.5-design.md](../doc
 for 0.8.6, the move to PRDAnvil, the plan [docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md](../docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md),
 for 0.8.7, the fixes, the plan [docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md](../docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md),
 for 0.8.8 [docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md](../docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md),
-and for 0.8.9 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md).
+for 0.8.9 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md),
+and for 0.8.10 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md).
 
 ## Install
 
@@ -50,7 +51,7 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 | `/prd-toolkit:prd-change <description>` | `prd-toolkit:changing-prds` | Change the PRD first, with new IDs and a version bump, before any code; `prd_change.py` keeps the books. `/prd-toolkit:prd-change --review <dir>` reviews a change, edits nothing and writes one JSON verdict (see Machine interface) |
 | `/prd-toolkit:prd-context [area] [IDs] [implement]` | `prd_context.py` | Print the focused context pack for one task: the decide pack, or with `implement` the implement pack |
 | `/prd-toolkit:prd-build <area> <IDs>` | `prd-toolkit:building-from-prds` | Take approved requirements to verified code: `prd-builder` works on a round branch the build cuts and merges `--ff-only`, then `prd-tester` writes the tests in its `write` mode; the build reconciles by quote and moves statuses `approved`, `built`, `verified` with no version bump |
-| `/prd-toolkit:prd-status` | `prd_status.py` | Show where each requirement stands, and the version each environment runs |
+| `/prd-toolkit:prd-status` | `prd_status.py` | Show what the PRD needs next, where each requirement stands, and the version each environment runs |
 | `/prd-toolkit:prd-deploy [--until <env>] [<run id>]` | `prd-toolkit:deploying-from-prds` | Deploy a verified PRD through its runbook with `prd_deploy.py`, stopping at every human step and failure, then record the run (see Deploying) |
 | `/prd-toolkit:prd-error [<E-nnn> \| <run id> \| <text>]` | `prd-toolkit:handling-errors` | Record an error in `errors.md` with `prd_error.py`, diagnose it, propose its class and wait for the user's confirmation; the fix starts from a failing test and goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build --fixes E-nnn`, and the close is checked with `prd_error.py check` |
 | `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
@@ -132,6 +133,58 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 - A copy vendored before 0.8.9 has no `help` command: its launcher answers
   `prd: unknown command 'help'` with exit 2. Run `install` from the 0.8.9 plugin to get it (see the
   changelog).
+
+## Status
+
+```
+.prd-toolkit/prd status docs/prd/<slug>          # the report, starting with what the PRD needs next
+.prd-toolkit/prd status docs/prd/<slug> --json   # the same as one JSON document
+```
+
+- The report starts with the part **Next**: an ordered list of what the PRD needs, each item one
+  sentence and, when a command does it, that command on a second line. The parts that follow say
+  where every requirement stands (Header, Requirements, Areas, Adoption map, Not built, Not
+  verified, Open errors, Upstreams, Consumers, Change sets, CI, Deployed, Matrix).
+
+  ```
+  ## Next
+
+  1. E-020 is open (confirmed): prd help prints a traceback and exits 1 when the catalogue file exists and cannot be read.
+    run: /prd-toolkit:prd-error E-020
+  2. FR-007 and FR-009 are approved and not built.
+    run: /prd-toolkit:prd-build orders FR-007 FR-009
+  ```
+
+- The items come in three tiers, and inside a tier in this order of kinds:
+
+  | Tier | Kind | When | Command |
+  |---|---|---|---|
+  | Broken | `lint` | lint reports an error, or trace a finding (one item each) | none |
+  | Broken | `deploy-stopped` | a deploy run stopped unfinished or failed, or at a human step that was confirmed and not resumed | `/prd-toolkit:prd-deploy` |
+  | Broken | `error-open` | an `errors.md` entry is open and its class does not wait at a gate | `/prd-toolkit:prd-error <E-id>` |
+  | Waiting on you | `gate` | a gate of `prd gates list` waits for an answer | none |
+  | Waiting on you | `question` | an assumption is `awaiting <who>`, or section 13 holds an open question | none |
+  | Waiting on you | `draft` | the PRD's version is below 1.0.0 | `/prd-toolkit:prd-new` |
+  | Work | `deploy` | requirements are `verified`, and `operations.md` names an environment | `/prd-toolkit:prd-deploy` |
+  | Work | `verify` | an area has requirements `built` | `/prd-toolkit:prd-build <area> <IDs>` |
+  | Work | `build` | an area has requirements `approved` | `/prd-toolkit:prd-build <area> <IDs>` |
+  | Work | `adopt` | an area of the adoption map is not `adopted` and has no adoption gate waiting | `/prd-toolkit:prd-adopt <area>` |
+
+  Work runs furthest along first, so what is closest to live is finished before anything new starts.
+  Each thing is listed once: an entry whose class waits at a gate, a run stopped at a human step
+  that waits for its confirmation, and an area whose adoption answers wait, are the gate's item. A lint warning makes no item. When nothing
+  matches, the part holds one item of kind `idle`: `Nothing waits. Everything approved is live.`, or
+  `… is verified.` for a PRD whose `operations.md` names no environment.
+- With `--json`, the Next items come first in `items`, each
+  `{"part": "Next", "id", "text", "kind", "ids", "area", "command", "waits_on"}`: `ids` the IDs it
+  concerns, `area` its area or null, `command` the command or null, and `waits_on` `you` (the owner
+  decides or answers), `agent` (an agent can do it) or null for `idle`. The other items keep their three keys,
+  `part`, `id` and `text`. Since the Header is no longer the first item, a client selects the Header by `part`.
+- To find the Next items, status runs lint and trace itself. Lint runs the validator commands of the PRD's
+  section 7, as `prd lint` does, so the report takes as long as they do and does what they do; the toolkit
+  itself fetches nothing and writes nothing.
+- A copy vendored before 0.8.10 prints the report without the Next part. Run `install` from the 0.8.10
+  plugin to get it (see the changelog).
 
 ## Adopting an existing repo
 
@@ -910,6 +963,10 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
+- **0.8.10:** a Next part in `prd status`. The report said where every requirement stands and left the reader to work out the next move; a person and a client could each derive a different one. Now the report starts with the part Next (see Status): an ordered list of what the PRD needs, each item one sentence with the command that does it. Broken things come first (lint and trace findings, a stopped deploy run, an open error), then what waits on the owner (a gate, a question, a draft), then the work, furthest along first (deploy, verify, build, adopt); when nothing matches, one item says nothing waits. With `--json` the Next items come first in `items`, each with `kind`, `ids`, `area`, `command` and `waits_on` beside `part`, `id` and `text`; `interface` stays 1, since fields are added and none is removed or renamed. One thing changes for a reader of today's output: the Header is no longer the first part of the text or the first item of the JSON document, so a client that took `items[0]` as the Header selects it by `part`. Every other part is byte for byte what it was. The toolkit's own PRD is 6.4.0, with the new area `status-next` (UJ-03, FR-040 to FR-047) verified. See the [design spec](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md).
+  - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). A repository gets the Next part when `<plugin>/scripts/prd hooks install docs/prd/<slug>` is next run from the 0.8.10 plugin; commit `.prd-toolkit/`. The vendored `.prd-toolkit/prd hooks install` installs the hooks only and does not bring it. Until then its report has no Next part and is otherwise as before. No hook, CI file or skill line changes.
+  - **Known limits:** a section 13 question whose line ends in spaces is printed with those spaces and a second full stop (`An open question waits: Which month?   .`) (E-021, open). `prd status` now runs the PRD's section 7 validator commands, through lint, so a slow validator slows the report.
+  - **Evals:** the eval suite was not rerun. The only text that changed is the description and one step of the `/prd-toolkit:prd-status` command, which now name the Next part and the report's parts, and no eval case runs that command. The 0.8.8 baseline in `evals/BASELINE.md` stands.
 - **0.8.9:** a help catalogue, `prd help`. The meaning of a PRD's fields and of a lint finding was only in `references/prd-format.md` and in the rules' code, so a person had to know where to look and a client had to keep its own copy. Now `prd help` prints it (see Help): the index with no option, one field with `--key`, one lint rule with `--rule`, and the whole catalogue as one JSON document with `--json`, which a client reads once. The catalogue, `references/help.yaml`, has 43 entries, one per field of the PRD grammar, each with what it is, why it is there, its formatting rules and the lint rules that check it; and each of the 40 lint rules now carries a description, what it checks and how to clear its finding. The setting `PRD_HELP_FILE` names another catalogue file. Nothing existing changes: lint prints no description, `--list-rules`, the finding lines and every `--json` document are byte for byte what they were, and `interface` stays 1. The toolkit's own PRD is 6.3.0, with the new area `help` (UJ-02, FR-033 to FR-039) verified. See the [design spec](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md).
   - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). A repository gets the command when `<plugin>/scripts/prd hooks install docs/prd/<slug>` is next run from the 0.8.9 plugin, which vendors `prd_help.py` and `help.yaml`; commit `.prd-toolkit/`. The vendored `.prd-toolkit/prd hooks install` installs the hooks only and does not bring it. Until then its launcher answers `prd help` with `prd: unknown command 'help'` and exit 2, and everything else works as before. No hook, CI file or skill line changes.
   - **Known limits:** when `PRD_HELP_FILE` names a file that exists and cannot be read (no read permission), `prd help` prints a Python traceback and exits 1, with no `--json` error document, where it should refuse with exit 2 (E-020, open). The shipped catalogue is not affected.

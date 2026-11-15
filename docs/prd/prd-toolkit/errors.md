@@ -220,3 +220,16 @@ Evidence: Final review of the 0.8.9 branch, 2026-11-15:
 Diagnosis: Reproduced once: with `PRD_HELP_FILE` naming a file of mode 000, `prd help --json` prints a Python traceback ending `PermissionError: [Errno 13] Permission denied`, nothing on stdout, exit 1. Root cause: `load()` in `prd-toolkit/scripts/prdlint/helpcat.py` checks `is_file()`, then calls `read_bytes()` and catches only the YAML error, so an OSError from the read escapes. Class against the PRD: AC-036.3 says "If the catalogue cannot be used, the help command shall print the one stderr line `prd_help: <path>: <reason>`, print nothing on stdout and exit 2", where the reason "is the first that applies of: `no such file`; `YAML parse error: <the parser's problem>`; `top level must be a list`" and the entry reasons; none of them applies to a file that exists and cannot be read, and no test case covers it, so the PRD does not say which line to print. The FR-036 edge cases "exit 1 is never used" and "no exit-2 path prints a traceback" show the intent. The fix adds a reason to AC-036.3 (for example `cannot read: <the system's reason>`), a test case, and the catch in `load()`.
 Resolution: -
 Recurrence of: -
+
+### E-021 A section 13 question that ends in spaces gets a second full stop in the Next part
+Detected: 2026-11-15, final review of the 0.8.10 branch
+Classification: invalid requirement
+Touches: FR-044, FR-047
+Evidence: Final review of the 0.8.10 branch, 2026-11-15:
+  Section 13 of prd.md holds the lines "- Trailing spaces?   " and "Plain line!  " (each ends in spaces).
+  prd status prints:
+  1. An open question waits: Trailing spaces?   .
+  2. An open question waits: Plain line!  .
+Diagnosis: Reproduced once on a scratch copy of fixture status-next/base whose section 13 line is `- Trailing spaces?` followed by three spaces: `prd status` prints `2. An open question waits: Trailing spaces?` then the three spaces and a full stop. Root cause: `_open_questions` in `prd-toolkit/scripts/prdlint/nextpart.py` keeps the trailing spaces of a section 13 line, and `_sentence` then finds no closing mark at the end and adds a full stop. Class against the PRD: the code does what the criteria say. AC-044.2 says "a line that starts with `- ` begins a question whose text is the line without its `- `", so the spaces are part of the text, and AC-047.1 adds no full stop only "Where the text a sentence of FR-043 to FR-046 inserts last already ends in `.`, `?` or `!`", which a text ending in spaces does not. The criteria are wrong for a line that ends in white space: the title of FR-047 is "A sentence ends with one full stop", and the sentence the reader sees ends with two marks. The fix revises AC-044.2 (the text of a question has no leading or trailing white space) with a test case, then the code.
+Resolution: -
+Recurrence of: -
