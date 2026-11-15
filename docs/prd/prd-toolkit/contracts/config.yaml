@@ -12,3 +12,8 @@ settings:
     default: "~/.claude/plugins/installed_plugins.json"
     environments: {local: unset, production: unset}
     owner: "Ivan Histand (2026-11-03); tests set it to a fixture file, and a user may point it at another installed-plugins file"
+  PRD_HELP_FILE:
+    type: string
+    default: unset
+    environments: {local: unset, production: unset}
+    owner: "Ivan Histand (2026-11-15); tests set it to a fixture catalogue, and unset or empty means the catalogue the toolkit ships (FR-037)"

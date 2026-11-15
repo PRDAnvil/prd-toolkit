@@ -1,6 +1,6 @@
 ---
 prd: prd-toolkit
-version: 6.2.3
+version: 6.3.0
 status: Approved
 owner: Ivan Histand
 updated: 2026-11-14
@@ -171,6 +171,14 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-030 | Index every assumption marker | verified | features/lint-structure.md |  |
 | FR-031 | Require no open question once the PRD is Approved | verified | features/lint-structure.md |  |
 | FR-032 | Report a banned glossary synonym | verified | features/lint-structure.md |  |
+| UJ-02 | A person or a program asks what a field or a lint finding means | approved | features/help.md |  |
+| FR-033 | Print the index | approved | features/help.md |  |
+| FR-034 | Print one entry or one rule as text | approved | features/help.md |  |
+| FR-035 | Print the catalogue as one JSON document | approved | features/help.md |  |
+| FR-036 | Refuse what it cannot answer | approved | features/help.md |  |
+| FR-037 | The catalogue it reads, and what the shipped one covers | approved | features/help.md |  |
+| FR-038 | Every lint rule carries a description | approved | features/help.md |  |
+| FR-039 | A vendored copy answers the same | approved | features/help.md |  |
 
 ## 12. Assumptions index
 
@@ -201,3 +209,4 @@ None.
 | 6.2.1 | 2026-11-10 | the toolkit moves to github.com/PRDAnvil/prd-toolkit and the prdanvil marketplace: section 1 Framework, Hosting, Repository and Packaging, section 2 Getting started, the operations.md production Environment and runbook steps 2 and 3, and the testing.md production row name the new home; the release area Boundary adds prd-toolkit/LICENSE; no dry run (wording only) | - |
 | 6.2.2 | 2026-11-10 | §2 Getting started names the commands in full, /prd-toolkit:prd-new and the rest, as current Claude Code lists them; no dry run (wording only) | - |
 | 6.2.3 | 2026-11-14 | for prd-toolkit 0.8.8: section 1 names the launcher prd-toolkit/scripts/prd beside the CLI scripts, and the vendored launcher the hooks and CI run; section 2 Getting started installs the hooks with .prd-toolkit/prd hooks install, and its Out of scope line drops the other plugins and the web/ docs site, which the repository has not held since the move; adoption.md maps the launcher, prd_dispatch.py and requirements.txt in trace-and-hooks and requirements-publish.txt in publish; no dry run (wording only) | - |
+| 6.3.0 | 2026-11-14 | a new area help for prd-toolkit 0.8.9, written before its code: prd_help.py (prd help) prints a catalogue of every field of the PRD grammar and every lint rule as an index, one entry (--key), one rule (--rule) or one JSON document (--json), refuses an unknown key or rule, a usage error and a catalogue it cannot use with exit 2, reads the setting PRD_HELP_FILE, and answers the same from a vendored copy; every lint rule carries a description that lint never prints (FR-003 Edge cases); contracts/cli.yaml gains prd_help, contracts/config.yaml PRD_HELP_FILE, testing.md the fixture help/catalogue and the assertion keys stdout_json_at, stdout_json_keys_at and relations, adoption.md the adopted row help; dry run T-034.3, T-035.3, 0 open questions, 1 dismissed by quote (two earlier dry runs over ten T-ids: 4 gaps fixed) | UJ-02, FR-003, FR-033, FR-034, FR-035, FR-036, FR-037, FR-038, FR-039, AC-033.1, AC-034.1, AC-034.2, AC-035.1, AC-035.2, AC-035.3, AC-035.4, AC-036.1, AC-036.2, AC-036.3, AC-036.4, AC-036.5, AC-037.1, AC-037.2, AC-037.3, AC-038.1, AC-038.2, AC-038.3, AC-039.1, T-033.1, T-034.1, T-034.2, T-034.3, T-035.1, T-035.2, T-035.3, T-035.4, T-036.1, T-036.2, T-036.3, T-036.4, T-036.5, T-037.1, T-037.2, T-037.3, T-038.1, T-038.2, T-038.3, T-039.1 |

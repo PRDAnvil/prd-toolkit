@@ -23,3 +23,4 @@
 | packs | not started | `prd-toolkit/scripts/prdlint/packs.py`, `prd-toolkit/scripts/prdlint/languages.py`, `prd-toolkit/scripts/prdlint/rules/packs.py` |
 | skills | not started | `prd-toolkit/skills/**`, `prd-toolkit/agents/**`, `prd-toolkit/commands/**`, `prd-toolkit/references/clarify-categories.md`, `prd-toolkit/references/contract-types.md`, `prd-toolkit/references/ears.md`, `prd-toolkit/references/quality-checklist.md`, `prd-toolkit/references/test-levels.md`, `prd-toolkit/references/prd-format.md`, `prd-toolkit/templates/prd/**` |
 | release | not started | `prd-toolkit/.claude-plugin/**`, `prd-toolkit/README.md`, `prd-toolkit/LICENSE`, `prd-toolkit/NOTICE`, `prd-toolkit/pyproject.toml`, `prd-toolkit/uv.lock` |
+| help | adopted | `prd-toolkit/scripts/prd_help.py`, `prd-toolkit/scripts/prdlint/helpcat.py`, `prd-toolkit/references/help.yaml` |

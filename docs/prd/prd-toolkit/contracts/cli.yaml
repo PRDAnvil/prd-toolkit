@@ -55,3 +55,73 @@ prd_publish:
     missing_package: "stderr: prd_publish: missing Python package '<package>'. Run with: uv run --script prd_publish.py …, or: pip install pyyaml sqlglot openapi-spec-validator markdown-it-py (FR-010)"
   exit_codes:
     2: "missing dependency (FR-010)"
+prd_help:
+  invocation: "uv run --script prd-toolkit/scripts/prd_help.py [--key KEY | --rule RULE] [--json] [--interface]; through the launcher, prd help"
+  arguments:
+    --key KEY: "print the catalogue entry with that key (FR-034); with --json, limit entries to it (FR-035)"
+    --rule RULE: "print that lint rule and the entries it checks (FR-034); with --json, limit rules to it and entries to those that name it (FR-035)"
+    --json: "print one JSON document instead of text; --json=1 is the same, any other --json=N is refused (FR-035, FR-036)"
+    --interface: "print the interface number 1; the catalogue is not read and a --json=N is not checked (FR-035)"
+    "-h, --help": "print the help to stdout"
+  output:
+    index_entry: "stdout, no option: <key>, two spaces, <name>, one line per entry in the catalogue's order (FR-033)"
+    index_rule: "stdout, no option, after one empty line: <name>, two spaces, <severity>, one line per rule sorted by name (FR-033)"
+    entry_text: "stdout, --key: <name> (<key>) / What: <what> / Why: <why> / Rules: and - <rule> lines / Checked by: and - <rule name>: <description> lines / See: <see>; a part the entry lacks prints no line (FR-034)"
+    rule_text: "stdout, --rule: <name> (<severity>) / <description> / Checks: <key>, <key> when an entry names the rule (FR-034)"
+    json_document: 'stdout, --json: one line, {"interface": 1, "kind": "help", "entries": [{"key", "name", "what", "why", "rules", "checked_by", "see"}], "rules": {<name>: {"severity", "description"}}}; rules, checked_by and see only when the entry has them (FR-035)'
+    json_error: 'stdout, --json on exit 2: one line, {"interface": 1, "kind": "help", "error": <message>} (FR-036)'
+    interface: "stdout, --interface: 1 (FR-035)"
+    no_entry: "stderr: prd_help: no entry '<key>' (FR-036)"
+    no_rule: "stderr: prd_help: no rule '<rule>' (FR-036)"
+    bad_catalogue: "stderr: prd_help: <path>: <reason>, the reasons listed in AC-036.3 (FR-036)"
+    unsupported_interface: "stderr, --json=N with N other than 1 and no --interface: prd_help: unsupported interface <N>; this toolkit speaks 1 (FR-036)"
+    usage: "stderr: usage: prd_help.py [-h] [--key KEY | --rule RULE] [--json] [--interface], one line whatever the terminal width (FR-036)"
+    argparse_error: "stderr: usage line, then prd_help.py: error: <argparse message> (FR-036)"
+  keys:
+    - kind.UJ
+    - kind.FR
+    - kind.NFR
+    - kind.T
+    - kind.E
+    - kind.CS
+    - block.title
+    - block.status
+    - block.flow
+    - block.acceptance
+    - block.ac
+    - block.errors
+    - block.edge_cases
+    - block.tests
+    - block.traces
+    - block.source
+    - case.ac
+    - case.level
+    - case.target
+    - case.environment
+    - case.identity
+    - case.preconditions
+    - case.input
+    - case.expect
+    - case.expect.output
+    - case.expect.effects
+    - case.expect.errors
+    - case.expect.leaks
+    - case.rubric
+    - case.threshold
+    - case.runs
+    - case.steps
+    - case.signoff
+    - case.known_failing
+    - case.symptom
+    - case.refs
+    - table.glossary
+    - table.standards
+    - table.skills
+    - table.index
+    - table.assumptions
+    - marker.assumption
+    - marker.needs_clarification
+  encoding: "stdout and stderr are UTF-8 whatever the locale when run as a script (FR-035)"
+  exit_codes:
+    0: "the index, an entry, a rule, the JSON document, --interface or --help"
+    2: "an unknown key or rule, a usage error, an unsupported --json=N without --interface, or a catalogue that cannot be used (FR-036)"
