@@ -209,6 +209,7 @@ Recurrence of: -
 ### E-020 prd help prints a traceback and exits 1 when the catalogue file exists and cannot be read
 Detected: 2026-11-15, final review of the 0.8.9 branch
 Classification: spec gap
+Confirmed: 2026-11-15, "I think the wording is good for E-020, it should remain as a spec gap. My thought is that this will rarely happen, as almost all of the PRDs will be authored by the prd_toolkit, so keeping it as a spec gap is the best way to handle it."
 Touches: FR-036
 Evidence: Final review of the 0.8.9 branch, 2026-11-15:
   chmod 000 unread.yaml
