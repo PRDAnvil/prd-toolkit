@@ -46,7 +46,7 @@ gives. You run only these, and only where a step says:
 
 | Command | What it does |
 |---|---|
-| `claude plugin marketplace list --json` | the marketplaces added on this machine: a list of `{"name", "source", "url", "installLocation"}` |
+| `claude plugin marketplace list --json` | the marketplaces added on this machine: a list of `{"name", "source", "installLocation", …}`, each with a `url` or a `repo` too |
 | `claude plugin install <plugin>@<marketplace> --scope <scope>` | installs one plugin, and the dependencies its catalogue entry lists, from an added marketplace; `<scope>` is `user`, `project` or `local` (step 9 only) |
 | `claude plugin list --json` | the installed plugins: a list of `{"id", "scope", "version", …}`, `id` being `<plugin>@<marketplace>` (step 9 only) |
 
@@ -270,8 +270,11 @@ plugin.
    git log -1 --format=%s -- docs/prd/<slug>/prd.md
    ```
 
-   prints `docs(prd): approve <slug> <version>` (made by `approve` or by the inbox), the version the
-   change recorded. On a draft, whose first approval commits the PRD with `status: Approved` under a
+   prints `docs(prd): approve <slug> <version>` (made by `approve` or by the inbox), where `<version>`
+   is the frontmatter `version:` this change set in step 8. An approval subject with another version
+   is an earlier change's: this one is not approved. Any other subject means a later commit touched
+   `prd.md`: run `git log -3 --format=%s -- docs/prd/<slug>/prd.md`, its own call, and go on only when
+   it lists this change's approval subject. On a draft, whose first approval commits the PRD with `status: Approved` under a
    subject of its own:
 
    ```bash
