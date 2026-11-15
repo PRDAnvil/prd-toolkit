@@ -179,15 +179,15 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-037 | The catalogue it reads, and what the shipped one covers | verified | features/help.md |  |
 | FR-038 | Every lint rule carries a description | verified | features/help.md |  |
 | FR-039 | A vendored copy answers the same | verified | features/help.md |  |
-| UJ-03 | A person or a program asks what the PRD needs next | approved | features/status-next.md |  |
-| FR-040 | The Next part comes first in the text report | approved | features/status-next.md |  |
-| FR-041 | The Next items in the JSON document | approved | features/status-next.md |  |
-| FR-042 | The order of the items, each listed once | approved | features/status-next.md |  |
-| FR-043 | Broken: what must be fixed before anything else is trusted | approved | features/status-next.md |  |
-| FR-044 | Waiting on you: the decisions only the owner can make | approved | features/status-next.md |  |
-| FR-045 | Work: furthest along first | approved | features/status-next.md |  |
-| FR-046 | Nothing waits | approved | features/status-next.md |  |
-| FR-047 | A sentence ends with one full stop | approved | features/status-next.md |  |
+| UJ-03 | A person or a program asks what the PRD needs next | verified | features/status-next.md |  |
+| FR-040 | The Next part comes first in the text report | verified | features/status-next.md |  |
+| FR-041 | The Next items in the JSON document | verified | features/status-next.md |  |
+| FR-042 | The order of the items, each listed once | verified | features/status-next.md |  |
+| FR-043 | Broken: what must be fixed before anything else is trusted | verified | features/status-next.md |  |
+| FR-044 | Waiting on you: the decisions only the owner can make | verified | features/status-next.md |  |
+| FR-045 | Work: furthest along first | verified | features/status-next.md |  |
+| FR-046 | Nothing waits | verified | features/status-next.md |  |
+| FR-047 | A sentence ends with one full stop | verified | features/status-next.md |  |
 
 ## 12. Assumptions index
 

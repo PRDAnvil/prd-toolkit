@@ -6,14 +6,16 @@ command that does it, and the same list as data in `--json`. The rule lives in
 belong to the area `status`, which is not adopted.
 
 ### UJ-03 A person or a program asks what the PRD needs next
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:1 @3fc3086
 Flow: 1. run `prd status` and read its first part, Next
       → 2. run the command the first item names, or answer the decision it names
       → 3. a program runs `prd status --json` and reads the items whose `part` is `Next`
 Traces: FR-040, FR-041, FR-042, FR-043, FR-044, FR-045, FR-046, FR-047
 
 ### FR-040 The Next part comes first in the text report
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_status.py:57 @3fc3086
 Acceptance (EARS):
 - AC-040.1 When run on a PRD folder without `--json`, the status command shall print the line `## Next`
   as its first line, then one empty line, then for each Next item, in the order FR-042 gives and
@@ -33,7 +35,8 @@ Tests: T-040.1 [integration], T-040.2 [integration], T-040.3 [unit]  (test-cases
 Traces: UJ-03; cli:prd_status
 
 ### FR-041 The Next items in the JSON document
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:21 @3fc3086
 Acceptance (EARS):
 - AC-041.1 When run with `--json`, the status command shall put the Next items first in the document's
   `items`, in the order FR-042 gives, each an object with the keys `part`, `id`, `text`, `kind`, `ids`,
@@ -53,7 +56,8 @@ Tests: T-041.1 [integration], T-041.2 [integration]  (test-cases/status-next.yam
 Traces: UJ-03; cli:prd_status; `prdlint/interface.py`
 
 ### FR-042 The order of the items, each listed once
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:202 @3fc3086
 Acceptance (EARS):
 - AC-042.1 The status command shall order the Next items in three tiers, Broken (FR-043), then Waiting
   on you (FR-044), then Work (FR-045); inside the tiers by kind, in this order: `lint` (the lint item,
@@ -74,7 +78,8 @@ Tests: T-042.1 [integration], T-042.2 [integration], T-042.3 [integration]  (tes
 Traces: UJ-03; cli:prd_status
 
 ### FR-043 Broken: what must be fixed before anything else is trusted
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:48 @3fc3086
 Acceptance (EARS):
 - AC-043.1 When lint, run on the PRD folder as `prd lint` runs it, reports one or more errors, the
   status command shall list one `lint` item with the text
@@ -110,7 +115,8 @@ Tests: T-043.1 [integration], T-043.2 [integration], T-043.3 [integration], T-04
 Traces: UJ-03; cli:prd_status; cli:prd_lint
 
 ### FR-044 Waiting on you: the decisions only the owner can make
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:96 @3fc3086
 Acceptance (EARS):
 - AC-044.1 When `prd gates list`, run on the PRD folder in this checkout without `--worktrees`, lists
   one or more gates, the status command shall list one `gate` item per gate, in that command's order,
@@ -138,7 +144,8 @@ Tests: T-044.1 [integration], T-044.2 [integration], T-044.3 [integration], T-04
 Traces: UJ-03; cli:prd_status; `prd gates list`
 
 ### FR-045 Work: furthest along first
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:155 @3fc3086
 Acceptance (EARS):
 - AC-045.1 When `operations.md` names one or more environments in its Environments table and one or
   more blocks have the status `verified`, the status command shall list one `deploy` item with the
@@ -171,7 +178,8 @@ Tests: T-045.1 [integration], T-045.2 [integration], T-045.3 [integration], T-04
 Traces: UJ-03; cli:prd_status
 
 ### FR-046 Nothing waits
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:196 @3fc3086
 Acceptance (EARS):
 - AC-046.1 When no item of the kinds AC-042.1 lists exists and `operations.md` names one or more
   environments, the status command shall list one item of kind `idle` with the text
@@ -187,7 +195,8 @@ Tests: T-046.1 [integration], T-046.2 [integration]  (test-cases/status-next.yam
 Traces: UJ-03; cli:prd_status
 
 ### FR-047 A sentence ends with one full stop
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/nextpart.py:35 @3fc3086
 Acceptance (EARS):
 - AC-047.1 Where the text a sentence of FR-043 to FR-046 inserts last already ends in `.`, `?` or `!`, the
   status command shall end the sentence with that text and add no full stop of its own.
