@@ -170,9 +170,9 @@ nothing existing is minor, and one whose meaning changes is major; a test case o
 corrected to match its own unchanged AC is the patch below, and any other changed `expect` or
 contract item is major; a new test case under an unchanged AC adds a test expectation, so minor,
 unless it is a regression patch; any other file is decided by what its change does to behaviour.
-A change to `practices.md` is decided by the same table: a new source or practice is minor, a practice
-reworded with its meaning kept is patch, and a removed practice or a source moved to `declined` is
-minor.
+A change to `practices.md` is decided by the Level table, read this way: a new source or practice is
+minor, a practice reworded with its meaning kept is patch, and a removed practice or a source moved
+to `declined` is minor.
 Never hand the decision to the user, and never take `needs judgment` as leave to pick the lowest
 level.
 

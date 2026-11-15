@@ -181,8 +181,9 @@ picked. Otherwise show the map, recommend one area and why, and stop for the use
   §13 question.
 - **Practices.** Offer `/prd-toolkit:prd-practices <area>` (skill `prd-toolkit:sourcing-practices`):
   it proposes the area's best-practice sources, read and quoted, with the practices, standards rows
-  and skills they give. On the owner's yes, for the first area run it now, and step 5's gates decide
-  its rows with the bootstrap's; for a later area run it after step 5, as its own
+  and skills they give. On the owner's yes, for the first area run it now: the rows it writes carry the
+  owner's decisions from its own proposal, and step 5's gates do not ask for them again; for a later
+  area run it after step 5, as its own
   `/prd-toolkit:prd-change`, never inside the area's change.
 - The first area renames the template's `features/core.md` and `test-cases/core.yaml` to
   `features/<area>.md` and `test-cases/<area>.yaml`. A later area Reads the template's two

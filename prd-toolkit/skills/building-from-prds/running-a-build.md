@@ -327,9 +327,10 @@ tree, or a branch off the default branch, in step 1) and resumes the build at st
      block's T-ids (**Rounds**); only a gap neither the outline nor the rubric answers stops the
      build. When the implement pack has a Practices part that is not `None.`, the report holds one
      line per item: `P-nn: followed` or `P-nn: not applicable (<why>)` under CHANGES, or
-     `P-nn: not followed (<why>)` under QUESTIONS; an item with no line fails the judgment of the
-     report. A `P-nn: not followed (<why>)` line is handled as a required skill that cannot be
-     found is (the builder writes both as QUESTIONS): a question for the owner that stops the
+     `P-nn: not followed (<why>)` under QUESTIONS; an item with no line fails the round, as a
+     UNIT line that is not `pass` does. A `P-nn: not followed (<why>)` line is handled as a
+     required skill that cannot be found is (the builder writes both as QUESTIONS): a question
+     for the owner that stops the
      build as a PRD gap does, quoted in the stop report; the answer goes through
      `/prd-toolkit:prd-change` (the practice reworded or removed) or a new build. A UNIT line
      that is not `pass` fails the round, and the next builder round carries it
