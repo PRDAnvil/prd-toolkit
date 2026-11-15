@@ -171,14 +171,14 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-030 | Index every assumption marker | verified | features/lint-structure.md |  |
 | FR-031 | Require no open question once the PRD is Approved | verified | features/lint-structure.md |  |
 | FR-032 | Report a banned glossary synonym | verified | features/lint-structure.md |  |
-| UJ-02 | A person or a program asks what a field or a lint finding means | approved | features/help.md |  |
-| FR-033 | Print the index | approved | features/help.md |  |
-| FR-034 | Print one entry or one rule as text | approved | features/help.md |  |
-| FR-035 | Print the catalogue as one JSON document | approved | features/help.md |  |
-| FR-036 | Refuse what it cannot answer | approved | features/help.md |  |
-| FR-037 | The catalogue it reads, and what the shipped one covers | approved | features/help.md |  |
-| FR-038 | Every lint rule carries a description | approved | features/help.md |  |
-| FR-039 | A vendored copy answers the same | approved | features/help.md |  |
+| UJ-02 | A person or a program asks what a field or a lint finding means | verified | features/help.md |  |
+| FR-033 | Print the index | verified | features/help.md |  |
+| FR-034 | Print one entry or one rule as text | verified | features/help.md |  |
+| FR-035 | Print the catalogue as one JSON document | verified | features/help.md |  |
+| FR-036 | Refuse what it cannot answer | verified | features/help.md |  |
+| FR-037 | The catalogue it reads, and what the shipped one covers | verified | features/help.md |  |
+| FR-038 | Every lint rule carries a description | verified | features/help.md |  |
+| FR-039 | A vendored copy answers the same | verified | features/help.md |  |
 
 ## 12. Assumptions index
 

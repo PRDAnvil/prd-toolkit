@@ -9,7 +9,8 @@ names) and `see`. A rule's description is the text its registration in the lint 
 The help command takes no PRD folder and reads none.
 
 ### UJ-02 A person or a program asks what a field or a lint finding means
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_help.py:34 @858bb3b
 Flow: 1. run `prd help` and read the index of entry keys and rule names
       → 2. run `prd help --key block.ac` or `prd help --rule ac-ears`
       → 3. read what it is, why it is there and its formatting rules
@@ -17,7 +18,8 @@ Flow: 1. run `prd help` and read the index of entry keys and rule names
 Traces: FR-033, FR-034, FR-035, FR-036
 
 ### FR-033 Print the index
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_help.py:57 @858bb3b
 Acceptance (EARS):
 - AC-033.1 When run with no option, the help command shall print one line per catalogue entry,
   the entry's `key`, two spaces and its `name`, in the catalogue's order; then one empty line;
@@ -29,7 +31,8 @@ Tests: T-033.1 [integration]  (test-cases/help.yaml)
 Traces: UJ-02; cli:prd_help
 
 ### FR-034 Print one entry or one rule as text
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_help.py:61 @858bb3b
 Acceptance (EARS):
 - AC-034.1 When run with `--key` and the key of a catalogue entry, the help command shall print,
   in this order and with nothing else, the line `<name> (<key>)`; the line `What: <what>`; the
@@ -47,7 +50,8 @@ Tests: T-034.1 [integration], T-034.2 [integration], T-034.3 [integration]  (tes
 Traces: UJ-02; cli:prd_help
 
 ### FR-035 Print the catalogue as one JSON document
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_help.py:35 @858bb3b
 Acceptance (EARS):
 - AC-035.1 When run with `--json`, the help command shall print on stdout one JSON object on one
   line, ending in a newline, and nothing else,
@@ -72,7 +76,8 @@ Tests: T-035.1 [integration], T-035.2 [integration], T-035.3 [integration], T-03
 Traces: UJ-02; cli:prd_help; `prdlint/interface.py`
 
 ### FR-036 Refuse what it cannot answer
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/helpcat.py:48 @858bb3b
 Acceptance (EARS):
 - AC-036.1 If `--key` names no catalogue entry, the help command shall print the one stderr line
   `prd_help: no entry '<key>'`, print nothing on stdout and exit 2; if `--rule` names no
@@ -108,7 +113,8 @@ Tests: T-036.1 [integration], T-036.2 [integration], T-036.3 [integration], T-03
 Traces: UJ-02; cli:prd_help; `prdlint/interface.py`
 
 ### FR-037 The catalogue it reads, and what the shipped one covers
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/helpcat.py:25 @858bb3b
 Acceptance (EARS):
 - AC-037.1 While the setting `PRD_HELP_FILE` is set and not empty, the help command shall read
   the catalogue from the file that value names, and `<path>` in AC-036.3 is that value as given.
@@ -126,7 +132,8 @@ Tests: T-037.1 [integration], T-037.2 [integration], T-037.3 [integration]  (tes
 Traces: cli:prd_help; setting `PRD_HELP_FILE` (contracts/config.yaml)
 
 ### FR-038 Every lint rule carries a description
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/registry.py:9 @858bb3b
 Acceptance (EARS):
 - AC-038.1 The `rules` object of the AC-035.1 document shall hold exactly the rule names that
   `prd_lint.py --list-rules` prints, each with the severity that command prints, and each
@@ -143,7 +150,8 @@ Tests: T-038.1 [integration], T-038.2 [integration], T-038.3 [unit]  (test-cases
 Traces: cli:prd_help; cli:prd_lint; `prdlint/registry.py` DESCRIPTION
 
 ### FR-039 A vendored copy answers the same
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/hooks.py:15 @858bb3b
 Acceptance (EARS):
 - AC-039.1 When `prd_help.py` of a vendored copy (`.prd-toolkit/prd_help.py`) is run with
   `--json` and `PRD_HELP_FILE` unset, the help command shall print, byte for byte, the document
