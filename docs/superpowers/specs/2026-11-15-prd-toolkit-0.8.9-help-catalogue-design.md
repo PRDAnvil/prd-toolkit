@@ -199,3 +199,11 @@ is not rerun: no skill's text changes.
 - **An unknown key exits 2,** not 1 as first written (owner, 2026-11-15), to follow the toolkit's
   exit codes.
 - **`prd help` alone prints an index,** not the whole catalogue, which runs to several hundred lines.
+
+## Revisions
+
+- **2026-11-15, with the PRD change (6.3.0).** A setting, `PRD_HELP_FILE`: set and not empty, the
+  command reads the catalogue from that file instead of the shipped one. A black-box test of the
+  text and JSON forms needs to know every character of the output, and the shipped catalogue's
+  wording is not in the PRD, so the exact-output cases run on a three-entry fixture. The reasons a
+  catalogue is refused (section 5's last row) are listed in the PRD's AC-036.3.
