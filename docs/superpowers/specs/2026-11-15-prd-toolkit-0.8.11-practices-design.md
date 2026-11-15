@@ -213,4 +213,19 @@ a pack's author recommends for its platform. The skill proposes them first (§4 
 
 ## Revisions
 
-None yet.
+- **2026-11-15, while the requirements were written** (each is carried by an acceptance criterion):
+  - **The toolkit's own PRD goes to 7.0.0, a major version** (owner). Two existing test cases name
+    every lint rule line by line, and the 41st rule changes what they expect. The explicit lists are
+    kept, as the stronger test, so each later rule is again a major PRD version.
+  - **No Practices part without the file.** The implement context pack of a PRD with no
+    `practices.md` is byte for byte what it was; with the file and no matching practice the part
+    says `None.` (§6).
+  - **The paths a practice is matched against** in the pack are the area's Boundary: the pack takes
+    no list of a round's files (§6).
+  - **A glob that matches no file** is no finding, as for a section 5 row (§7).
+  - **A `proposed` source may be cited** by a practice or a section 5 row until the PRD is Approved,
+    so one change can propose a source with its practices; a `declined` or missing one is always a
+    finding (§7).
+  - **`prd change bump`** is not changed: a change to `practices.md` is decided by judgment, by §3's
+    rule (§7).
+  - **Catalogue entries:** `kind.S`, `kind.P`, `file.practices`, `table.sources`, `table.practices`.
