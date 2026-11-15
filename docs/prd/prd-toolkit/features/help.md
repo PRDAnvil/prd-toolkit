@@ -154,7 +154,7 @@ Traces: cli:prd_help; cli:prd_lint; `prdlint/registry.py` DESCRIPTION
 
 ### FR-039 A vendored copy answers the same
 Status: verified
-Source: prd-toolkit/scripts/prdlint/hooks.py:15 @858bb3b
+Source: prd-toolkit/scripts/prdlint/hooks.py:15 @541a963
 Acceptance (EARS):
 - AC-039.1 When `prd_help.py` of a vendored copy (`.prd-toolkit/prd_help.py`) is run with
   `--json` and `PRD_HELP_FILE` unset, the help command shall print, byte for byte, the document
