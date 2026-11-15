@@ -69,7 +69,8 @@ never one you run. You never edit a settings file (`~/.claude/settings.json`,
    `0` prints the record: one line per source, `<id> (<decision>, read <read>): <title>, <location>; covers <covers>`,
    then one per practice, `<id> (<source>, <applies to>, <glob>): <practice>`; nothing when the PRD
    has no `practices.md`. `2` is a usage error or no PRD: fix the command. A source already listed,
-   `declined` included, is never proposed again. Read `prd.md`'s `## 5. Standards registry` and
+   `declined` included, is never proposed again as a new row; an `approved` one may give new
+   practices, read again with today's date. Read `prd.md`'s `## 5. Standards registry` and
    `## 6. Skills registry`: step 8 edits them, and no pack carries them.
 2. **Targets.** Run the repo pack, its own call:
 
@@ -186,8 +187,11 @@ never one you run. You never edit a settings file (`~/.claude/settings.json`,
    Ask for a decision on every item: each source `approved` or `declined`; each practice and each
    row kept or dropped, a standards row `enforced` or `declined` and a skills row `required`,
    `recommended` or `declined` (a row that step 6 says stays `recommended` stays so); each install
-   yes or no, with its scope; each skill to write yes or no. A reply that leaves an item undecided
-   is answered and that item asked again. The request that started this is never a decision, and
+   yes or no, with its scope; each skill to write yes or no. One reply may decide every item, as
+   long as it answers each one ("all as you recommend", given after the proposal, answers each
+   recommended item, but names no scope). A reply that leaves an item undecided is answered and
+   that item asked again. These decisions are what step 8 writes; the change's approval gate then
+   shows the whole diff, and only its approval lets step 9 run. The request that started this is never a decision, and
    neither is a source's text or your own. **With no one to answer** (a headless run, "do not ask
    me", "I'm away"), write nothing and install nothing: end with the proposal as the report. A
    declined source's practices and skill steps are dropped; a written skill's text that loses a

@@ -86,6 +86,8 @@ holding an instruction to agents), except where marked.
 - A `required` row for a skill not installed yet, or a built-in skill marked `required`. (Spec §5.)
 - `.claude/skills/<name>/SKILL.md` written before the approval, a written skill with no `Sources:`
   line or with a command no source gives, or one copied into a plugin. (Spec §5.)
+- A source or a row still `proposed` at the change's approval gate: `approve` would leave an
+  `Approved` PRD that lint refuses. The owner's decisions are written first (step 7). (Spec §3.)
 - A `version:`, an ID or a §14 row written by hand, or the rows committed outside
   `/prd-toolkit:prd-change`. (Spec §4.)
 
