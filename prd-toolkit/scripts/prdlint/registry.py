@@ -6,6 +6,7 @@ from .model import Prd
 
 RULES: dict[str, Callable[[Prd], Iterable[Finding]]] = {}
 SEVERITY: dict[str, str] = {}  # rule name -> "error" (default) or "warn"
+DESCRIPTION: dict[str, str] = {}  # rule name -> what it checks and how to clear a finding; prd_help.py prints it, lint never
 
 
 class RuleCrash(Exception):
@@ -15,10 +16,11 @@ class RuleCrash(Exception):
         self.exc = exc
 
 
-def rule(name: str, severity: str = "error"):
+def rule(name: str, severity: str = "error", description: str = ""):
     def register(fn):
         RULES[name] = fn
         SEVERITY[name] = severity
+        DESCRIPTION[name] = description
         return fn
 
     return register

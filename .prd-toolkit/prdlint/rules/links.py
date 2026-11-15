@@ -29,7 +29,7 @@ def _location_ok(cell: str) -> bool:
     return True
 
 
-@rule("links-format")
+@rule("links-format", description="Checks links.md: its three headings, the Upstreams header, each upstream a unique PRD slug with a backticked path or git URL with a folder, version X.Y.Z and commit 7-40 hex digits set together, and Needs verified or live in an environment. Fix the cell the message names; only prd_links.py sync writes Version and Commit.")
 def links_format(prd: Prd):
     links = prd.links
     if links is None:
@@ -86,7 +86,7 @@ def _columns(c) -> dict[str, set[str]]:
     return out
 
 
-@rule("upstream-refs")
+@rule("upstream-refs", description="Checks that each reference to an upstream item (a prefixed target, Traces token or prose span) names an Upstreams row, a kind that crosses repositories, and an item, or column, present in that upstream's snapshot. Run prd_links.py sync to bring the item into the snapshot, or correct the reference.")
 def upstream_refs(prd: Prd):
     from ..citations import crosses
     from ..model import parse_ref, ref_prefix
@@ -127,7 +127,7 @@ def upstream_refs(prd: Prd):
             yield bad(f"{who}: no column '{c.column}' in table {c.name} in the {c.upstream} snapshot")
 
 
-@rule("snapshot-cited")
+@rule("snapshot-cited", description="Checks that each snapshot folder under contracts/upstream/ has an Upstreams row, that each snapshot file has its header line and that every item in it is cited, and that every Upstreams row is cited somewhere. Cite the item, or run prd_links.py sync to drop what is no longer cited.")
 def snapshot_cited(prd: Prd):
     from ..snapshot import contracts_of_snapshot, items
 
@@ -170,7 +170,7 @@ def _rank(state: str) -> int:
     return STATES.index(state) if state in STATES else len(STATES)  # `live in <env>` is the last
 
 
-@rule("change-sets")
+@rule("change-sets", description="Checks each changes/CS-nnn.md record: one Started: and one Status: line within the grammar, a ## Log section, row states and targets within the grammar, Order 1, 2, … in table order, no row short of its target once done, and each ID defined once. Records are written by prd_links.py changeset; fix the line the message names.")
 def change_sets(prd: Prd):
     if prd.links is None:  # R-10c: changes/ is an ordinary folder in a PRD without links.md
         return

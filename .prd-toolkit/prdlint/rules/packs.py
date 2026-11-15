@@ -8,7 +8,7 @@ from ..model import Prd
 from ..registry import rule
 
 
-@rule("pack-resolves")
+@rule("pack-resolves", description="Checks the profile lines (Pack: and Output language: in section 1, Target: in a features file) and that each pack they name resolves at its version from its source and fits this toolkit. Fix the line's form or position, name one version per pack, or run prd_hooks.py install when the vendored copy differs.")
 def pack_resolves(prd: Prd):
     """Malformed, repeated or misplaced profile lines, then each named pack that does not resolve, on the line naming it."""
     for file, line, message in prd.profile_problems:
@@ -37,7 +37,7 @@ def pack_resolves(prd: Prd):
             yield Finding(ref.file, ref.line, "pack-resolves", f"pack {ref.name}: {packs.MANIFEST}: {e}")
 
 
-@rule("platform-word", severity="warn")
+@rule("platform-word", severity="warn", description="Warns when a requirement title or a live AC names a word of its area's pack vocabulary, a detail of the platform rather than the behaviour. Move the word to a contract, a Harness slot or the area's Target: line; a warning never fails a gate.")
 def platform_word(prd: Prd):
     """A requirement title or live AC that names a word of its area's pack vocabulary (a soft warning)."""
     for b in prd.blocks:

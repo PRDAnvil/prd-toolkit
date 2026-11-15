@@ -39,7 +39,7 @@ def _sequence(prd: Prd):
         prev, top = e, max(top, n)
 
 
-@rule("error-entries")
+@rule("error-entries", description="Checks errors.md entries: they run from E-001 upward with no gap, newest last; Detected and Confirmed in their forms, a known Classification, Evidence of at most 20 lines, a Recurrence of that names an entry, and no Confirmed on an unclassified entry. Fix the line the message names; restore a deleted entry from git.")
 def error_entries(prd: Prd):
     yield from _sequence(prd)
     for e in prd.errors_ledger.values():

@@ -513,7 +513,7 @@ def _check_custom(prd: Prd) -> Iterator[Finding]:
                 yield bad(f"validator failed: {first}")
 
 
-@rule("contracts-valid")
+@rule("contracts-valid", description="Checks each contract file against its shape: OpenAPI operations, errors.yaml codes, permissions, config settings, data classification, dependencies, events.md sections, schema.sql that parses in the sql-dialect with a comment on every table and column, and each custom or pack type's validator. Fix the file the message names to the shape in prd-format.md's Contract YAML shapes.")
 def contracts_valid(prd: Prd):
     # parse errors, duplicate keys and non-mapping top levels are reported by the loader
     for rel, data in prd.yaml.items():
@@ -551,7 +551,7 @@ _FILE_EXTENSIONS = {"csv", "tsv", "sql", "yaml", "yml", "json", "md", "txt", "lk
 _QUALIFIED = re.compile(r"([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
 
 
-@rule("schema-refs")
+@rule("schema-refs", description="Checks that a backticked table.column in prose names a column the table in contracts/schema.sql has. Correct the column name, or add the column to the schema.")
 def schema_refs(prd: Prd):
     tables_ = schema_tables(prd)
     if not tables_:
@@ -613,7 +613,7 @@ def _test_case_codes(prd: Prd) -> set[str]:
     return codes
 
 
-@rule("error-codes")
+@rule("error-codes", description="Checks that every error code a block's Errors: line, an OpenAPI x-error-codes list or a dependency's failures cite is in contracts/errors.yaml, and that every catalogued code is cited somewhere, a test case's expect.errors included. Add the code to the catalogue, or cite or delete the unused one.")
 def error_codes(prd: Prd):
     catalogue = prd.yaml.get("contracts/errors.yaml")
     if not isinstance(catalogue, dict):

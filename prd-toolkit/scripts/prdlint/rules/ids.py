@@ -62,7 +62,7 @@ def _yaml_strings(node, line: int) -> Iterator[tuple[int, str]]:
         yield line, node
 
 
-@rule("id-format")
+@rule("id-format", description="Checks that every ID in the PRD's prose and YAML has its kind's form: UJ-nn, FR-nnn, NFR-nnn, AC-nnn.n, T-nnn.n, E-nnn or A-nn. Rewrite the ID the finding quotes with the digits its pattern gives (FR-012, not FR-12).")
 def id_format(prd: Prd):
     def check(file: str, n: int, text: str):
         for m in _TOKEN.finditer(text):
@@ -77,7 +77,7 @@ def id_format(prd: Prd):
             yield from check(rel, n, text)
 
 
-@rule("id-unique")
+@rule("id-unique", description="Checks that each ID is defined once (a block heading, an AC, a test-case key, an errors.md entry, an assumption row) and that an FR and an NFR never share a number, since they use one sequence. Renumber the later definition with `prd change ids next`, or delete the repeated test-case key; the first one is kept.")
 def id_unique(prd: Prd):
     # duplicate keys within one test-case file are reported by the loader under this rule
     ids = defined_ids(prd)
@@ -137,7 +137,7 @@ def _walk_prd_ids(node) -> Iterator[tuple[int, str]]:
             yield from _walk_prd_ids(v)
 
 
-@rule("id-removed-reused")
+@rule("id-removed-reused", description="Checks that a removed requirement says removed in both its block and its section 11 row, and that no test case's ac:, x-prd-ids entry or Traces line cites a removed requirement or AC. Mark both places removed, or cite a live ID instead; IDs are never reused.")
 def id_removed_reused(prd: Prd):
     removed, findings = _removed(prd)
     yield from findings
@@ -170,7 +170,7 @@ def id_removed_reused(prd: Prd):
                     yield Finding(b.file, n, "id-removed-reused", f"{b.id} Traces cites {why}")
 
 
-@rule("index-consistent")
+@rule("index-consistent", description="Checks that the section 11 index and the requirement blocks agree: one row per block and one block per row, the same title, file and status, a since version on live, a Source line on as-built, a known status, and that each errors.md Touches ID and each adoption area past not started exists. Edit the index row or the block until the two match, as the message says.")
 def index_consistent(prd: Prd):
     block = {b.id: b for b in prd.blocks}
     rows: dict[str, IndexRow] = {}
@@ -217,7 +217,7 @@ def index_consistent(prd: Prd):
             yield Finding("prd.md", r.line, "index-consistent", f"{r.id}: index status '{r.status}' differs from block status '{b.status}'")
 
 
-@rule("fr-has-ac")
+@rule("fr-has-ac", description="Checks that every FR and NFR that is not removed has at least one acceptance criterion that is not removed. Add an AC-nnn.n line under Acceptance (EARS):, or mark the requirement removed.")
 def fr_has_ac(prd: Prd):
     for b in prd.blocks:
         if b.kind not in ("FR", "NFR") or b.status == "removed":
@@ -228,7 +228,7 @@ def fr_has_ac(prd: Prd):
             yield Finding(b.file, b.line, "fr-has-ac", f"{b.id} has no live acceptance criteria; remove the requirement instead")
 
 
-@rule("ac-ears")
+@rule("ac-ears", description="Checks that each live acceptance criterion starts with an EARS opener of the PRD's language table (When, While, If, Where) or the ubiquitous form The <thing> shall, and contains its modal verb (shall). Rewrite the AC in one of the EARS patterns of references/ears.md.")
 def ac_ears(prd: Prd):
     table = languages.for_prd(prd)
     if table is None:
@@ -242,7 +242,7 @@ def ac_ears(prd: Prd):
                 yield Finding(b.file, ac.line, "ac-ears", f"{ac.id} must contain '{table.modal_word}'")
 
 
-@rule("nfr-bound")
+@rule("nfr-bound", description="Checks that each NFR that is not removed states a measurable bound: a number with a unit such as ms, s, %, requests/s or MB, outside its IDs. Write the number a test can fail against, such as within 200 ms at p95.")
 def nfr_bound(prd: Prd):
     for b in prd.blocks:
         if b.kind == "NFR" and b.status != "removed":
