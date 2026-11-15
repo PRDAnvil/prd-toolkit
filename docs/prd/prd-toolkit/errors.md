@@ -208,7 +208,7 @@ Recurrence of: -
 
 ### E-020 prd help prints a traceback and exits 1 when the catalogue file exists and cannot be read
 Detected: 2026-11-15, final review of the 0.8.9 branch
-Classification: unclassified
+Classification: spec gap
 Touches: FR-036
 Evidence: Final review of the 0.8.9 branch, 2026-11-15:
   chmod 000 unread.yaml
@@ -216,6 +216,6 @@ Evidence: Final review of the 0.8.9 branch, 2026-11-15:
   Traceback ... helpcat.py line 90 ... PermissionError: [Errno 13] Permission denied: '<tmp>/unread.yaml'
   exit=1
   The same with --json (stdout is empty: no error document) and with --key a.
-Diagnosis: -
+Diagnosis: Reproduced once: with `PRD_HELP_FILE` naming a file of mode 000, `prd help --json` prints a Python traceback ending `PermissionError: [Errno 13] Permission denied`, nothing on stdout, exit 1. Root cause: `load()` in `prd-toolkit/scripts/prdlint/helpcat.py` checks `is_file()`, then calls `read_bytes()` and catches only the YAML error, so an OSError from the read escapes. Class against the PRD: AC-036.3 says "If the catalogue cannot be used, the help command shall print the one stderr line `prd_help: <path>: <reason>`, print nothing on stdout and exit 2", where the reason "is the first that applies of: `no such file`; `YAML parse error: <the parser's problem>`; `top level must be a list`" and the entry reasons; none of them applies to a file that exists and cannot be read, and no test case covers it, so the PRD does not say which line to print. The FR-036 edge cases "exit 1 is never used" and "no exit-2 path prints a traceback" show the intent. The fix adds a reason to AC-036.3 (for example `cannot read: <the system's reason>`), a test case, and the catch in `load()`.
 Resolution: -
 Recurrence of: -
