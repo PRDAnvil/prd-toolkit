@@ -29,7 +29,9 @@ together.
    Add `--json` only when asked for JSON. Never pipe, filter or truncate the output (no `| head`,
    no `| grep`): `prd-status-exit=` then reports the filter's status, not the script's.
 3. Print the output as it is. The report starts with the part Next, the ordered list of what the
-   PRD needs, each item with the command that does it; then Header, Requirements, Areas, Adoption
+   PRD needs, each item with its command when a command does it; then Header, Requirements, Areas, Adoption
    map, Not built, Not verified, Open errors, Upstreams, Consumers, Change sets, CI, Deployed and
-   Matrix. A vendored copy older than 0.8.10 prints no Next part. It is read-only.
+   Matrix. A vendored copy older than 0.8.10 prints no Next part. The script
+   changes nothing itself; to find the Next items it runs lint, which runs the PRD's section 7
+   validator commands.
 4. On `prd-status-exit=2`, the call was wrong and nothing printed: fix the path.
