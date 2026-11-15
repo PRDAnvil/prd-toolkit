@@ -75,6 +75,27 @@
   checked_by: [change-sets]
   see: links.md
 
+- key: kind.S
+  name: Source
+  what: "A row `S-nn` of the Sources table in `practices.md`: a document the project's practices come from, with its title, its location, what it covers, the date it was read and its decision."
+  why: "A practice names the source it was taken from, and a section 5 standards row can name one in its Rules live in cell, so a reader can find the document and see that it was approved."
+  rules:
+    - "The ID is `S-` and two digits (`S-01`), once in the Sources table; `prd change ids next docs/prd/<slug> S` prints the next free one."
+    - "Decision is `approved`, `declined` or `proposed`; a source may not stay `proposed` once the PRD is Approved."
+    - "Read is the date the source was read, `YYYY-MM-DD`, a day of the calendar."
+    - "Each `S-nn` a section 5 row names in its Rules live in cell is a source of the Sources table, and an approved one."
+  checked_by: [practices]
+
+- key: kind.P
+  name: Practice
+  what: "A row `P-nn` of the Practices table in `practices.md`: one practice taken from a source, what it applies to and what it says."
+  why: "The implement context pack of an area lists each code practice whose glob matches one of the area's paths, so the builder works to it."
+  rules:
+    - "The ID is `P-` and two digits (`P-01`), once in the Practices table; `prd change ids next docs/prd/<slug> P` prints the next free one."
+    - "Source names an `S-nn` of the Sources table that is approved, or proposed while the PRD is not Approved."
+    - "Applies to is `code` or `prd`; a code practice has a glob in Object (glob), not empty and not `-`."
+  checked_by: [practices]
+
 - key: block.title
   name: Title
   what: "The heading of a requirement block, `### <ID> <title>`: the ID and a short name of what it does."
@@ -470,3 +491,35 @@
     - "Fixture data under `contracts/fixtures/`, files other than Markdown, YAML, SQL and JSON (such as `.lkml`), and hidden or editor-backup files are not scanned."
   checked_by: [markers-open]
   see: Requirement blocks
+
+- key: file.practices
+  name: Practices file
+  what: "The optional file `practices.md` directly in the PRD folder: a Sources table of the documents the project's practices come from and a Practices table of the practices taken from them."
+  why: "It records where each practice comes from and whether its source was approved, so `prd practices` and the implement context pack can give an agent the practices that apply to the files it changes."
+  rules:
+    - "It sits directly in the PRD folder; a `practices.md` in a subfolder is not read."
+    - "Each table is the first pipe table under its level-2 heading, `## Sources` or `## Practices`."
+    - "Without the file the PRD has no practices, and the rule `practices` reports nothing."
+    - "`prd practices docs/prd/<slug>` lists both tables; with `--paths` it lists only the code practices whose glob matches one or more of the paths."
+  checked_by: [practices]
+
+- key: table.sources
+  name: Sources table
+  what: "The table under `## Sources` in `practices.md`, one row per source: ID, Title, Location, Covers, Read and Decision."
+  why: "It is the one list of the documents the PRD's practices and standards rest on, each with the date it was read and whether it was approved."
+  rules:
+    - "Lint does not check the header row and reads the cells by position, so keep the columns in the order ID, Title, Location, Covers, Read, Decision; a missing cell reads as empty."
+    - "Each ID is `S-` and two digits, once in the table."
+    - "Decision is `approved`, `declined` or `proposed`, and no longer `proposed` once the PRD is Approved; Read is a date `YYYY-MM-DD`."
+  checked_by: [practices]
+
+- key: table.practices
+  name: Practices table
+  what: "The table under `## Practices` in `practices.md`, one row per practice: ID, Source, Object (glob), Applies to and Practice."
+  why: "Each row ties one practice to its source and to the files it governs, which is how the implement context pack and `prd practices --paths` choose the practices for a change."
+  rules:
+    - "Lint does not check the header row and reads the cells by position, so keep the columns in the order ID, Source, Object (glob), Applies to, Practice; a missing cell reads as empty."
+    - "Each ID is `P-` and two digits, once in the table."
+    - "Source is an `S-nn` of the Sources table that is approved, or proposed while the PRD is not Approved."
+    - "Applies to is `code` or `prd`; a code practice has a glob in Object (glob)."
+  checked_by: [practices]

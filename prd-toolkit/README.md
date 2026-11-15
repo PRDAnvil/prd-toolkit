@@ -109,7 +109,7 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 .prd-toolkit/prd help --json             # the whole catalogue as one JSON document
 ```
 
-- `prd help` answers what a field of a PRD or a lint finding means. The catalogue holds 43 entries,
+- `prd help` answers what a field of a PRD or a lint finding means. The catalogue holds 48 entries,
   one per field of the PRD grammar (a section, a block line, a test-case key, a marker, a kind of
   ID), and the 41 lint rules each carry a description: what the rule checks and how to clear its
   finding. It takes no PRD folder and reads none.
