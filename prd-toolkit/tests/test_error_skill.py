@@ -110,15 +110,15 @@ def test_procedure_opens_with_the_checklist_and_numbers_its_steps():
 def test_each_step_runs_its_ledger_command():
     t = RUN.read_text(encoding="utf-8")
     for cmd in ("new", "list", "propose", "confirm", "resolve", "check"):
-        assert f"uv run --script <scripts>/prd_error.py {cmd} docs/prd/<slug>" in t, cmd
-    assert "prd_error.py new" in step(1)
-    assert "prd_error.py propose" in step(3) and "prd_error.py list" in step(3)
-    assert "prd_error.py confirm" in step(4)
+        assert f"<scripts>/prd error {cmd} docs/prd/<slug>" in t, cmd
+    assert "<scripts>/prd error new" in step(1)
+    assert "<scripts>/prd error propose" in step(3) and "<scripts>/prd error list" in step(3)
+    assert "<scripts>/prd error confirm" in step(4)
     six = step(6)
-    assert "prd_error.py resolve" in six and "prd_error.py check" in six
-    assert six.index("prd_error.py resolve") < six.index("prd_error.py check")
+    assert "<scripts>/prd error resolve" in six and "<scripts>/prd error check" in six
+    assert six.index("<scripts>/prd error resolve") < six.index("<scripts>/prd error check")
     for n in (1, 2, 4, 5):
-        assert "prd_error.py resolve" not in step(n), n
+        assert "prd_error.py resolve" not in step(n) and "prd error resolve" not in step(n), n
 
 
 def test_gate_form_on_every_script_line():
@@ -126,7 +126,7 @@ def test_gate_form_on_every_script_line():
         for line in path.read_text(encoding="utf-8").splitlines():
             for script, gate in (("prd_error.py", "prd-error-exit"), ("prd_deploy.py", "prd-deploy-exit"),
                                  ("prd_lint.py", "prd-lint-exit")):
-                if f"<scripts>/{script}" in line:
+                if f"<scripts>/{script}" in line or f"<scripts>/prd {script[4:-3].replace('_', '-')} " in line:
                     assert f'echo "{gate}=$?"' in line, (path.name, line)
 
 
@@ -137,8 +137,8 @@ def test_procedure_commands_are_one_per_call_with_literal_paths():
         head = line.split('; echo "', 1)[0]  # the gate form is the one allowed `;`
         for bad in ("$(", "&&", "||", " | ", ";", "<(", "${CLAUDE_PLUGIN_ROOT}"):
             assert bad not in head, (bad, line)
-        if ".py" in line:
-            assert line.strip().startswith("uv run --script <scripts>/"), line
+        if ".py" in line or "<scripts>/" in line:
+            assert line.strip().startswith("<scripts>/prd "), line
     t = flat(RUN)
     assert "One command per Bash call, with literal paths." in t
     assert "`${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call" in t
@@ -146,7 +146,7 @@ def test_procedure_commands_are_one_per_call_with_literal_paths():
     assert "two directories above the skill's base directory" in t and "a literal absolute path" in t
     for path in (SKILL, RUN, COMMAND):
         assert '"${CLAUDE_PLUGIN_ROOT}/scripts/' not in path.read_text(encoding="utf-8"), path.name
-    assert "`.prd-toolkit/prd_error.py`" in flat(SKILL)
+    assert "Run the vendored copy through `.prd-toolkit/prd` when `.prd-toolkit/` exists" in flat(SKILL)
 
 
 def test_free_text_goes_in_single_quotes():
@@ -291,7 +291,7 @@ def test_every_change_made_for_the_entry_cites_it():
 
 def test_step_6_closes_and_checks_from_start():
     six = step(6)
-    assert "uv run --script <scripts>/prd_error.py check docs/prd/<slug> <start>..HEAD" in RUN.read_text(encoding="utf-8")
+    assert "<scripts>/prd error check docs/prd/<slug> <start>..HEAD" in RUN.read_text(encoding="utf-8")
     for form in ("--t <T-id> --version <X.Y.Z> --commit <sha>", "--run <run id> --t <T-id> --version <X.Y.Z>",
                  "--not-a-defect '<why>'"):
         assert form in six, form
@@ -507,7 +507,7 @@ def test_resolve_only_after_the_fix_passed():
     assert ("Resolve only when the `--fixes` build closed with every regression T-id `pass` (its suite RESULTS, "
             "or the builder's unit result) and the block `verified`") in six
     assert "otherwise run `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` again" in six
-    assert six.index("Resolve only when") < six.index("prd_error.py resolve")
+    assert six.index("Resolve only when") < six.index("<scripts>/prd error resolve")
 
 
 CHANGING = ROOT / "skills/changing-prds/SKILL.md"
@@ -538,7 +538,7 @@ def test_environment_redeploy_needs_the_users_word():
 
 
 def test_recurrence_lookup_is_a_command():
-    assert ('uv run --script <scripts>/prd_error.py list docs/prd/<slug>; echo "prd-error-exit=$?"'
+    assert ('<scripts>/prd error list docs/prd/<slug>; echo "prd-error-exit=$?"'
             in RUN.read_text(encoding="utf-8"))
 
 
@@ -579,7 +579,7 @@ def test_r16_a_test_case_that_contradicts_its_ac_is_an_invalid_requirement():
 
 
 def test_r17_step_3_passes_touches_to_propose():
-    cmd = step(3).split("prd_error.py propose", 1)[1].split("; echo", 1)[0]
+    cmd = step(3).split("<scripts>/prd error propose", 1)[1].split("; echo", 1)[0]
     assert "--touches <IDs>" in cmd
     assert "the blocks the diagnosis names" in step(3)
 

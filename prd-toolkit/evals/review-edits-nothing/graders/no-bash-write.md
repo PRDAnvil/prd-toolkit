@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'sed -i|perl -i|>>?\s*\S*docs/prd/orders/(?!\.prd-review\.json)|tee \S*docs/prd|git (?:commit|stash|checkout|restore|reset)\b|prd_change\.py\S* (?:record|approve)'
+input_match: 'sed -i|perl -i|>>?\s*\S*docs/prd/orders/(?!\.prd-review\.json)|tee \S*docs/prd|git (?:commit|stash|checkout|restore|reset)\b|(?:prd_change\.py\S*|/prd(?:\\")?\s+change) (?:record|approve)'
 min: 0
 max: 0
 ---

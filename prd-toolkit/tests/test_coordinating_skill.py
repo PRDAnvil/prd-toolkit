@@ -149,8 +149,8 @@ def test_procedure_commands_are_one_per_call_with_literal_paths():
         head = line.split('; echo "', 1)[0]  # the gate form is the one allowed `;`
         for bad in ("$(", "&&", "||", " | ", ";", "<(", "${CLAUDE_PLUGIN_ROOT}", "cd "):
             assert bad not in head, (bad, line)
-        if "prd_links.py" in line:
-            assert ".prd-toolkit/prd_links.py " in line and line.startswith("uv run --script "), line
+        if ".prd-toolkit/prd links " in line:
+            assert line.startswith(("<start>/.prd-toolkit/prd links ", "<root>/.prd-toolkit/prd links ")), line
             assert line.endswith(GATE), line
     t = flat(RUN)
     assert "One command per Bash call, with literal paths." in t
@@ -162,9 +162,9 @@ def test_procedure_commands_are_one_per_call_with_literal_paths():
 def test_every_changeset_command_is_given():
     t = RUN.read_text(encoding="utf-8")
     for action in ("new", "set", "approve", "stop", "log", "close", "abandon"):
-        assert f".prd-toolkit/prd_links.py changeset {action} " in t, action
-    assert ".prd-toolkit/prd_links.py impact " in t
-    assert ".prd-toolkit/prd_links.py sync " in t and " --ref <branch>" in t
+        assert f".prd-toolkit/prd links changeset {action} " in t, action
+    assert ".prd-toolkit/prd links impact " in t
+    assert ".prd-toolkit/prd links sync " in t and " --ref <branch>" in t
 
 
 def test_free_text_goes_in_single_quotes():
@@ -198,11 +198,11 @@ def test_prose_lines_are_wrapped():
 
 def test_step_1_scope():
     one = step(1)
-    assert one.index("prd_links.py impact") < one.index("prd_links.py changeset new")
+    assert one.index(".prd-toolkit/prd links impact") < one.index(".prd-toolkit/prd links changeset new")
     assert "confirms the members with the user" in one
     assert "An unreachable consumer is never skipped" in one
     assert "says in their own words that it stays out" in one and "the Log quotes them" in one
-    assert "prd_links.py changeset log" in one
+    assert ".prd-toolkit/prd links changeset log" in one
     assert "the request is never that answer" in one  # C4: "skip it" in the request is not the user's say
     assert "cut from that member's default branch" in one
 
@@ -213,8 +213,8 @@ def test_step_2_edit():
     assert "prd-toolkit:changing-prds" in two and "up to its approval" in two
     for s in ("restate", "edit", "bump", "lint", "dry run"):
         assert s in two, s
-    assert "prd_links.py sync" in two and "--ref <branch>" in two and "every downstream member" in two
-    assert "prd_links.py changeset set" in two and "version=" in two and "ids=" in two
+    assert ".prd-toolkit/prd links sync" in two and "--ref <branch>" in two and "every downstream member" in two
+    assert ".prd-toolkit/prd links changeset set" in two and "version=" in two and "ids=" in two
 
 
 def test_step_3_one_approval():
@@ -222,7 +222,7 @@ def test_step_3_one_approval():
     assert "every member's PRD diff together" in three and "stop" in three
     assert "One explicit reply approves the set" in three
     assert "--reply '<the reply, verbatim>'" in three
-    assert three.index("prd_links.py changeset approve") < three.index("approval commit")
+    assert three.index(".prd-toolkit/prd links changeset approve") < three.index("approval commit")
     assert "-m \"Change-set: <start-prd>/CS-<nnn>\"" in three
     assert "never a reply" in three  # the request ("approve each repository as we go") is not one
 
@@ -238,23 +238,23 @@ def test_step_4_build_in_order():
     assert "A `set` past the row's Target is refused too" in four
     assert four.index("/prd-toolkit:prd-build") < four.index("prd_links.py sync --ref <branch>")  # the build runs it (Important 3)
     assert "/prd-toolkit:prd-deploy --until <env>" in four and "deploying-from-prds" in four
-    assert "prd_links.py changeset set" in four and "state=" in four
+    assert ".prd-toolkit/prd links changeset set" in four and "state=" in four
     assert "refuses a State that skips its Waits for" in four
 
 
 def test_step_5_stops():
     five = step(5)
-    assert "prd_links.py changeset stop" in five
+    assert ".prd-toolkit/prd links changeset stop" in five
     assert "the row keeps its State" in five  # the plan's ruling: a stop goes on Status
     assert "/prd-toolkit:prd-error" in five and "prd-toolkit:handling-errors" in five
     assert "--amendment" in five and "approved alone" in five
     assert "A new session resumes from the record alone" in five
-    assert "prd_links.py changeset abandon" in five
+    assert ".prd-toolkit/prd links changeset abandon" in five
 
 
 def test_step_6_close():
     six = step(6)
-    assert "prd_links.py changeset close" in six and "Merge order" in six
+    assert ".prd-toolkit/prd links changeset close" in six and "Merge order" in six
     assert "The toolkit pushes and merges nothing" in six
     assert "upstream first" in six
     assert "re-locks each downstream against the upstream's default branch" in six
@@ -345,10 +345,10 @@ def test_snapshot_tool_is_named():
 def test_changing_prds_runs_impact_after_the_restate_and_hands_off():
     t = CHANGING.read_text(encoding="utf-8")
     restate, bump = t.index("1. **Restate the change**"), t.index("3. **Bump the version**")
-    at = t.index("prd_links.py impact")
+    at = t.index("<scripts>/prd links impact")
     assert restate < at < bump
     para = " ".join(t[at - 600:bump].split())
-    assert 'uv run --script <scripts>/prd_links.py impact docs/prd/<slug>; echo "prd-links-exit=$?"' in para
+    assert '<scripts>/prd links impact docs/prd/<slug>; echo "prd-links-exit=$?"' in para
     assert "When `links.md` has Consumers" in para
     assert "`1`" in para and "`3`" in para and "stops this change" in para
     assert "/prd-toolkit:prd-change-set" in para and "prd-toolkit:coordinating-prds" in para
@@ -366,7 +366,7 @@ def test_running_a_build_on_a_change_set_branch():
     para_at = t.index("**On a change-set branch.**")
     assert para_at < t.index("3. **Dispatch the builder's round, then the tester.**")
     para = " ".join(t[para_at:t.index("\n\n**", para_at + 10)].split())
-    assert ('uv run --script <scripts>/prd_links.py sync docs/prd/<slug> <upstream> --ref <branch>; '
+    assert ('<scripts>/prd links sync docs/prd/<slug> <upstream> --ref <branch>; '
             'echo "prd-links-exit=$?"') in t
     assert "each upstream member" in para and "before the dispatch" in para
     assert '-m "Change-set: <start-prd>/CS-<nnn>"' in para
@@ -431,7 +431,7 @@ def test_r11b_each_members_edit_is_committed_in_review_before_a_downstream_syncs
               '-m "Refs: none (no behaviour change)" -m "Change-set: <start-prd>/CS-<nnn>"')
     assert commit in two and "git -C <root> add docs/prd/<prd>" in two
     assert "`sync` reads committed content" in two and "`status: In review`" in two
-    assert two.index(commit) < two.index("prd_links.py sync")
+    assert two.index(commit) < two.index(".prd-toolkit/prd links sync")
     assert ("A sync refused after the upstream's in-review commit means the downstream cites something the "
             "upstream's edit does not have: fix the edit in whichever member is wrong") in two
     assert "never the snapshot" in two
@@ -465,7 +465,7 @@ def test_important3_step_4_leaves_the_sync_to_the_build():
     assert "This step runs no sync of its own" in four
     assert "`running-a-build.md` runs the `prd_links.py sync --ref <branch>`" in four
     assert "commits the re-lock before its clean-tree preflight" in four
-    assert sum(1 for line in bash_lines(RUN) if "prd_links.py sync" in line and "--ref <branch>" in line) == 1  # step 2's
+    assert sum(1 for line in bash_lines(RUN) if ".prd-toolkit/prd links sync" in line and "--ref <branch>" in line) == 1  # step 2's
     b = flat(BUILD_RUN)
     assert "it is the change set's only sync before a build (`running-a-change-set.md` step 4 leaves it here)" in b
 
@@ -519,7 +519,7 @@ def test_r11e_a_members_step_2_runs_whole_from_its_own_root():
     assert "Step 2 never edits another member's PRD from this session" in two
     assert ("that member's own session does all of step 2 for its row (edit, bump, lint, dry run, the in-review "
             "commit, `changeset set version=…`), with nothing half-done left behind") in two
-    assert two.index("Step 2 never edits another member's PRD") < two.index("prd_links.py sync")
+    assert two.index("Step 2 never edits another member's PRD") < two.index(".prd-toolkit/prd links sync")
     assert "continue from <root> at step" not in t
 
 

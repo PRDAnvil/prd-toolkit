@@ -182,3 +182,26 @@ Evidence: User report (/prd-error), 2026-11-11: prd_error.py check over a range 
 Diagnosis: not a defect: reproduced, `prd_error.py check docs/prd/prd-toolkit c8f48cf~1..HEAD` exits 1 with `Detected: changed` on E-001 to E-006 and E-009 to E-013, and the same check from c8f48cf exits 0. The findings are true: c8f48cf rewrote those entries' `Detected:` lines (for example `model.py:713 @d1a4146` became `@1cde4cc`), and `_structure` in `prdlint/errors.py` reports any `Detected:` that differs between two commits. The toolkit holds ledger lines fixed on purpose: changing-prds says of the errors.md ledger "existing entries stay as written", and running-an-error.md step 6 says "a changed `Detected:` line) cannot be fixed by an edit, and history is never rewritten, so report it with its commit". The move broke that rule once, deliberately, so every check over a range that spans c8f48cf reports it; a check from c8f48cf on is clean and stays clean. No PRD line covers `prd_error.py`: its `errors` area is not adopted. Accepting a provenance-only rewrite would be a new feature, not a fix.
 Resolution: not a defect: the check is right: c8f48cf rewrote the `Detected:` lines of E-001 to E-006 and E-009 to E-013 once, during the move, and the toolkit keeps ledger lines as written ("existing entries stay as written"); a check from c8f48cf on exits 0
 Recurrence of: -
+
+### E-019 Seven eval scaffolds fail their own clean-tree check, so their cases never run
+Detected: 2026-11-14, eval run for prd-toolkit 0.8.8 (claude plugin eval, 2026-11-14)
+Classification: spec gap
+Confirmed: 2026-11-14, "Confirm the class (form)"
+Evidence: claude plugin eval ./prd-toolkit --runs 1 --model sonnet --scaffold, 2026-11-14, on a5223fc's parent 5af6330
+  7 of 59 cases did not run, each with: scaffold failed (exit 1)
+  deploy-by-hand-records
+  deploy-close-live
+  deploy-close-staging-only
+  deploy-failure-no-improvise
+  deploy-stops-at-human
+  deploying-trigger
+  review-edits-nothing
+  Each scaffold ends with: test -z "$(git status --porcelain)"
+  Run by hand in an empty directory, evals/deploy-close-live/scaffold.sh exits 1 and leaves:
+  ?? CLAUDE.md
+  ?? docs/prd/README.md
+  ?? docs/prd/greet/README.md
+  The same scaffold exits 1 the same way from main at fdcf473 (prd-toolkit 0.8.7).
+Diagnosis: Reproduced twice by hand: `evals/deploy-close-live/scaffold.sh` exits 1 in an empty directory from this branch and from main at fdcf473 (0.8.7), so 0.8.8 did not cause it. Root cause: `evals/scaffolds/deploy_repo.py` (and the scaffold `review-edits-nothing` uses) runs the plugin `prd_hooks.py install`, then commits only `.gitignore` and `.prd-toolkit`; since prd-toolkit 0.8.4 `install` also writes the managed block in `CLAUDE.md` and the two README files under `docs/prd/`, which stay untracked, and seven scaffolds end with a clean-tree check (`git status --porcelain` must print nothing). The scaffolds were written before 0.8.4 (f818be0, 2026-11-01) and the later baselines ran single cases, so nothing noticed. Class against the PRD: no requirement, contract or test case covers the eval suite or its scaffolds (searched features/lint-cli.md, features/lint-structure.md, nfr.md and testing.md; adoption.md maps `prd-toolkit/skills/**` but not `prd-toolkit/evals/**`), so the PRD is silent. E-017, a defect in a test outside every adopted Boundary, was confirmed as a code bug; the same may be the owner's choice here. Any fix must keep the scaffold commits' fixed dates and check which graders pin a commit SHA, since committing three more files changes every later SHA.
+Resolution: -
+Recurrence of: -

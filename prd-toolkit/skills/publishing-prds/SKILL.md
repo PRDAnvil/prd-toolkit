@@ -86,7 +86,7 @@ this skill" when the skill loads).
 4. **Render.** `<out>` is the path the user named, or `<project>-prd-<version>.html`:
 
    ```bash
-   uv run --script <scripts>/prd_publish.py render docs/prd/<slug> --out <out> --summaries <project>-prd-<version>.summaries.json; echo "prd-publish-exit=$?"
+   <scripts>/prd publish render docs/prd/<slug> --out <out> --summaries <project>-prd-<version>.summaries.json; echo "prd-publish-exit=$?"
    ```
 
    | Exit | Meaning | Then |

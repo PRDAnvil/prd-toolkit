@@ -108,7 +108,7 @@ calling the API's SDK.
 
    **A judged T-id** (its test case's `expect` has `rubric:`) is dispatched like any non-unit
    T-id, and a dry run may sample one. Its test calls
-   `uv run --script .prd-toolkit/prd_judge.py <prd dir> <T-id> <output file>`, all three
+   `.prd-toolkit/prd judge <prd dir> <T-id> <output file>`, all three
    positionals, and asserts exit 0 and nothing else. A dry run judges whether the test could be
    written from the PRD alone, never a score: no dry run runs `prd_judge.py`. A judged test that
    grades the output itself (reads it and asserts rubric words, or asks a model of its own), or

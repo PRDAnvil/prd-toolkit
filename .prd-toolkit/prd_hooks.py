@@ -62,6 +62,10 @@ def main(argv: list[str]) -> int:
             except ValueError:
                 print(f"prd_hooks: {prd.root} is not inside the repository at {root}", file=sys.stderr)
                 return 2
+            if (root / hooks.VENDOR_DIR).is_dir() and not (root / hooks.VENDOR_DIR / hooks.LAUNCHER).is_file():
+                # the workflow runs `sh .prd-toolkit/prd`: written over a copy without it, every CI job would fail
+                print(f"prd_hooks: {hooks.VENDOR_DIR}/ predates 0.8.8 (no {hooks.VENDOR_DIR}/{hooks.LAUNCHER}); run prd_hooks.py install {args.prd_dir} first", file=sys.stderr)
+                return 2
             code, out = hooks.write_ci(root, "gitlab" if args.gitlab else "github", hooks.ci_jobs(prd, prd_rel) + hooks.deploy_jobs(prd, prd_rel), args.force, prd.operations.secrets)
             for line in out:
                 print(line)

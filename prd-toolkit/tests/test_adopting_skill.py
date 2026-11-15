@@ -50,7 +50,7 @@ def test_every_lint_call_echoes_its_exit_code():
     assert LINT_CMD in text
     assert "prd-lint-exit=0" not in text  # the lint-exit-0 eval grader's literal
     for line in text.splitlines():
-        if "prd_lint.py" in line and "--list-packs" not in line:  # R26: --list-packs echoes prd-list-packs-exit
+        if ("prd_lint.py" in line or "<scripts>/prd lint " in line) and "--list-packs" not in line:  # R26: --list-packs echoes prd-list-packs-exit
             assert 'echo "prd-lint-exit=$?"' in line, line
         if "lint" in line.lower() and re.search(r"\bexits? 0\b", line):
             assert "prd-lint-exit" in line, f"a gate must name the echoed value: {line}"
@@ -121,7 +121,7 @@ def test_characterization_triage_and_gate():
 def test_trace_runs_on_the_adopted_row_before_approval():
     gate = step(SKILL.read_text(encoding="utf-8"), 5)
     order = ["1. **Gates.**", "2. **The adoption-map row.**", "3. **Trace,** before the user's approval and before any commit",
-             'prd_trace.py docs/prd/<slug>; echo "prd-trace-exit=$?"', "4. **Approval.**"]
+             '<scripts>/prd trace docs/prd/<slug>; echo "prd-trace-exit=$?"', "4. **Approval.**"]
     at = [gate.find(o) for o in order]
     assert -1 not in at and at == sorted(at), dict(zip(order, at))
     assert ("Set only the area's row to `adopted`, uncommitted: trace scopes by that row. The status, the version "
@@ -279,7 +279,7 @@ def test_the_form_is_the_first_route_and_its_summaries_sit_outside_the_prd_and_t
 
 def test_the_form_is_opened_then_served_through_the_inbox_in_the_background_never_with_the_plugin_root_variable():
     f = form_part()  # 0.8.2: `prd_confirm.py open`, then the decision inbox's `wait` and `serve` (spec section 6, change 3)
-    assert ("uv run --script <scripts>/prd_confirm.py open docs/prd/<slug> --area <area> "
+    assert ("<scripts>/prd confirm open docs/prd/<slug> --area <area> "
             "--summaries .prd-confirm-<area>-summaries.json") in f
     assert "prd_confirm.py serve" not in f and "with the gate `adoption:<area>`" in f
     assert "`run_in_background`" in f and "one command per Bash call" in f

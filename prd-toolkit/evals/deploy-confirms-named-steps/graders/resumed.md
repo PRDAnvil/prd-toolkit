@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_deploy\.py(?:\\")?\s+resume\b'
+input_match: '(?:prd_deploy\.py(?:\\")?|/prd(?:\\")?\s+deploy)\s+resume\b'
 min: 1
 ---
 

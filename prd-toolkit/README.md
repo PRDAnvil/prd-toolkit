@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. Version 0.8.7.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. Version 0.8.8.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -54,22 +54,41 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 | `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
 | `/prd-toolkit:prd-change-set [<CS-nnn> \| <text>]` | `prd-toolkit:coordinating-prds` | Coordinate one change across linked PRDs in several repositories: one record, one approval for every member's PRD diff, then a build (and where a link needs it, a deploy) per repository in dependency order (see Change sets) |
 
+## The prd command
+
+```
+.prd-toolkit/prd lint docs/prd/<slug>   # the vendored copy
+.prd-toolkit/prd --help                 # the commands, one line each
+```
+
+- One launcher runs every script: `prd <command> [arguments]`, where the command is the script's name
+  without `prd_` and `.py`, with `_` written `-` (`prd_build_check.py` is `build-check`). The script
+  prints its own usage line, messages and exit code. `prd --help` lists the commands; `prd --version`
+  prints the toolkit's version.
+- It runs the scripts in one uv environment per requirements list, shared by every clone and worktree,
+  instead of one per script path. The scripts keep their uv headers and still run by their file.
+- The vendored copy has it as `.prd-toolkit/prd`, the plugin as `scripts/prd` (which one to run: see
+  Lint CLI). `publish` runs only from the plugin.
+- It is an `sh` script and must keep its executable bit; without it, `sh .prd-toolkit/prd …` works.
+
 ## Lint CLI
 
 ```
-uv run --script .prd-toolkit/prd_lint.py docs/prd/<slug>   # a repo with hooks installed
+.prd-toolkit/prd lint docs/prd/<slug>   # a repo with hooks installed
 uv run --script prd-toolkit/scripts/prd_lint.py --list-rules
 uv run --script prd-toolkit/scripts/prd_lint.py --list-packs
 uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 ```
 
 - **Which copy to run.** A person's shell does not set `${CLAUDE_PLUGIN_ROOT}`, so the commands here
-  name a path. In a repo whose hooks are installed, run the vendored copy,
-  `.prd-toolkit/<script>.py`. Before the first install (no `.prd-toolkit/` yet) run the plugin's
-  install path, `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/<script>.py`, where `prdanvil` is this marketplace's name and
-  `<version>` is the installed version (`claude plugin list` shows it, and so does
-  `ls ~/.claude/plugins/cache/prdanvil/prd-toolkit/`). A checkout of this repo works too, as the
-  other two lines do.
+  name a path. In a repo whose hooks are installed, run the vendored launcher,
+  `.prd-toolkit/prd <command>`, where the command is the script's name without `prd_` and `.py`,
+  with `_` written `-` (`prd_build_check.py` is `build-check`). Before the first install (no
+  `.prd-toolkit/` yet) run the plugin's install path,
+  `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/<script>.py`, where `prdanvil` is
+  this marketplace's name and `<version>` is the installed version (`claude plugin list` shows it,
+  and so does `ls ~/.claude/plugins/cache/prdanvil/prd-toolkit/`). A checkout of this repo works
+  too, as the other two lines do.
 - Output is one line per violation: `<file>:<line>: <rule>: <message>`.
 - Exit 0 when clean, 1 on violations, 2 on usage, dependency or internal error.
 - Output is `<file>:<line>: warn: <rule>: <message>` for a warning (`platform-word`); the exit code counts errors only.
@@ -100,8 +119,8 @@ map in `adoption.md`, and each area moves forward one state at a time:
 Step 3 of adoption confirms an area through a local form, not a list of questions in the chat:
 
 ```
-uv run --script .prd-toolkit/prd_confirm.py serve docs/prd/<slug> --area <area> [--summaries F] [--port N] [--no-open] [--idle-minutes N]
-uv run --script .prd-toolkit/prd_confirm.py status docs/prd/<slug> --area <area>
+.prd-toolkit/prd confirm serve docs/prd/<slug> --area <area> [--summaries F] [--port N] [--no-open] [--idle-minutes N]
+.prd-toolkit/prd confirm status docs/prd/<slug> --area <area>
 ```
 
 - `serve` builds the area's items: the as-built requirements, the open `E-nnn` entries that touch the
@@ -164,7 +183,7 @@ fails open.
 `testing.md` (falling back to `tests/`) for `@prd T-nnn.n` citations.
 
 ```
-uv run --script .prd-toolkit/prd_trace.py docs/prd/<slug>
+.prd-toolkit/prd trace docs/prd/<slug>
 uv run --script prd-toolkit/scripts/prd_trace.py docs/prd/<slug> --range BASE..HEAD
 ```
 
@@ -198,7 +217,7 @@ Git does not clone hooks, so each other clone runs the vendored copy once (the m
 block says so):
 
 ```
-uv run --script .prd-toolkit/prd_hooks.py install docs/prd/<slug>
+.prd-toolkit/prd hooks install docs/prd/<slug>
 ```
 
 Generate the merge-gate CI file, then commit it. `--github` writes
@@ -224,7 +243,7 @@ the hooks it wrote and leaves `.prd-toolkit/`:
 
 ```
 uv run --script ~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd_hooks.py check docs/prd/<slug>
-uv run --script .prd-toolkit/prd_hooks.py uninstall docs/prd/<slug>
+.prd-toolkit/prd hooks uninstall docs/prd/<slug>
 ```
 
 `prd_hooks.py vendor` writes `.prd-toolkit/` exactly as `install` does, packs included, and nothing
@@ -301,7 +320,7 @@ each command and compares what it prints with the Deployed row (`version`) or wi
 something unparseable, which is never counted as drift.
 
 ```
-uv run --script .prd-toolkit/prd_drift.py docs/prd/<slug> --env production
+.prd-toolkit/prd drift docs/prd/<slug> --env production
 ```
 
 **CI.** `prd_hooks.py ci` adds a `drift-<env>` job only for an environment with rows in
@@ -412,10 +431,10 @@ entry for each; `prd_error.py` is the only writer.
    `prd_error.py check <base>..<head>` validates every change to the ledger in the range.
 
 ```
-uv run --script .prd-toolkit/prd_error.py new docs/prd/<slug> --title "<title>" --source "<where seen>"
-uv run --script .prd-toolkit/prd_error.py propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--touches FR-001,FR-002] [--recurrence E-mmm]
-uv run --script .prd-toolkit/prd_error.py list docs/prd/<slug> --open
-uv run --script .prd-toolkit/prd_error.py check docs/prd/<slug> <base>..<head>
+.prd-toolkit/prd error new docs/prd/<slug> --title "<title>" --source "<where seen>"
+.prd-toolkit/prd error propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--touches FR-001,FR-002] [--recurrence E-mmm]
+.prd-toolkit/prd error list docs/prd/<slug> --open
+.prd-toolkit/prd error check docs/prd/<slug> <base>..<head>
 ```
 
 **Known-failing tests.** A case marked `known-failing` on an open entry is a strict expected failure
@@ -508,10 +527,10 @@ YAML mappings; `code:` never does. `prd_links.py sync` copies the cited items, a
 that snapshot offline. Never edit it by hand.
 
 ```
-uv run --script .prd-toolkit/prd_links.py add docs/prd/<slug> <location> [--needs <value>]
-uv run --script .prd-toolkit/prd_links.py sync docs/prd/<slug> <upstream> [--ref <ref>]
-uv run --script .prd-toolkit/prd_links.py check docs/prd/<slug> [--ref <ref>] [--ci]
-uv run --script .prd-toolkit/prd_links.py impact docs/prd/<slug> [--base <ref>]
+.prd-toolkit/prd links add docs/prd/<slug> <location> [--needs <value>]
+.prd-toolkit/prd links sync docs/prd/<slug> <upstream> [--ref <ref>]
+.prd-toolkit/prd links check docs/prd/<slug> [--ref <ref>] [--ci]
+.prd-toolkit/prd links impact docs/prd/<slug> [--base <ref>]
 ```
 
 `check` compares each snapshot item with its upstream (`same`, `changed`, `removed`), reads each
@@ -634,11 +653,11 @@ prints the number alone. Within one `interface` number a field may be added, nev
 worktree; it never switches branches or pushes.
 
 ```
-uv run --script .prd-toolkit/prd_change.py ids next docs/prd/<slug> <FR|NFR|UJ|AC-<nnn>|T-<nnn>>
-uv run --script .prd-toolkit/prd_change.py bump docs/prd/<slug> --base HEAD
-uv run --script .prd-toolkit/prd_change.py record docs/prd/<slug> --base HEAD --bump <patch|minor|major> --change "<text>"
-uv run --script .prd-toolkit/prd_change.py digest docs/prd/<slug>
-uv run --script .prd-toolkit/prd_change.py approve docs/prd/<slug> --reply "<verbatim>" --dry-run "<record>" [--refs "<IDs>, E-nnn"]
+.prd-toolkit/prd change ids next docs/prd/<slug> <FR|NFR|UJ|AC-<nnn>|T-<nnn>>
+.prd-toolkit/prd change bump docs/prd/<slug> --base HEAD
+.prd-toolkit/prd change record docs/prd/<slug> --base HEAD --bump <patch|minor|major> --change "<text>"
+.prd-toolkit/prd change digest docs/prd/<slug>
+.prd-toolkit/prd change approve docs/prd/<slug> --reply "<verbatim>" --dry-run "<record>" [--refs "<IDs>, E-nnn"]
 ```
 
 - `prd_change.py ids next` prints the next free ID by `prd-format.md` decision 6, removed IDs and
@@ -697,10 +716,10 @@ diff, an error class, a deploy step, an adoption area and a sign-off. The sessio
 a gate before it gives you the URL, so it learns of the answer whichever client gave it.
 
 ```
-uv run --script .prd-toolkit/prd_gates.py serve docs/prd/<slug> [--gate <id>] [--port N] [--no-open] [--idle-minutes N]
-uv run --script .prd-toolkit/prd_gates.py wait docs/prd/<slug> <gate id> [--worktree <path>] [--timeout S]
-uv run --script .prd-toolkit/prd_build_check.py docs/prd/<slug> --stale --tids <T-ids>
-uv run --script .prd-toolkit/prd_deploy.py record docs/prd/<slug> --env <env> --commit <sha> --reply "<owner's words>"
+.prd-toolkit/prd gates serve docs/prd/<slug> [--gate <id>] [--port N] [--no-open] [--idle-minutes N]
+.prd-toolkit/prd gates wait docs/prd/<slug> <gate id> [--worktree <path>] [--timeout S]
+.prd-toolkit/prd build-check docs/prd/<slug> --stale --tids <T-ids>
+.prd-toolkit/prd deploy record docs/prd/<slug> --env <env> --commit <sha> --reply "<owner's words>"
 ```
 
 | Command | Does | Exit codes |
@@ -853,6 +872,26 @@ the user cannot state.
 
 ## Changelog
 
+Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
+
+- **0.8.8:** one `prd` command, and no uv environment per clone. `uv run --script` keeps one cached environment per script path, so every clone and worktree that vendors the toolkit added environments of its own on each hook run, CI job and skill command ([issue #2](https://github.com/PRDAnvil/prd-toolkit/issues/2)). Now one launcher, `<scripts>/prd <command>`, runs every script (see The prd command), and every hook shim, generated CI line, skill, command and agent line, and the README's vendored-copy examples, run it; uv keeps one environment per requirements list, shared by every clone and worktree. The scripts keep their uv headers and still run by their file. The toolkit's own PRD is 6.2.3. See the [design spec](../docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md).
+  - **Upgrade:**
+    - Update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Once per repository, run from the 0.8.8 plugin `<plugin>/scripts/prd hooks install docs/prd/<slug>` and then, when a generated CI file exists, `<plugin>/scripts/prd hooks ci --github --force docs/prd/<slug>` (or `--gitlab`), where `<plugin>` is the plugin's install path, `~/.claude/plugins/cache/prdanvil/prd-toolkit/0.8.8`; and commit `.prd-toolkit/`, the CI file, `CLAUDE.md` and the READMEs in one commit. Either step alone fails CI: `install` alone leaves the workflow stale, and `ci` is refused until the vendored copy is 0.8.8.
+    - In every other clone, after pulling: `.prd-toolkit/prd hooks install docs/prd/<slug>`. Worktrees share their clone's hooks. Until then the old hooks keep working, and keep adding environments.
+    - A hook under `core.hooksPath`, or a hook file of your own: replace its old `uv run --script … prd_git_hook.py` line with the line `install` prints; do not add the new line beside it.
+    - Until a repository is upgraded, the 0.8.8 skills stop on it and tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the skills' wording; type it as in the first Upgrade bullet).
+    - A branch whose `.prd-toolkit/` predates 0.8.8 prints `prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped` and runs no hook checks until it merges the upgraded copy.
+    - Permission rules that allow `Bash(uv run:*)` or name `.prd-toolkit/prd_<x>.py` no longer match the toolkit's commands: allow `.prd-toolkit/prd` and the plugin's `scripts/prd`.
+    - The environments already in uv's cache (`uv cache dir`, folder `environments-v2`) can be deleted at any time; uv rebuilds what it needs.
+  - **Known limits:**
+    - A PRD that uses the `document` pack still adds one uv environment per clone on each lint: the pack's validator runs by its file. Fixed with the next pack version.
+    - Judged tests written before 0.8.8 call `uv run --script .prd-toolkit/prd_judge.py` and keep one environment per clone until they are rewritten.
+    - A git hook under `core.hooksPath` that carries the toolkit's marker (a shim copied there by hand) is reported stale by `check`, and `install` cannot rewrite it: replace its content with the shim from the plugin's `templates/hooks/<hook>`, with `{{hook}}` and `{{prd}}` filled in, or run `install` in a clone without `core.hooksPath` and copy the shim it writes in `.git/hooks/`.
+    - In a repository with several PRDs, `install` and `check` run for a second PRD report the one CI file as stale; it belongs to the PRD it was generated for.
+    - A launcher reached through a symbolic link does not find its files; call it by its real path.
+  - **Evals and proof:**
+    - `claude plugin eval ./prd-toolkit --model sonnet --scaffold`, Claude Code 2.1.325, 2026-11-14 (see `evals/BASELINE.md`): first run of all 59 cases, one run each: 46 passed, overall score 0.85, mean delta +0.37 over the no-plugin arm; seven did not run (E-019, below); two publish cases failed for a real reason, fixed before release (below); four scored below 1.00. Reruns at three runs each on the fixed tree: five of those six score 1.00 in every run, and `changing-hands-off-to-change-set` scores 0.75, as it does on 0.8.7. So 51 of the 59 cases pass, 7 cannot run (E-019) and 1 fails as it did on 0.8.7; no case that 0.8.8 changed for the worse remains. The seven that cannot run (E-019): their scaffolds fail their own clean-tree check, as they have since 0.8.4, so the six deploy cases and `review-edits-nothing` did not run, and no eval exercised the deploy skill's command lines in this release. The two publish cases: `prd publish`, run from the plugin in a repository whose `pyproject.toml` sets `[tool.uv] exclude-newer`, could not resolve its requirements; the launcher now reads uv's settings from its own directory, as `uv run --script` read them from the script's.
+    - Proof, in a scratch repository with its own uv cache and a fresh uv-managed Python 3.13: three checkouts (the repository, a clone and a worktree of the clone), with hooked commits and `lint`, `status` and `trace` in each, left one environment in the cache for all of them (beside the one that `uv run --script prd_hooks.py install` made for the plugin's own script); the same three checkouts with `uv run --script .prd-toolkit/prd_lint.py` added three more, one per checkout.
 - **0.8.7:** fixes and full command names; no feature. Current Claude Code lists a plugin's commands only under the plugin's name, so a bare `/prd-build` is "Unknown command": every template, skill, command, agent and script message now names the commands in full (`/prd-toolkit:prd-build`, `/prd-toolkit:prd-error`, …), including the managed `CLAUDE.md` block and the `docs/prd/README.md` and `docs/prd/<slug>/README.md` blocks that `prd_block.py` writes. The `lint-structure` fixes from its adoption: `sections` names an unnumbered heading as it is, not `## None.` (E-009); `vague-word` skips code spans in acceptance criteria (E-010); the placeholder, marker, assumption and glossary rules skip hidden files (E-011); a frontmatter key missing from `prd.md` is reported at the frontmatter, not a body line (E-012); an empty Test roots list is reported wherever a marker sits on the Layout line (E-013); a repeated section or Harness slot is reported as a duplicate, not as out of order (E-014); an empty section 13 fails `open-questions-empty` on an Approved PRD (E-015); the `adoption.md` header finding names the header's line (E-016). The toolkit's own test `test_validator_fails_defect` runs the document pack's validator with `--quiet`, as the pack does, so uv's `Installed 1 package` line no longer breaks it (E-017). The toolkit's own PRD is 6.2.2. Best-practice sources move to 0.8.8 and conversion to 0.8.9. See the [plan](../docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md).
   - **Upgrade:** run `claude plugin marketplace update prdanvil` and `claude plugin update prd-toolkit@prdanvil` at each scope it is installed at, then `/reload-plugins`. A repository that vendors the toolkit keeps the old, bare command names in its `CLAUDE.md` block and its PRD READMEs until it runs `uv run --script <plugin>/scripts/prd_hooks.py install docs/prd/<slug>` from 0.8.7 and commits `.prd-toolkit/` with the refreshed blocks; until then its own checks stay green, because they read the vendored templates.
 - **0.8.6:** prd-toolkit moved, with its history, from `ihistand/claude-plugins` to its own public repository, [PRDAnvil/prd-toolkit](https://github.com/PRDAnvil/prd-toolkit), and its own marketplace, `prdanvil`. It is MIT-licensed: `LICENSE` ships in the plugin, and `prd_hooks.py install` and `vendor` copy it into `.prd-toolkit/LICENSE`. Nothing else changes in the scripts or skills. The toolkit's own PRD is 6.2.1. See the [plan](../docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md).

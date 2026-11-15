@@ -316,6 +316,95 @@ In `test_eval_graders.py`, for each of the six graders add a case in both forms:
 
 ---
 
+### Task 6b: Every skill, command and agent line runs the launcher
+
+Added 2026-11-14 on the owner's decision to widen the release (spec Revisions, §2). **REQUIRED SUB-SKILL:** superpowers:writing-skills.
+
+**Why.** Nine files define `<scripts>` as `.prd-toolkit` whenever the repository has a vendored copy, so `uv run --script <scripts>/prd_lint.py …` runs the vendored copy by its file and keeps one uv environment per script and per clone. The launcher is in the plugin's `scripts` directory as well as in a vendored copy, mode 755 in both, so `<scripts>/prd <command>` works wherever `<scripts>` points.
+
+**Files:**
+- Modify: every line matching `uv run --script <scripts>/prd_<x>.py` under `prd-toolkit/skills`, `prd-toolkit/commands`, `prd-toolkit/agents` (80 lines in 13 files on 94a4ba2: `deploying-from-prds/running-a-deploy.md` 13, `deploying-from-prds/SKILL.md` 4, `handling-errors/running-an-error.md` 12, `building-from-prds/running-a-build.md` 12, `building-from-prds/SKILL.md` 1, `changing-prds/reviewing-a-change.md` 5, `changing-prds/SKILL.md` 12, `authoring-prds/SKILL.md` 4, `publishing-prds/SKILL.md` 1, `adopting-prds/SKILL.md` 11, `commands/prd-status.md` 1, `commands/prd-context.md` 1, `agents/prd-builder.md` 1)
+- Modify: the "Which script" paragraph of each file that defines `<scripts>`
+- Test: `prd-toolkit/tests/test_release_0_8_8.py`, and every test that pins a changed line
+
+**Interfaces:**
+- Produces: the line form `<scripts>/prd <command> <rest>`; a command is its script's name without `prd_` and `.py`, `_` written `-`.
+
+- [ ] **Step 1: Write the failing tests** in `test_release_0_8_8.py`. Replace `test_plugin_path_lines_are_untouched` (it pinned 80 lines that must now be 0):
+
+```python
+def test_no_skill_line_runs_a_script_by_its_file():
+    hits = [f"{p}:{n}" for p in tracked("skills", "commands", "agents", "templates")
+            for n, line in enumerate(p.read_text().splitlines(), 1)
+            if re.search(r"uv run --script\s+\S*prd_\w+\.py", line)]
+    assert hits == []
+
+def test_every_scripts_command_uses_the_launcher():
+    n = sum(len(re.findall(r"<scripts>/prd [a-z][a-z-]*\b", p.read_text())) for p in tracked("skills", "commands", "agents"))
+    assert n >= 80
+
+def test_every_scripts_definition_checks_for_the_launcher():
+    for p in tracked("skills", "commands"):
+        text = p.read_text()
+        if "`<scripts>` is `.prd-toolkit` when" in text:
+            para = next(par for par in text.split("\n\n") if "`<scripts>` is `.prd-toolkit` when" in par)
+            assert "predates 0.8.8" in para and "`prd`" in para, p
+```
+
+- [ ] **Step 2:** Run them. Expected: the first and third fail; the second fails (0 matches).
+- [ ] **Step 3: Change the 80 lines.** `uv run --script <scripts>/prd_<x>.py <rest>` becomes `<scripts>/prd <x> <rest>`, with `_` in `<x>` written `-` (`prd_build_check.py` → `build-check`). Nothing else on a line changes: arguments, order, quoting and gate tails (`; echo "prd-…-exit=$?"`) stay. Where a line names the script only in prose (not as a command), leave it unless it is now false.
+- [ ] **Step 4: Change each "Which script" paragraph**, the fewest words that keep it true:
+  - It decides the copy by a Glob. `Glob for .prd-toolkit/*.py` cannot see `prd`; make the decision and the guard use a pattern that can (for example Glob `.prd-toolkit/prd*`), or name `.prd-toolkit/prd` as the file to look for.
+  - Add the guard clause where the paragraph has version guards, and in every file that defines `<scripts>` as `.prd-toolkit`: "When `.prd-toolkit/` holds no `prd`, the vendored copy predates 0.8.8: stop, and tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form) and commit `.prd-toolkit/`." (`changing-prds/SKILL.md` has it since 94a4ba2.)
+  - Where a paragraph lists the vendored scripts as "the copy its hooks and CI run" (`running-a-deploy.md`, `running-an-error.md`), keep the sentence true: the hooks and CI now run that copy through `.prd-toolkit/prd`.
+  - `authoring-prds/SKILL.md` and `publishing-prds/SKILL.md` always use the plugin's path; their lines change form only. `prd publish` uses the plugin's `requirements-publish.txt`.
+  - `building-from-prds`: the builder prompt's `Scripts:` line carries `<scripts>` as an absolute path; `agents/prd-builder.md`'s command follows the same form.
+- [ ] **Step 5:** The install instruction a skill tells a user to run from the plugin (`prd_hooks.py install …`, "the README's form") names a script on purpose and stays; it is prose, not a `uv run --script` line, so the first test does not catch it. If a skill holds a literal `uv run --script <plugin path>/prd_hooks.py install` command, change it to the launcher form as well.
+- [ ] **Step 6:** Run the suite, update each test that pins a changed line to the new text, and run it again. Expected: 0 failed. List every test file you changed in the report. Do not change graders (Task 6c) or `prd-toolkit/README.md` (Task 6d); if a test of a grader or of the README fails because of this task, stop and report.
+- [ ] **Step 7: Commit** `feat(invocation): every skill, command and agent line runs the launcher`, `Refs: none (no behaviour change)`. Then `CI_LOCAL_JOBS="prd-lint" scripts/ci-local.sh` from the worktree root: `ci-local: prd-lint pass`.
+
+---
+
+### Task 6c: Graders accept both command forms
+
+Added 2026-11-14 with Task 6b.
+
+**Why.** 59 files under `prd-toolkit/evals/*/graders/` name a script file; about 50 of those are regular expressions over a recorded command (`prd_deploy\.py`, `prd_gates\.py`, `prd_error\.py`, `prd_change\.py`, `prd_lint\.py`, `prd_publish\.py`, `prd_build_check\.py`, `prd_context\.py`, and the `prd_links`/`prd_judge` ones Task 6 already changed). After Task 6b a correct session types `<scripts>/prd deploy …`, which those patterns no longer see.
+
+**Files:**
+- Modify: each grader under `prd-toolkit/evals/*/graders/` whose `input_match` (or other pattern field) holds a script file name
+- Test: `prd-toolkit/tests/test_eval_graders.py`
+
+**Interfaces:**
+- Consumes: Task 6's pattern shape for `links` and `judge` (keep the 0.8.7 alternative first, byte for byte, and add the launcher alternative).
+
+- [ ] **Step 1: Inventory.** List every grader file with a pattern that names a script, the pattern, and whether a match PASSES or FAILS the session. Put the table in the report. A grader whose only mention is prose gets its prose updated to name both forms and no pattern change.
+- [ ] **Step 2: Write the failing tests** in `test_eval_graders.py`: for each changed grader, one case typed the 0.8.7 way and one typed the 0.8.8 way give the same grade; and for each grader that FAILS on a match or uses a negative lookahead, one near-miss in the new form that must not match (a different command, e.g. `prd lint` where the grader is about `prd deploy`; a command name that only starts the same, e.g. `prd deployed`). Use the file's existing helpers for building a tool-use line.
+- [ ] **Step 3:** Run them. Expected: the 0.8.8 cases fail.
+- [ ] **Step 4: Change the patterns.** For a pattern `prd_<x>\.py<tail>`: `(?:prd_<x>\.py|/prd(?:\\")?\s+<x-with-hyphens>)<tail>`, adapted to the pattern's own quoting and anchoring; the launcher alternative must require the `/prd` path segment and a whole command word (`\b` or `\s` after it). Keep every existing flag, lookahead and tail. Do not loosen what the 0.8.7 alternative matches.
+- [ ] **Step 5:** Run `tests/test_eval_graders.py`, then the full unit suite. Expected: 0 failed.
+- [ ] **Step 6: Commit** `feat(invocation): graders accept the launcher form of every script`, `Refs: none (no behaviour change)`.
+
+Out of scope: evals' prompts, scaffolds and baselines (records of past runs). If a scaffold script or a `case.yaml` setup runs a toolkit script, leave it and list it in the report.
+
+---
+
+### Task 6d: The plugin README's vendored-path examples
+
+Added 2026-11-14 with Task 6b.
+
+**Files:**
+- Modify: `prd-toolkit/README.md` — the 24 lines matching `uv run --script .prd-toolkit/prd_<x>.py` outside the `## Changelog` section
+- Test: whichever tests pin those lines; `prd-toolkit/tests/test_release_0_8_8.py`
+
+- [ ] **Step 1: Write the failing test** `test_readme_runs_the_vendored_copy_through_the_launcher`: outside `## Changelog` (and the `## Known limits (…)` sections, which are past records), `README.md` holds no `uv run --script .prd-toolkit/`.
+- [ ] **Step 2:** Run it. Expected: fail.
+- [ ] **Step 3:** Change each such line to `.prd-toolkit/prd <x> <rest>`. The examples that run the plugin's own copy by an absolute path (the first install, before a vendored copy exists) stay as `uv run --script <plugin path>/scripts/prd_hooks.py install …`: one path per installed version. The Changelog and Known limits sections are not edited.
+- [ ] **Step 4:** Run the suite; update tests that pin a changed line. Expected: 0 failed.
+- [ ] **Step 5: Commit** `docs(readme): vendored-copy examples run the launcher`, `Refs: none (no behaviour change)`.
+
+---
+
 ### Task 7: The PRD patch (controller-run; stops for the owner)
 
 **Files:** `docs/prd/prd-toolkit/adoption.md`, `docs/prd/prd-toolkit/prd.md`.
@@ -344,7 +433,7 @@ The controller runs this itself, through `/prd-toolkit:prd-change`; no subagent.
 
 **Files:** `prd-toolkit/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `prd-toolkit/README.md` (changelog), `prd-toolkit/tests/test_release_0_8_8.py`, `prd-toolkit/evals/BASELINE.md`, `.prd-toolkit/`.
 
-- [ ] **Step 1: Evals.** Run `claude plugin eval` for the cases whose skill text or grader changed (`change-set-*`, `coordinating-*`, `changing-hands-off-to-change-set`, `changing-uses-prd-change`, `tester-judged-calls-judge`), `--runs 3`, with `--allow-tools Write Edit Bash Agent` and the two PyPI WebFetch grants. Record the scores under a `## 0.8.8 baseline` heading in `BASELINE.md`. A case that scored 1.00 at 0.8.7 and scores lower stops the release.
+- [ ] **Step 1: Evals.** Since Task 6b every skill's text changed, so every case is in scope; the controller gives the owner the cost and asks before starting the run. Run `claude plugin eval` for the cases the owner agrees, `--runs 3`, with `--allow-tools Write Edit Bash Agent` and the two PyPI WebFetch grants. Record the scores under a `## 0.8.8 baseline` heading in `BASELINE.md`. A case that scored 1.00 at 0.8.7 and scores lower stops the release.
 - [ ] **Step 2: Finish `test_release_0_8_8.py`:** `test_versions` (0.8.8 in `plugin.json`, `marketplace.json`, `.prd-toolkit/VERSION`, and `Version 0.8.8.` in the README); `test_changelog_has_the_upgrade_note` (the 0.8.8 entry holds `prd_hooks.py install`, `ci --`, `--force`, `environments-v2` and `6.2.3`). Update `test_release_0_8_7.py::test_versions` as each release has done for the one before it.
 - [ ] **Step 3:** Bump the three version places (`vendor` writes `VERSION`). Write the changelog entry from the spec's sections 1, 4 and 5, with the upgrade note.
 - [ ] **Step 4: Proof, in a scratch repository outside this one.** Install from the worktree's plugin; make one commit; count `environments-v2` in a scratch `UV_CACHE_DIR`; clone the scratch repository to a second path, install, commit; the count has not grown. Record both counts in the changelog entry's proof line.

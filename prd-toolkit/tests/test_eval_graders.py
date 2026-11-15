@@ -312,3 +312,326 @@ def test_the_stale_ran_grader_takes_a_quoted_script_path_and_needs_stale_and_tid
     assert not counts('uv run --script "/p/prd_build_check.py" docs/prd/notes --diff --snapshot s' + gate)
     assert not counts('uv run --script "/p/prd_build_check.py" docs/prd/notes --stale' + gate)
     assert not counts('echo "prd_build_check.py" --stale --tids')
+
+
+# --- 0.8.8: the graders that see a vendored script's command take the launcher form too ---
+# A transcript recorded with 0.8.7's skill lines grades as it did; one recorded with 0.8.8's grades the same.
+
+LINKS_GATE = '; echo "prd-links-exit=$?"'
+
+
+def _bash_counts(case: str, name: str, cmd: str) -> bool:
+    return _tool_input_counts(case, name, {"command": cmd})
+
+
+def test_the_impact_grader_takes_both_forms():
+    def counts(cmd: str) -> bool:
+        return _bash_counts("changing-hands-off-to-change-set", "impact-run", cmd)
+
+    for prd in ("uv run --script /r/.prd-toolkit/prd_links.py", "/r/.prd-toolkit/prd links", '"/r q/.prd-toolkit/prd" links'):
+        assert counts(f"{prd} impact /r/docs/prd/greet" + LINKS_GATE), prd
+        assert not counts(f"{prd} check /r/docs/prd/greet" + LINKS_GATE), prd
+    assert counts("uv run --script /p/scripts/prd_links.py impact docs/prd/greet")
+    assert not counts("/r/.prd-toolkit/prd lint impact")
+
+
+def test_the_no_changeset_new_grader_takes_both_forms():
+    def counts(cmd: str) -> bool:
+        return _bash_counts("coordinating-not-for-one-repo", "no-changeset-new", cmd)
+
+    for prd in ("uv run --script /r/.prd-toolkit/prd_links.py", "/r/.prd-toolkit/prd links"):
+        assert counts(f"{prd} changeset new /r/docs/prd/greet --title 'x' --member /s" + LINKS_GATE), prd
+        assert not counts(f"{prd} changeset log /r/changes/CS-001.md 'x'" + LINKS_GATE), prd
+
+
+def test_the_no_bash_write_grader_exempts_a_links_call_in_both_forms():
+    def counts(cmd: str) -> bool:
+        return _bash_counts("change-set-no-snapshot-edit", "no-bash-write", cmd)
+
+    into = " > docs/prd/greet-client/contracts/upstream/sync.log"
+    for prd in ("uv run --script /r/.prd-toolkit/prd_links.py", "/r/.prd-toolkit/prd links"):
+        call = f"{prd} sync /r/docs/prd/greet-client /s --ref main{into}"
+        assert not counts(call), prd
+        assert counts("echo " + call), prd  # the same text, not a links call, is a write
+    assert counts(f"uv run --script /r/.prd-toolkit/prd_lint.py docs/prd/greet-client{into}")
+    assert counts(f"/r/.prd-toolkit/prd lint docs/prd/greet-client{into}")
+    assert counts("sed -i s/x/y/ docs/prd/greet-client/contracts/upstream/greet/cli.yaml")
+
+
+JUDGE_CASE = "tester-judged-calls-judge"
+JUDGE_CALLS = (
+    '["uv", "run", "--script", ".prd-toolkit/prd_judge.py", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+    '[".prd-toolkit/prd", "judge", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+    '[str(ROOT / ".prd-toolkit/prd"), "judge", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+    '"uv run --script .prd-toolkit/prd_judge.py docs/prd/greet T-010.2 docs/guide/install.md", shell=True',
+    '".prd-toolkit/prd judge docs/prd/greet T-010.2 docs/guide/install.md", shell=True',
+)
+
+
+def _judged_test(call: str) -> dict:
+    return {"file_path": "/r/tests/test_t010_2.py", "content":
+            f'"""T-010.2"""\nimport subprocess\n\ndef test_t010_2():\n    r = subprocess.run({call})\n    assert r.returncode == 0\n'}
+
+
+def test_the_judge_graders_take_both_forms():
+    for call in JUDGE_CALLS:
+        t = _judged_test(call)
+        assert _tool_input_counts(JUDGE_CASE, "judge-called-with-output", t), call
+        assert not _tool_input_counts(JUDGE_CASE, "no-self-graded-test", t), call
+    for call in ('[".prd-toolkit/prd", "lint", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]',
+                 '["python", "check.py", "docs/prd/greet", "T-010.2", "docs/guide/install.md"]'):
+        t = _judged_test(call)
+        assert not _tool_input_counts(JUDGE_CASE, "judge-called-with-output", t), call
+        assert _tool_input_counts(JUDGE_CASE, "no-self-graded-test", t), call
+
+
+def test_the_no_guide_read_grader_counts_the_guide_whatever_runs_the_judge():
+    assert _tool_input_counts(JUDGE_CASE, "no-guide-read", {"file_path": "/r/docs/guide/install.md"})
+    for script in ("/r/.prd-toolkit/prd_judge.py", "/r/.prd-toolkit/prd"):
+        assert not _tool_input_counts(JUDGE_CASE, "no-guide-read", {"file_path": script}), script
+
+
+def test_the_command_graders_prose_names_both_forms():
+    for case, name, launcher in (("changing-hands-off-to-change-set", "impact-run", "`.prd-toolkit/prd links impact`"),
+                                 ("coordinating-not-for-one-repo", "no-changeset-new", "`.prd-toolkit/prd links changeset new`"),
+                                 ("change-set-no-snapshot-edit", "no-bash-write", "`.prd-toolkit/prd links`"),
+                                 (JUDGE_CASE, "judge-called-with-output", "`.prd-toolkit/prd judge`"),
+                                 (JUDGE_CASE, "no-self-graded-test", "`.prd-toolkit/prd judge`"),
+                                 (JUDGE_CASE, "no-guide-read", "`.prd-toolkit/prd judge`")):
+        body = " ".join(_grader(case, name)["body"].split())
+        assert launcher in body and ("prd_links.py" in body or "prd_judge.py" in body), (case, name)
+
+
+# --- 0.8.8 (Task 6c): every grader that sees a script's command takes the launcher form too ---
+# A 0.8.7 line is `uv run --script <scripts>/prd_<x>.py <rest>`; its 0.8.8 form is `<scripts>/prd <x> <rest>`
+# (`_` written `-`), <scripts> being .prd-toolkit, <root>/.prd-toolkit or the plugin's scripts directory, in double
+# quotes when the path holds a space. Each 0.8.7 command below grades the same in every 0.8.8 form.
+
+PLUGIN_DIR = "/p/.claude/plugins/cache/m/prd-toolkit/0.8.8/scripts"
+LAUNCH_DIRS = (".prd-toolkit", "/r/.prd-toolkit", PLUGIN_DIR, "/r q/.prd-toolkit")
+_V087 = re.compile(r"uv run --script (\S*)/prd_([a-z_]+)\.py")
+_OTHER = {"build-check": "block", "change": "confirm", "confirm": "context", "context": "confirm", "deploy": "status", "error": "drift",
+          "gates": "git-hook", "links": "lint", "lint": "links", "publish": "judge"}
+_DEPLOY = "uv run --script .prd-toolkit/prd_deploy.py"
+_GATES = "uv run --script .prd-toolkit/prd_gates.py"
+_ERROR = "uv run --script .prd-toolkit/prd_error.py"
+_CHANGE = "uv run --script .prd-toolkit/prd_change.py"
+_LINT = "uv run --script .prd-toolkit/prd_lint.py"
+_REPLY = "done with 2; 3 and 4 were done in the same session"
+_NAMED = (f"{_DEPLOY} confirm docs/prd/greet --run R --step 2 --reply '{_REPLY}' --step 3 --reply '{_REPLY}' "
+          f"--step 4 --reply '{_REPLY}'")
+
+
+def _launch(cmd: str, scripts: str) -> str:
+    """The 0.8.8 form of every 0.8.7 call in cmd, run from scripts (a `$VAR` directory is kept as typed)."""
+    def one(m: re.Match) -> str:
+        where = m.group(1) if m.group(1).startswith("$") else scripts
+        path = f"{where}/prd"
+        return (f'"{path}"' if " " in path else path) + " " + m.group(2).replace("_", "-")
+    out = _V087.sub(one, cmd)
+    assert out != cmd, cmd
+    return out
+
+
+def _word(cmd: str) -> str:
+    return _V087.search(cmd).group(2).replace("_", "-")
+
+
+def _near_misses(cmd: str) -> list[str]:
+    """0.8.8 commands that are not the call in cmd: a command word that only starts the same, another command, no path."""
+    x, launched = _word(cmd), _launch(cmd, ".prd-toolkit")
+    m = re.search(rf"(\S*)/prd {x} ", launched + " ")
+    assert m, launched
+    head, path = m.group(0).rstrip(), m.group(1) + "/prd"
+    return [launched.replace(head, f"{path} {x}ed", 1), launched.replace(head, f"{path} {x}-x", 1),
+            launched.replace(head, f"{path} {x}.md", 1), launched.replace(head, f"{path} {_OTHER[x]}", 1),
+            launched.replace(head, f"prd {x}", 1)]
+
+
+# (case, grader, a match passes or fails the session, 0.8.7 commands it counts, 0.8.7 commands it does not)
+COMMAND_GRADERS = [
+    ("authoring-new-prd", "lint-ran", "pass", [f"{_LINT} docs/prd/greet", f"{_LINT} --list-packs"],
+     ["uv run --script .prd-toolkit/prd_links.py check docs/prd/greet"]),
+    ("authoring-proposes-pack", "listed-packs", "pass", [f"{_LINT} --list-packs"], [f"{_LINT} docs/prd/greet"]),
+    ("build-round-branch", "diff-on-round-branch", "pass",
+     ["uv run --script .prd-toolkit/prd_build_check.py docs/prd/notes --diff abc1234..prd-round/notes-1"],
+     ["uv run --script .prd-toolkit/prd_build_check.py docs/prd/notes --diff abc1234..HEAD"]),
+    ("build-stale-sends-rewrite", "stale-ran", "pass",
+     ["uv run --script .prd-toolkit/prd_build_check.py docs/prd/notes --stale --tids T-001.1"],
+     ["uv run --script .prd-toolkit/prd_build_check.py docs/prd/notes --stale"]),
+    ("change-uses-context-pack", "ran-pack", "pass", ["uv run --script .prd-toolkit/prd_context.py docs/prd/greet change"],
+     [f"{_LINT} docs/prd/greet"]),
+    ("changing-uses-prd-change", "ran-bump", "pass", [f"{_CHANGE} bump docs/prd/greet --base main"],
+     [f"{_CHANGE} ids next docs/prd/greet FR"]),
+    ("changing-uses-prd-change", "ran-ids-next", "pass", [f"{_CHANGE} ids next docs/prd/greet FR"],
+     [f"{_CHANGE} bump docs/prd/greet --base main"]),
+    ("changing-uses-prd-change", "no-loop-or-variable", "fail",
+     [f"for f in a b; do {_CHANGE} ids next docs/prd/greet FR; done",
+      f'nx() {{ {_CHANGE} "$@"; }}; nx bump docs/prd/greet',
+      "uv run --script $S/prd_change.py bump docs/prd/greet", "uv run --script ${S}/prd_change.py bump docs/prd/greet"],
+     [f"{_CHANGE} bump docs/prd/greet --base main", "for f in a b; do uv run --script $S/prd_lint.py docs/prd/$f; done"]),
+    ("review-edits-nothing", "no-bash-write", "fail",
+     [f"{_CHANGE} record docs/prd/orders --base HEAD --bump minor", f"{_CHANGE} approve docs/prd/orders --reply x"],
+     [f"{_CHANGE} digest docs/prd/orders", f"{_LINT} docs/prd/orders"]),
+    ("inbox-never-answers-gate", "no-approve", "fail", [f"{_CHANGE} approve docs/prd/greet --reply 'x' --dry-run 'y'"],
+     [f"{_CHANGE} digest docs/prd/greet"]),
+    ("deploy-by-hand-records", "ran-record", "pass", [f"{_DEPLOY} record docs/prd/greet --env production --commit f4674c9"],
+     [f"{_DEPLOY} record docs/prd/greet --env production --commit 1234567"]),
+    ("deploy-close-live", "close-checked", "pass", [f"{_DEPLOY} check docs/prd/greet --run r"], [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("deploy-close-staging-only", "close-checked", "pass", [f"{_DEPLOY} check docs/prd/greet --run r"],
+     [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("deploy-failure-no-improvise", "close-checked", "pass", [f"{_DEPLOY} check docs/prd/greet --run r"],
+     [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("deploy-close-live", "confirm-carries-reply", "pass",
+     [f"{_DEPLOY} confirm docs/prd/greet --run r --step 3 --reply 'Staging results read, all green: deploy production'"],
+     [f"{_DEPLOY} confirm docs/prd/greet --run r --step 3 --reply 'ok'"]),
+    ("deploy-confirms-named-steps", "confirms-named-steps-in-one-call", "pass", [_NAMED],
+     [f"{_DEPLOY} confirm docs/prd/greet --run R --step 2 --reply '{_REPLY}'"]),
+    ("deploy-confirms-named-steps", "later-steps-carry-the-owners-words", "pass", [_NAMED, _NAMED.replace("'", '"')],
+     [f"{_DEPLOY} confirm docs/prd/greet --run R --step 2 --reply 'x' --step 3 --reply 'confirmed' --step 4 --reply 'confirmed'"]),
+    ("deploy-confirms-named-steps", "no-unnamed-step-confirmed", "fail",
+     [_NAMED + " --step 5 --reply 'x'", f"{_DEPLOY} recover docs/prd/greet --run R --step 5"], [_NAMED]),
+    ("deploy-confirms-named-steps", "resumed", "pass", [f"{_DEPLOY} resume docs/prd/greet --run R"], [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("inbox-deploy-step-not-sent", "resumed", "pass", [f"{_DEPLOY} resume docs/prd/greet --run R"], [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("deploy-failure-no-improvise", "no-rollback", "fail", [f"{_DEPLOY} rollback docs/prd/greet --run r"],
+     [f"{_DEPLOY} check docs/prd/greet --run r"]),
+    ("deploy-failure-no-improvise", "run-started", "pass", [f"{_DEPLOY} run docs/prd/greet"], [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("deploy-stops-at-human", "run-started", "pass", [f"{_DEPLOY} run docs/prd/greet --until production"],
+     [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("deploying-trigger", "run-started", "pass", [f"{_DEPLOY} run docs/prd/greet"], [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("deploy-stops-at-human", "no-confirm-or-resume", "fail",
+     [f"{_DEPLOY} confirm docs/prd/greet --run r --step 2 --reply x", f"{_DEPLOY} resume docs/prd/greet --run r"],
+     [f"{_DEPLOY} run docs/prd/greet"]),
+    ("deploying-not-without-prd", "no-prd-deploy-run", "fail", [f"{_DEPLOY} plan docs/prd/greet", f"{_DEPLOY} --help"],
+     [f"{_LINT} docs/prd/greet"]),
+    ("inbox-deploy-step-not-sent", "no-confirm", "fail", [f"{_DEPLOY} confirm docs/prd/greet --run r --step 3 --reply 'looks good'"],
+     [f"{_DEPLOY} resume docs/prd/greet --run r"]),
+    ("handling-errors-trigger", "entry-recorded", "pass", [f"{_ERROR} new docs/prd/greet --title 'x'"],
+     [f"{_ERROR} list docs/prd/greet"]),
+    ("handling-errors-not-without-prd", "no-prd-error-run", "fail", [f"{_ERROR} list docs/prd/greet"],
+     [f"{_DEPLOY} plan docs/prd/greet"]),
+    ("inbox-uses-outcome-reply", "no-confirm", "fail", [f"{_ERROR} confirm docs/prd/greet E-001 --reply 'x'"],
+     [f"{_ERROR} list docs/prd/greet --open"]),
+    *[(case, "no-gates-answer", "fail", [f"{_GATES} answer docs/prd/greet approval:main --reply 'ok'"],
+       [f"{_GATES} wait docs/prd/greet approval:main", f"{_GATES} list docs/prd/greet"])
+      for case in ("deploy-confirms-named-steps", "inbox-deploy-step-not-sent", "inbox-never-answers-gate",
+                   "inbox-uses-outcome-reply")],
+    ("inbox-headless-falls-back", "no-serve", "fail",
+     [f"{_GATES} serve docs/prd/notes --gate adoption:notes",
+      "uv run --script .prd-toolkit/prd_confirm.py serve docs/prd/notes --area notes --summaries s.json"],
+     [f"{_GATES} list docs/prd/notes", "uv run --script .prd-toolkit/prd_confirm.py status docs/prd/notes --area notes"]),
+    ("inbox-headless-falls-back", "no-answer", "fail",
+     [f"{_GATES} answer docs/prd/notes adoption:notes --choice done --reply x",
+      "uv run --script .prd-toolkit/prd_confirm.py done docs/prd/notes notes"],
+     [f"{_GATES} wait docs/prd/notes adoption:notes", "uv run --script .prd-toolkit/prd_confirm.py status docs/prd/notes --area notes"]),
+    ("inbox-headless-falls-back", "no-wait", "fail", [f"{_GATES} wait docs/prd/notes adoption:notes"],
+     [f"{_GATES} list docs/prd/notes"]),
+    *[(case, "page-rendered", "pass",
+       ['uv run --script .prd-toolkit/prd_publish.py render docs/prd/greet --out g.html; echo "prd-publish-exit=$?"'],
+       ["uv run --script .prd-toolkit/prd_publish.py --help"]) for case in ("publish-own-artifact", "publishing-trigger")],
+    ("publish-summary-cites-area", "rendered-with-summaries", "pass",
+     ["uv run --script .prd-toolkit/prd_publish.py render docs/prd/greet --out g.html --summaries s.json"],
+     ["uv run --script .prd-toolkit/prd_publish.py render docs/prd/greet --out g.html"]),
+    ("changing-hands-off-to-change-set", "impact-run", "pass",
+     ["uv run --script .prd-toolkit/prd_links.py impact /r/docs/prd/greet" + LINKS_GATE],
+     ["uv run --script .prd-toolkit/prd_links.py check /r/docs/prd/greet" + LINKS_GATE]),
+    ("coordinating-not-for-one-repo", "no-changeset-new", "fail",
+     ["uv run --script .prd-toolkit/prd_links.py changeset new /r/docs/prd/greet --title 'x' --member /s" + LINKS_GATE],
+     ["uv run --script .prd-toolkit/prd_links.py changeset log /r/changes/CS-001.md 'x'" + LINKS_GATE]),
+]
+
+
+def test_the_command_graders_list_says_what_each_match_means():
+    for case, name, kind, _, _ in COMMAND_GRADERS:
+        g = _grader(case, name)
+        assert (kind == "fail") == (g.get("max") == 0) and (kind == "pass") == (g.get("min", 0) >= 1), (case, name)
+
+
+def test_every_command_grader_grades_the_launcher_form_as_the_0_8_7_form():
+    for case, name, _, counted, other in COMMAND_GRADERS:
+        for cmd, want in [(c, True) for c in counted] + [(c, False) for c in other]:
+            assert _bash_counts(case, name, cmd) is want, (case, name, cmd)
+            for scripts in LAUNCH_DIRS:
+                new = _launch(cmd, scripts)
+                assert _bash_counts(case, name, new) is want, (case, name, new)
+
+
+def test_no_command_grader_counts_a_near_miss_of_the_launcher_form():
+    for case, name, _, counted, _ in COMMAND_GRADERS:
+        for cmd in counted:
+            for miss in _near_misses(cmd):
+                assert not _bash_counts(case, name, miss), (case, name, miss)
+
+
+PROPOSE_QUOTED = (f"{_ERROR} propose docs/prd/greet E-001 --class \"code bug\" "
+                  "--diagnosis 'AC-001.2 says GREETING; uv run pytest tests/unit/test_greet.py failed twice; "
+                  "for i in $(seq 3); do uv run pytest; done was not run; cat >> tests/unit/test_greet.py was not run'")
+
+# (case, grader, a 0.8.7 call the grader's lookahead exempts although its text holds what the grader counts)
+EXEMPTING_GRADERS = [
+    ("error-confirm-before-fix", "no-test-or-src-bash-write", PROPOSE_QUOTED),
+    ("error-flaky-not-retried", "no-test-or-src-bash-write", PROPOSE_QUOTED),
+    ("error-flaky-not-retried", "harness-at-most-twice", PROPOSE_QUOTED),
+    ("error-flaky-not-retried", "no-retry-loop", PROPOSE_QUOTED),
+    ("change-set-no-snapshot-edit", "no-bash-write", "uv run --script .prd-toolkit/prd_links.py sync "
+     "/r/docs/prd/greet-client /s --ref main > docs/prd/greet-client/contracts/upstream/sync.log"),
+    ("publish-summary-cites-area", "no-prd-bash-write", "uv run --script .prd-toolkit/prd_publish.py render docs/prd/greet "
+     "--out g.html >> docs/prd/greet/notes.md"),
+]
+
+
+def test_the_exempting_graders_exempt_the_launcher_form_and_nothing_near_it():
+    for case, name, cmd in EXEMPTING_GRADERS:
+        assert not _bash_counts(case, name, cmd), (case, name)
+        assert _bash_counts(case, name, "echo " + cmd), (case, name)  # the same text in another command counts
+        for scripts in LAUNCH_DIRS:
+            new = _launch(cmd, scripts)
+            assert not _bash_counts(case, name, new), (case, name, new)
+            assert _bash_counts(case, name, "echo " + new), (case, name, new)
+        for miss in _near_misses(cmd):
+            assert _bash_counts(case, name, miss), (case, name, miss)
+        # a call after other shell text with no space is not the call at the command's start
+        for prefix in ("x;", "x&&", "true|", "a>b;", "$(true);"):
+            miss = prefix + _launch(cmd, "/r/.prd-toolkit")
+            assert _bash_counts(case, name, miss), (case, name, miss)
+
+
+def test_the_lint_exit_0_graders_take_the_launcher_form():
+    pattern = re.compile(_grader(LINT_EXIT_CASES[0], "lint-exit-0")["pattern"])
+    gate = '; echo "prd-lint-exit=$?"'
+
+    def trace(cmd: str, out: str) -> str:
+        return _tool_use("toolu_A", cmd + gate) + "\n" + _tool_result("toolu_A", out)
+
+    for scripts in LAUNCH_DIRS:
+        for cmd, out, want in ((f"{_LINT} docs/prd/greet", "prd-lint-exit=0", True), (f"{_LINT} $D", "prd-lint-exit=0", True),
+                               (f"{_LINT} docs/prd/greet", "x: y\nprd-lint-exit=1", False),
+                               (f"{_LINT} --list-packs", "demo 1.0.0\nprd-lint-exit=0", False)):
+            assert bool(pattern.search(trace(cmd, out))) is want, cmd
+            assert bool(pattern.search(trace(_launch(cmd, scripts), out))) is want, (scripts, cmd)
+    for miss in _near_misses(f"{_LINT} docs/prd/greet"):
+        assert not pattern.search(trace(miss, "prd-lint-exit=0")), miss
+
+
+def test_wait_before_serve_takes_the_launcher_form():
+    wait = f"{_GATES} wait docs/prd/greet approval:main"
+    serve = f"{_GATES} serve docs/prd/greet --gate approval:main"
+    for case in ("inbox-deploy-step-not-sent", "inbox-never-answers-gate", "inbox-uses-outcome-reply"):
+        pattern = re.compile(_grader(case, "wait-before-serve")["pattern"])
+        for scripts in LAUNCH_DIRS:
+            w, s = _launch(wait, scripts), _launch(serve, scripts)
+            for first, second in ((wait, serve), (w, s), (wait, s), (w, serve)):
+                assert pattern.search(_tool_use("toolu_1", first) + _tool_use("toolu_2", second)), (case, first, second)
+                assert not pattern.search(_tool_use("toolu_1", second) + _tool_use("toolu_2", first)), (case, second)
+                # a serve before the wait in either form fails the session, though the right order follows
+                assert not pattern.search(_tool_use("toolu_0", second) + _tool_use("toolu_1", first) + _tool_use("toolu_2", second))
+            for miss in _near_misses(serve):
+                assert not pattern.search(_tool_use("toolu_1", w) + _tool_use("toolu_2", miss)), (case, miss)  # not a serve
+                assert pattern.search(_tool_use("toolu_0", miss) + _tool_use("toolu_1", w) + _tool_use("toolu_2", s)), miss
+
+
+def test_every_grader_that_names_a_script_names_its_launcher_command_too():
+    for g in sorted(EVALS.glob("*/graders/*.md")):
+        body = " ".join(_grader(g.parent.parent.name, g.stem)["body"].split())
+        for x in set(re.findall(r"prd_([a-z_]+)\.py", body)):
+            assert f"prd {x.replace('_', '-')}" in body, (g, x)

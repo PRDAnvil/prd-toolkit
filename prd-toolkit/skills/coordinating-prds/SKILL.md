@@ -31,7 +31,7 @@ branches" change nothing below.
    that crosses repositories runs without one, and no Edit or Write touches it. `impact` decides
    the members: a consumer it names, cloned or not, is a member until the user, replying to that
    line, says in their own words that it stays out. Call the starting repository's vendored
-   `.prd-toolkit/prd_links.py`.
+   launcher, `.prd-toolkit/prd links`.
 2. **One approval.** One approval for the whole set of PRD diffs, quoted; an amendment gets its
    own. Every member's diff is shown together first, and only a reply to them counts: never the
    request, nor a phrase in it.

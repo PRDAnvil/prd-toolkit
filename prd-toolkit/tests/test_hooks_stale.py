@@ -37,8 +37,8 @@ def vendored(repo, *args):
 
 def test_prd_lint_job_runs_the_stale_check_second(prd):
     job = hooks.ci_jobs(model.load(prd), PRD)[0]
-    assert job.script == ["uv run --script .prd-toolkit/prd_lint.py --ci docs/prd/orders",
-                          "uv run --script .prd-toolkit/prd_hooks.py check --ci docs/prd/orders"]
+    assert job.script == ["sh .prd-toolkit/prd lint --ci docs/prd/orders",
+                          "sh .prd-toolkit/prd hooks check --ci docs/prd/orders"]
 
 
 def test_fresh_files_are_not_stale(repo):
@@ -98,6 +98,23 @@ def test_check_ci_never_reports_vendored_drift(repo):
     assert run(repo, "check", PRD).returncode == 1  # plain check still sees the drift
 
 
+def test_install_names_a_stale_workflow(repo):
+    """install refreshes the copy, never the CI file; it prints the stale line `check --ci` would fail the next PR on."""
+    run(repo, "ci", "--github", PRD)
+    old = (repo / GITHUB).read_text().replace("sh .prd-toolkit/prd lint --ci", "uv run --script .prd-toolkit/prd_lint.py --ci")
+    (repo / GITHUB).write_text(old)  # the 0.8.7 form
+    lines = hooks.install(repo, PRD)
+    assert lines[-1] == f"stale: {GITHUB}: re-run prd_hooks.py ci --github --force", lines
+    assert (repo / GITHUB).read_text() == old
+    assert not any("prd_block.py" in x for x in lines)
+    run(repo, "ci", "--github", "--force", PRD)
+    assert not any(x.startswith("stale: ") for x in hooks.install(repo, PRD))
+
+
+def test_install_without_ci_files_names_none(repo):
+    assert not any(x.startswith("stale: ") for x in hooks.install(repo, PRD))
+
+
 def test_check_without_ci_from_vendored_copy_still_refused(repo):
     hooks.install(repo, PRD)
     assert vendored(repo, "check", PRD).returncode == 2
@@ -134,7 +151,7 @@ def flat(path):
 def test_changing_prds_close_reruns_ci():
     text = flat(SKILL)
     assert "touched `testing.md` or `operations.md`" in text
-    assert re.search(r"`uv run --script \.prd-toolkit/prd_hooks\.py ci --<forge> --force docs/prd/<slug>`", text)
+    assert re.search(r"`\.prd-toolkit/prd hooks ci --<forge> --force docs/prd/<slug>`", text)
     assert "check --ci" in text
 
 
@@ -144,7 +161,7 @@ def test_changing_prds_entry_change_cites_it_in_refs():
 
 # ---- 0.7: the links line ----
 
-LINKS_LINE = "uv run --script .prd-toolkit/prd_links.py check --ci docs/prd/orders"
+LINKS_LINE = "sh .prd-toolkit/prd links check --ci docs/prd/orders"
 
 
 def add_links(prd):

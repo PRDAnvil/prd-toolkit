@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_gates\.py(?:\\")?\s+wait\b'
+input_match: '(?:prd_gates\.py(?:\\")?|/prd(?:\\")?\s+gates)\s+wait\b'
 min: 0
 max: 0
 ---

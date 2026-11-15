@@ -12,7 +12,8 @@ from pathlib import Path
 from . import change_approve
 
 VENDOR_DIR = ".prd-toolkit"
-VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py")
+VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "requirements.txt", "prd")
+LAUNCHER = "prd"  # the sh launcher: .prd-toolkit/prd
 MARKER = "# prd-toolkit hook"
 HOOKS = ("commit-msg", "pre-commit")
 BLOCK_TEMPLATE = "claude-block.md"
@@ -243,16 +244,54 @@ GUARD = 'command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH
 
 
 SKIP = "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped"
+SKIP_PREDATES = "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped"
+
+
+OLD_FORM = re.compile(r"^(?=.*uv run --script)(?=.*prd_git_hook\.py).*$", re.M)  # a 0.8.7 shim's or appended line
 
 
 def _append_line(hook: str, prd_rel: str) -> str:
-    """One sh line for an existing hook: skips on a branch without the copy or the PRD, blocks without uv."""
-    script, prd = f'"$prd_top/{VENDOR_DIR}/prd_git_hook.py"', f'"$prd_top/{_quote(prd_rel)}"'
-    return (f'prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f {script} ] && [ -d {prd} ]; then {GUARD}; '
-            f'uv run --script {script} {hook} {prd} "$@" || exit $?; else echo "{SKIP}" >&2; fi')
+    """One sh line for an existing hook: skips on a branch whose copy predates the launcher, or without the copy or the PRD,
+    each with its own message; blocks without uv;
+    runs the launcher through sh, so a lost executable bit cannot break a commit."""
+    script, launcher = f'"$prd_top/{VENDOR_DIR}/prd_git_hook.py"', f'"$prd_top/{VENDOR_DIR}/{LAUNCHER}"'
+    prd = f'"$prd_top/{_quote(prd_rel)}"'
+    return (f'prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f {script} ] && [ ! -f {launcher} ]; then echo "{SKIP_PREDATES}" >&2; '
+            f'elif [ -f {script} ] && [ -f {launcher} ] && [ -d {prd} ]; then {GUARD}; '
+            f'sh {launcher} git-hook {hook} {prd} "$@" || exit $?; else echo "{SKIP}" >&2; fi')
 
 
-def _append_message(hook: str, prd_rel: str, shown: str, why: str) -> str:
+def _render(template_dir: Path, hook: str, prd_rel: str) -> str:
+    """The shim `install` writes for hook and the PRD at prd_rel."""
+    return (Path(template_dir) / hook).read_text(encoding="utf-8").replace("{{hook}}", hook).replace("{{prd}}", _quote(prd_rel))
+
+
+_QUOTED = r'(?:[^"\\\n]|\\.)+'  # a non-empty `_quote`d string: no bare `"`, `\` or newline; escapes allowed
+
+
+def _shim_pattern(template_dir: Path, hook: str) -> "re.Pattern[str]":
+    """The template for hook with every `{{prd}}` matching one and the same `_quote`d PRD path, whichever PRD it is."""
+    parts = (Path(template_dir) / hook).read_text(encoding="utf-8").replace("{{hook}}", hook).split("{{prd}}")
+    out = re.escape(parts[0])
+    for i, part in enumerate(parts[1:]):
+        out += (f"(?P<prd>{_QUOTED})" if i == 0 else "(?P=prd)") + re.escape(part)
+    return re.compile(out)
+
+
+def _read(path: Path) -> str | None:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else None
+    except OSError:
+        return None
+
+
+REPLACE = "replace its uv run --script … prd_git_hook.py line"  # a user's own hook holding the 0.8.7 line
+
+
+def _append_message(hook: str, prd_rel: str, shown: str, why: str, existing: str | None = None) -> str:
+    """What to do with a hook install leaves alone: add the line, or, when it holds the 0.8.7 line, replace that line."""
+    if existing is not None and OLD_FORM.search(existing):
+        return f"{why}; {REPLACE} in {shown}/{hook} with this line: " + _append_line(hook, prd_rel)
     return (f"{why}; add this line to {shown}/{hook} (an sh hook; place it before any `exit 0` in it): "
             + _append_line(hook, prd_rel))
 
@@ -287,20 +326,28 @@ def install(repo_root: Path, prd_rel: str) -> list[str]:
     hooks_dir, shown = _hooks_dir(repo_root)
     if configured:
         for hook in HOOKS:
-            lines.append(_append_message(hook, prd_rel, shown, f"core.hooksPath is set to {configured}; no shim written"))
-        return lines + _refresh(repo_root, module, tgts)
+            lines.append(_append_message(hook, prd_rel, shown, f"core.hooksPath is set to {configured}; no shim written", _read(hooks_dir / hook)))
+        return lines + _refresh(repo_root, module, tgts) + _install_stale_ci(repo_root, prd_rel)
     hooks_dir.mkdir(parents=True, exist_ok=True)
     for hook in HOOKS:
         path = hooks_dir / hook
         if path.exists() and not _ours(path):
-            lines.append(_append_message(hook, prd_rel, shown, f"{shown}/{hook} already exists and was left alone"))
+            lines.append(_append_message(hook, prd_rel, shown, f"{shown}/{hook} already exists and was left alone", _read(path)))
             continue
-        text = (_template_dir() / hook).read_text(encoding="utf-8").replace("{{hook}}", hook).replace("{{prd}}", _quote(prd_rel))
+        old = _read(path)
         with open(path, "w", encoding="utf-8", newline="\n") as f:
-            f.write(text)
+            f.write(_render(_template_dir(), hook, prd_rel))
         path.chmod(0o755)
-        lines.append(f"installed {shown}/{hook}")
-    return lines + _refresh(repo_root, module, tgts)
+        lines.append(f"replaced {shown}/{hook} (it used uv run --script)" if old is not None and OLD_FORM.search(old)
+                     else f"installed {shown}/{hook}")
+    return lines + _refresh(repo_root, module, tgts) + _install_stale_ci(repo_root, prd_rel)
+
+
+def _install_stale_ci(repo_root: Path, prd_rel: str) -> list[str]:
+    """install never rewrites a CI file; it names each present one `check --ci` would report, so the next step shows at once."""
+    from .model import load  # local: the model imports this package
+
+    return _stale_ci_files(repo_root, load(Path(repo_root) / prd_rel), prd_rel)
 
 
 def _refresh(repo_root: Path, module, tgts) -> list[str]:
@@ -317,7 +364,6 @@ def stale_ci(repo_root: Path, prd, prd_rel: str) -> list[str]:
     """One line per stale managed block (CLAUDE.md, the PRD's README, the parent README) and per CI include present whose
     text differs from what `prd_hooks.py ci` would write now. A block with a broken marker is one stale line naming the
     file and the problem, so the check exits 1, not 2."""
-    jobs = ci_jobs(prd, prd_rel) + deploy_jobs(prd, prd_rel)
     out = []
     module, tgts = _blocks(repo_root, prd_rel)
     if change_approve._ignored(Path(repo_root), "CLAUDE.md"):
@@ -328,6 +374,13 @@ def stale_ci(repo_root: Path, prd, prd_rel: str) -> list[str]:
             out.append(f"stale: {_shown(repo_root, path)}; run prd_block.py {prd_rel}")
     except module.BlockError as e:
         out.append(f"stale: {_relative_message(repo_root, str(e))}; run prd_block.py {prd_rel}")
+    return out + _stale_ci_files(repo_root, prd, prd_rel)
+
+
+def _stale_ci_files(repo_root: Path, prd, prd_rel: str) -> list[str]:
+    """One line per CI include present whose text differs from what `prd_hooks.py ci` would write now."""
+    jobs = ci_jobs(prd, prd_rel) + deploy_jobs(prd, prd_rel)
+    out = []
     for kind, rel in CI_FILES.items():
         path = Path(repo_root) / rel
         if path.is_file() and path.read_text(encoding="utf-8") != (render_gitlab if kind == "gitlab" else render_github)(jobs, prd.operations.secrets):
@@ -396,10 +449,37 @@ def check(repo_root: Path, plugin_root: Path, prd=None, prd_rel: str = "") -> li
             rel = f.relative_to(dest).as_posix()
             if f.is_file() and "__pycache__" not in f.parts and rel not in sources:
                 problems.append(f"{VENDOR_DIR}/{rel} is not in the plugin")
+    problems += _stale_shims(repo_root, plugin_root, prd_rel)
     if prd is not None:
         problems += _stale_packs(repo_root, prd)
         problems += stale_ci(repo_root, prd, prd_rel)
     return problems
+
+
+def _stale_shims(repo_root: Path, plugin_root: Path, prd_rel: str) -> list[str]:
+    """One line per stale installed hook: ours and not the current template for any PRD path (when prd_rel is not known,
+    ours and of the old form), or a user's own hook holding the 0.8.7 appended line. Which PRD a shim names is never a
+    finding: a repository may hold several PRDs and one shim per hook. No installed hook, or no git checkout, is no
+    finding, so a CI checkout is clean; `check --ci` calls stale_ci alone and never comes here."""
+    try:
+        hooks_dir, shown = _hooks_dir(repo_root)
+    except (OSError, subprocess.CalledProcessError):
+        return []
+    out = []
+    for hook in HOOKS:
+        path = hooks_dir / hook
+        text = _read(path)
+        if text is None:
+            continue
+        ours = _ours(path)
+        if ours and prd_rel:
+            stale = _shim_pattern(plugin_root / "templates/hooks", hook).fullmatch(text) is None
+        else:
+            stale = OLD_FORM.search(text) is not None
+        if stale:
+            # install rewrites only our own shims; a user's own hook is fixed by hand, with the line install prints
+            out.append(f"stale: {shown}/{hook}; " + ("run prd_hooks.py install" if ours else f"{REPLACE} with the line prd_hooks.py install prints"))
+    return out
 
 
 def uninstall(repo_root: Path) -> list[str]:
@@ -457,10 +537,10 @@ def ci_jobs(prd, prd_rel: str) -> list[CiJob]:
     from .rules.registries import standards_rows
 
     q = shlex.quote(prd_rel)
-    out = [CiJob("prd-lint", [f"uv run --script {VENDOR_DIR}/prd_lint.py --ci {q}", f"uv run --script {VENDOR_DIR}/prd_hooks.py check --ci {q}"]),
-           CiJob("prd-trace", [f"uv run --script {VENDOR_DIR}/prd_trace.py {q} --range {RANGE}"])]
+    out = [CiJob("prd-lint", [f"sh {VENDOR_DIR}/prd lint --ci {q}", f"sh {VENDOR_DIR}/prd hooks check --ci {q}"]),
+           CiJob("prd-trace", [f"sh {VENDOR_DIR}/prd trace {q} --range {RANGE}"])]
     if prd.links is not None:
-        out[0].script.append(f"uv run --script {VENDOR_DIR}/prd_links.py check --ci {q}")
+        out[0].script.append(f"sh {VENDOR_DIR}/prd links check --ci {q}")
     n = 0
     for row in standards_rows(prd):
         if row.decision == "enforced" and row.command:
@@ -479,7 +559,7 @@ def deploy_jobs(prd, prd_rel: str) -> list[CiJob]:
     ops = prd.operations
     q = shlex.quote(prd_rel)
     drift_envs = {r.env for r in ops.drift}
-    raw = [CiJob(f"drift-{env}", [f"uv run --script {VENDOR_DIR}/prd_drift.py {q} --env {shlex.quote(env)}"], True) for env in ops.environments if env in drift_envs]
+    raw = [CiJob(f"drift-{env}", [f"sh {VENDOR_DIR}/prd drift {q} --env {shlex.quote(env)}"], True) for env in ops.environments if env in drift_envs]
     for env in ops.environments:
         levels = [lv for s in ops.steps if s.env == env and s.tests for lv in s.tests]
         if not any(s.env == env and s.tests is not None for s in ops.steps):

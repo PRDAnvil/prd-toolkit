@@ -13,7 +13,7 @@ COMMAND = ROOT / "commands/prd-publish.md"
 DEPLOY_SKILL = ROOT / "skills/deploying-from-prds/SKILL.md"
 EVALS = ROOT / "evals"
 
-RENDER = ("uv run --script <scripts>/prd_publish.py render docs/prd/<slug> --out <out> "
+RENDER = ("<scripts>/prd publish render docs/prd/<slug> --out <out> "
           "--summaries <project>-prd-<version>.summaries.json; "
           "echo \"prd-publish-exit=$?\"")
 
@@ -128,11 +128,11 @@ def test_the_plugin_script_never_the_vendored_copy():
 
 def test_render_command_and_gate():
     assert RENDER in SKILL.read_text(encoding="utf-8")
-    assert "prd_publish.py render" in step(4)
+    assert "<scripts>/prd publish render" in step(4)
     for line in SKILL.read_text(encoding="utf-8").splitlines():
-        if "<scripts>/prd_publish.py" in line and line.strip().startswith("uv run"):
+        if "<scripts>/prd publish " in line:
             assert line.rstrip().endswith('; echo "prd-publish-exit=$?"'), line
-    assert any("<scripts>/prd_publish.py" in ln for ln in bash_lines(SKILL))
+    assert any("<scripts>/prd publish " in ln for ln in bash_lines(SKILL))
 
 
 def test_commands_are_one_per_call_with_literal_paths():
@@ -142,8 +142,8 @@ def test_commands_are_one_per_call_with_literal_paths():
         head = line.split('; echo "', 1)[0]  # the gate form is the one allowed `;`
         for bad in ("$(", "&&", "||", " | ", ";", "<(", "${CLAUDE_PLUGIN_ROOT}"):
             assert bad not in head, (bad, line)
-        if ".py" in line:
-            assert line.strip().startswith("uv run --script <scripts>/"), line
+        if ".py" in line or "<scripts>/" in line:
+            assert line.strip().startswith("<scripts>/prd "), line
     assert "One command per Bash call, with literal paths." in flat(SKILL)
 
 

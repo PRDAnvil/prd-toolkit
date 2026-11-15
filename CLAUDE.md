@@ -66,6 +66,7 @@ Skills enforce discipline, not just inform:
   pull request.
 - **Commits** cite the PRD IDs they touch (`Refs: FR-012`), or `Refs: none (no behaviour change)`.
 - **Hooks:** never `--no-verify`, and never bare `git stash`.
+- **Check ranges:** `.prd-toolkit/prd error check docs/prd/prd-toolkit <range>` over a range that spans c8f48cf (the move's SHA rewrite) reports `Detected: changed` on older entries; start the range after it.
 
 ## Writing
 
@@ -74,7 +75,7 @@ Omit needless words, use the active voice, and be specific.
 <!-- prd-toolkit:start -->
 ## Product requirements (by prd_block.py; do not edit)
 
-The PRD at `docs/prd/prd-toolkit` (version 6.2.2) is the authority.
+The PRD at `docs/prd/prd-toolkit` (version 6.2.3) is the authority.
 
 - To learn what an area does, run `/prd-toolkit:prd-context <area>` and work from its pack; read
   whole PRD files only to edit them. Build an approved change with
@@ -87,8 +88,8 @@ The PRD at `docs/prd/prd-toolkit` (version 6.2.2) is the authority.
 - A bug, a failing test, an error or a failed deploy goes to `/prd-toolkit:prd-error` (skill
   `prd-toolkit:handling-errors`) before any code changes.
 - Commits cite IDs: `Refs: FR-012`.
-- Run `.prd-toolkit/prd_hooks.py install` once per clone:
-  `uv run --script .prd-toolkit/prd_hooks.py install docs/prd/prd-toolkit`.
+- Install the hooks once per clone:
+  `.prd-toolkit/prd hooks install docs/prd/prd-toolkit`.
 - Lint runs inside the prd-toolkit skills; after any PRD edit, finish through
   `/prd-toolkit:prd-change`.
 

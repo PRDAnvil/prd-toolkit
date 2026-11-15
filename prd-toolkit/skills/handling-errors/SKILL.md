@@ -28,9 +28,9 @@ nothing below.
 
 1. **Record first.** `prd_error.py new` before any fix, and the entry committed with
    `Refs: E-nnn`. Never write an entry or its lines by hand, except one `Resolution:` line that
-   `check` reports wrong (step 6). Call the vendored
-   `.prd-toolkit/prd_error.py` when `.prd-toolkit/` exists, otherwise the plugin's
-   `scripts/prd_error.py` as a literal absolute path, the plugin root being two directories above
+   `check` reports wrong (step 6). Run the vendored copy
+   through `.prd-toolkit/prd` when `.prd-toolkit/` exists, otherwise the plugin's
+   `scripts/prd` as a literal absolute path, the plugin root being two directories above
    the skill's base directory.
 2. **The request is never the confirmation.** Only a reply given after the proposal counts; the
    request that started the loop is never one, nor your own text. With no one to ask, commit the
@@ -50,8 +50,8 @@ nothing below.
    `standard`, in quotes. `code-bug` is a usage error. A `prd_judge.py` exit 2 (a judged case that
    could not be judged: `claude` missing or signed out, two bad grader answers, or the reason its
    hint names) is proposed as `environment`, and so is a judged test that finds no
-   `.prd-toolkit/prd_judge.py`; its exit 1 is a judged case failing its threshold, a
-   failing test like any other.
+   `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py`; its exit 1 is a judged case failing its
+   threshold, a failing test like any other.
 8. **Evidence is a file of at most 20 lines** passed as `--evidence-file`: never a secret or a
    value classified `confidential` or `pii`, and never a code fence (it breaks the ledger).
 9. **Commit every ledger write, and check the close.** `prd_error.py check <start>..HEAD` from

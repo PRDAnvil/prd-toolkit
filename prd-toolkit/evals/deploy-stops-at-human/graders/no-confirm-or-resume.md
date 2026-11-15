@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: 'prd_deploy\.py (?:confirm|resume)'
+input_match: '(?:prd_deploy\.py|/prd(?:\\")?\s+deploy) (?:confirm|resume)'
 min: 0
 max: 0
 ---

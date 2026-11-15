@@ -20,16 +20,20 @@ line naming the rule it breaks, and the procedure goes on without the skip.
 
 **Which script.** `${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call, so no command holds it.
 In every command below, `<scripts>` is `.prd-toolkit` when the repository has a `.prd-toolkit/`
-directory: `.prd-toolkit/prd_error.py` is the copy its hooks and CI run. Otherwise `<scripts>` is
-the plugin's `scripts` directory, written as a literal absolute path (in double quotes if it
-holds a space): the plugin root is two directories above the skill's base directory (Claude Code
-shows it as "Base directory for this skill" when the skill loads), and `<scripts>` is
-`<plugin root>/scripts`. Before step 1, Glob for `.prd-toolkit/prd_error.py` to decide, and use
-the same `<scripts>` for every command. A script that is not found is a tool error: report it,
-never guess another path.
+directory: `.prd-toolkit/prd_error.py`, run through `.prd-toolkit/prd`, is the copy its hooks and CI
+run. Otherwise `<scripts>` is the plugin's `scripts` directory, written as a literal absolute path
+(in double quotes if it holds a space): the plugin root is two directories above the skill's base
+directory (Claude Code shows it as "Base directory for this skill" when the skill loads), and
+`<scripts>` is `<plugin root>/scripts`. Before step 1, Glob for `.prd-toolkit/prd*` to decide (it
+lists `prd` and the `prd_*.py` scripts), and use the same `<scripts>` for every command. A script
+that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`.
+When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell
+the user the same and, when `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists,
+also to run `prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commit both
+together.
 
 **One command per Bash call, with literal paths.** Each command below is its own Bash call, and
 every path, ID and SHA in it is typed out in full: paste what a command printed, never a variable
@@ -63,7 +67,7 @@ parse and hides the entries after it, so `new` refuses one.
 then run, as its own call:
 
 ```bash
-uv run --script <scripts>/prd_error.py list docs/prd/<slug> --open; echo "prd-error-exit=$?"
+<scripts>/prd error list docs/prd/<slug> --open; echo "prd-error-exit=$?"
 ```
 
 Each line is `E-<nnn> <state> <class> <Touches> <title>`; the second word is the state. A new error
@@ -84,7 +88,7 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    runs the test or the command. With nothing to quote, leave out `--evidence-file`. Then:
 
    ```bash
-   uv run --script <scripts>/prd_error.py new docs/prd/<slug> --title '<the error in one line>' --source '<where it came from>' --touches <IDs> --evidence-file <TMP>/evidence.txt; echo "prd-error-exit=$?"
+   <scripts>/prd error new docs/prd/<slug> --title '<the error in one line>' --source '<where it came from>' --touches <IDs> --evidence-file <TMP>/evidence.txt; echo "prd-error-exit=$?"
    ```
 
    `--source` says where it came from: `user report (/prd-toolkit:prd-error)`,
@@ -137,13 +141,13 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    ones included:
 
    ```bash
-   uv run --script <scripts>/prd_error.py list docs/prd/<slug>; echo "prd-error-exit=$?"
+   <scripts>/prd error list docs/prd/<slug>; echo "prd-error-exit=$?"
    ```
 
    An entry with the same `Touches:` and the same symptom is its `--recurrence`. Then:
 
    ```bash
-   uv run --script <scripts>/prd_error.py propose docs/prd/<slug> <E-nnn> --class "<class>" --diagnosis '<the root cause, with the AC quoted>' --touches <IDs> --recurrence <E-mmm>; echo "prd-error-exit=$?"
+   <scripts>/prd error propose docs/prd/<slug> <E-nnn> --class "<class>" --diagnosis '<the root cause, with the AC quoted>' --touches <IDs> --recurrence <E-mmm>; echo "prd-error-exit=$?"
    ```
 
    `--touches` takes the blocks the diagnosis names, as `FR-001,FR-002`: an entry recorded before
@@ -177,7 +181,7 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    the `confirm` command to run instead of replying. When the reply settles it:
 
    ```bash
-   uv run --script <scripts>/prd_error.py confirm docs/prd/<slug> <E-nnn> --reply '<the reply, verbatim>'; echo "prd-error-exit=$?"
+   <scripts>/prd error confirm docs/prd/<slug> <E-nnn> --reply '<the reply, verbatim>'; echo "prd-error-exit=$?"
    ```
 
    A reply that names another class adds `--class "<their class>"` to the same call; a reply that
@@ -262,9 +266,9 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    un-mark is idempotent). Then resolve by the class's form, one of:
 
    ```bash
-   uv run --script <scripts>/prd_error.py resolve docs/prd/<slug> <E-nnn> --t <T-id> --version <X.Y.Z> --commit <sha>; echo "prd-error-exit=$?"
-   uv run --script <scripts>/prd_error.py resolve docs/prd/<slug> <E-nnn> --run <run id> --t <T-id> --version <X.Y.Z>; echo "prd-error-exit=$?"
-   uv run --script <scripts>/prd_error.py resolve docs/prd/<slug> <E-nnn> --not-a-defect '<why>'; echo "prd-error-exit=$?"
+   <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --t <T-id> --version <X.Y.Z> --commit <sha>; echo "prd-error-exit=$?"
+   <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --run <run id> --t <T-id> --version <X.Y.Z>; echo "prd-error-exit=$?"
+   <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --not-a-defect '<why>'; echo "prd-error-exit=$?"
    ```
 
    The first is a fix (code bug, spec gap, invalid requirement, standard): the regression T-id,
@@ -281,7 +285,7 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    Then, with `<start>` from step 1 or from **Where to enter**:
 
    ```bash
-   uv run --script <scripts>/prd_error.py check docs/prd/<slug> <start>..HEAD; echo "prd-error-exit=$?"
+   <scripts>/prd error check docs/prd/<slug> <start>..HEAD; echo "prd-error-exit=$?"
    ```
 
    Exit 0 is clean. Exit 1 prints `errors.md: E-<nnn>: <finding>` lines. A finding is fixed and
@@ -303,9 +307,9 @@ paths, written with the skill's `<scripts>` path, never `${CLAUDE_PLUGIN_ROOT}`.
 
 - **`wait`, first.** Start it with the Bash tool's `run_in_background`, before the owner sees any
   URL, so no answer can come before it is watching:
-  `uv run --script <scripts>/prd_gates.py wait docs/prd/<slug> <gate id>`
+  `<scripts>/prd gates wait docs/prd/<slug> <gate id>`
 - **The URL.** Then start, also with `run_in_background`,
-  `uv run --script <scripts>/prd_gates.py serve docs/prd/<slug> --gate <gate id>`
+  `<scripts>/prd gates serve docs/prd/<slug> --gate <gate id>`
   and re-read its output until its first line appears:
   - `url=<url>`: give the owner that URL as a clickable link, beside what the step shows in the
     chat.
@@ -345,6 +349,6 @@ The rules:
 - **A deploy step's reply is never sent for the owner,** in the form or the CLI.
 - **The outcome's reply is not edited.** A `changes` outcome's reply is what the revision answers.
 - A `wait` that exits 1 means the gate changed: list again, never assume the answer. List with
-  `uv run --script <scripts>/prd_gates.py list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
+  `<scripts>/prd gates list docs/prd/<slug>; echo "prd-gates-exit=$?"`: a gate
   still listed is asked again from `wait`, and one that is gone is reported to the owner as it
   stands.

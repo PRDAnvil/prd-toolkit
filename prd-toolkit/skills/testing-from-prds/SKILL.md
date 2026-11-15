@@ -147,7 +147,7 @@ A test case whose `expect` has `rubric:` (and `threshold:`, and no `output:`) is
 model grader scores the output against the rubric, and `prd_judge.py` runs it. Its test produces
 or locates the output (for a `doc:` target, the file at its `outline` entry's `path`) and calls
 the judge with all three positionals, the PRD folder, the T-id and the output file:
-`uv run --script .prd-toolkit/prd_judge.py <prd dir> <T-id> <output file>`. The test runs that one
+`.prd-toolkit/prd judge <prd dir> <T-id> <output file>`. The test runs that one
 command and asserts exit 0 and nothing else. In pytest:
 
 ```python
@@ -159,7 +159,7 @@ ROOT = Path(__file__).resolve().parents[2]  # tests/judged/<file> -> the reposit
 
 def test_install_guide_judged():
     """@prd T-010.2"""
-    r = subprocess.run(["uv", "run", "--script", ".prd-toolkit/prd_judge.py",
+    r = subprocess.run([".prd-toolkit/prd", "judge",
                         "docs/prd/greet", "T-010.2", "docs/guide/install.md"], cwd=ROOT)
     assert r.returncode == 0
 ```
@@ -169,9 +169,10 @@ the harness starts in.
 
 Exit 1 is the case failing its threshold; exit 2 is a case that could not be judged (no output
 file, no `claude`, two bad grader answers), a test error, never a pass: never accept it. A missing
-`.prd-toolkit/prd_judge.py` (the hooks were never installed) is an environment problem, not a test
+`.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py` (the hooks were never installed, or `.prd-toolkit/`
+was vendored before prd-toolkit 0.8.8 and has no launcher) is an environment problem, not a test
 failure: its RESULTS line is
-`<T-id>: fail: environment: .prd-toolkit/prd_judge.py is missing; run prd_hooks.py install`, and you
+`<T-id>: fail: environment: <the missing file> is missing; run prd_hooks.py install`, and you
 never call another copy, rewrite the test around it or grade the output instead. The call
 is the toolkit's, so testing.md not spelling it out is not a QUESTION: its Assertions slot says
 what a judged test asserts, and this is how. The rubric, the threshold and `runs:` stay in the

@@ -18,6 +18,6 @@ step with its code. Code implements its PRD; a change in behaviour starts in the
 ## Getting started
 
 - Install the prd-toolkit plugin for Claude Code: {{homepage}}
-- Once per clone: `uv run --script .prd-toolkit/prd_hooks.py install docs/prd/<slug>`
+- Once per clone: `.prd-toolkit/prd hooks install docs/prd/<slug>`
 - Then see each PRD's README.
 <!-- prd-toolkit:end -->

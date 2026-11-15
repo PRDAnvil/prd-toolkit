@@ -41,7 +41,7 @@ def test_model_keeps_harness_commands(prd):
 
 def test_lint_job_runs_ci_mode(prd):
     lint_job = jobs(prd)[0]
-    assert "uv run --script .prd-toolkit/prd_lint.py --ci docs/prd/orders" in lint_job.script
+    assert "sh .prd-toolkit/prd lint --ci docs/prd/orders" in lint_job.script
 
 
 def test_standards_job_uses_git_glob_pathspec(prd):
@@ -127,6 +127,27 @@ def test_ci_refuses_existing_include_without_force(repo):
     assert r.returncode == 0 and "mine" not in (repo / ".gitlab/prd-toolkit.yml").read_text()
 
 
+def test_ci_refuses_a_vendored_copy_without_the_launcher(repo):
+    """A 0.8.7 copy has no .prd-toolkit/prd: a workflow that runs `sh .prd-toolkit/prd` would fail in CI, so none is written."""
+    (repo / ".prd-toolkit").mkdir()
+    (repo / ".prd-toolkit/prd_git_hook.py").write_text("# 0.8.7\n")
+    for args in (["--github", "--force"], ["--gitlab"]):
+        r = run(repo, "ci", *args, PRD)
+        assert (r.returncode, r.stdout) == (2, ""), r.stdout + r.stderr
+        assert r.stderr == f"prd_hooks: .prd-toolkit/ predates 0.8.8 (no .prd-toolkit/prd); run prd_hooks.py install {PRD} first\n"
+    assert not (repo / ".github").exists() and not (repo / ".gitlab").exists()
+    (repo / ".prd-toolkit/prd").write_text("#!/bin/sh\n")
+    assert run(repo, "ci", "--github", PRD).returncode == 0
+
+
+def test_ci_without_a_vendored_copy_still_writes(repo):
+    """No .prd-toolkit/ at all: `ci` writes the file as before (install vendors the copy it runs)."""
+    assert not (repo / ".prd-toolkit").exists()
+    r = run(repo, "ci", "--github", PRD)
+    assert (r.returncode, r.stdout, r.stderr) == (0, "wrote .github/workflows/prd-toolkit.yml\n", "")
+    assert "sh .prd-toolkit/prd lint --ci" in (repo / ".github/workflows/prd-toolkit.yml").read_text()
+
+
 def test_ci_identical_file_is_not_a_refusal(repo):
     run(repo, "ci", "--gitlab", PRD)
     assert run(repo, "ci", "--gitlab", PRD).returncode == 0
@@ -199,17 +220,24 @@ def test_deploy_jobs(prd):
     assert [j.name for j in dj] == ["drift-production", "test-deploy-staging", "test-deploy-production"]
     assert all(j.manual for j in dj) and not any(j.manual for j in jobs(prd))
     by = {j.name: j for j in dj}
-    assert by["drift-production"].script == ["uv run --script .prd-toolkit/prd_drift.py docs/prd/orders --env production"]
+    assert by["drift-production"].script == ["sh .prd-toolkit/prd drift docs/prd/orders --env production"]
     assert by["test-deploy-staging"].script == ["export PRD_ENV=staging TEST_ENV=staging; pytest tests/system",
                                                 "export PRD_ENV=staging TEST_ENV=staging; pytest tests/e2e"]
     assert by["test-deploy-production"].script == ["export PRD_ENV=production TEST_ENV=production; pytest tests/smoke"]
 
 
+def _deploys(text):
+    """A line that runs the deploy script, by its file (0.8.7) or through the launcher (0.8.8)."""
+    return "prd_deploy.py" in text or "prd deploy" in text
+
+
 def test_ci_never_deploys(prd):
+    # the check can fail: both forms of a deploy line are caught
+    assert _deploys("uv run --script .prd-toolkit/prd_deploy.py run x") and _deploys("sh .prd-toolkit/prd deploy run x")
     for j in all_jobs(prd):
-        assert not any("prd_deploy.py" in s for s in j.script)
+        assert not any(_deploys(s) for s in j.script)
     for render in (hooks.render_gitlab, hooks.render_github):
-        assert "prd_deploy.py" not in render(all_jobs(prd))
+        assert not _deploys(render(all_jobs(prd)))
 
 
 def test_gitlab_manual(prd):
@@ -302,7 +330,7 @@ def test_test_deploy_exports_the_environment_for_a_compound_command(prd, tmp_pat
 # ---- 0.7: links.md adds the check line to prd-lint only ----
 
 def test_links_line_only_with_links_md(prd):
-    line = "uv run --script .prd-toolkit/prd_links.py check --ci docs/prd/orders"
+    line = "sh .prd-toolkit/prd links check --ci docs/prd/orders"
     assert not any(line in j.script for j in jobs(prd))
     (prd / "links.md").write_text(
         "# Links\n\n## Upstreams\n\n| Upstream | Location | Version | Commit | Needs |\n|---|---|---|---|---|\n\n"
@@ -310,3 +338,12 @@ def test_links_line_only_with_links_md(prd):
     by = {j.name: j for j in jobs(prd)}
     assert by["prd-lint"].script[-1] == line
     assert [s for j in by.values() for s in j.script].count(line) == 1
+
+
+def test_no_generated_line_uses_script_mode(prd):
+    loaded = model.load(prd)
+    jobs_all = hooks.ci_jobs(loaded, PRD) + hooks.deploy_jobs(loaded, PRD)
+    for text in (hooks.render_github(jobs_all), hooks.render_gitlab(jobs_all)):
+        assert "--script" not in text and "sh .prd-toolkit/prd lint --ci" in text
+        assert "sh .prd-toolkit/prd hooks check --ci" in text and "sh .prd-toolkit/prd trace " in text
+        assert "sh .prd-toolkit/prd drift " in text

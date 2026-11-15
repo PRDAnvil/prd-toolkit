@@ -99,8 +99,9 @@ def test_readme_vendored_paths_are_vendored():
     import sys
     sys.path.insert(0, str(ROOT / "scripts"))
     from prdlint import hooks
-    named = set(re.findall(r"\.prd-toolkit/(\w+\.py)", README))
-    assert named and named <= set(hooks.VENDORED), sorted(named - set(hooks.VENDORED))
+    named = set(re.findall(r"\.prd-toolkit/prd (\w[\w-]*)", README))   # the launcher's commands (0.8.8)
+    vendored = {f[len("prd_"):-len(".py")].replace("_", "-") for f in hooks.VENDORED if f.startswith("prd_") and f.endswith(".py")}
+    assert named and named <= vendored, sorted(named - vendored)
     pub = flat(section("Publishing"))
     assert "prd-toolkit/<version>/scripts/prd_publish.py render" in pub and "runs from the plugin" in pub
     assert "(it vendors `prd_error.py`)" in flat(README) and "`prd_error.py` and `prd_publish.py`" not in README

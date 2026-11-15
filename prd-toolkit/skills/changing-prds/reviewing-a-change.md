@@ -24,20 +24,20 @@ command gives one; otherwise the branch's upstream, from `git rev-parse --abbrev
 ## The steps
 
 1. **The state.** Each its own call: `git rev-parse HEAD`, then
-   `uv run --script <scripts>/prd_change.py digest <dir>; echo "prd-change-exit=$?"`. Keep both
+   `<scripts>/prd change digest <dir>; echo "prd-change-exit=$?"`. Keep both
    values for the verdict's `head` and `digest`.
-2. **The diff.** Run `uv run --script <scripts>/prd_change.py bump <dir> --base <base>; echo "prd-change-exit=$?"`.
+2. **The diff.** Run `<scripts>/prd change bump <dir> --base <base>; echo "prd-change-exit=$?"`.
    Its lines are the changed items, `<level> <ID> <file>:<line> <reason>`, and `level <level>`
    last. Read the change with `git diff <base> -- <dir>`, then run the pack for the area and the
    requirements it touches, as `changing-prds` step 1 does:
-   `uv run --script <scripts>/prd_context.py <dir> --area <area> --req <IDs>; echo "prd-context-exit=$?"`.
+   `<scripts>/prd context <dir> --area <area> --req <IDs>; echo "prd-context-exit=$?"`.
 3. **Restate the change** in one sentence (the verdict's `restate`) and list every ID it touches,
    T-ids included (`touches`), as `changing-prds` step 1 does.
 4. **Impact.** When `links.md` has Consumers, run
-   `uv run --script <scripts>/prd_links.py impact <dir>; echo "prd-links-exit=$?"`; `impact` is
+   `<scripts>/prd links impact <dir>; echo "prd-links-exit=$?"`; `impact` is
    `{"exit": <the prd-links-exit value>, "lines": [<its output lines>]}`. Without Consumers there is
    no run, and `impact` is `{"exit": 0, "lines": []}`.
-5. **Lint.** `uv run --script <scripts>/prd_lint.py <dir>; echo "prd-lint-exit=$?"`. Fix nothing it
+5. **Lint.** `<scripts>/prd lint <dir>; echo "prd-lint-exit=$?"`. Fix nothing it
    reports: a `1` is a blocker.
 6. **Decide each `needs judgment` item** by `changing-prds`' Version rule, with its reason: one
    `bump.decided` entry each, `{"id", "file", "line", "level", "reason"}`, `level` being `patch`,

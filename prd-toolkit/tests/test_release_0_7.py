@@ -45,7 +45,7 @@ def test_readme_version_spec_link_and_rules():
 
 def test_links_and_change_sets_sections():
     s = flat(section(README, "Links"))
-    for needle in ("links.md", "prd_links.py add", "sync", "check", "impact", "contracts/upstream/", "Needs",
+    for needle in ("links.md", ".prd-toolkit/prd links add", "sync", "check", "impact", "contracts/upstream/", "Needs",
                    "<kind>:<prd>/<name>", "check --ci", "exit 3", "git URL", "asyncapi"):
         assert needle in s, needle
     c = flat(section(README, "Change sets"))

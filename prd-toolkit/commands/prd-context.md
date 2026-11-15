@@ -12,11 +12,16 @@ root is two directories above the skill's base directory (Claude Code shows it a
 directory for this skill" when a prd-toolkit skill loads; when none has, load `prd-toolkit:changing-prds`, which is
 loaded only to read its base directory: none of its steps are followed), and `<scripts>` is
 `<plugin root>/scripts`.
-Glob for `.prd-toolkit/*.py` once to decide, and use the same `<scripts>` for every command.
+Glob for `.prd-toolkit/prd*` once to decide (it lists `prd` and the `prd_*.py` scripts), and use
+the same `<scripts>` for every command.
 A script that is not found is a tool error: report it, never guess another path.
 When `.prd-toolkit/` exists but holds no `prd_error.py`, the vendored copy predates 0.6: stop, and
 tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`.
+When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8: stop, and tell
+the user the same and, when `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists,
+also to run `prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commit both
+together.
 
 1. Find the one `docs/prd/*/prd.md`. If there is more than one, ask which PRD.
 2. Map the arguments. A token that starts with `UJ-`, `FR-`, `NFR-`, `AC-`, `T-` or `E-` is an
@@ -27,7 +32,7 @@ and commit `.prd-toolkit/`.
    IDs with no area, find the area each ID's block lives in from the repo pack, or ask. With no
    area and no IDs, the pack is the repo pack: the stack and one line per area.
 3. Run the script in one Bash call, with the literal PRD folder:
-   `uv run --script <scripts>/prd_context.py docs/prd/<slug> --area <area> --req <IDs> --for implement; echo "prd-context-exit=$?"`
+   `<scripts>/prd context docs/prd/<slug> --area <area> --req <IDs> --for implement; echo "prd-context-exit=$?"`
    Leave out the options the arguments did not give. `--req` and `--for implement` both need `--area`.
    Never pipe, filter or truncate the pack's output (no `| head`, no `| grep`): `prd-context-exit=`
    then reports the filter's status, not the pack's.
