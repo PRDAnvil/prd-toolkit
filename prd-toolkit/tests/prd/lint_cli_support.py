@@ -134,11 +134,12 @@ def run(args, cwd: Path, env: dict | None = None, unset=(), script: Path = PRD_L
     """Run `python <script> <args>` as a subprocess in `cwd`, capturing stdout and stderr as bytes.
 
     The environment is the test process's (with any monkeypatch changes) minus PYTHONIOENCODING,
-    PYTHONPATH, PYTHONHOME and PRD_LINT_CI (testing.md, Harness, Subprocess environment) and minus
-    `unset`, plus `env`.
+    PYTHONPATH, PYTHONHOME, PRD_LINT_CI and PRD_HELP_FILE (testing.md, Harness, Subprocess
+    environment) and minus `unset`, plus `env`.
     """
     full_env = dict(os.environ)
-    for name in ("PYTHONIOENCODING", "PYTHONPATH", "PYTHONHOME", "PRD_LINT_CI", *unset):
+    for name in ("PYTHONIOENCODING", "PYTHONPATH", "PYTHONHOME", "PRD_LINT_CI", "PRD_HELP_FILE",
+                 *unset):
         full_env.pop(name, None)
     if env:
         full_env.update(env)
@@ -168,10 +169,10 @@ def in_process(monkeypatch):
     """Prepare an in-process call (testing.md, Harness, In-process calls).
 
     Applies the subprocess environment rules through monkeypatch (drops PYTHONIOENCODING,
-    PYTHONPATH, PYTHONHOME and PRD_LINT_CI), puts prd-toolkit/scripts on sys.path, and returns
-    the imported prd_lint module.
+    PYTHONPATH, PYTHONHOME, PRD_LINT_CI and PRD_HELP_FILE), puts prd-toolkit/scripts on sys.path,
+    and returns the imported prd_lint module.
     """
-    for name in ("PYTHONIOENCODING", "PYTHONPATH", "PYTHONHOME", "PRD_LINT_CI"):
+    for name in ("PYTHONIOENCODING", "PYTHONPATH", "PYTHONHOME", "PRD_LINT_CI", "PRD_HELP_FILE"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.syspath_prepend(str(SCRIPTS))
     import importlib
