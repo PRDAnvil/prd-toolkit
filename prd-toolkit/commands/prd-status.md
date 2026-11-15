@@ -1,5 +1,5 @@
 ---
-description: Print where every requirement of the PRD stands (prd-toolkit)
+description: Print what the PRD needs next and where every requirement stands (prd-toolkit)
 ---
 
 Print the prd-toolkit status report. Arguments: $ARGUMENTS
@@ -28,6 +28,8 @@ together.
    `<scripts>/prd status docs/prd/<slug>; echo "prd-status-exit=$?"`
    Add `--json` only when asked for JSON. Never pipe, filter or truncate the output (no `| head`,
    no `| grep`): `prd-status-exit=` then reports the filter's status, not the script's.
-3. Print the output as it is. The report has nine parts: Header, Requirements, Adoption map,
-   Not built, Not verified, Open errors, CI, Deployed and Matrix. It is read-only.
+3. Print the output as it is. The report starts with the part Next, the ordered list of what the
+   PRD needs, each item with the command that does it; then Header, Requirements, Areas, Adoption
+   map, Not built, Not verified, Open errors, Upstreams, Consumers, Change sets, CI, Deployed and
+   Matrix. A vendored copy older than 0.8.10 prints no Next part. It is read-only.
 4. On `prd-status-exit=2`, the call was wrong and nothing printed: fix the path.
