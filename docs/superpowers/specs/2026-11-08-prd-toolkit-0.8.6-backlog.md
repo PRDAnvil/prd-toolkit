@@ -26,6 +26,9 @@
 >   (0.8.10) are inserted after 0.8.8, so this backlog is 0.8.11's; the file keeps its name. Item 1
 >   gains pack authoring from an example repository. Item 3 is done in 0.8.8, with the limits its
 >   changelog entry names.
+> - Split (owner, 2026-11-15): item 1's sources and skills are 0.8.11
+>   (`2026-11-15-prd-toolkit-0.8.11-practices-design.md`); its pack authoring from an example
+>   repository is 0.8.12.
 
 ## 1. Backlog
 

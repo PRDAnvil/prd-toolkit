@@ -16,6 +16,9 @@
 > part in the status report (0.8.10) are inserted after 0.8.8, each its own release; best practices
 > move to 0.8.11 and conversion to 0.8.12, their content unchanged. The priority order below and the
 > umbrella's §4 rows say so.
+> **Decided later (owner, 2026-11-15, in the 0.8.11 brainstorm):** 0.8.11 is best-practice sources and
+> the skills a PRD needs; pack authoring from an example repository becomes its own release, 0.8.12;
+> conversion moves to 0.8.13, its content unchanged.
 > **Source:** the review of `PRDAnvil/prd-engine` at `b6bd3e9` (v0.14.0) against prd-toolkit 0.8.6.
 
 **Goal:** Bring four ideas from prd-engine into prd-toolkit. Three are planned here: a replay that
@@ -56,11 +59,12 @@ new Python dependency in any phase.
 | 2 | **0.8.8** | **Invocation**, released: merged to `main`: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; engine | done | 0.8.7 |
 | 3 | **0.8.9** | **Help catalogue**, delivered: a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | done | 0.8.8 |
 | 4 | **0.8.10** | **Next part in the status report**, delivered: an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | done | 0.8.8 |
-| 5 | **0.8.11** | **Best-practice sources**, and finding, installing or writing a skill or pack a PRD needs, with pack authoring from an example repository | umbrella row, backlog item 1 | large | 0.8.0 |
-| 6 | **0.8.12** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
-| 7 | after 0.8.12 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | engine; backlog item 5 | small | none |
-| 8 | after 0.8.12 | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
-| 9 | after | **Antigravity wrapper** (phase 4), if its spike passes | engine | large, uncertain | the `prd` command |
+| 5 | **0.8.11** | **Best-practice sources**, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | large | 0.8.0 |
+| 6 | **0.8.12** | **Pack authoring** from an example repository: a pack proposed and written from two repositories that declare the same custom contract types | backlog item 1 | large | best practices |
+| 7 | **0.8.13** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
+| 8 | after 0.8.13 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | engine; backlog item 5 | small | none |
+| 9 | after 0.8.13 | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
+| 10 | after | **Antigravity wrapper** (phase 4), if its spike passes | engine | large, uncertain | the `prd` command |
 | — | every release | **One area adopted** in the toolkit's own PRD: `lint-ids` next, then `lint-testcases` | backlog item 2's policy | medium each | the release that last reshaped the area |
 | — | before 1.0.0 | **A production release path** (PRDAnvil/prd-toolkit#14): tagged releases from a commit that passed CI and the evals, each with its upgrade note; a marketplace entry on the latest release, with pinning and rollback; a standalone `prd` install for macOS and Linux; one version everywhere, checked by CI; a vendored copy that records the release it came from. A prerequisite for 1.0.0 (owner, 2026-11-14) | issue #14 | not sized | the `prd` command (0.8.8) |
 | — | 2.0.0 roadmap | **Signed approvals** | engine | medium | one of its three triggers |
@@ -129,7 +133,7 @@ body. **A `macos-app` pack**: contract types for an app's surface (screens, menu
 shortcuts, accessibility identifiers, file formats, settings), an XCTest and UI-test harness,
 SwiftLint or swift-format standards rows, and a build, sign, notarize and release runbook shape; a
 macOS app that uses the toolkit as a client would be its first adopter, and the pack would come out
-of 0.8.11's pack-authoring flow. **adoption.md as data**: its Boundary cells are long lists in one
+of 0.8.12's pack-authoring flow. **adoption.md as data**: its Boundary cells are long lists in one
 table cell, which makes diffs and merges poor; first a command that edits the map, and a move to one
 path per line (YAML) only in a release that already changes the format.
 
