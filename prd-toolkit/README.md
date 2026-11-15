@@ -1,7 +1,7 @@
 # prd-toolkit
 
 A living PRD as the single authority agents build, test and deploy from: a PRD folder in the
-repo with contracts and black-box test cases, a 40-rule linter and trace checks, a test agent
+repo with contracts and black-box test cases, a 41-rule linter and trace checks, a test agent
 that cannot read your code, skills to author, adopt and change it, and a builder that takes an
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
@@ -96,7 +96,7 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 - Exit 0 when clean, 1 on violations, 2 on usage, dependency or internal error.
 - Output is `<file>:<line>: warn: <rule>: <message>` for a warning (`platform-word`); the exit code counts errors only.
 - `--list-packs` prints one line per pack, `<name> <version> (<source>) — <description>`: the built-ins first, then the installed plugins' packs. Run from a vendored copy, `--list-packs` lists the packs vendored in `.prd-toolkit/packs/` in place of the built-ins, each with the source `.prd-toolkit/pack-sources.json` records, and a line on stderr says so; the skills always list from the plugin's own copy.
-- `--list-rules` prints the 40 rules and each one's severity. `--sample-tids N` prints up to N randomly chosen T-ids for the authoring
+- `--list-rules` prints the 41 rules and each one's severity. `--sample-tids N` prints up to N randomly chosen T-ids for the authoring
   dry run, one per line with the test-case file that holds it (`T-003.1 test-cases/nfr.yaml`), never a `level: unit` case; it exits 1 with `prd_lint: no non-unit T-ids to sample`
   when the PRD has none.
 
@@ -111,7 +111,7 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
 
 - `prd help` answers what a field of a PRD or a lint finding means. The catalogue holds 43 entries,
   one per field of the PRD grammar (a section, a block line, a test-case key, a marker, a kind of
-  ID), and the 40 lint rules each carry a description: what the rule checks and how to clear its
+  ID), and the 41 lint rules each carry a description: what the rule checks and how to clear its
   finding. It takes no PRD folder and reads none.
 - With no option it prints the index: one line per entry, its key and its name, then an empty line,
   then one line per rule, its name and its severity.

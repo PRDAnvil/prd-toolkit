@@ -5,7 +5,8 @@ SPEC_RULES = {"frontmatter","sections","id-format","id-unique","id-removed-reuse
   "nfr-bound","deny-tested","error-codes","classified-fixtures","markers-open","assumption-indexed",
   "placeholder","vague-word","glossary-synonym","contracts-valid","schema-refs","registries",
   "runbook-steps","runbook-env","production-gate","runbook-tests","drift-rows","open-questions-empty","error-entries",
-  "links-format","upstream-refs","snapshot-cited","change-sets","language-table","pack-resolves","judged-case","platform-word"}
+  "links-format","upstream-refs","snapshot-cited","change-sets","language-table","pack-resolves","judged-case","platform-word",
+  "practices"}
 
 # rules specified in docs/prd/prd-toolkit before their code: the area's test cases hold their failing cases
 PRD_SPECIFIED_RULES = {"practices"}
