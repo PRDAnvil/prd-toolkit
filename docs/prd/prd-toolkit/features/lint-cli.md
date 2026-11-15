@@ -50,7 +50,7 @@ Tests: T-002.1 [integration], T-002.2 [integration], T-002.3 [integration]  (tes
 Traces: cli:prd_lint
 
 ### FR-003 List the rules
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prd_lint.py:68 @a0d5b28
 Acceptance (EARS):
 - AC-003.1 When run with `--list-rules`, the lint command shall print every registered rule as

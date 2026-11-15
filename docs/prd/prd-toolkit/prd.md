@@ -141,7 +141,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | UJ-01 | An engineer lints a PRD folder and fixes what it reports | live | features/lint-cli.md | 1.0.0 |
 | FR-001 | Lint a PRD folder and print its findings | verified | features/lint-cli.md |  |
 | FR-002 | Name each finding's file from the working directory | live | features/lint-cli.md | 1.0.0 |
-| FR-003 | List the rules | approved | features/lint-cli.md |  |
+| FR-003 | List the rules | verified | features/lint-cli.md |  |
 | FR-004 | Reject a bad command line | verified | features/lint-cli.md |  |
 | FR-005 | Refuse a folder without prd.md | verified | features/lint-cli.md |  |
 | FR-006 | Report an internal error without a traceback | verified | features/lint-cli.md |  |
