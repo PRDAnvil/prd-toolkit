@@ -513,7 +513,7 @@ def _check_custom(prd: Prd) -> Iterator[Finding]:
                 yield bad(f"validator failed: {first}")
 
 
-@rule("contracts-valid", description="Checks each contract file against its shape: OpenAPI operations, errors.yaml codes, permissions, config settings, data classification, dependencies, events.md sections, schema.sql that parses in the sql-dialect with a comment on every table and column, and each custom or pack type's validator. Fix the file the message names to the shape in prd-format.md's Contract YAML shapes.")
+@rule("contracts-valid", description="Checks each contract file against its shape: YAML that parses with no repeated key, OpenAPI operations whose x-prd-ids name defined requirement or AC IDs, the asyncapi key of asyncapi.yaml, errors.yaml codes, permissions, config settings, data classification, dependencies, events.md sections, schema.sql that parses in the sql-dialect with a comment on every table and column, and each section 7 custom or pack type, whose glob must match a file and whose validator must run and pass. Fix the file to the shape in prd-format.md's Contract YAML shapes; for a custom type, correct its section 7 Files glob or Validator command, name the pack that declares it, or fix the files its validator rejects.")
 def contracts_valid(prd: Prd):
     # parse errors, duplicate keys and non-mapping top levels are reported by the loader
     for rel, data in prd.yaml.items():

@@ -29,7 +29,7 @@ def _location_ok(cell: str) -> bool:
     return True
 
 
-@rule("links-format", description="Checks links.md: its three headings, the Upstreams header, each upstream a unique PRD slug with a backticked path or git URL with a folder, version X.Y.Z and commit 7-40 hex digits set together, and Needs verified or live in an environment. Fix the cell the message names; only prd_links.py sync writes Version and Commit.")
+@rule("links-format", description="Checks links.md: its # Links, ## Upstreams and ## Consumers headings, the Upstreams header, each upstream a unique PRD slug, each upstream and consumer location a backticked path or a backticked git URL with #<folder>, an upstream's version X.Y.Z and commit of 7-40 hex digits set together, and Needs verified or live in an environment. Add the missing heading, or fix the header or cell the message names; only prd_links.py sync writes Version and Commit.")
 def links_format(prd: Prd):
     links = prd.links
     if links is None:
@@ -127,7 +127,7 @@ def upstream_refs(prd: Prd):
             yield bad(f"{who}: no column '{c.column}' in table {c.name} in the {c.upstream} snapshot")
 
 
-@rule("snapshot-cited", description="Checks that each snapshot folder under contracts/upstream/ has an Upstreams row, that each snapshot file has its header line and that every item in it is cited, and that every Upstreams row is cited somewhere. Cite the item, or run prd_links.py sync to drop what is no longer cited.")
+@rule("snapshot-cited", description="Checks that each snapshot folder under contracts/upstream/ has an Upstreams row, that each snapshot file is readable UTF-8 with its header line and that every item in it is cited, and that every Upstreams row is cited somewhere. Cite the item, or run prd_links.py sync to rewrite the snapshot and drop what is no longer cited; add the Upstreams row for a folder that has none, or delete the folder, and cite or delete an Upstreams row that nothing cites.")
 def snapshot_cited(prd: Prd):
     from ..snapshot import contracts_of_snapshot, items
 
@@ -170,7 +170,7 @@ def _rank(state: str) -> int:
     return STATES.index(state) if state in STATES else len(STATES)  # `live in <env>` is the last
 
 
-@rule("change-sets", description="Checks each changes/CS-nnn.md record: one Started: and one Status: line within the grammar, a ## Log section, row states and targets within the grammar, Order 1, 2, … in table order, no row short of its target once done, and each ID defined once. Records are written by prd_links.py changeset; fix the line the message names.")
+@rule("change-sets", description="Checks each changes/CS-nnn.md record against the change-set grammar: the # CS-nnn <title> first line, a Started: line and one Status: line in their forms, each Approval: line, the table header, nine cells a row with Version, IDs, Waits for, State and Target in their forms, Order 1, 2, … in table order, a ## Log section and its lines, Merge order lines, no row short of its target once Status is done, and each CS ID defined once. Records are written by prd_links.py changeset; fix the line the message names to the form it gives.")
 def change_sets(prd: Prd):
     if prd.links is None:  # R-10c: changes/ is an ordinary folder in a PRD without links.md
         return

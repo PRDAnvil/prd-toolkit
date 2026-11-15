@@ -145,14 +145,14 @@ def frontmatter(prd: Prd):
                 yield f("sql-dialect", f"'sql-dialect: {dialect}' is not a sqlglot dialect ({exc})")
 
 
-@rule("language-table", description="Checks that the language the frontmatter names has a usable table, the toolkit's own or one in a pack the PRD names, and that the en table exists. Set language: to a code that has a table, or fix the table file the message names.")
+@rule("language-table", description="Checks that the language the frontmatter names (en when it names none) has a usable table, the toolkit's own or one in a pack the PRD names. Set language: to a code that has a table, or fix or restore the table file the message names.")
 def language_table(prd: Prd):
     why = languages.problem(prd)
     if why:
         yield Finding("prd.md", _fm_line(prd, "language"), "language-table", why)
 
 
-@rule("sections", description="Checks prd.md's fourteen numbered sections in order, the mandatory files, a Not applicable line for each absent optional contract, the section 8 body and the adoption.md table, and testing.md's Harness slots in order with a Test roots list. Add, move or rename what the message names, exactly as prd-format.md spells it.")
+@rule("sections", description="Checks prd.md's fourteen numbered sections, once each and in order, with no other, the mandatory files, never marked Not applicable, a section 1 Not applicable line for each absent optional contract, the section 8 body and the adoption.md table, and testing.md's Harness slots, once each and in order, with a Test roots list. Add, move, rename or delete what the message names, exactly as prd-format.md spells it.")
 def sections(prd: Prd):
     actual = [(s.number, s.title) for s in prd.sections]
     expected = list(enumerate(SECTION_TITLES, 1))
@@ -330,7 +330,7 @@ def vague_word(prd: Prd):
                 yield f
 
 
-@rule("markers-open", description="Checks that no clarification marker remains in any text file of the PRD, comments included, once the status is In review or Approved. Answer the question and delete the marker, or move the status back to Draft.")
+@rule("markers-open", description="Checks that no clarification marker remains in the PRD's Markdown prose (code spans and blocks aside) or its YAML, SQL and JSON files, comments included, outside contracts/fixtures/, upstream snapshots and change-set records, once the status is In review or Approved. Answer the question and delete the marker, or move the status back to Draft.")
 def markers_open(prd: Prd):
     if _status(prd) not in ("In review", "Approved"):
         return

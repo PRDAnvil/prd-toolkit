@@ -181,7 +181,7 @@ def _git_accepts_branch(name: str) -> bool:
         return True  # no git on the runner: nothing to refuse with
 
 
-@rule("runbook-env", description="Checks that every operations.md environment is also in testing.md Environments, has Production yes or no, and a valid Branch, that one environment is production, and that each runbook step and Deployed or Drift row names a known environment. Add the environment to both tables, or correct the name.")
+@rule("runbook-env", description="Checks that operations.md Environments has a Production column with yes or no on every row and at least one yes, and a valid branch name or blank in each Branch cell, that every environment there is also in testing.md Environments, and that each runbook step and Deployed or Drift row names an environment of both tables. Add the environment to both tables or correct the name the message gives, add the Production column or set a row's Production to yes or no, and write a valid branch name or leave the Branch blank.")
 def runbook_env(prd: Prd) -> Iterator[Finding]:
     if "operations.md" not in prd.docs:
         return

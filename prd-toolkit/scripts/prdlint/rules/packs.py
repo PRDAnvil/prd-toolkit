@@ -8,7 +8,7 @@ from ..model import Prd
 from ..registry import rule
 
 
-@rule("pack-resolves", description="Checks the profile lines (Pack: and Output language: in section 1, Target: in a features file) and that each pack they name resolves at its version from its source and fits this toolkit. Fix the line's form or position, name one version per pack, or run prd_hooks.py install when the vendored copy differs.")
+@rule("pack-resolves", description="Checks the profile lines (Pack: and Output language: in section 1, Target: in a features file), one each, in their form and position, and that each pack they name resolves at one version from its source, with a valid pack.yaml that fits this toolkit. Fix the line's form or position, delete a repeated line, and name one version per pack; run prd_hooks.py install when the vendored copy differs or lost its pack.yaml; for a pack not found, invalid or needing another toolkit, correct its name, version or source, install the plugin that ships it, or name a version that fits.")
 def pack_resolves(prd: Prd):
     """Malformed, repeated or misplaced profile lines, then each named pack that does not resolve, on the line naming it."""
     for file, line, message in prd.profile_problems:

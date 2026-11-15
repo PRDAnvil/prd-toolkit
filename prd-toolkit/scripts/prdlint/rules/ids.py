@@ -77,7 +77,7 @@ def id_format(prd: Prd):
             yield from check(rel, n, text)
 
 
-@rule("id-unique", description="Checks that each ID is defined once (a block heading, an AC, a test-case key, an errors.md entry, an assumption row) and that an FR and an NFR never share a number, since they use one sequence. Renumber the later definition with `prd change ids next`, or delete the repeated test-case key; the first one is kept.")
+@rule("id-unique", description="Checks that each ID is defined once (a block heading, an AC, a test-case key, an errors.md entry, an assumption row), that no key repeats in a test-cases file, and that an FR and an NFR never share a number, since they use one sequence. Renumber the later definition (`prd change ids next` gives the next free FR, NFR, UJ, AC or T number), or delete the repeated key; the first one is kept.")
 def id_unique(prd: Prd):
     # duplicate keys within one test-case file are reported by the loader under this rule
     ids = defined_ids(prd)
@@ -137,7 +137,7 @@ def _walk_prd_ids(node) -> Iterator[tuple[int, str]]:
             yield from _walk_prd_ids(v)
 
 
-@rule("id-removed-reused", description="Checks that a removed requirement says removed in both its block and its section 11 row, and that no test case's ac:, x-prd-ids entry or Traces line cites a removed requirement or AC. Mark both places removed, or cite a live ID instead; IDs are never reused.")
+@rule("id-removed-reused", description="Checks that a requirement's block and its section 11 row agree on removed, both saying it or neither, and that no test case's ac:, x-prd-ids entry or Traces line cites a removed requirement or AC. Make both places say removed, or neither, as the requirement stands, or cite a live ID instead; IDs are never reused.")
 def id_removed_reused(prd: Prd):
     removed, findings = _removed(prd)
     yield from findings
@@ -170,7 +170,7 @@ def id_removed_reused(prd: Prd):
                     yield Finding(b.file, n, "id-removed-reused", f"{b.id} Traces cites {why}")
 
 
-@rule("index-consistent", description="Checks that the section 11 index and the requirement blocks agree: one row per block and one block per row, the same title, file and status, a since version on live, a Source line on as-built, a known status, and that each errors.md Touches ID and each adoption area past not started exists. Edit the index row or the block until the two match, as the message says.")
+@rule("index-consistent", description="Checks that the section 11 index and the requirement blocks agree: one row per block and one block per row, the same title, file and status, a known status, a since version on live, and a Source line on as-built; that each errors.md Touches ID names a block and no resolved entry is unclassified; and that each adoption area past not started has its features/<area>.md. Edit the index row or the block until the two match, as the message says; correct the Touches ID, classify the resolved entry, or add the area's features file or set the area to not started.")
 def index_consistent(prd: Prd):
     block = {b.id: b for b in prd.blocks}
     rows: dict[str, IndexRow] = {}

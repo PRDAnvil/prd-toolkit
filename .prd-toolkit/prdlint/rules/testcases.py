@@ -135,7 +135,7 @@ def ac_has_test(prd: Prd):
                 yield Finding(b.file, ac.line, "ac-has-test", f"{ac.id} has no test case whose ac: is {ac.id}")
 
 
-@rule("test-cases-consistent", description="Checks that each block's Tests line names its test-cases file, that the file exists and holds an entry for every T-id listed, at the level the line gives, and that every test case is cited by a Tests line naming its file. Add the missing entry or Tests item, or make the level on the line and in the case agree.")
+@rule("test-cases-consistent", description="Checks that each block's Tests line names its test-cases file, that the file exists and holds an entry for every T-id listed, at the level the line gives, and that every test case is cited by a Tests line naming its file. End the Tests line with (test-cases/<area>.yaml) for a file that exists, add the missing entry or Tests item, or make the level on the line and in the case agree.")
 def test_cases_consistent(prd: Prd):
     entries = {(tc.file, tc.id): tc for tc in prd.test_cases}
     cited: set[tuple[str | None, str]] = set()
@@ -285,7 +285,7 @@ def test_level(prd: Prd):
             yield Finding(tc.file, _line(tc, "level"), "test-level", f"{tc.id}: level '{level}' is not a row of the Levels table in testing.md")
 
 
-@rule("sufficiency", description="Checks that each test case has the seven sufficiency elements: ac, level, environment and identity as strings, target as <kind>:<name> of a known kind, preconditions as a list, a non-empty input, and expect with output (unless judged), effects and errors lists and leaks. Fill the missing element the message names; an acceptance case also needs steps: and signoff:.")
+@rule("sufficiency", description="Checks that each test-cases file parses as YAML mapping each T-id to a mapping, and that each case has the eight sufficiency elements: ac, level, environment and identity as strings, target as <kind>:<name> of a known kind, preconditions as a list, a non-empty input, and expect with output (unless judged), effects and errors lists and leaks; an acceptance case also needs steps: and signoff:. Fix the YAML, or fill the element the message names in its form, with a target kind that is built in, a pack's, or a section 7 custom type. An entry named .md or .yaml in the PRD folder that is not a file is reported here too; rename or remove it.")
 def sufficiency(prd: Prd):
     # parse errors, non-mapping files and non-mapping cases are reported by the loader
     kinds = target_kinds(prd)
@@ -380,7 +380,7 @@ def judged_case(prd: Prd):
             yield bad("output", "a judged case has no expect.output")
 
 
-@rule("test-refs", description="Checks that each test case's references resolve: ac names an AC of the requirement its T-id is numbered for, preconditions name fixtures in testing.md and contracts/fixtures/ or mock services in contracts/dependencies/, input.file, error codes, refs entries, environment, identity and target exist, and known-failing names an open errors.md entry with a symptom: beside it. Point the reference at something that exists, or add what it names.")
+@rule("test-refs", description="Checks that each test case's references resolve: ac names an AC of the requirement its T-id is numbered for, preconditions name fixtures in testing.md and contracts/fixtures/ or mock services in contracts/dependencies/, input.file, error codes, refs entries, environment, identity and target exist, known-failing names an open errors.md entry and has a symptom: beside it (a warning when it has none), and a symptom: has a known-failing: beside it. Point the reference at something that exists or add what it names; delete a known-failing: line whose entry is resolved, and a symptom: with no known-failing: beside it.")
 def test_refs(prd: Prd):
     all_acs = {ac.id for b in prd.blocks for ac in b.acs}
     errors_yaml = prd.yaml.get("contracts/errors.yaml")
@@ -536,7 +536,7 @@ def _line_of(text: str, value: str, default: int = 1) -> int:
     return text.count("\n", 0, i) + 1 if i >= 0 else default
 
 
-@rule("classified-fixtures", description="Checks that fixture files and test cases' inline input hold no real-looking email, phone number or SSN in a column classified pii. Use a synthetic form: an example.com address, a 555-01xx phone number, or an SSN starting 000, 666 or 9.")
+@rule("classified-fixtures", description="Checks that no fixture file under contracts/fixtures/ holds a real-looking email, phone number or SSN in a column contracts/data-classification.yaml classifies pii, and that no test case's inline input holds one in any value. Use a synthetic form: an example.com address, a 555-01xx phone number, or an SSN starting 000, 666 or 9.")
 def classified_fixtures(prd: Prd):
     pii = _pii_columns(prd)
 
