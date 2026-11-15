@@ -18,7 +18,7 @@ Flow: 1. run `prd help` and read the index of entry keys and rule names
 Traces: FR-033, FR-034, FR-035, FR-036
 
 ### FR-033 Print the index
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prd_help.py:57 @858bb3b
 Acceptance (EARS):
 - AC-033.1 When run with no option, the help command shall print one line per catalogue entry,
@@ -50,7 +50,7 @@ Tests: T-034.1 [integration], T-034.2 [integration], T-034.3 [integration]  (tes
 Traces: UJ-02; cli:prd_help
 
 ### FR-035 Print the catalogue as one JSON document
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prd_help.py:35 @858bb3b
 Acceptance (EARS):
 - AC-035.1 When run with `--json`, the help command shall print on stdout one JSON object on one
@@ -113,7 +113,7 @@ Tests: T-036.1 [integration], T-036.2 [integration], T-036.3 [integration], T-03
 Traces: UJ-02; cli:prd_help; `prdlint/interface.py`
 
 ### FR-037 The catalogue it reads, and what the shipped one covers
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/helpcat.py:25 @858bb3b
 Acceptance (EARS):
 - AC-037.1 While the setting `PRD_HELP_FILE` is set and not empty, the help command shall read
