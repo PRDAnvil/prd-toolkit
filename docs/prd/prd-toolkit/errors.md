@@ -186,6 +186,7 @@ Recurrence of: -
 ### E-019 Seven eval scaffolds fail their own clean-tree check, so their cases never run
 Detected: 2026-11-14, eval run for prd-toolkit 0.8.8 (claude plugin eval, 2026-11-14)
 Classification: spec gap
+Confirmed: 2026-11-14, "Confirm the class (form)"
 Evidence: claude plugin eval ./prd-toolkit --runs 1 --model sonnet --scaffold, 2026-11-14, on a5223fc's parent 5af6330
   7 of 59 cases did not run, each with: scaffold failed (exit 1)
   deploy-by-hand-records
