@@ -9,8 +9,8 @@
 > the backlog file's Revisions note are edited on the 0.8.8 spec branch, cut from `main` once
 > 0.8.7 is merged: the current umbrella text exists only on `release/0.8.7`, which is built and
 > waiting to be pushed.
-> **Carries:** every open item of 0.8.7 (`plans/2026-11-11-prd-toolkit-0.8.7.md`), of the 0.8.8
-> backlog (`specs/2026-11-08-prd-toolkit-0.8.6-backlog.md`) and of the umbrella's 0.8.8 and 0.8.9
+> **Carries:** every open item of 0.8.7 (`plans/2026-11-11-prd-toolkit-0.8.7.md`), of the
+> backlog (now 0.8.11's; `specs/2026-11-08-prd-toolkit-0.8.6-backlog.md`) and of the umbrella's 0.8.8 and 0.8.9
 > rows, as they stand on `release/0.8.7` (d23cdfe).
 > **Decided later (owner, 2026-11-14, after the 0.8.8 build):** a help catalogue (0.8.9) and a Next
 > part in the status report (0.8.10) are inserted after 0.8.8, each its own release; best practices
