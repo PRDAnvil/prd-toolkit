@@ -1,0 +1,1415 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, the root of the scratch repository the
+#   setup steps build (testing.md, Setup steps); ORDERS = <tmp>/docs/prd/orders, the PRD folder they write.
+#   "python" is the interpreter running the tests (sys.executable); a CLI case runs
+#   `python <repo>/prd-toolkit/scripts/prd_status.py ...` as a subprocess (testing.md Harness, Lifecycle).
+#   STATUS = <repo>/prd-toolkit/scripts/prd_status.py
+#   LINT   = <repo>/prd-toolkit/scripts/prd_lint.py
+#   TRACE  = <repo>/prd-toolkit/scripts/prd_trace.py
+#   GATES  = <repo>/prd-toolkit/scripts/prd_gates.py
+#   Every case but T-043.7 runs its commands with ORDERS as the working directory and `.` as the PRD folder;
+#   T-043.7 runs from <tmp> with `docs/prd/orders`. A Next sentence quotes a lint or trace finding with the
+#   path inside the PRD folder (`contracts/errors.yaml`) whatever the working directory.
+#   The setup steps (N0, NL1, ...) run in the order a case lists them. A case's preconditions name the
+#   fixtures its steps read: status-next/base or status-next/empty, and status-next/files.
+#   `next_part_lines` and `next_items_json` are the assertion keys testing.md defines (Harness, Assertions).
+
+T-040.1:
+  ac: AC-040.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "3. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "4. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-040.2:
+  ac: AC-040.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+    note: "run_1's stdout is the Next part, then the thirteen parts as the status command prints them without a Next part"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout_exact_lines:
+          - "## Next"
+          - ""
+          - "1. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "3. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "4. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+          - "## Header"
+          - ""
+          - "PRD: ."
+          - "version 1.0.0"
+          - "status Approved"
+          - ""
+          - "## Requirements"
+          - ""
+          - "import: approved 1, built 1, live 1, verified 1"
+          - "reports: approved 1, live 2"
+          - ""
+          - "## Areas"
+          - ""
+          - "import: pack service (default), output language en"
+          - "reports: pack service (default), output language en"
+          - ""
+          - "## Adoption map"
+          - ""
+          - "Not applicable: new project"
+          - ""
+          - "## Not built"
+          - ""
+          - "FR-001 Refuse a file with no header (features/import.md)"
+          - "FR-005 Print the monthly report (features/reports.md)"
+          - ""
+          - "## Not verified"
+          - ""
+          - "FR-002 Skip a duplicate order (features/import.md)"
+          - ""
+          - "## Open errors"
+          - ""
+          - "None."
+          - ""
+          - "## Upstreams"
+          - ""
+          - "None."
+          - ""
+          - "## Consumers"
+          - ""
+          - "None."
+          - ""
+          - "## Change sets"
+          - ""
+          - "None."
+          - ""
+          - "## CI"
+          - ""
+          - "stale: CLAUDE.md; run prd_block.py docs/prd/orders"
+          - "stale: docs/prd/orders/README.md; run prd_block.py docs/prd/orders"
+          - "stale: docs/prd/README.md; run prd_block.py docs/prd/orders"
+          - ""
+          - "## Deployed"
+          - ""
+          - "None."
+          - ""
+          - "## Matrix"
+          - ""
+          - "FR-001: T-001.1 integration build cited"
+          - "FR-002: T-002.1 integration build cited"
+          - "FR-003: T-003.1 integration build cited"
+          - "FR-004: T-004.1 integration build cited"
+          - "FR-005: T-005.1 integration build cited; T-005.2 judged build cited"
+          - "FR-006: T-006.1 integration build cited"
+          - "FR-007: T-007.1 integration build cited"
+      run_2:
+        stdout_json_keys_at:
+          "": [interface, kind, prd, version, items]
+    effects: []
+    errors: []
+    leaks: none
+
+T-040.3:
+  ac: AC-040.3
+  level: unit
+  target: code:prd_status.main
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    cwd: ORDERS
+    call: "with the function that computes the Next part made to raise `ValueError('boom')` (pytest monkeypatch), call `prd_status.main(['.'])`, then `prd_status.main(['--json', '.'])`"
+  expect:
+    output:
+      return: "each call returns 2 and prints the one stderr line `prd_status: internal error: ValueError: boom`; the first prints nothing on stdout; the second prints on stdout only the line `{\"interface\": 1, \"kind\": \"status\", \"error\": \"internal error: ValueError: boom\"}`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-041.1:
+  ac: AC-041.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "3. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "4. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+        stdout_json_keys_at:
+          items.0: [part, id, text, kind, ids, area, command, waits_on]
+          items.3: [part, id, text, kind, ids, area, command, waits_on]
+    effects: []
+    errors: []
+    leaks: none
+
+T-041.2:
+  ac: AC-041.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout_first_line: "## Next"
+      run_2:
+        stdout_json:
+          interface: 1
+          kind: status
+          prd: orders
+          version: "1.0.0"
+          items:
+            - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+            - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+            - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+            - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+            - {"part": "Header", "id": null, "text": "PRD: .\nversion 1.0.0\nstatus Approved"}
+            - {"part": "Requirements", "id": null, "text": "import: approved 1, built 1, live 1, verified 1"}
+            - {"part": "Requirements", "id": null, "text": "reports: approved 1, live 2"}
+            - {"part": "Areas", "id": "import", "text": "import: pack service (default), output language en"}
+            - {"part": "Areas", "id": "reports", "text": "reports: pack service (default), output language en"}
+            - {"part": "Adoption map", "id": null, "text": "Not applicable: new project"}
+            - {"part": "Not built", "id": "FR-001", "text": "FR-001 Refuse a file with no header (features/import.md)"}
+            - {"part": "Not built", "id": "FR-005", "text": "FR-005 Print the monthly report (features/reports.md)"}
+            - {"part": "Not verified", "id": "FR-002", "text": "FR-002 Skip a duplicate order (features/import.md)"}
+            - {"part": "Open errors", "id": null, "text": "None."}
+            - {"part": "Upstreams", "id": null, "text": "None."}
+            - {"part": "Consumers", "id": null, "text": "None."}
+            - {"part": "Change sets", "id": null, "text": "None."}
+            - {"part": "CI", "id": null, "text": "stale: CLAUDE.md; run prd_block.py docs/prd/orders"}
+            - {"part": "CI", "id": null, "text": "stale: docs/prd/orders/README.md; run prd_block.py docs/prd/orders"}
+            - {"part": "CI", "id": null, "text": "stale: docs/prd/README.md; run prd_block.py docs/prd/orders"}
+            - {"part": "Deployed", "id": null, "text": "None."}
+            - {"part": "Matrix", "id": "FR-001", "text": "FR-001: T-001.1 integration build cited"}
+            - {"part": "Matrix", "id": "FR-002", "text": "FR-002: T-002.1 integration build cited"}
+            - {"part": "Matrix", "id": "FR-003", "text": "FR-003: T-003.1 integration build cited"}
+            - {"part": "Matrix", "id": "FR-004", "text": "FR-004: T-004.1 integration build cited"}
+            - {"part": "Matrix", "id": "FR-005", "text": "FR-005: T-005.1 integration build cited; T-005.2 judged build cited"}
+            - {"part": "Matrix", "id": "FR-006", "text": "FR-006: T-006.1 integration build cited"}
+            - {"part": "Matrix", "id": "FR-007", "text": "FR-007: T-007.1 integration build cited"}
+        stdout_json_keys_at:
+          "": [interface, kind, prd, version, items]
+          items.4: [part, id, text]
+          items.27: [part, id, text]
+    effects: []
+    errors: []
+    leaks: none
+
+T-042.1:
+  ac: AC-042.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NL1", "NT2", "NR1", "NE1", "NQ1", "NQ2", "ND1", "NA1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+    note: "a state holding an item of every kind but idle"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Lint reports 1 error; the first is contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9)."
+          - "2. Trace reports 2 findings; the first is features/import.md:22: status-current: FR-003 is verified but T-003.1 has no citing test."
+          - "3. The deploy to staging stopped: run 20261110T090000Z-all stopped (failed) at step 1."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "4. E-001 is open (confirmed): The importer stops at row 1000."
+          - "  run: /prd-toolkit:prd-error E-001"
+          - "5. E-002 is open (unclassified): A monthly report printed no total."
+          - "  run: /prd-toolkit:prd-error E-002"
+          - "6. Adopt area billing waits for your answer."
+          - "7. A-01 waits on Sample Owner: Reports count only shipped orders."
+          - "8. An open question waits: Who signs off the monthly report?"
+          - "9. The PRD is a draft at version 0.3.0, not yet approved."
+          - "  run: /prd-toolkit:prd-new"
+          - "10. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "11. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "12. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "13. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - "14. Area export is not adopted (extracted)."
+          - "  run: /prd-toolkit:prd-adopt export"
+          - "15. Area audit is not adopted (not started)."
+          - "  run: /prd-toolkit:prd-adopt audit"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "Lint reports 1 error; the first is contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9).", "kind": "lint", "ids": [], "area": null, "command": null, "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "Trace reports 2 findings; the first is features/import.md:22: status-current: FR-003 is verified but T-003.1 has no citing test.", "kind": "lint", "ids": [], "area": null, "command": null, "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "The deploy to staging stopped: run 20261110T090000Z-all stopped (failed) at step 1.", "kind": "deploy-stopped", "ids": [], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": "E-001", "text": "E-001 is open (confirmed): The importer stops at row 1000.", "kind": "error-open", "ids": ["E-001"], "area": null, "command": "/prd-toolkit:prd-error E-001", "waits_on": "agent"}
+          - {"part": "Next", "id": "E-002", "text": "E-002 is open (unclassified): A monthly report printed no total.", "kind": "error-open", "ids": ["E-002"], "area": null, "command": "/prd-toolkit:prd-error E-002", "waits_on": "agent"}
+          - {"part": "Next", "id": "adoption:billing", "text": "Adopt area billing waits for your answer.", "kind": "gate", "ids": [], "area": "billing", "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "A-01 waits on Sample Owner: Reports count only shipped orders.", "kind": "question", "ids": ["A-01"], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "An open question waits: Who signs off the monthly report?", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "The PRD is a draft at version 0.3.0, not yet approved.", "kind": "draft", "ids": [], "area": null, "command": "/prd-toolkit:prd-new", "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "Area export is not adopted (extracted).", "kind": "adopt", "ids": [], "area": "export", "command": "/prd-toolkit:prd-adopt export", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "Area audit is not adopted (not started).", "kind": "adopt", "ids": [], "area": "audit", "command": "/prd-toolkit:prd-adopt audit", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-042.2:
+  ac: AC-042.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NE2"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. The importer stops at row 1000 waits for your answer."
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        stdout_contains_line: "E-001 proposed code bug — The importer stops at row 1000"
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": "error-class:E-001", "text": "The importer stops at row 1000 waits for your answer.", "kind": "gate", "ids": ["E-001"], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-042.3:
+  ac: AC-042.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NR3"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Run 20261111T090000Z-all step 2: Approve production waits for your answer."
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        stdout_contains_line: "production: run 20261111T090000Z-all stopped (human) at step 2"
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": "deploy-step:20261111T090000Z-all:2", "text": "Run 20261111T090000Z-all step 2: Approve production waits for your answer.", "kind": "gate", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.1:
+  ac: AC-043.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NL2"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+      - python LINT .
+    note: "run_3 shows lint's two errors and its one finding of severity warn; the Next item counts the errors only"
+  expect:
+    output:
+      each_run:
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Lint reports 2 errors; the first is contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9)."
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        exit: 0
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "Lint reports 2 errors; the first is contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9).", "kind": "lint", "ids": [], "area": null, "command": null, "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+        exit: 0
+      run_3:
+        exit: 1
+        stdout_exact_lines:
+          - "contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9)"
+          - "test-cases/import.yaml:56: id-unique: duplicate key 'T-001.1' (first at line 1, again at line 56)"
+          - "test-cases/reports.yaml:27: warn: judged-case: T-005.2: threshold 0.9 needs all 2 items (1 of 2 is 0.5); write 0.5 to allow one miss, or 1.0"
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.2:
+  ac: AC-043.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NT1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+      - python TRACE .
+  expect:
+    output:
+      each_run:
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Trace reports 1 finding; the first is features/import.md:15: t-implemented: T-002.1 (FR-002) is cited by no test; add `@prd T-002.1` to the test that proves it."
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        exit: 0
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "Trace reports 1 finding; the first is features/import.md:15: t-implemented: T-002.1 (FR-002) is cited by no test; add `@prd T-002.1` to the test that proves it.", "kind": "lint", "ids": [], "area": null, "command": null, "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+        exit: 0
+      run_3:
+        exit: 1
+        stdout_exact_lines:
+          - "features/import.md:15: t-implemented: T-002.1 (FR-002) is cited by no test; add `@prd T-002.1` to the test that proves it"
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.3:
+  ac: AC-043.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0X"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+      - python TRACE .
+    note: "no git checkout: trace run alone finds no citing test and reports findings (run_3), and the status command does not run it"
+  expect:
+    output:
+      each_run:
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "3. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "4. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        exit: 0
+        stdout_contains_line: "## Matrix"
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+        exit: 0
+      run_3:
+        exit: 1
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.4:
+  ac: AC-043.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NR1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. The deploy to staging stopped: run 20261110T090000Z-all stopped (failed) at step 1."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        stdout_contains_line: "staging: run 20261110T090000Z-all stopped (failed) at step 1"
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "The deploy to staging stopped: run 20261110T090000Z-all stopped (failed) at step 1.", "kind": "deploy-stopped", "ids": [], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.5:
+  ac: AC-043.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NR2"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. The deploy to staging stopped: run 20261110T100000Z-all stopped (unfinished) at step 1."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        stdout_contains_line: "staging: run 20261110T100000Z-all stopped (unfinished) at step 1"
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "The deploy to staging stopped: run 20261110T100000Z-all stopped (unfinished) at step 1.", "kind": "deploy-stopped", "ids": [], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.6:
+  ac: AC-043.4
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NE1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. E-001 is open (confirmed): The importer stops at row 1000."
+          - "  run: /prd-toolkit:prd-error E-001"
+          - "2. E-002 is open (unclassified): A monthly report printed no total."
+          - "  run: /prd-toolkit:prd-error E-002"
+          - "3. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "4. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "5. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "6. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": "E-001", "text": "E-001 is open (confirmed): The importer stops at row 1000.", "kind": "error-open", "ids": ["E-001"], "area": null, "command": "/prd-toolkit:prd-error E-001", "waits_on": "agent"}
+          - {"part": "Next", "id": "E-002", "text": "E-002 is open (unclassified): A monthly report printed no total.", "kind": "error-open", "ids": ["E-002"], "area": null, "command": "/prd-toolkit:prd-error E-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.7:
+  ac: AC-043.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NL1"]
+    cwd: <tmp>
+    runs:
+      - python STATUS docs/prd/orders
+      - python STATUS --json docs/prd/orders
+      - python LINT docs/prd/orders
+      - python LINT --json docs/prd/orders
+    note: "run from the repository root: lint prints the path from there (run_3), and the Next sentence quotes the finding's own path, its file in run_4"
+  expect:
+    output:
+      each_run:
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Lint reports 1 error; the first is contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9)."
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        exit: 0
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "Lint reports 1 error; the first is contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9).", "kind": "lint", "ids": [], "area": null, "command": null, "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+        exit: 0
+      run_3:
+        exit: 1
+        stdout_contains_line: "docs/prd/orders/contracts/errors.yaml:9: contracts-valid: duplicate key 'IMPORT_NO_HEADER' (first at line 1, again at line 9)"
+      run_4:
+        exit: 1
+        stdout_json_at:
+          findings.0.file: "contracts/errors.yaml"
+          findings.0.line: 9
+    effects: []
+    errors: []
+    leaks: none
+
+T-043.8:
+  ac: AC-043.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NR3", "NR5"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+      - python GATES list .
+    note: "the human step 2 is confirmed and the run is not resumed: no gate is pending (run_3)"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. The deploy to production stopped: run 20261111T090000Z-all stopped (human) at step 2."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+        stdout_contains_line: "production: run 20261111T090000Z-all stopped (human) at step 2"
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "The deploy to production stopped: run 20261111T090000Z-all stopped (human) at step 2.", "kind": "deploy-stopped", "ids": [], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+      run_3:
+        stdout: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-044.1:
+  ac: AC-044.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NE2", "NR3", "NA1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+      - python GATES list .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. The importer stops at row 1000 waits for your answer."
+          - "2. Run 20261111T090000Z-all step 2: Approve production waits for your answer."
+          - "3. Adopt area billing waits for your answer."
+          - "4. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "5. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "6. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "7. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - "8. Area export is not adopted (extracted)."
+          - "  run: /prd-toolkit:prd-adopt export"
+          - "9. Area audit is not adopted (not started)."
+          - "  run: /prd-toolkit:prd-adopt audit"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": "error-class:E-001", "text": "The importer stops at row 1000 waits for your answer.", "kind": "gate", "ids": ["E-001"], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": "deploy-step:20261111T090000Z-all:2", "text": "Run 20261111T090000Z-all step 2: Approve production waits for your answer.", "kind": "gate", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": "adoption:billing", "text": "Adopt area billing waits for your answer.", "kind": "gate", "ids": [], "area": "billing", "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "Area export is not adopted (extracted).", "kind": "adopt", "ids": [], "area": "export", "command": "/prd-toolkit:prd-adopt export", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "Area audit is not adopted (not started).", "kind": "adopt", "ids": [], "area": "audit", "command": "/prd-toolkit:prd-adopt audit", "waits_on": "agent"}
+      run_3:
+        stdout_exact_lines:
+          - "error-class:E-001 The importer stops at row 1000"
+          - "deploy-step:20261111T090000Z-all:2 Run 20261111T090000Z-all step 2: Approve production"
+          - "adoption:billing Adopt area billing"
+    effects: []
+    errors: []
+    leaks: none
+
+T-044.2:
+  ac: AC-044.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NR1", "NR4"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+    note: "an older run log that failed and a newer one that cannot be read"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. The deploy to staging stopped: run 20261110T090000Z-all stopped (failed) at step 1."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. run log 20261112T090000Z-all could not be read waits for your answer."
+          - "3. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "4. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "5. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "6. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "The deploy to staging stopped: run 20261110T090000Z-all stopped (failed) at step 1.", "kind": "deploy-stopped", "ids": [], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": "deploy-step:20261112T090000Z-all:unreadable", "text": "run log 20261112T090000Z-all could not be read waits for your answer.", "kind": "gate", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-044.3:
+  ac: AC-044.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NQ1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. A-01 waits on Sample Owner: Reports count only shipped orders."
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "A-01 waits on Sample Owner: Reports count only shipped orders.", "kind": "question", "ids": ["A-01"], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-044.4:
+  ac: AC-044.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NQ2"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. An open question waits: Who signs off the monthly report?"
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "An open question waits: Who signs off the monthly report?", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-044.5:
+  ac: AC-044.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "ND1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. The PRD is a draft at version 0.3.0, not yet approved."
+          - "  run: /prd-toolkit:prd-new"
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "The PRD is a draft at version 0.3.0, not yet approved.", "kind": "draft", "ids": [], "area": null, "command": "/prd-toolkit:prd-new", "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-044.6:
+  ac: AC-044.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NQ3"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+    note: "section 13 holds a `- ` item wrapped onto an indented line, then a line that is not a `- ` item"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. An open question waits: Who signs off the monthly report before it is sent?"
+          - "2. An open question waits: Which month is the first one?"
+          - "3. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "4. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "5. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "6. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "An open question waits: Who signs off the monthly report before it is sent?", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "An open question waits: Which month is the first one?", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-045.1:
+  ac: AC-045.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NV2"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. 2 requirements are verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "3. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "2 requirements are verified and not live.", "kind": "deploy", "ids": ["FR-002", "FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-045.2:
+  ac: AC-045.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NB2"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. FR-001 and FR-002 are built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-001 FR-002"
+          - "3. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 and FR-002 are built and not verified.", "kind": "verify", "ids": ["FR-001", "FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001 FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-045.3:
+  ac: AC-045.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NB3"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "2. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "3. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "4. FR-005, FR-006 and FR-007 are approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005 FR-006 FR-007"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005, FR-006 and FR-007 are approved and not built.", "kind": "build", "ids": ["FR-005", "FR-006", "FR-007"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005 FR-006 FR-007", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-045.4:
+  ac: AC-045.4
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NA1"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Adopt area billing waits for your answer."
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - "6. Area export is not adopted (extracted)."
+          - "  run: /prd-toolkit:prd-adopt export"
+          - "7. Area audit is not adopted (not started)."
+          - "  run: /prd-toolkit:prd-adopt audit"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": "adoption:billing", "text": "Adopt area billing waits for your answer.", "kind": "gate", "ids": [], "area": "billing", "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "Area export is not adopted (extracted).", "kind": "adopt", "ids": [], "area": "export", "command": "/prd-toolkit:prd-adopt export", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "Area audit is not adopted (not started).", "kind": "adopt", "ids": [], "area": "audit", "command": "/prd-toolkit:prd-adopt audit", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-046.1:
+  ac: AC-046.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NLV"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Nothing waits. Everything approved is live."
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "Nothing waits. Everything approved is live.", "kind": "idle", "ids": [], "area": null, "command": null, "waits_on": null}
+    effects: []
+    errors: []
+    leaks: none
+
+T-046.2:
+  ac: AC-046.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/empty"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0E"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. Nothing waits. Everything approved is verified."
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "Nothing waits. Everything approved is verified.", "kind": "idle", "ids": [], "area": null, "command": null, "waits_on": null}
+    effects: []
+    errors: []
+    leaks: none
+
+T-047.1:
+  ac: AC-047.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NE3"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. E-001 is open (confirmed): Why does the importer stop at row 1000?"
+          - "  run: /prd-toolkit:prd-error E-001"
+          - "2. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "3. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "4. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "5. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": "E-001", "text": "E-001 is open (confirmed): Why does the importer stop at row 1000?", "kind": "error-open", "ids": ["E-001"], "area": null, "command": "/prd-toolkit:prd-error E-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
