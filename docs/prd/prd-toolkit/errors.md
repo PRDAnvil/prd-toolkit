@@ -224,6 +224,7 @@ Recurrence of: -
 ### E-021 A section 13 question that ends in spaces gets a second full stop in the Next part
 Detected: 2026-11-15, final review of the 0.8.10 branch
 Classification: invalid requirement
+Confirmed: 2026-11-15, "I merged PR #17, the class is right"
 Touches: FR-044, FR-047
 Evidence: Final review of the 0.8.10 branch, 2026-11-15:
   Section 13 of prd.md holds the lines "- Trailing spaces?   " and "Plain line!  " (each ends in spaces).
