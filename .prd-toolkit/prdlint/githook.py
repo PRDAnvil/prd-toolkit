@@ -3,7 +3,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
-from . import trace
+from . import standardsrun, trace
 from .model import Prd
 from .rules import registries
 
@@ -29,9 +29,7 @@ def pre_commit(prd: Prd, repo_root: Path, staged: list[str]) -> list[str]:
     for row in registries.standards_rows(prd):
         if row.decision != "enforced" or not row.command:
             continue
-        rx = trace.glob_re(row.glob)
-        # a path starting with `-` would read as an option: pass it as ./<path>
-        files = [("./" + f) if f.startswith("-") else f for f in staged if rx.match(f)]
+        files = standardsrun.hook_paths(staged, trace.glob_re(row.glob))
         if not files:
             continue
         try:

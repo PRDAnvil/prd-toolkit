@@ -46,7 +46,7 @@ def test_lint_job_runs_ci_mode(prd):
 
 def test_standards_job_uses_git_glob_pathspec(prd):
     job = next(j for j in jobs(prd) if j.name == "standards-1")
-    assert job.script == ["git ls-files -z --format='./%(path)' -- ':(glob)**/*.sql' | xargs -0 -r python3 -m json.tool"]
+    assert job.script == ["git ls-files -z --format='./%(path)' -- ':(glob)**/*.sql' ':(exclude).prd-toolkit' | xargs -0 -r python3 -m json.tool"]
 
 
 def test_standards_job_passes_dash_paths_as_dot_slash(repo):
