@@ -764,6 +764,18 @@ def pack_moves(repo_root: Path, prd_root: Path, base: str) -> list[str]:
     return list(dict.fromkeys(now.name for _, now in moves))
 
 
+def pack_lift(repo_root: Path, prd_root: Path, base: str) -> str | None:
+    """The pack a lift (AC-060.9) names: the working section 1 `Pack:` line's, when `base`'s PRD names no pack, neither
+    in section 1 nor on a features file's `Target:` line; None otherwise."""
+    repo_root, prd_root = Path(repo_root).resolve(), Path(prd_root).resolve()
+    now = model.load(prd_root)
+    if now.pack_ref is None:
+        return None
+    with tempfile.TemporaryDirectory(prefix="prd-pack-") as tmp:
+        old = _load_base(repo_root, prd_root.relative_to(repo_root).as_posix(), base, Path(tmp))
+        return None if _pack_lines(old) else now.pack_ref.name
+
+
 def pack(repo_root: Path, prd_root: Path, name: str, version: str, today: str) -> Recorded:
     """Move every `Pack:` and `Target: pack` line naming `name` to `version`, then record it as a patch (`record`'s
     version, `updated` and §14 row `pack <name> <old> → <new>; pending`, IDs `-`); the tree is left uncommitted."""
