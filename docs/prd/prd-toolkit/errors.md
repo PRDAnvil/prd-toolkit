@@ -318,3 +318,15 @@ Evidence: Review of the 0.8.12 skill text, 2026-11-16, on the fixture pack-autho
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-028 The implement pack leaves out the definitions a features file gives before its first block
+Detected: 2026-11-16, stopped-builder report, the card-context build
+Classification: unclassified
+Evidence: Build of the area card-context, 2026-11-16, the builder's report:
+  "The PRD's area order" and "well-formed address" are used by the acceptance criteria of FR-062 to FR-066.
+  Both are defined only in the paragraph "Words used below." at the top of features/card-context.md, before the first block.
+  prd context docs/prd/prd-toolkit --area card-context --req UJ-06,FR-062,FR-063,FR-064,FR-065,FR-066,FR-067 --for implement prints the blocks and not that paragraph.
+  The builder read lines 1 to 27 of features/card-context.md, outside the pack, to learn them.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
