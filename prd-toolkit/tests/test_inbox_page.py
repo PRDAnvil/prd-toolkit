@@ -54,7 +54,11 @@ def test_inline_script_and_style_only():
 
 
 def test_no_unsafe_html():
-    assert unsafe_html(scripts()) == []
+    # the card's URL link (AC-067.4) is the page's one href, set in urlLink only after its http(s) check
+    link = function("urlLink")
+    guard = r"if (/^https?:\/\/\S+$/.test(url)) a.setAttribute('href', url);"
+    assert guard in link and unsafe_html(link.replace(guard, "")) == []
+    assert unsafe_html(scripts().replace(link, "")) == []
     assert unsafe_html("el.innerHTML = g.question;") and "outerHTML" in BANNED_JS  # the check can fail
 
 

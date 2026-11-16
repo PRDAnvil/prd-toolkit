@@ -140,7 +140,8 @@ def test_target_output_language_falls_back_to_prd_language(prd):
 @pytest.mark.parametrize("line", ["Target:", "Target: nothing here", "Target: pack document 1.0", "Target: output language en, pack document 1.0.0 (prd-toolkit)"])
 def test_target_with_neither_part_is_a_finding(prd, line):
     _target(prd, "import", line)
-    assert _found(prd) == ["features/import.md:3: pack-resolves: Target: must be pack <name> <X.Y.Z> (<source>)[, output language <code>] or output language <code>"]
+    assert _found(prd) == ["features/import.md:3: pack-resolves: Target: must be one or more of pack <name> <X.Y.Z> (<source>), "
+                           "output language <code> and url <address>, comma-separated, in that order"]  # AC-065.3
     assert model.load(prd).targets == {}
 
 

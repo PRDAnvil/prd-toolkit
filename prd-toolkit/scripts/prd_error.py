@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyyaml>=6.0", "sqlglot>=25", "openapi-spec-validator>=0.7"]
 # ///
-"""The errors.md ledger: new, list, propose, confirm, resolve, check. Exit 0 done, 1 refused, 2 usage, dependency or internal error."""
+"""The errors.md ledger: new, list, propose, confirm, resolve, url, check. Exit 0 done, 1 refused, 2 usage, dependency or internal error."""
 import argparse
 import os
 import sys
@@ -40,6 +40,7 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--source", required=True)
     c.add_argument("--touches", default="")
     c.add_argument("--evidence-file")
+    c.add_argument("--url", help="write the line URL: <address> after Touches:, or after Classification: with no Touches:")
     c = cmd("list", False)
     c.add_argument("--open", action="store_true")
     c = cmd("propose")
@@ -56,6 +57,8 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--commit")
     c.add_argument("--run")
     c.add_argument("--not-a-defect", dest="not_a_defect")
+    c = cmd("url")
+    c.add_argument("address", help="the entry's URL, or - to remove its URL: line")
     return p
 
 
@@ -73,7 +76,7 @@ def _run(args: argparse.Namespace, prd: model.Prd, today: date) -> list[str]:
     if args.cmd == "new":
         evidence = Path(args.evidence_file).read_text(encoding="utf-8").splitlines() if args.evidence_file else []
         touches = errors.parse_touches(args.touches)
-        return [errors.new(prd, args.title, args.source, touches, evidence, today)]
+        return [errors.new(prd, args.title, args.source, touches, evidence, today, args.url)]
     if args.cmd == "check":
         return errors.check_findings(prd, model.repo_root(prd.root), args.range)
     if args.cmd == "list":
@@ -83,6 +86,8 @@ def _run(args: argparse.Namespace, prd: model.Prd, today: date) -> list[str]:
         errors.propose(prd, args.eid, args.cls, args.diagnosis, args.recurrence, touches)
     elif args.cmd == "confirm":
         errors.confirm(prd, args.eid, args.reply, today, args.cls)
+    elif args.cmd == "url":
+        errors.set_url(prd, args.eid, args.address)
     else:
         level = _level(prd, args.t) if args.t and not args.run and args.not_a_defect is None else None
         errors.resolve(prd, args.eid, t=args.t, level=level, version=args.version or "", commit=args.commit,

@@ -19,6 +19,8 @@
 .gwhere, .gsrc { overflow-wrap: anywhere; }
 .gtitle { font-size: 1.2rem; line-height: 1.3; margin: 8px 0; overflow-wrap: anywhere; }
 .gtitle:focus { outline: none; }
+.garea { margin: -4px 0 6px; overflow-wrap: anywhere; }
+.gurl { margin: 0 0 10px; overflow-wrap: anywhere; }
 .gq { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 12px; }
 .gnowait { margin: -4px 0 12px; }
 .gev { margin: 0 0 12px; padding-left: 1.2em; }
@@ -277,7 +279,9 @@ function gateCard(entry, slots) {
       h('span', { class: 'gid', text: g.id }),
       h('span', { class: 'gwhere', text: `${entry.wt.branch || 'HEAD'} · ${entry.wt.path}` }),
       h('span', { class: 'gsrc', text: g.source ? `from ${g.source}` : '' })),
-    h('h3', { class: 'gtitle', tabindex: '-1', text: g.title }));
+    h('h3', { class: 'gtitle', tabindex: '-1', text: g.title }),
+    h('p', { class: 'muted garea', text: `Area: ${Array.isArray(g.areas) && g.areas.length ? g.areas.join(', ') : 'none'}` }),
+    typeof g.url === 'string' ? h('p', { class: 'gurl' }, urlLink(g.url)) : null);
   if (I.flags.has(entry.key) && !entry.gone) {
     card.append(h('p', { class: 'gnotice', role: 'status' }, h('strong', { text: 'changed' }),
       ' This gate changed while you were reading. The card shows its new question; read it again before you answer. Your words are kept.',
@@ -304,6 +308,14 @@ function gateCard(entry, slots) {
   if (!render) { card.append(h('p', { class: 'muted', text: `This inbox has no card for a ${g.kind} gate; answer it in the chat.` })); return card; }
   card.append(...render(entry, slots));
   return card;
+}
+
+// The card's URL as a link that opens in a new tab, its text the URL. The one href the page sets: only an http or
+// https address with no white space becomes one (gates pass over a malformed URL), so a link never runs code.
+function urlLink(url) {
+  const a = h('a', { target: '_blank', rel: 'noopener', text: url });
+  if (/^https?:\/\/\S+$/.test(url)) a.setAttribute('href', url);
+  return a;
 }
 
 function fact(label, ...value) {
