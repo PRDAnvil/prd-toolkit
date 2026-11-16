@@ -203,7 +203,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-057 | Compare two PRDs, as text | verified | features/pack-authoring.md |  |
 | FR-058 | The comparison as JSON, and its refusals | verified | features/pack-authoring.md |  |
 | FR-059 | Check a written pack against both PRDs | approved | features/pack-authoring.md |  |
-| FR-060 | Lift a PRD onto the pack written from its own custom types | approved | features/pack-authoring.md |  |
+| FR-060 | Lift a PRD onto the pack written from its own custom types | verified | features/pack-authoring.md |  |
 | FR-061 | The launcher and a vendored copy answer the same | verified | features/pack-authoring.md |  |
 | FR-062 | A gate's areas | verified | features/card-context.md |  |
 | FR-063 | The URL: line of an error entry | verified | features/card-context.md |  |
