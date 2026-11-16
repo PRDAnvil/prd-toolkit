@@ -1,0 +1,1227 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path. Step K0 (testing.md, Setup steps) writes
+#   fixture pack-authoring/sites there: two scratch repositories, <tmp>/north holding the PRD folder
+#   docs/prd/north and <tmp>/south holding docs/prd/south, each committed, and the plugin folder <tmp>/plug whose
+#   pack is <tmp>/plug/prd-packs/leaflet; and it sets PRD_PLUGINS_FILE for every run of the case.
+#   "python" is the interpreter running the tests (sys.executable); a CLI case runs the script as a subprocess
+#   (testing.md Harness, Lifecycle), with the Subprocess environment minus the git variables Setup steps names.
+#   PACK     = <repo>/prd-toolkit/scripts/prd_pack.py
+#   CHANGE   = <repo>/prd-toolkit/scripts/prd_change.py
+#   LINT     = <repo>/prd-toolkit/scripts/prd_lint.py
+#   CONTEXT  = <repo>/prd-toolkit/scripts/prd_context.py
+#   DISPATCH = <repo>/prd-toolkit/scripts/prd_dispatch.py
+#   VPACK    = <tmp>/.prd-toolkit/prd_pack.py, the vendored copy step KVC loads
+#   A case runs from <tmp> unless it gives another cwd. "A" is north and "B" is south: compare and check name
+#   north's folder first. The setup steps run in the order a case lists them; a note that names a step run
+#   between two runs means the test runs it there.
+#   `pack_part_titles` and `pack_part_lines` are the assertion keys testing.md defines (Harness, Assertions).
+
+T-057.1:
+  ac: AC-057.1
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "the whole stdout; T-057.2 to T-057.8 give each part's lines as the criteria form them"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      pack_part_titles:
+      - "## Contract types"
+      - "## Target kinds"
+      - "## Levels"
+      - "## Harness"
+      - "## Standards"
+      - "## Skills"
+      - "## Vocabulary"
+      stdout_exact_lines:
+      - "## Contract types"
+      - "both pages: contracts/pages.yaml; python3 -c \"import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(58)) for f in sys.argv[1:]))\""
+      - "both routes: contracts/routes.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))\""
+      - "A forms: contracts/forms.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 1 for f in sys.argv[1:]))\""
+      - "B feeds: contracts/feeds.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 3 for f in sys.argv[1:]))\""
+      - ""
+      - "## Target kinds"
+      - "both pages: 2 in A, 1 in B"
+      - "both routes: 1 in A, 1 in B"
+      - "A forms: 1 in A, 0 in B"
+      - "B feeds: 0 in A, 1 in B"
+      - ""
+      - "## Levels"
+      - "both unit: python3 -m pytest tests/unit; environment local; gate build; timeout -"
+      - "A integration: python3 -m pytest tests/integration; environment local; gate build; timeout -"
+      - "B integration: python3 -m pytest tests/site; environment local; gate build; timeout -"
+      - ""
+      - "## Harness"
+      - "both Lifecycle: Nothing runs between tests; each test serves the site folder itself."
+      - "both Environment switch: Not applicable: one test environment, `local`."
+      - "both Database access: Not applicable: no database."
+      - "A Tools on the runner: python3 on PATH; `tests/` sits at the repository root."
+      - "B Tools on the runner: python3 and a headless browser on PATH; `tests/` sits at the repository root."
+      - "both Clean state: Every test starts from its own temporary directory."
+      - "both Persistent environments: Not applicable: no test environment keeps data."
+      - "both Layout: `tests/<level>/test_<area>.py`; each test's docstring cites its T-id. Test roots: `tests/`"
+      - "both HTTP requests: Each test requests a path of the site it serves."
+      - "both Fixtures: Not applicable: the cases give their input inline."
+      - "both Browser identity: Not applicable: no sign-in."
+      - "both Assertions: Fields a case does not list are not asserted."
+      - "both Waits: Not applicable: every request completes before the test asserts."
+      - "both Effects: Not applicable: the cases assert responses only."
+      - "both Leaks: Not applicable: no classified data."
+      - "both Acceptance: Not applicable: no acceptance level."
+      - ""
+      - "## Standards"
+      - "both site/**/*.html: python3 tools/check_html.py"
+      - ""
+      - "## Skills"
+      - "both a change to a page: code-review"
+      - ""
+      - "## Vocabulary"
+      - "both page: 6 in A, 5 in B"
+      - "both visitor: 5 in A, 4 in B"
+      - "both site: 4 in A, 4 in B"
+      - "both address: 3 in A, 3 in B"
+      - "both opens: 3 in A, 3 in B"
+      - "both path: 3 in A, 3 in B"
+      - "both answer: 2 in A, 2 in B"
+      - "both redirect: 2 in A, 2 in B"
+      - "both with: 2 in A, 2 in B"
+      - "both each: 1 in A, 2 in B"
+      - "both error: 1 in A, 1 in B"
+      - "both file: 1 in A, 1 in B"
+      - "both holds: 1 in A, 1 in B"
+      - "both missing: 1 in A, 1 in B"
+      - "both serve: 1 in A, 1 in B"
+      - "both that: 1 in A, 1 in B"
+      - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-057.2:
+  ac: AC-057.2
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "the errors row is built-in and is left out; forms is north's alone and feeds south's alone"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Contract types:
+        - "## Contract types"
+        - "both pages: contracts/pages.yaml; python3 -c \"import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(58)) for f in sys.argv[1:]))\""
+        - "both routes: contracts/routes.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))\""
+        - "A forms: contracts/forms.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 1 for f in sys.argv[1:]))\""
+        - "B feeds: contracts/feeds.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 3 for f in sys.argv[1:]))\""
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-057.3:
+  ac: AC-057.3
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "north's cases target pages:home twice, routes:old-home and forms:contact; south's pages:home, code:site.serve, routes:old-home and feeds:news"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Target kinds:
+        - "## Target kinds"
+        - "both pages: 2 in A, 1 in B"
+        - "both routes: 1 in A, 1 in B"
+        - "A forms: 1 in A, 0 in B"
+        - "B feeds: 0 in A, 1 in B"
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-057.4:
+  ac: AC-057.4
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "the two PRDs differ in the integration row's command; neither Levels table has a Timeout column"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Levels:
+        - "## Levels"
+        - "both unit: python3 -m pytest tests/unit; environment local; gate build; timeout -"
+        - "A integration: python3 -m pytest tests/integration; environment local; gate build; timeout -"
+        - "B integration: python3 -m pytest tests/site; environment local; gate build; timeout -"
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-057.5:
+  ac: AC-057.5
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "the two PRDs differ in the Tools on the runner slot alone (Review focus 4: a slot with two texts)"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Harness:
+        - "## Harness"
+        - "both Lifecycle: Nothing runs between tests; each test serves the site folder itself."
+        - "both Environment switch: Not applicable: one test environment, `local`."
+        - "both Database access: Not applicable: no database."
+        - "A Tools on the runner: python3 on PATH; `tests/` sits at the repository root."
+        - "B Tools on the runner: python3 and a headless browser on PATH; `tests/` sits at the repository root."
+        - "both Clean state: Every test starts from its own temporary directory."
+        - "both Persistent environments: Not applicable: no test environment keeps data."
+        - "both Layout: `tests/<level>/test_<area>.py`; each test's docstring cites its T-id. Test roots: `tests/`"
+        - "both HTTP requests: Each test requests a path of the site it serves."
+        - "both Fixtures: Not applicable: the cases give their input inline."
+        - "both Browser identity: Not applicable: no sign-in."
+        - "both Assertions: Fields a case does not list are not asserted."
+        - "both Waits: Not applicable: every request completes before the test asserts."
+        - "both Effects: Not applicable: the cases assert responses only."
+        - "both Leaks: Not applicable: no classified data."
+        - "both Acceptance: Not applicable: no acceptance level."
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-057.6:
+  ac: AC-057.6
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KS
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: KS adds a recommended skills row to south alone
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Standards:
+        - "## Standards"
+        - "both site/**/*.html: python3 tools/check_html.py"
+        - ""
+        Skills:
+        - "## Skills"
+        - "both a change to a page: code-review"
+        - "B a new page: security-review"
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-057.7:
+  ac: AC-057.7
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KV
+    - KG
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "Review focus 4: pages has two validators (KV) and routes two globs (KG); both sides are printed, A's first, and nothing is merged"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Contract types:
+        - "## Contract types"
+        - "A pages: contracts/pages.yaml; python3 -c \"import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(58)) for f in sys.argv[1:]))\""
+        - "B pages: contracts/pages.yaml; python3 -c \"import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(61)) for f in sys.argv[1:]))\""
+        - "A routes: contracts/routes.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))\""
+        - "B routes: contracts/routes/*.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))\""
+        - "A forms: contracts/forms.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 1 for f in sys.argv[1:]))\""
+        - "B feeds: contracts/feeds.yaml; python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 3 for f in sys.argv[1:]))\""
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-057.8:
+  ac: AC-057.8
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "`index.html` is a code span and is left out; PAGE_MISSING gives the words page and missing; thank, the, when, shall and if are left out"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Vocabulary:
+        - "## Vocabulary"
+        - "both page: 6 in A, 5 in B"
+        - "both visitor: 5 in A, 4 in B"
+        - "both site: 4 in A, 4 in B"
+        - "both address: 3 in A, 3 in B"
+        - "both opens: 3 in A, 3 in B"
+        - "both path: 3 in A, 3 in B"
+        - "both answer: 2 in A, 2 in B"
+        - "both redirect: 2 in A, 2 in B"
+        - "both with: 2 in A, 2 in B"
+        - "both each: 1 in A, 2 in B"
+        - "both error: 1 in A, 1 in B"
+        - "both file: 1 in A, 1 in B"
+        - "both holds: 1 in A, 1 in B"
+        - "both missing: 1 in A, 1 in B"
+        - "both serve: 1 in A, 1 in B"
+        - "both that: 1 in A, 1 in B"
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-058.1:
+  ac: AC-058.1
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK compare --json north/docs/prd/north south/docs/prd/south
+    note: "a value the text writes as `-` (the Timeout here) is null"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_keys_at:
+        ? ""
+        : - interface
+          - kind
+          - a
+          - b
+          - parts
+        parts:
+        - contract-types
+        - target-kinds
+        - levels
+        - harness
+        - standards
+        - skills
+        - vocabulary
+        parts.contract-types.0:
+        - mark
+        - type
+        - files
+        - validator
+        parts.target-kinds.0:
+        - mark
+        - type
+        - a
+        - b
+        parts.levels.0:
+        - mark
+        - level
+        - command
+        - environment
+        - gate
+        - timeout
+        parts.harness.0:
+        - mark
+        - slot
+        - text
+        parts.standards.0:
+        - mark
+        - glob
+        - linter
+        parts.skills.0:
+        - mark
+        - activity
+        - skill
+        parts.vocabulary.0:
+        - mark
+        - word
+        - a
+        - b
+      stdout_json_at:
+        interface: 1
+        kind: pack.compare
+        a: north/docs/prd/north
+        b: south/docs/prd/south
+        parts.contract-types.2.mark: A
+        parts.contract-types.2.type: forms
+        parts.contract-types.2.files: contracts/forms.yaml
+        parts.target-kinds.0:
+          mark: both
+          type: pages
+          a: 2
+          b: 1
+        parts.target-kinds.3:
+          mark: B
+          type: feeds
+          a: 0
+          b: 1
+        parts.levels.0:
+          mark: both
+          level: unit
+          command: python3 -m pytest tests/unit
+          environment: local
+          gate: build
+          timeout: null
+        parts.levels.2:
+          mark: B
+          level: integration
+          command: python3 -m pytest tests/site
+          environment: local
+          gate: build
+          timeout: null
+        parts.harness.4:
+          mark: B
+          slot: Tools on the runner
+          text: "python3 and a headless browser on PATH; `tests/` sits at the repository root."
+        parts.standards:
+        - mark: both
+          glob: "site/**/*.html"
+          linter: python3 tools/check_html.py
+        parts.skills:
+        - mark: both
+          activity: a change to a page
+          skill: code-review
+        parts.vocabulary.0:
+          mark: both
+          word: page
+          a: 6
+          b: 5
+      relations:
+      - "each list of `parts` has one entry per line of the matching part of the stdout of `python PACK compare north/docs/prd/north south/docs/prd/south` run in the same state (T-057.1), in the same order, and an entry's values are the ones that line prints"
+    effects: []
+    errors: []
+    leaks: none
+
+T-058.2:
+  ac: AC-058.2
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KN
+    cwd: "<tmp>"
+    runs:
+    - python PACK compare north/docs/prd/north south/docs/prd/south
+    - python PACK compare --json north/docs/prd/north south/docs/prd/south
+    note: "Review focus 3: south keeps only feeds, a type north lacks, so the two share none"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stderr: "prd_pack: north/docs/prd/north and south/docs/prd/south share no custom contract type; there is no pack to write\n"
+      run_1:
+        stdout: ""
+      run_2:
+        stdout_json:
+          interface: 1
+          kind: pack.compare
+          error: north/docs/prd/north and south/docs/prd/south share no custom contract type; there is no pack to write
+    effects: []
+    errors: []
+    leaks: none
+
+T-058.3:
+  ac: AC-058.2
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KZ
+    cwd: "<tmp>"
+    runs:
+    - python PACK compare north/docs/prd/north south/docs/prd/south
+    - python PACK compare --json south/docs/prd/south north/docs/prd/north
+    note: "Review focus 3: south holds no custom contract type at all; the folders are named as given, in the order given"
+  expect:
+    output:
+      each_run:
+        exit: 1
+      run_1:
+        stdout: ""
+        stderr: "prd_pack: north/docs/prd/north and south/docs/prd/south share no custom contract type; there is no pack to write\n"
+      run_2:
+        stderr: "prd_pack: south/docs/prd/south and north/docs/prd/north share no custom contract type; there is no pack to write\n"
+        stdout_json:
+          interface: 1
+          kind: pack.compare
+          error: south/docs/prd/south and north/docs/prd/north share no custom contract type; there is no pack to write
+    effects: []
+    errors: []
+    leaks: none
+
+T-058.4:
+  ac: AC-058.3
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    runs:
+    - python PACK compare north/docs/prd/north nowhere
+    - python PACK compare --json north/docs/prd/north nowhere
+    - python PACK check plug/prd-packs/leaflet north/docs/prd/north nowhere
+    - python PACK compare north/docs/prd/north
+    - python PACK
+    note: "<tmp> in an expected line is the test's tmp_path resolved as the lint command resolves a folder (AC-005.1); run_4 gives compare one folder and run_5 no subcommand"
+  expect:
+    output:
+      each_run:
+        exit: 2
+      run_1:
+        stdout: ""
+        stderr: "prd_pack: <tmp>/nowhere: no prd.md\n"
+      run_2:
+        stderr: "prd_pack: <tmp>/nowhere: no prd.md\n"
+        stdout_json:
+          interface: 1
+          kind: pack.compare
+          error: "<tmp>/nowhere: no prd.md"
+      run_3:
+        stdout: ""
+        stderr: "prd_pack: <tmp>/nowhere: no prd.md\n"
+      run_4:
+        stdout: ""
+        stderr_first_line_starts: "usage: prd_pack.py"
+        stderr_contains: "error: "
+        stderr_not_contains: Traceback
+      run_5:
+        stdout: ""
+        stderr_first_line_starts: "usage: prd_pack.py"
+        stderr_not_contains: Traceback
+    effects: []
+    errors: []
+    leaks: none
+
+T-058.5:
+  ac: AC-058.4
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    runs:
+    - python PACK --interface
+    - python PACK compare --json=2 north/docs/prd/north south/docs/prd/south
+    - python PACK compare --json=1 north/docs/prd/north south/docs/prd/south
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "1\n"
+        stderr: ""
+      run_2:
+        exit: 2
+        stdout_json:
+          interface: 1
+          kind: pack.compare
+          error: unsupported interface 2; this toolkit speaks 1
+        stderr: "prd_pack: unsupported interface 2; this toolkit speaks 1\n"
+      run_3:
+        exit: 0
+        stderr: ""
+      relations:
+      - "run_3's stdout equals the stdout of `python PACK compare --json north/docs/prd/north south/docs/prd/south` run in the same state, byte for byte"
+    effects: []
+    errors: []
+    leaks: none
+
+T-059.1:
+  ac: AC-059.1
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP4
+    cwd: "<tmp>"
+    command: python PACK check plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+      - "plug/prd-packs/leaflet/pack.yaml: pack leaflet: pack.yaml: unknown key colour"
+    effects: []
+    errors: []
+    leaks: none
+
+T-059.2:
+  ac: AC-059.2
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP5
+    - KP6
+    cwd: "<tmp>"
+    command: python PACK check plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    note: "KP6 deletes south's pages file; KP5 leaves north's routes file one line long, which the routes validator refuses with no output"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+      - "south/docs/prd/south/prd.md: contract type pages: glob matches no file"
+      - "north/docs/prd/north/prd.md: contract type routes: validator failed: exit 1"
+    effects: []
+    errors: []
+    leaks: none
+
+T-059.3:
+  ac: AC-059.3
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP1
+    cwd: "<tmp>"
+    command: python PACK check plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    note: "Review focus 2: a type with no bad sample fails the check"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+      - "plug/prd-packs/leaflet/samples/routes: no bad.* sample; add a file the validator must refuse"
+    effects: []
+    errors: []
+    leaks: none
+
+T-059.4:
+  ac: AC-059.3
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP2
+    cwd: "<tmp>"
+    command: python PACK check plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    note: "Review focus 2: a sample the validator accepts fails the check; the routes sample is still refused, so it gives no finding"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+      - "plug/prd-packs/leaflet/samples/pages/bad.yaml: the validator accepts it; a sample must be refused"
+    effects: []
+    errors: []
+    leaks: none
+
+T-059.5:
+  ac: AC-059.4
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP3
+    cwd: "<tmp>"
+    command: python PACK check plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    note: "no program named no-such-runner is on the runner's PATH"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+      - "plug/prd-packs/leaflet/pack.yaml: levels[0] (unit): no-such-runner is not on PATH"
+    effects: []
+    errors: []
+    leaks: none
+
+T-059.6:
+  ac: AC-059.5
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    command: python PACK check plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    note: "the pack as written: both validators pass on both PRDs' files and refuse their one sample each, and python3 is on PATH"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-059.7:
+  ac: AC-059.6
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    runs:
+    - python PACK check --json plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    - python PACK check --json plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    note: between run_1 and run_2 the test runs step KP1
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout_json:
+          interface: 1
+          kind: pack.check
+          findings: []
+      run_2:
+        exit: 1
+        stderr: ""
+        stdout_json:
+          interface: 1
+          kind: pack.check
+          findings:
+          - file: plug/prd-packs/leaflet/samples/routes
+            message: "no bad.* sample; add a file the validator must refuse"
+    effects: []
+    errors: []
+    leaks: none
+
+T-060.1:
+  ac: AC-060.1
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>/north"
+    runs:
+    - python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    note: "<today> as testing.md (Harness, Assertions) defines it"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines:
+      - 1.0.1
+      - "| 1.0.1 | <today> | pack leaflet 0.1.0 lifted; pending | - |"
+    effects:
+    - "line 22 of docs/prd/north/prd.md is the inserted line \"- Pack: leaflet 0.1.0 (leaflet-kit@example)\", directly after line 21, \"- Not applicable: `contracts/fixtures/` — no fixture data\", the last line of section 1 that starts with \"- \"; every line before line 22 is as it was, except the two frontmatter lines \"version: 1.0.0\" and \"updated: 2026-11-01\", which now read \"version: 1.0.1\" and \"updated: <today>\""
+    - "the section 7 rows of pages and routes read \"| pages | `contracts/pages.yaml` | pack |\" and \"| routes | `contracts/routes.yaml` | pack |\"; the errors and forms rows are as they were"
+    - "the last line of docs/prd/north/prd.md is the row run_1 prints, \"| 1.0.1 | <today> | pack leaflet 0.1.0 lifted; pending | - |\", added after the row of 1.0.0; every other line after line 22 is as it was, the pages and routes rows excepted"
+    - "`git status --porcelain` in <tmp>/north prints exactly the one line \" M docs/prd/north/prd.md\" (a space, M, a space and the path): prd.md is modified and unstaged, and nothing is staged or committed"
+    errors: []
+    leaks: none
+
+T-060.2:
+  ac: AC-060.2
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KR1
+    cwd: "<tmp>/north"
+    command: python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "refused: the PRD already names pack document at prd.md:22; a lift moves a PRD that names none\n"
+    effects:
+    - docs/prd/north/prd.md is byte for byte what KR1 left
+    errors: []
+    leaks: none
+
+T-060.3:
+  ac: AC-060.3
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>/north"
+    command: python CHANGE pack docs/prd/north leaflet 0.2.0 --lift
+    note: the plugin holds leaflet at 0.1.0 alone
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "refused: no pack leaflet 0.2.0 is on this machine; prd lint --list-packs lists the packs it finds\n"
+    effects:
+    - "`git status --porcelain` in <tmp>/north prints nothing"
+    errors: []
+    leaks: none
+
+T-060.4:
+  ac: AC-060.4
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KT1
+    - KC
+    cwd: "<tmp>/north"
+    command: python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    note: "Review focus 1: a lift that names a type the PRD does not declare as custom is refused before anything is written"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "refused: contract type routes of pack leaflet is not a custom row of section 7\n"
+    effects:
+    - "`git status --porcelain` in <tmp>/north prints nothing"
+    errors: []
+    leaks: none
+
+T-060.5:
+  ac: AC-060.4
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KT2
+    - KC
+    cwd: "<tmp>/north"
+    command: python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    note: "Review focus 1: a lift that would change a glob is refused before anything is written"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "refused: contract type routes: section 7 has contracts/routes*.yaml, pack leaflet has contracts/routes.yaml\n"
+    effects:
+    - "`git status --porcelain` in <tmp>/north prints nothing"
+    errors: []
+    leaks: none
+
+T-060.6:
+  ac: AC-060.5
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KD
+    cwd: "<tmp>/north"
+    runs:
+    - python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    - python CHANGE pack docs/prd/north leaflet 0.1 --lift
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout: ""
+        stderr: "refused: docs/prd/north has uncommitted changes; commit or set them aside first\n"
+      run_2:
+        exit: 2
+        stdout: ""
+        stderr: "pack: 0.1 is not a version X.Y.Z\n"
+    effects:
+    - after each run, docs/prd/north/prd.md is byte for byte as K0 committed it
+    errors: []
+    leaks: none
+
+T-060.7:
+  ac: AC-060.6
+  level: integration
+  target: "cli:prd_change"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>/north"
+    runs:
+    - python CHANGE pack docs/prd/north leaflet 0.1.0
+    - python CHANGE pack docs/prd/north leaflet 0.2.0
+    note: "between run_1 and run_2 the test runs step KH, which writes north's prd.md as a lift leaves it and commits it; <tmp> in run_2's line is the absolute path written in plugins.json"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout: ""
+        stderr: "refused: no Pack: or Target: pack line names leaflet\n"
+      run_2:
+        exit: 1
+        stdout: ""
+        stderr: "refused: pack leaflet 0.2.0 (leaflet-kit@example) not found; looked in: <tmp>/plug/prd-packs/leaflet/ (holds 0.1.0)\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-060.8:
+  ac: AC-060.7
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>/north"
+    runs:
+    - python LINT docs/prd/north
+    - python CONTEXT docs/prd/north --area site --for implement
+    - python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    - python LINT docs/prd/north
+    - python CONTEXT docs/prd/north --area site --for implement
+    note: "Review focus 1: a lift changes nothing a PRD produces; the pack's validators run where the PRD's own did; the context pack names the pack and shows its harness, as for any area that names a pack"
+  expect:
+    output:
+      each_run:
+        exit: 0
+      relations:
+      - "run_4's stdout and stderr equal run_1's, byte for byte: lint's findings are unchanged"
+      - "after run_3, `git diff -U0 --no-color --no-ext-diff -- docs/prd/north` in <tmp>/north changes docs/prd/north/prd.md alone; its removed lines (those that start with a single `-`, without that `-`) are, in the order the diff prints them and with no other, \"version: 1.0.0\", \"updated: 2026-11-01\", \"| pages | `contracts/pages.yaml` | `python3 -c \"import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(58)) for f in sys.argv[1:]))\"` |\" and \"| routes | `contracts/routes.yaml` | `python3 -c \"import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))\"` |\", and its added lines (those that start with a single `+`, without that `+`) are, in the order the diff prints them and with no other, \"version: 1.0.1\", \"updated: <today>\", \"- Pack: leaflet 0.1.0 (leaflet-kit@example)\", \"| pages | `contracts/pages.yaml` | pack |\", \"| routes | `contracts/routes.yaml` | pack |\" and \"| 1.0.1 | <today> | pack leaflet 0.1.0 lifted; pending | - |\"; testing.md, the section 5 and 6 rows and test-cases/site.yaml are unchanged"
+      - "the stdout lines of run_5 are those of run_2 with these changes and no other, a part being, as `pack_part_lines` reads one, the lines from its title line up to, not including, the next line that starts with `## `: in the Header part, whose title line is \"## Header\" (the first line), \"PRD: docs/prd/north version 1.0.0 mode implement\" becomes \"PRD: docs/prd/north version 1.0.1 mode implement\", \"Target: pack service (default), output language en\" becomes \"Target: pack leaflet 0.1.0 (leaflet-kit@example), output language en\", and \"pack 2,269 bytes (~0.6k tokens, bytes / 4); prd.md 2,645; features/site.md 867\" becomes \"pack 2,387 bytes (~0.6k tokens, bytes / 4); prd.md 2,556; features/site.md 867\" (three lines of the Header part); in the Stack part, whose title line is \"## Stack\", the line \"- Pack: leaflet 0.1.0 (leaflet-kit@example)\" is inserted directly after the line \"- Not applicable: `contracts/fixtures/` — no fixture data\"; and the four lines \"## Harness defaults\", \"\", \"- **Database access.** Not applicable: no database.\" and \"\" are inserted directly before the line \"## Cited\", that is after the empty line that ends the Levels part"
+    effects: []
+    errors: []
+    leaks: none
+
+T-060.9:
+  ac: AC-060.8
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP7
+    cwd: "<tmp>/north"
+    command: python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    note: "KP7 installs a second plugin, leaflet-copy@example, holding the same pack at the same version"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "refused: pack leaflet 0.1.0 comes from more than one source: leaflet-kit@example, leaflet-copy@example; name one with --source <source>\n"
+    effects:
+    - "`git status --porcelain` in <tmp>/north prints nothing"
+    errors: []
+    leaks: none
+
+T-060.10:
+  ac: AC-060.8
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP7
+    cwd: "<tmp>/north"
+    runs:
+    - "python CHANGE pack docs/prd/north leaflet 0.1.0 --source leaflet-copy@example"
+    - "python CHANGE pack docs/prd/north leaflet 0.1.0 --lift --source nobody@example"
+    - "python CHANGE pack docs/prd/north leaflet 0.1.0 --lift --source leaflet-copy@example"
+    note: "<today> as testing.md (Harness, Assertions) defines it"
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout: ""
+        stderr: "pack: --source belongs to --lift\n"
+      run_2:
+        exit: 1
+        stdout: ""
+        stderr: "refused: no pack leaflet 0.1.0 (nobody@example) is on this machine; prd lint --list-packs lists the packs it finds\n"
+      run_3:
+        exit: 0
+        stderr: ""
+        stdout_exact_lines:
+        - 1.0.1
+        - "| 1.0.1 | <today> | pack leaflet 0.1.0 lifted; pending | - |"
+    effects:
+    - "after run_2, `git status --porcelain` in <tmp>/north prints nothing"
+    - "after run_3, line 22 of docs/prd/north/prd.md is \"- Pack: leaflet 0.1.0 (leaflet-copy@example)\""
+    - "after run_3, `git status --porcelain` in <tmp>/north prints exactly the one line \" M docs/prd/north/prd.md\" (a space, M, a space and the path): prd.md is modified and unstaged, and nothing is staged or committed"
+    errors: []
+    leaks: none
+
+T-061.1:
+  ac: AC-061.1
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    cwd: "<tmp>"
+    runs:
+    - python DISPATCH pack compare north/docs/prd/north south/docs/prd/south
+    - python PACK compare north/docs/prd/north south/docs/prd/south
+    - python DISPATCH pack check --json plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    - python PACK check --json plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    - python DISPATCH pack compare north/docs/prd/north nowhere
+    - python PACK compare north/docs/prd/north nowhere
+  expect:
+    output:
+      run_1:
+        exit: 0
+      run_2:
+        exit: 0
+      run_3:
+        exit: 0
+      run_4:
+        exit: 0
+      run_5:
+        exit: 2
+      run_6:
+        exit: 2
+      relations:
+      - "run_1's stdout and stderr equal run_2's, byte for byte"
+      - "run_3's stdout and stderr equal run_4's, byte for byte"
+      - "run_5's stdout and stderr equal run_6's, byte for byte"
+    effects: []
+    errors: []
+    leaks: none
+
+T-061.2:
+  ac: AC-061.2
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KVC
+    cwd: "<tmp>"
+    runs:
+    - python VPACK compare north/docs/prd/north south/docs/prd/south
+    - python PACK compare north/docs/prd/north south/docs/prd/south
+    - python VPACK compare --json north/docs/prd/north south/docs/prd/south
+    - python PACK compare --json north/docs/prd/north south/docs/prd/south
+    note: "KVC loads fixture repo/vendored into <tmp>/.prd-toolkit"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+      - "run_1's stdout equals run_2's, byte for byte"
+      - "run_3's stdout equals run_4's, byte for byte"
+    effects: []
+    errors: []
+    leaks: none

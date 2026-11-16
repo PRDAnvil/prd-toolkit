@@ -1,0 +1,554 @@
+# Fixture pack-authoring/sites: two scratch repositories of one invented kind, a static leaflet site, each holding
+# one PRD (north and south), and a plugin folder holding the pack written from them (plug/prd-packs/leaflet/);
+# one key per file, its path relative to the test's tmp_path, and its full text.
+north/docs/prd/north/errors.md: |
+  # Error ledger
+
+  No entries yet. Add `### E-001 <title>` when the first error is diagnosed.
+north/docs/prd/north/nfr.md: |
+  # Non-functional requirements
+
+  ## Observability
+
+  Not applicable: the site is static files.
+north/docs/prd/north/operations.md: |
+  # Operations
+
+  No environment: the fixture site is not deployed.
+north/docs/prd/north/contracts/errors.yaml: |
+  PAGE_MISSING:
+    meaning: No page holds the path.
+    when: A visitor opens a path that no entry of contracts/pages.yaml holds.
+    status: 404
+    message: No page holds this path.
+    log_level: info
+    retryable: false
+    metric: site_page_missing_total
+north/docs/prd/north/contracts/pages.yaml: |
+  home:
+    path: site/index.html
+    title: Home
+north/docs/prd/north/contracts/routes.yaml: |
+  old-home:
+    from: /index.htm
+    to: /
+north/docs/prd/north/prd.md: |
+  ---
+  prd: north
+  version: 1.0.0
+  status: Approved
+  owner: Sample Owner
+  updated: 2026-11-01
+  ---
+
+  # North leaflet site
+
+  ## 1. Metadata & stack
+
+  - Language: HTML pages built from YAML contracts
+  - Not applicable: `contracts/openapi.yaml` — no HTTP API
+  - Not applicable: `contracts/schema.sql` — no database
+  - Not applicable: `contracts/events.md` — no events or jobs
+  - Not applicable: `contracts/permissions.yaml` — no roles
+  - Not applicable: `contracts/config.yaml` — no settings
+  - Not applicable: `contracts/data-classification.yaml` — no stored personal data
+  - Not applicable: `contracts/dependencies/` — no third-party service
+  - Not applicable: `contracts/fixtures/` — no fixture data
+
+  ## 2. Summary & goals
+
+  The north site is a leaflet of three pages.
+
+  Goals:
+
+  - Publish a page within 1 day of its approval.
+
+  ## 3. Glossary
+
+  | Term | Meaning | Banned synonyms |
+  |---|---|---|
+  | page | One HTML file a visitor opens | screen |
+
+  ## 4. Architecture
+
+  The site is a folder of static files.
+
+  ## 5. Standards registry
+
+  | Object (glob) | Linter command | Rules live in | Applies to | Decision |
+  |---|---|---|---|---|
+  | `site/**/*.html` | `python3 tools/check_html.py` | `tools/check_html.py` | every page | enforced |
+
+  ## 6. Skills registry
+
+  | Object or activity | Skill | Decision |
+  |---|---|---|
+  | a change to a page | code-review | recommended |
+
+  ## 7. Contract types
+
+  | Type | Files (glob) | Validator |
+  |---|---|---|
+  | errors | `contracts/errors.yaml` | built-in |
+  | pages | `contracts/pages.yaml` | `python3 -c "import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(58)) for f in sys.argv[1:]))"` |
+  | routes | `contracts/routes.yaml` | `python3 -c "import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))"` |
+  | forms | `contracts/forms.yaml` | `python3 -c "import sys; sys.exit(any(len(open(f).readlines()) < 1 for f in sys.argv[1:]))"` |
+
+  ## 8. Adoption map
+
+  Not applicable: new project.
+
+  ## 9. Versioning
+
+  - Breaking: removing a page or a route.
+
+  ## 10. Design & UI
+
+  Not applicable: the pages keep the site's own style.
+
+  ## 11. Requirement index
+
+  | ID | Title | Status | File | Since |
+  |---|---|---|---|---|
+  | FR-001 | Serve each page at its path | verified | features/site.md | 1.0.0 |
+  | FR-002 | Redirect an old address | verified | features/site.md | 1.0.0 |
+  | FR-003 | Send the contact form | verified | features/site.md | 1.0.0 |
+
+  ## 12. Assumptions index
+
+  | ID | Assumption | Status |
+  |---|---|---|
+
+  ## 13. Open questions
+
+  None.
+
+  ## 14. Changelog
+
+  | Version | Date | Change | IDs |
+  |---|---|---|---|
+  | 1.0.0 | 2026-11-01 | Initial release; no dry run (fixture) | FR-001, FR-002, FR-003 |
+north/docs/prd/north/features/site.md: |
+  # Site
+
+  ### FR-001 Serve each page at its path
+  Status: verified
+  Acceptance (EARS):
+  - AC-001.1 When a visitor opens a page's path, the site shall answer with that page's `index.html` file.
+  - AC-001.2 If a visitor opens a path no page holds, the site shall answer with error PAGE_MISSING.
+  Errors: PAGE_MISSING (contracts/errors.yaml)
+  Tests: T-001.1 [integration], T-001.2 [integration]  (test-cases/site.yaml)
+
+  ### FR-002 Redirect an old address
+  Status: verified
+  Acceptance (EARS):
+  - AC-002.1 When a visitor opens an old address, the site shall redirect the visitor to its new address.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/site.yaml)
+
+  ### FR-003 Send the contact form
+  Status: verified
+  Acceptance (EARS):
+  - AC-003.1 When a visitor sends the contact form, the site shall show the thanks page.
+  Errors: -
+  Tests: T-003.1 [integration]  (test-cases/site.yaml)
+north/docs/prd/north/test-cases/site.yaml: |
+  T-001.1:
+    ac: AC-001.1
+    level: integration
+    target: pages:home
+    environment: local
+    identity: none
+    preconditions: []
+    input: {path: "/"}
+    expect:
+      output: {status: 200}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-001.2:
+    ac: AC-001.2
+    level: integration
+    target: pages:home
+    environment: local
+    identity: none
+    preconditions: []
+    input: {path: "/nothing"}
+    expect:
+      output: {status: 404}
+      effects: []
+      errors: [PAGE_MISSING]
+      leaks: none
+
+  T-002.1:
+    ac: AC-002.1
+    level: integration
+    target: routes:old-home
+    environment: local
+    identity: none
+    preconditions: []
+    input: {path: "/index.htm"}
+    expect:
+      output: {status: 301, location: "/"}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-003.1:
+    ac: AC-003.1
+    level: integration
+    target: forms:contact
+    environment: local
+    identity: none
+    preconditions: []
+    input: {form: contact}
+    expect:
+      output: {shows: thanks}
+      effects: []
+      errors: []
+      leaks: none
+north/docs/prd/north/testing.md: |
+  # Testing
+
+  ## Levels
+
+  | Level | Harness command | Environment | Gate |
+  |---|---|---|---|
+  | unit | `python3 -m pytest tests/unit` | local | build |
+  | integration | `python3 -m pytest tests/integration` | local | build |
+
+  ## Harness
+
+  - **Lifecycle.** Nothing runs between tests; each test serves the site folder itself.
+  - **Environment switch.** Not applicable: one test environment, `local`.
+  - **Database access.** Not applicable: no database.
+  - **Tools on the runner.** python3 on PATH; `tests/` sits at the repository root.
+  - **Clean state.** Every test starts from its own temporary directory.
+  - **Persistent environments.** Not applicable: no test environment keeps data.
+  - **Layout.** `tests/<level>/test_<area>.py`; each test's docstring cites its T-id. Test roots: `tests/`
+  - **HTTP requests.** Each test requests a path of the site it serves.
+  - **Fixtures.** Not applicable: the cases give their input inline.
+  - **Browser identity.** Not applicable: no sign-in.
+  - **Assertions.** Fields a case does not list are not asserted.
+  - **Waits.** Not applicable: every request completes before the test asserts.
+  - **Effects.** Not applicable: the cases assert responses only.
+  - **Leaks.** Not applicable: no classified data.
+  - **Acceptance.** Not applicable: no acceptance level.
+
+  ## Environments
+
+  | Environment | Purpose | Access | Base URL | Database | Logs |
+  |---|---|---|---|---|---|
+  | local | a developer's checkout | anyone with a clone | none | none | the command's output |
+
+  ## Leak checks
+
+  | Sink | Read from | Scanned for |
+  |---|---|---|
+  | command output | the test captures stdout and stderr | nothing: no classified data |
+
+  ## Fixtures
+
+  | Fixture | Creates | Load | Teardown |
+  |---|---|---|---|
+
+  ## Sign-offs
+
+  | T-id | Owner | Date | Result |
+  |---|---|---|---|
+north/docs/prd/north/contracts/forms.yaml: |
+  contact:
+    action: /thanks
+south/docs/prd/south/errors.md: |
+  # Error ledger
+
+  No entries yet. Add `### E-001 <title>` when the first error is diagnosed.
+south/docs/prd/south/nfr.md: |
+  # Non-functional requirements
+
+  ## Observability
+
+  Not applicable: the site is static files.
+south/docs/prd/south/operations.md: |
+  # Operations
+
+  No environment: the fixture site is not deployed.
+south/docs/prd/south/contracts/errors.yaml: |
+  PAGE_MISSING:
+    meaning: No page holds the path.
+    when: A visitor opens a path that no entry of contracts/pages.yaml holds.
+    status: 404
+    message: No page holds this path.
+    log_level: info
+    retryable: false
+    metric: site_page_missing_total
+south/docs/prd/south/contracts/pages.yaml: |
+  home:
+    path: site/index.html
+    title: Home
+south/docs/prd/south/contracts/routes.yaml: |
+  old-home:
+    from: /index.htm
+    to: /
+south/docs/prd/south/prd.md: |
+  ---
+  prd: south
+  version: 1.0.0
+  status: Approved
+  owner: Sample Owner
+  updated: 2026-11-01
+  ---
+
+  # South leaflet site
+
+  ## 1. Metadata & stack
+
+  - Language: HTML pages built from YAML contracts
+  - Not applicable: `contracts/openapi.yaml` — no HTTP API
+  - Not applicable: `contracts/schema.sql` — no database
+  - Not applicable: `contracts/events.md` — no events or jobs
+  - Not applicable: `contracts/permissions.yaml` — no roles
+  - Not applicable: `contracts/config.yaml` — no settings
+  - Not applicable: `contracts/data-classification.yaml` — no stored personal data
+  - Not applicable: `contracts/dependencies/` — no third-party service
+  - Not applicable: `contracts/fixtures/` — no fixture data
+
+  ## 2. Summary & goals
+
+  The south site is a leaflet of three pages.
+
+  Goals:
+
+  - Publish a page within 1 day of its approval.
+
+  ## 3. Glossary
+
+  | Term | Meaning | Banned synonyms |
+  |---|---|---|
+  | page | One HTML file a visitor opens | screen |
+
+  ## 4. Architecture
+
+  The site is a folder of static files.
+
+  ## 5. Standards registry
+
+  | Object (glob) | Linter command | Rules live in | Applies to | Decision |
+  |---|---|---|---|---|
+  | `site/**/*.html` | `python3 tools/check_html.py` | `tools/check_html.py` | every page | enforced |
+
+  ## 6. Skills registry
+
+  | Object or activity | Skill | Decision |
+  |---|---|---|
+  | a change to a page | code-review | recommended |
+
+  ## 7. Contract types
+
+  | Type | Files (glob) | Validator |
+  |---|---|---|
+  | errors | `contracts/errors.yaml` | built-in |
+  | pages | `contracts/pages.yaml` | `python3 -c "import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(58)) for f in sys.argv[1:]))"` |
+  | routes | `contracts/routes.yaml` | `python3 -c "import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))"` |
+  | feeds | `contracts/feeds.yaml` | `python3 -c "import sys; sys.exit(any(len(open(f).readlines()) < 3 for f in sys.argv[1:]))"` |
+
+  ## 8. Adoption map
+
+  Not applicable: new project.
+
+  ## 9. Versioning
+
+  - Breaking: removing a page or a route.
+
+  ## 10. Design & UI
+
+  Not applicable: the pages keep the site's own style.
+
+  ## 11. Requirement index
+
+  | ID | Title | Status | File | Since |
+  |---|---|---|---|---|
+  | FR-001 | Serve each page at its path | verified | features/site.md | 1.0.0 |
+  | FR-002 | Redirect an old address | verified | features/site.md | 1.0.0 |
+  | FR-003 | List each story in the news feed | verified | features/site.md | 1.0.0 |
+
+  ## 12. Assumptions index
+
+  | ID | Assumption | Status |
+  |---|---|---|
+
+  ## 13. Open questions
+
+  None.
+
+  ## 14. Changelog
+
+  | Version | Date | Change | IDs |
+  |---|---|---|---|
+  | 1.0.0 | 2026-11-01 | Initial release; no dry run (fixture) | FR-001, FR-002, FR-003 |
+south/docs/prd/south/features/site.md: |
+  # Site
+
+  ### FR-001 Serve each page at its path
+  Status: verified
+  Acceptance (EARS):
+  - AC-001.1 When a visitor opens a page's path, the site shall answer with that page's `index.html` file.
+  - AC-001.2 If a visitor opens a path no page holds, the site shall answer with error PAGE_MISSING.
+  Errors: PAGE_MISSING (contracts/errors.yaml)
+  Tests: T-001.1 [integration], T-001.2 [integration]  (test-cases/site.yaml)
+
+  ### FR-002 Redirect an old address
+  Status: verified
+  Acceptance (EARS):
+  - AC-002.1 When a visitor opens an old address, the site shall redirect the visitor to its new address.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/site.yaml)
+
+  ### FR-003 List each story in the news feed
+  Status: verified
+  Acceptance (EARS):
+  - AC-003.1 When an editor adds a story, the site shall list the story in the news feed.
+  Errors: -
+  Tests: T-003.1 [integration]  (test-cases/site.yaml)
+south/docs/prd/south/test-cases/site.yaml: |
+  T-001.1:
+    ac: AC-001.1
+    level: integration
+    target: pages:home
+    environment: local
+    identity: none
+    preconditions: []
+    input: {path: "/"}
+    expect:
+      output: {status: 200}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-001.2:
+    ac: AC-001.2
+    level: integration
+    target: code:site.serve
+    environment: local
+    identity: none
+    preconditions: []
+    input: {path: "/nothing"}
+    expect:
+      output: {status: 404}
+      effects: []
+      errors: [PAGE_MISSING]
+      leaks: none
+
+  T-002.1:
+    ac: AC-002.1
+    level: integration
+    target: routes:old-home
+    environment: local
+    identity: none
+    preconditions: []
+    input: {path: "/index.htm"}
+    expect:
+      output: {status: 301, location: "/"}
+      effects: []
+      errors: []
+      leaks: none
+
+  T-003.1:
+    ac: AC-003.1
+    level: integration
+    target: feeds:news
+    environment: local
+    identity: none
+    preconditions: []
+    input: {story: "Spring fair"}
+    expect:
+      output: {listed: true}
+      effects: []
+      errors: []
+      leaks: none
+south/docs/prd/south/testing.md: |
+  # Testing
+
+  ## Levels
+
+  | Level | Harness command | Environment | Gate |
+  |---|---|---|---|
+  | unit | `python3 -m pytest tests/unit` | local | build |
+  | integration | `python3 -m pytest tests/site` | local | build |
+
+  ## Harness
+
+  - **Lifecycle.** Nothing runs between tests; each test serves the site folder itself.
+  - **Environment switch.** Not applicable: one test environment, `local`.
+  - **Database access.** Not applicable: no database.
+  - **Tools on the runner.** python3 and a headless browser on PATH; `tests/` sits at the repository root.
+  - **Clean state.** Every test starts from its own temporary directory.
+  - **Persistent environments.** Not applicable: no test environment keeps data.
+  - **Layout.** `tests/<level>/test_<area>.py`; each test's docstring cites its T-id. Test roots: `tests/`
+  - **HTTP requests.** Each test requests a path of the site it serves.
+  - **Fixtures.** Not applicable: the cases give their input inline.
+  - **Browser identity.** Not applicable: no sign-in.
+  - **Assertions.** Fields a case does not list are not asserted.
+  - **Waits.** Not applicable: every request completes before the test asserts.
+  - **Effects.** Not applicable: the cases assert responses only.
+  - **Leaks.** Not applicable: no classified data.
+  - **Acceptance.** Not applicable: no acceptance level.
+
+  ## Environments
+
+  | Environment | Purpose | Access | Base URL | Database | Logs |
+  |---|---|---|---|---|---|
+  | local | a developer's checkout | anyone with a clone | none | none | the command's output |
+
+  ## Leak checks
+
+  | Sink | Read from | Scanned for |
+  |---|---|---|
+  | command output | the test captures stdout and stderr | nothing: no classified data |
+
+  ## Fixtures
+
+  | Fixture | Creates | Load | Teardown |
+  |---|---|---|---|
+
+  ## Sign-offs
+
+  | T-id | Owner | Date | Result |
+  |---|---|---|---|
+south/docs/prd/south/contracts/feeds.yaml: |
+  news:
+    path: site/news.xml
+    items: 10
+plug/prd-packs/leaflet/pack.yaml: |
+  pack: leaflet
+  version: 0.1.0
+  toolkit: ">=0.8.0,<0.9"
+  description: Small static leaflet sites, written from the north and south PRDs.
+  contract-types:
+    - {type: pages, files: contracts/pages.yaml, validator: 'python3 -c "import sys; sys.exit(any(not open(f).readline().rstrip().endswith(chr(58)) for f in sys.argv[1:]))"'}
+    - {type: routes, files: contracts/routes.yaml, validator: 'python3 -c "import sys; sys.exit(any(len(open(f).readlines()) < 2 for f in sys.argv[1:]))"'}
+  levels:
+    - {level: unit, command: "python3 -m pytest tests/unit", environment: local, gate: build}
+  harness:
+    Database access: "Not applicable: no database."
+  standards:
+    - {object: "site/**/*.html", linter: "python3 tools/check_html.py"}
+  skills:
+    - {activity: a change to a page, skill: code-review}
+  vocabulary: []
+plug/prd-packs/leaflet/README.md: |
+  # leaflet
+
+  A pack for small static leaflet sites, written from two adopted PRDs (north and south).
+
+  - contract-types pages and routes: both PRDs, section 7.
+  - levels unit, standards and skills: both PRDs.
+
+  Samples: `samples/<type>/bad.yaml` is a copy of a real contract file broken in one named way.
+
+  To do: the harness helpers, the clarify questions and a skill for this kind.
+plug/prd-packs/leaflet/samples/pages/bad.yaml: |
+  home path site/index.html
+plug/prd-packs/leaflet/samples/routes/bad.yaml: |
+  old-home: /

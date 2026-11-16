@@ -1,0 +1,219 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, the root of the scratch repository step SR0
+#   builds from fixture status-next/empty (testing.md, Setup steps): its PRD folder docs/prd/orders holds one
+#   enforced section 5 row, glob `**/*.py`, whose linter (texts.linter) appends the paths it is given to
+#   <tmp>/lint.log and refuses a path that holds `.prd-toolkit/` or ends in `bad.py`; <tmp>/.prd-toolkit is the
+#   vendored copy (fixture repo/vendored). `texts.<key>` is the text at that key of fixture standards-run/texts.
+#   "python" is the interpreter running the tests (sys.executable); every run is a subprocess from <tmp>, with the
+#   Subprocess environment minus the git variables Setup steps names (testing.md Harness).
+#   HOOK  = <repo>/prd-toolkit/scripts/prd_git_hook.py, the script the installed pre-commit hook runs
+#   HOOKS = <repo>/prd-toolkit/scripts/prd_hooks.py
+#   These cases are E-025's: a standards row run on the vendored copy refused a re-vendor commit.
+
+T-068.1:
+  ac: AC-068.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SG1
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: SG1 stages the vendored copy and src/ok.py
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects:
+    - "<tmp>/lint.log holds exactly the one line `src/ok.py`: the linter ran once, on the staged path outside .prd-toolkit/"
+    errors: []
+    leaks: none
+
+T-068.2:
+  ac: AC-068.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SG2
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: "SG2 stages the vendored copy, src/.prd-toolkit/x.py and .prd-toolkit-notes.py: only the folder .prd-toolkit at the repository root is the vendored copy, so the other two are given to the linter, which refuses the path holding `.prd-toolkit/`"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "prd-toolkit: `python3 -c \"import sys; open('lint.log', 'a').write(' '.join(sys.argv[1:]) + chr(10)); bad = [a for a in sys.argv[1:] if '.prd-toolkit/' in a or a.endswith('bad.py')]; print(*bad, file=sys.stderr); sys.exit(1 if bad else 0)\"` failed (exit 1) on .prd-toolkit-notes.py, src/.prd-toolkit/x.py:\nsrc/.prd-toolkit/x.py\n"
+    effects:
+    - "<tmp>/lint.log holds exactly the one line `.prd-toolkit-notes.py src/.prd-toolkit/x.py`"
+    errors: []
+    leaks: none
+
+T-068.3:
+  ac: AC-068.2
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SG3
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: "E-025: a commit that stages only the vendored copy runs no linter"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects:
+    - "<tmp>/lint.log does not exist: the linter never ran"
+    errors: []
+    leaks: none
+
+T-068.4:
+  ac: AC-068.3
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SG4
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: "SG4 stages the vendored copy, src/bad.py and src/ok.py"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "prd-toolkit: `python3 -c \"import sys; open('lint.log', 'a').write(' '.join(sys.argv[1:]) + chr(10)); bad = [a for a in sys.argv[1:] if '.prd-toolkit/' in a or a.endswith('bad.py')]; print(*bad, file=sys.stderr); sys.exit(1 if bad else 0)\"` failed (exit 1) on src/bad.py, src/ok.py:\nsrc/bad.py\n"
+    effects:
+    - "<tmp>/lint.log holds exactly the one line `src/bad.py src/ok.py`"
+    errors: []
+    leaks: none
+
+T-068.5:
+  ac: AC-068.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SG5
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --github docs/prd/orders
+    - sh -c JOB
+    note: "JOB is texts.job_line, passed to sh as one argument; SG5 deletes src/bad.py and .prd-toolkit-notes.py and stages every file, so the job lists the tracked files"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "wrote .github/workflows/prd-toolkit.yml\n"
+        stderr: ""
+      relations:
+      - "run_2's exit code is not 0 (the linter refuses src/.prd-toolkit/x.py; xargs reports that with its own code)"
+    effects:
+    - "<tmp>/.github/workflows/prd-toolkit.yml, read with yaml.safe_load, holds at `jobs.standards-1.steps.2.run` the string texts.job_line"
+    - "after run_2, <tmp>/lint.log holds exactly the one line `./src/.prd-toolkit/x.py ./src/ok.py ./tests/test_orders.py`: no path under .prd-toolkit/"
+    errors: []
+    leaks: none
+
+T-068.6:
+  ac: AC-068.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    cwd: "<tmp>"
+    command: python HOOKS ci --gitlab docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines:
+      - wrote .gitlab/prd-toolkit.yml
+      - "include: '.gitlab/prd-toolkit.yml'"
+    effects:
+    - "<tmp>/.gitlab/prd-toolkit.yml, read with yaml.safe_load, holds at `standards-1.script.0` the string texts.job_line"
+    errors: []
+    leaks: none
+
+T-068.7:
+  ac: AC-068.5
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --github docs/prd/orders
+    - python HOOKS check --ci docs/prd/orders
+    - python HOOKS check --ci docs/prd/orders
+    note: "between run_2 and run_3 the test runs step SO, which gives the file the job line a release before this area wrote (texts.old_job_line); run_2 and run_3 also report the scratch repository's missing managed blocks, which this case does not assert"
+  expect:
+    output:
+      run_1:
+        exit: 0
+      run_2:
+        stdout_not_contains: .github/workflows/prd-toolkit.yml
+      run_3:
+        exit: 1
+        stdout_contains_line: "stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force"
+    effects: []
+    errors: []
+    leaks: none

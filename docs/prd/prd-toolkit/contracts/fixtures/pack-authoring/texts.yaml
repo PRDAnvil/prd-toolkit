@@ -1,0 +1,101 @@
+# Fixture pack-authoring/texts: the texts the pack-authoring setup steps write, one key per text.
+# north_lifted: north's prd.md as a lift leaves it, before its version and changelog row are recorded:
+# the line `- Pack: leaflet 0.1.0 (leaflet-kit@example)` after section 1's last bullet, and the pages and
+# routes rows of section 7 with the Validator `pack`.
+north_lifted: |
+  ---
+  prd: north
+  version: 1.0.0
+  status: Approved
+  owner: Sample Owner
+  updated: 2026-11-01
+  ---
+
+  # North leaflet site
+
+  ## 1. Metadata & stack
+
+  - Language: HTML pages built from YAML contracts
+  - Not applicable: `contracts/openapi.yaml` — no HTTP API
+  - Not applicable: `contracts/schema.sql` — no database
+  - Not applicable: `contracts/events.md` — no events or jobs
+  - Not applicable: `contracts/permissions.yaml` — no roles
+  - Not applicable: `contracts/config.yaml` — no settings
+  - Not applicable: `contracts/data-classification.yaml` — no stored personal data
+  - Not applicable: `contracts/dependencies/` — no third-party service
+  - Not applicable: `contracts/fixtures/` — no fixture data
+  - Pack: leaflet 0.1.0 (leaflet-kit@example)
+
+  ## 2. Summary & goals
+
+  The north site is a leaflet of three pages.
+
+  Goals:
+
+  - Publish a page within 1 day of its approval.
+
+  ## 3. Glossary
+
+  | Term | Meaning | Banned synonyms |
+  |---|---|---|
+  | page | One HTML file a visitor opens | screen |
+
+  ## 4. Architecture
+
+  The site is a folder of static files.
+
+  ## 5. Standards registry
+
+  | Object (glob) | Linter command | Rules live in | Applies to | Decision |
+  |---|---|---|---|---|
+  | `site/**/*.html` | `python3 tools/check_html.py` | `tools/check_html.py` | every page | enforced |
+
+  ## 6. Skills registry
+
+  | Object or activity | Skill | Decision |
+  |---|---|---|
+  | a change to a page | code-review | recommended |
+
+  ## 7. Contract types
+
+  | Type | Files (glob) | Validator |
+  |---|---|---|
+  | errors | `contracts/errors.yaml` | built-in |
+  | pages | `contracts/pages.yaml` | pack |
+  | routes | `contracts/routes.yaml` | pack |
+  | forms | `contracts/forms.yaml` | `python3 -c "import sys; sys.exit(any(len(open(f).readlines()) < 1 for f in sys.argv[1:]))"` |
+
+  ## 8. Adoption map
+
+  Not applicable: new project.
+
+  ## 9. Versioning
+
+  - Breaking: removing a page or a route.
+
+  ## 10. Design & UI
+
+  Not applicable: the pages keep the site's own style.
+
+  ## 11. Requirement index
+
+  | ID | Title | Status | File | Since |
+  |---|---|---|---|---|
+  | FR-001 | Serve each page at its path | verified | features/site.md | 1.0.0 |
+  | FR-002 | Redirect an old address | verified | features/site.md | 1.0.0 |
+  | FR-003 | Send the contact form | verified | features/site.md | 1.0.0 |
+
+  ## 12. Assumptions index
+
+  | ID | Assumption | Status |
+  |---|---|---|
+
+  ## 13. Open questions
+
+  None.
+
+  ## 14. Changelog
+
+  | Version | Date | Change | IDs |
+  |---|---|---|---|
+  | 1.0.0 | 2026-11-01 | Initial release; no dry run (fixture) | FR-001, FR-002, FR-003 |
