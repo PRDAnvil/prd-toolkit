@@ -211,7 +211,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-065 | The url part of a Target: line | verified | features/card-context.md |  |
 | FR-066 | A gate's URL | verified | features/card-context.md |  |
 | FR-067 | Where the area and the URL show | verified | features/card-context.md |  |
-| FR-068 | A standards row is never run on the vendored copy | approved | features/standards-run.md |  |
+| FR-068 | A standards row is never run on the vendored copy | verified | features/standards-run.md |  |
 
 ## 12. Assumptions index
 

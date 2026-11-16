@@ -13,7 +13,8 @@ here. The vendored copy is the folder `.prd-toolkit` at the repository root: a f
 anywhere else, and a file whose name only starts with it, is an ordinary path.
 
 ### FR-068 A standards row is never run on the vendored copy
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/standardsrun.py:4 @27aab93
 Acceptance (EARS):
 - AC-068.1 When the pre-commit hook (`prd_git_hook.py pre-commit <prd_dir>`) runs an enforced section 5
   row, it shall give the row's linter every staged path that exists after the commit and that the row's
