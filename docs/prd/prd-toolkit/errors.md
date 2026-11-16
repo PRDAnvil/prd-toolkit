@@ -238,6 +238,7 @@ Recurrence of: -
 ### E-022 The prd launcher fails when the working directory holds a .venv whose interpreter cannot be read
 Detected: 2026-11-15, eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15)
 Classification: spec gap
+Confirmed: 2026-11-15, "spec gap is right, start task 5"
 Evidence: Eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15), in the eval sandbox, in a scaffold repository that holds a .venv:
   <plugin>/scripts/prd lint docs/prd/notes; echo "prd-lint-exit=$?"
   error: Failed to inspect Python interpreter from virtual environment at `.venv/bin/python`
