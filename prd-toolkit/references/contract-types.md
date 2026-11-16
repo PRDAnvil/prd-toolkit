@@ -355,8 +355,8 @@ decides each item, and what is written into the plugin, as `prd-packs/<name>/`, 
   harness helpers, clarify questions and skill rules a person would write, with the files to start from.
 
 `prd pack check <pack dir> <prd A> <prd B>` checks it: the manifest loads; each type's validator, run on each
-PRD's files of the type from the PRD's root, exits 0; run on each `samples/<type>/bad.*` from the pack
-folder, it exits non-zero, and a type with no sample is a finding; each `target-kinds` entry names a type of
+PRD's files of the type from the PRD's root, exits 0, and so does a second run on the same files from the
+pack folder; run on each `samples/<type>/bad.*` from the pack folder, it exits non-zero, and a type with no sample is a finding; each `target-kinds` entry names a type of
 the pack; and each Levels command's first word is on PATH. A word kept in `vocabulary` warns `platform-word`
 on each requirement that names it.
 

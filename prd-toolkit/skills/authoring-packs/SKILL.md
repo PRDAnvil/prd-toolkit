@@ -55,9 +55,9 @@ a plugin to hold it" and "they'll want it installed" change nothing below.
    is drafted: the to-do list names them, and the files a person would start from.
 7. **Each validator can fail.** `prd pack check` exits 0 before anything is committed: every type
    has a `samples/<type>/bad.*` its validator refuses, made by breaking a copy of a real contract
-   file in one named way, and the same validator, run where the check runs it, accepts that file
-   unbroken. A validator that refuses no such break, or refuses the unbroken file too, is
-   reported; it is never replaced.
+   file in one named way, and the same validator runs from the pack folder on each PRD's own
+   files. A validator that refuses no such break, or fails from the pack folder, is reported; it
+   is never replaced.
 8. **The PRDs themselves are not edited by this skill.** No `Pack:` line, no Validator cell, no
    copy of a PRD edited to try the pack. Moving each PRD onto the pack is the lift, a separate
    `/prd-toolkit:prd-change` in its own repository, after the plugin is installed and with the

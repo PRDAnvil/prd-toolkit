@@ -120,7 +120,7 @@ def test_procedure_names_the_commands_as_they_run():
     # the PRD's own output lines, quoted as it gives them
     for line in ("share no custom contract type; there is no pack to write", "glob matches no file",
                  "the validator accepts it; a sample must be refused", "no bad.* sample",
-                 "is not a custom row of section 7"):
+                 "validator fails from the pack folder: <line>", "is not a custom row of section 7"):
         assert line in t, line
 
 
@@ -132,7 +132,7 @@ def test_procedure_writes_nothing_outside_the_decided_pack():
               "Commit** only when the check exits `0`", "never `--no-verify`. Nothing is pushed.",
               "Run neither: no push, no publish, no install, no lift.",
               "never change a validator to pass", "never stash it",
-              "Never leave the item out yourself", "the validator accepts it; a sample must be refused`. The",
+              "Never leave the item out yourself", "The check reports that itself",
               "write nothing: show the new comparison as a new step 3 proposal",
               "is not a side", "never initialised"):
         assert s in t, s
@@ -169,13 +169,14 @@ def test_changing_prds_names_the_lift():
         assert needle in s, needle
     assert s.index("A new pack version is a scripted patch.") < s.index("A lift is a scripted patch too.")
     assert "(a version move or a lift, below, is not one)" in s
-    # the vendored copy is committed after `hooks install` and before the verdict and the approval
+    # the approval commits the vendored pack (AC-060.9): no hand commit of it between `hooks install` and the approval
     lift = s[s.index("A lift is a scripted patch too."):]
-    order = [lift.index(x) for x in ("--lift; echo", "prd hooks install docs/prd/<slug>", "`git add .prd-toolkit`",
-                                     'git commit -m "chore: vendor pack <name> <X.Y.Z>"', "step 4's lint",
-                                     "--dry-run 'no dry run (pack lifted)'")]
+    order = [lift.index(x) for x in ("--lift; echo", "prd hooks install docs/prd/<slug>",
+                                     "`approve` stages the vendored pack and `.prd-toolkit/pack-sources.json`",
+                                     "step 4's lint", "--dry-run 'no dry run (pack lifted)'")]
     assert order == sorted(order)
-    assert "git add .prd-toolkit/packs/<name>" not in s
+    assert "`git add .prd-toolkit`" not in lift and "chore: vendor pack" not in lift
+    assert "never the pack folder or `pack-sources.json`" in lift
 
 
 def test_adopting_prds_names_the_pack_command_and_the_area_url():

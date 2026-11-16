@@ -131,11 +131,13 @@ a refusal, stop and report it.
   `<the PRD folder> has uncommitted changes; commit or set them aside first`. Exit `2` with
   `pack: <X.Y.Z> is not a version X.Y.Z` is a mistyped version: fix the command.
 - Then `<plugin scripts>/prd hooks install docs/prd/<slug>; echo "prd-hooks-exit=$?"`, which vendors
-  the pack, and commit the vendored copy on its own, before the verdict, since `approve` stages a
-  re-vendored pack only for a version move. Each its own call: `git add .prd-toolkit` (adding
-  `.gitignore` too when `git status --porcelain` lists it, as `hooks install` creates or changes it),
-  then `git commit -m "chore: vendor pack <name> <X.Y.Z>" -m "Refs: none (no behaviour change)"`.
-  The PRD folder stays uncommitted for the approval.
+  the pack. `.prd-toolkit/packs/<name>/` and `.prd-toolkit/pack-sources.json` stay uncommitted, as
+  the PRD folder does: `approve` stages the vendored pack and `.prd-toolkit/pack-sources.json` in
+  the approval commit. It stages nothing else: when `git status --porcelain` lists another path
+  that `hooks install` wrote (the rest of `.prd-toolkit/`, `.gitignore`), commit those paths on
+  their own before the verdict, each its own call: `git add <each such path>`, never the pack
+  folder or `pack-sources.json`, then
+  `git commit -m "chore: refresh the vendored toolkit" -m "Refs: none (no behaviour change)"`.
 - Then step 4's lint, whose `prd-lint-exit=` value must be `0` (the pack's validators now run where
   the PRD's own did), and the verdict with no dry run, and step 5's approval as for any patch, with
   `--dry-run 'no dry run (pack lifted)'`: §14 reads

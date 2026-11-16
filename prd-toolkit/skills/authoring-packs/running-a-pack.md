@@ -188,14 +188,10 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
      copy of one PRD's real contract file of that type, broken in one named way that the
      validator's own text refuses (a key it requires removed, a line it requires cut), with the
      original file's extension. One break per file; a second break is a second file, `bad-2.<ext>`
-     is not read, so name it `bad.2.<ext>`. **Before you trust a sample,** prove the validator
-     accepts the unbroken file where the check runs it: write each `bad.<ext>` first as the
-     original's exact copy, run the check below, and require, for each type, the finding
-     `<pack dir>/samples/<type>/bad.<ext>: the validator accepts it; a sample must be refused`. The
-     check runs a sample's validator from the pack folder, so a validator that reads files of its
-     repository crashes there and "refuses" any file, broken or not. A type whose unbroken copy
-     draws no such finding is one of those: report it to the owner, who leaves that type out; never
-     edit it. Only then write each break in place of the copy.
+     is not read, so name it `bad.2.<ext>`. The check runs a sample's validator from the pack
+     folder, where a validator that reads files of its repository crashes and would refuse any
+     file, broken or not. The check reports that itself: it runs each validator again from the pack
+     folder on each PRD's own files (`validator fails from the pack folder`, below).
    - **`<pack dir>/README.md`:** what the pack is for (the decided description); where each part
      came from, item by item (`both`, or A's or B's, with its PRD line); each sample, the file it
      copies and the break it holds; and the to-do list from step 3, as decided.
@@ -210,7 +206,8 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
      refused`) gets another single break the validator's text refuses; a missing sample
      (`no bad.* sample`) is written; a key the loader names in `pack.yaml` is corrected to the
      decided value. A finding that only a PRD can fix (a validator that fails on a PRD's own files,
-     one that refuses no break you can name, a level whose first word is not on PATH) is reported
+     one that passes there and fails when run from the pack folder
+     (`validator fails from the pack folder: <line>`), one that refuses no break you can name, a level whose first word is not on PATH) is reported
      to the owner, who leaves the item out or changes that PRD in its own repository: commit
      nothing and end the turn to wait for their reply. Never leave the item out yourself, and never
      change a validator to pass. Run the check again after each fix. `2` is a usage error: fix the
