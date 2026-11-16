@@ -15,7 +15,8 @@ the lift, which writes the PRD folder it names. How the skill `/prd-toolkit:prd-
 takes the owner's decisions and writes the pack is not specified in this PRD.
 
 ### UJ-05 An owner with two adopted PRDs of one kind gets a pack from what they share
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_pack.py:1 @4fd2e89
 Flow: 1. run `prd pack compare <prd A> <prd B>` and read what the two PRDs share and where they differ
       → 2. decide each item, then write the pack folder (`pack.yaml`, the validators, `samples/<type>/bad.*`, a README) into a plugin
       → 3. run `prd pack check <pack dir> <prd A> <prd B>` and fix each finding
@@ -24,7 +25,8 @@ Flow: 1. run `prd pack compare <prd A> <prd B>` and read what the two PRDs share
 Traces: FR-057, FR-058, FR-059, FR-060, FR-061
 
 ### FR-057 Compare two PRDs, as text
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/packcompare.py:1 @4fd2e89
 Acceptance (EARS):
 - AC-057.1 When run as `prd_pack.py compare <prd A> <prd B>` on two PRD folders that share one or more
   custom contract types (AC-058.2), the pack command shall print seven parts, `Contract types`,
@@ -84,7 +86,8 @@ Tests: T-057.1 [integration], T-057.2 [integration], T-057.3 [integration], T-05
 Traces: UJ-05; cli:prd_pack
 
 ### FR-058 The comparison as JSON, and its refusals
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_pack.py:63 @4fd2e89
 Acceptance (EARS):
 - AC-058.1 When `prd_pack.py compare` is run with `--json`, the pack command shall print on stdout one
   JSON object on one line, ending in a newline, and nothing else,
@@ -128,7 +131,8 @@ Tests: T-058.1 [integration], T-058.2 [integration], T-058.3 [integration], T-05
 Traces: UJ-05; cli:prd_pack; `prdlint/interface.py`
 
 ### FR-059 Check a written pack against both PRDs
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/packcheck.py:1 @4fd2e89
 Acceptance (EARS):
 - AC-059.1 If the pack manifest loader, the one `prd lint --list-packs` uses, refuses
   `<pack dir>/pack.yaml`, the check command (`prd_pack.py check <pack dir> <prd A> <prd B>`) shall print
@@ -173,7 +177,8 @@ Tests: T-059.1 [integration], T-059.2 [integration], T-059.3 [integration], T-05
 Traces: UJ-05; cli:prd_pack; `prdlint/packs.py` load_manifest
 
 ### FR-060 Lift a PRD onto the pack written from its own custom types
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/change.py:809 @4fd2e89
 Acceptance (EARS):
 - AC-060.1 When run as `prd_change.py pack <prd_dir> <name> <X.Y.Z> --lift` and no check of AC-060.2 to
   AC-060.5 refuses it, the change command shall insert the line `- Pack: <name> <X.Y.Z> (<source>)`
@@ -245,7 +250,8 @@ Tests: T-060.1 [integration], T-060.2 [integration], T-060.3 [integration], T-06
 Traces: UJ-05; cli:prd_change_pack_lift; cli:prd_change; `prdlint/change.py` pack
 
 ### FR-061 The launcher and a vendored copy answer the same
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_dispatch.py:15 @4fd2e89
 Acceptance (EARS):
 - AC-061.1 When run through the launcher's dispatcher as `prd_dispatch.py pack <arguments>` (what
   `prd pack <arguments>` runs), the pack command shall print what
