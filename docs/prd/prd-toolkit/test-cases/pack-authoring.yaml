@@ -11,6 +11,7 @@
 #   LINT     = <repo>/prd-toolkit/scripts/prd_lint.py
 #   CONTEXT  = <repo>/prd-toolkit/scripts/prd_context.py
 #   DISPATCH = <repo>/prd-toolkit/scripts/prd_dispatch.py
+#   HOOKS    = <repo>/prd-toolkit/scripts/prd_hooks.py
 #   VPACK    = <tmp>/.prd-toolkit/prd_pack.py, the vendored copy step KVC loads
 #   A case runs from <tmp> unless it gives another cwd. "A" is north and "B" is south: compare and check name
 #   north's folder first. The setup steps run in the order a case lists them; a note that names a step run
@@ -871,6 +872,34 @@ T-059.7:
     errors: []
     leaks: none
 
+T-059.8:
+  ac: AC-059.7
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KP8
+    cwd: "<tmp>"
+    command: python PACK check plug/prd-packs/leaflet north/docs/prd/north south/docs/prd/south
+    note: "E-027: KP8's pages validator runs in each PRD folder and stops in the pack folder; its run on samples/pages/bad.yaml stops the same way, exits other than 0 and so gives no finding of its own"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+      - "north/docs/prd/north/prd.md: contract type pages: validator fails from the pack folder: Traceback (most recent call last):"
+      - "south/docs/prd/south/prd.md: contract type pages: validator fails from the pack folder: Traceback (most recent call last):"
+    effects: []
+    errors: []
+    leaks: none
+
 T-060.1:
   ac: AC-060.1
   level: integration
@@ -1320,6 +1349,40 @@ T-060.12:
         stderr: ""
         stdout_exact_lines:
         - "docs/prd/north/prd.md:41: assumption-indexed: A-99 has no row in section 12"
+    effects: []
+    errors: []
+    leaks: none
+
+T-060.13:
+  ac: AC-060.9
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KI
+    cwd: "<tmp>/north"
+    runs:
+    - python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    - python HOOKS install docs/prd/north
+    - python CHANGE approve docs/prd/north --reply yes --dry-run "no dry run (pack lifted)"
+    note: "E-026: KI gives the approval commit of run_3 its identity; step KW runs between run_2 and run_3 and switches the hooks off for run_3's commit; K0 writes no .prd-toolkit/ (a fact of the fixture, not asserted), so run_2 creates it, vendoring the toolkit and the pack leaflet; <sha> is 7 or more characters that the line `git rev-parse HEAD` prints in <tmp>/north after run_3 starts with"
+  expect:
+    output:
+      each_run:
+        exit: 0
+      run_3:
+        stdout_exact_lines:
+        - "approved north 1.0.1 <sha>"
+      relations:
+      - "after run_3, the lines of `git show --no-color --name-only --format= HEAD` in <tmp>/north that start with \".prd-toolkit/\" are exactly, in any order, \".prd-toolkit/pack-sources.json\", \".prd-toolkit/packs/leaflet/README.md\", \".prd-toolkit/packs/leaflet/pack.yaml\", \".prd-toolkit/packs/leaflet/samples/pages/bad.yaml\" and \".prd-toolkit/packs/leaflet/samples/routes/bad.yaml\""
+      - "after run_3, no line of `git status --porcelain --untracked-files=all` in <tmp>/north ends with one of those five paths, and one line is \"?? .prd-toolkit/prd\": the approval commits the lifted pack and its sources file and no other vendored file"
     effects: []
     errors: []
     leaks: none

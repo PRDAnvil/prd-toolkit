@@ -131,7 +131,7 @@ Tests: T-058.1 [integration], T-058.2 [integration], T-058.3 [integration], T-05
 Traces: UJ-05; cli:prd_pack; `prdlint/interface.py`
 
 ### FR-059 Check a written pack against both PRDs
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/packcheck.py:1 @4fd2e89
 Acceptance (EARS):
 - AC-059.1 If the pack manifest loader, the one `prd lint --list-packs` uses, refuses
@@ -171,13 +171,22 @@ Acceptance (EARS):
   in those orders, one object per finding in AC-059.5's order, `<path>` being the path before the
   finding's first `: ` as AC-059.1 to AC-059.4 write it and `<what>` the rest, and exit as AC-059.5
   gives; `findings` is the empty list when there is none.
+- AC-059.7 The check command shall, for each contract type of the manifest and for A and then B, when
+  AC-059.2's run of that type on that PRD exits 0, run the type's validator once more, split and
+  expanded as AC-059.2 gives, with the pack folder as the working directory and the same files
+  appended in the same order, each as an absolute path; and shall print, in the place AC-059.2's
+  finding for that type and PRD would take, the finding
+  `<prd dir>/prd.md: contract type <type>: validator fails from the pack folder: <line>`, `<line>` as
+  AC-059.2 gives it, when that run exits other than 0, and the finding
+  `<prd dir>/prd.md: contract type <type>: validator timed out after <N>s` when it runs past the time
+  AC-059.2 allows.
 Errors: -
 Edge cases: `<pack dir>` is the folder as the command line names it, so a finding's path is that folder joined to the file with `/` → AC-059.1 to AC-059.4; the loader also refuses a `target-kinds` entry that names no contract type of the pack, a `toolkit:` range that excludes this toolkit and a folder with no `pack.yaml` (`pack <name>: pack.yaml: is missing`), so each is AC-059.1's one finding → AC-059.1, AC-059.4; the check writes nothing, in the pack or in either PRD
-Tests: T-059.1 [integration], T-059.2 [integration], T-059.3 [integration], T-059.4 [integration], T-059.5 [integration], T-059.6 [integration], T-059.7 [integration]  (test-cases/pack-authoring.yaml)
+Tests: T-059.1 [integration], T-059.2 [integration], T-059.3 [integration], T-059.4 [integration], T-059.5 [integration], T-059.6 [integration], T-059.7 [integration], T-059.8 [integration]  (test-cases/pack-authoring.yaml)
 Traces: UJ-05; cli:prd_pack; `prdlint/packs.py` load_manifest
 
 ### FR-060 Lift a PRD onto the pack written from its own custom types
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/change.py:809 @4fd2e89
 Acceptance (EARS):
 - AC-060.1 When run as `prd_change.py pack <prd_dir> <name> <X.Y.Z> --lift` and no check of AC-060.2 to
@@ -244,9 +253,16 @@ Acceptance (EARS):
   by `, `, and the line's last word is the text `<source>` as written here, naming no source, write
   nothing and exit 1; and if `--source` is given without `--lift`, it shall print the
   stderr line `pack: --source belongs to --lift` and exit 2.
+- AC-060.9 When `prd_change.py approve` approves a PRD whose `prd.md` holds a `Pack:` line in section 1
+  while its committed `prd.md` holds none and no features file of the commit holds a `Target:` line
+  with a pack part (a lift, AC-060.1), the change command shall add to the approval commit, beside
+  what an approval commits, every file under `.prd-toolkit/packs/<name>/`, `<name>` that line's pack,
+  and the file `.prd-toolkit/pack-sources.json`, each where it exists and git does not ignore it, as
+  the approval of a version move does; so that after it `git status --porcelain --untracked-files=all`
+  lists none of them.
 Errors: -
 Edge cases: a lift is a patch, not a conversion: the pack declares what the PRD already declared, so no output changes → AC-060.7; the PRD's own Levels, Harness, standards and skills stay as they are → AC-060.1, AC-060.7; then `prd hooks install` vendors the pack and the owner approves with the dry-run record `no dry run (pack lifted)`, as for a version move; a lift is run from the plugin's scripts, as a version move is → AC-060.3; that the context pack names the pack and prints its harness defaults is a property of naming a pack, as for any area that names one, and what a build or a test produces does not change → AC-060.7; with exactly one pack of that name and version on the machine, no `--source` is needed → AC-060.3; a PRD that names the pack after its lift moves to a new version of it by the version move → AC-060.6
-Tests: T-060.1 [integration], T-060.2 [integration], T-060.3 [integration], T-060.4 [integration], T-060.5 [integration], T-060.6 [integration], T-060.7 [integration], T-060.8 [integration], T-060.9 [integration], T-060.10 [integration], T-060.11 [integration], T-060.12 [integration]  (test-cases/pack-authoring.yaml)
+Tests: T-060.1 [integration], T-060.2 [integration], T-060.3 [integration], T-060.4 [integration], T-060.5 [integration], T-060.6 [integration], T-060.7 [integration], T-060.8 [integration], T-060.9 [integration], T-060.10 [integration], T-060.11 [integration], T-060.12 [integration], T-060.13 [integration]  (test-cases/pack-authoring.yaml)
 Traces: UJ-05; cli:prd_change_pack_lift; cli:prd_change; `prdlint/change.py` pack
 
 ### FR-061 The launcher and a vendored copy answer the same

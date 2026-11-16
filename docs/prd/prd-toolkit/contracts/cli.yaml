@@ -258,6 +258,7 @@ prd_pack:
     finding: "stdout, check: <pack file or PRD file>: <what>, one per line, in the order of the checks (FR-059)"
     finding_manifest: "check: <pack dir>/pack.yaml: <the manifest loader's message> (FR-059)"
     finding_validator: "check: <prd dir>/prd.md: contract type <type>: glob matches no file | validator does not parse: <error> | validator not found: <program> | validator not executable: <program> | validator timed out after <N>s | validator failed: <line> (FR-059)"
+    finding_pack_folder: "check: <prd dir>/prd.md: contract type <type>: validator fails from the pack folder: <line> (FR-059)"
     finding_no_sample: "check: <pack dir>/samples/<type>: no bad.* sample; add a file the validator must refuse (FR-059)"
     finding_sample_accepted: "check: <pack dir>/samples/<type>/<name>: the validator accepts it; a sample must be refused (FR-059)"
     finding_level: "check: <pack dir>/pack.yaml: levels[<i>] (<level>): <word> is not on PATH (FR-059)"
