@@ -248,3 +248,16 @@ Evidence: Eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15), in t
 Diagnosis: Reproduced once outside the eval sandbox: in a folder whose `.venv/bin/python` is a link into a directory with no read permission (and a `pyvenv.cfg` beside it), `prd-toolkit/scripts/prd --version` prints uv's `error: Failed to inspect Python interpreter from virtual environment at .venv/bin/python` with the cause `failed to canonicalize path`, and exits 2 before any script runs. Root cause: the launcher runs `uv run --quiet --no-project --project "$here" --python ">=3.11" --with-requirements …`, and uv, looking for an interpreter, inspects a `.venv` in the working directory first and treats one it cannot read as a hard error instead of passing over it. In the eval sandbox the scaffold's `.venv` links to a uv-managed Python under the home directory, which the sandbox does not let the session read, so every `prd` command of 15 of the 34 cases run for 0.8.11 failed; one of them, run against the released 0.8.10 plugin, fails the same way, so 0.8.11 did not cause it. The same cases ran in the 0.8.8 baseline of 2026-11-14 with the same uv and Claude Code versions; what changed on the machine since is not found. Class against the PRD: no requirement, contract or test case covers the launcher (searched features/lint-cli.md, features/help.md, features/status-next.md, features/practices.md, nfr.md and testing.md for the launcher, uv and a repository `.venv`; adoption.md maps `prd-toolkit/scripts/prd` in `trace-and-hooks`, which is not started), so the PRD is silent on what the launcher does when the repository's own environment cannot be read. A fix would make the launcher ignore the working directory's environment (the uv option or variable to be confirmed against uv's documentation) and add a test with an unreadable `.venv`.
 Resolution: -
 Recurrence of: -
+
+### E-023 An error-class answer given in the inbox is committed in every worktree that holds the PRD
+Detected: 2026-11-15, user report from a repository that vendors 0.8.10
+Classification: unclassified
+Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
+  The repository has its main checkout on one branch and a worktree on another; both hold the PRD folder.
+  From the worktree: prd gates serve <prd> --gate approval:<branch>, and prd gates wait.
+  In that inbox the owner also answered eleven error-class gates, E-001 to E-011 ("Confirm the class (form)").
+  Each confirmation was committed twice: once on the worktree's branch and once on the main checkout's branch,
+  eleven `docs(prd): confirm E-nnn` commits on each side with identical errors.md content.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
