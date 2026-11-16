@@ -174,22 +174,25 @@ REGEX_SAMPLES = {
     ("pack-proposal-names-its-sources", "marks-shared-types-both"): (
         ["| `pages` | both | north/prd.md and south/prd.md section 7 row `pages` |",
          "- routes (both): contracts/routes.yaml", "both pages: contracts/pages.yaml; python3 contracts/check_pages.py",
-         "`routes` (both; section 7 row `routes`): recommended in"],
-        ["- `pages`: contracts/pages.yaml (north and south)\n\nBoth PRDs hold it.",
+         "`routes` (both; section 7 row `routes`): recommended in",
+         "| Contract type `pages`: `contracts/pages.yaml` | north and south `prd.md` §7 row `pages` (line 58) |"],
+        ["- `pages`: contracts/pages.yaml\n\nBoth PRDs hold it, north and south.",
          BASELINE_TYPES, "both PRDs declare `pages` and `routes`", "`pages` is in both repositories"]),
     ("pack-proposal-names-its-sources", "marks-forms-a"): (
         ["- `forms` (A, north/prd.md section 7 row `forms`): cannot go in", "| A | forms | contracts/forms.yaml |",
          'A forms: contracts/forms.yaml; python3 -c "import sys"', "- `forms`: A only, so it cannot go in",
-         "- **A** `forms`: north only"],
+         "- **A** `forms`: north only", "3. **`forms` (north only) and `feeds` (south only).**"],
         ["- `forms`: cannot go in", "- `forms` (south only)", BASELINE_TYPES, "- `forms` (north)",
          "- `forms`: cannot go in. A pack holds only the types both PRDs declare."]),
     ("pack-proposal-names-its-sources", "marks-feeds-b"): (
         ["- `feeds` (B, south/prd.md section 7 row `feeds`): cannot go in", "| B | feeds | contracts/feeds.yaml |",
-         'B feeds: contracts/feeds.yaml; python3 -c "import sys"', "- `feeds`: B only, so it cannot go in"],
+         'B feeds: contracts/feeds.yaml; python3 -c "import sys"', "- `feeds`: B only, so it cannot go in",
+         "3. **`forms` (north only) and `feeds` (south only).**"],
         ["- `feeds`: cannot go in", "- `feeds` (north only)", BASELINE_TYPES, "- `feeds` (south)",
          "- `feeds`: cannot go in. B holds it alone, and south's lift would refuse it."]),
     ("pack-proposal-names-its-sources", "names-prd-lines"): (
-        ["north/prd.md section 7 row `pages`", "south/docs/prd/south/testing.md Levels row `integration`"],
+        ["north/prd.md section 7 row `pages`", "south/docs/prd/south/testing.md Levels row `integration`",
+         "north and south `prd.md` §7 row `pages` (line 58)"],
         ["section 7 row `pages` of the first PRD", "the first PRD's prd.md, section 7"]),
     ("pack-proposal-names-its-sources", "shows-both-level-commands"): (
         ["A integration: python3 -m pytest tests/integration\nB integration: python3 -m pytest tests/site",
