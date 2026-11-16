@@ -2,7 +2,10 @@
 type: regex
 match: contains
 target: last_message
-pattern: '\bforms\b[^\n]{0,160}(?:\bA\b|\bnorth\b)|(?:\bA\b|\bnorth\b)[^\n]{0,160}\bforms\b'
+pattern: '\bA\b[\s|*`:]{1,6}forms\b|\bforms\b[`*]?[^\n]{0,60}?\bA\b(?!\s+(?!only\b|alone\b)[a-z])'
 ---
 
-`forms` is marked as A's alone: `A` or north, its PRD, on its line.
+`forms` is marked `A`, north's alone, as step 3 prints a mark: the comparison's `A forms: …` line, a table row
+`| A | forms |`, "`forms` (A, north/prd.md section 7 row `forms`)" or "`forms`: A only". Naming north is not the
+mark (the baseline's "`forms` (north) and `feeds` (south)" put both one-PRD types in the manifest; the PRD line is
+`names-prd-lines`' to grade), and the article "A" starting a sentence after `forms` is not counted.

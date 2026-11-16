@@ -159,6 +159,9 @@ def test_the_no_custom_state_stops_the_comparison(tmp_path):
 
 # --- the samples: (passing, failing) for each regex grader on its target text ---
 
+# the baseline's line (authoring-packs Red Flags): one-PRD types in the manifest, no marks
+BASELINE_TYPES = "**Contract types:** `pages` and `routes` (both sites), `forms` (north) and `feeds` (south)."
+
 REGEX_SAMPLES = {
     ("pack-stops-without-custom-types", "quotes-the-stop"): (
         [f"prd_pack: {NORTH} and {SOUTH} share no custom contract type; there is no pack to write",
@@ -170,14 +173,21 @@ REGEX_SAMPLES = {
         ["**The pack:** `leaflet`, `version: 0.1.0`", "contract-types:\n  - pages", "toolkit: '>=0.8.0,<0.9'"]),
     ("pack-proposal-names-its-sources", "marks-shared-types-both"): (
         ["| `pages` | both | north/prd.md and south/prd.md section 7 row `pages` |",
-         "- routes (both): contracts/routes.yaml"],
-        ["- `pages`: contracts/pages.yaml (north and south)\n\nBoth PRDs hold it."]),
+         "- routes (both): contracts/routes.yaml", "both pages: contracts/pages.yaml; python3 contracts/check_pages.py",
+         "`routes` (both; section 7 row `routes`): recommended in"],
+        ["- `pages`: contracts/pages.yaml (north and south)\n\nBoth PRDs hold it.",
+         BASELINE_TYPES, "both PRDs declare `pages` and `routes`", "`pages` is in both repositories"]),
     ("pack-proposal-names-its-sources", "marks-forms-a"): (
-        ["- `forms` (A, north/prd.md section 7 row `forms`): cannot go in", "| A | forms | contracts/forms.yaml |"],
-        ["- `forms`: cannot go in", "- `forms` (south only)"]),
+        ["- `forms` (A, north/prd.md section 7 row `forms`): cannot go in", "| A | forms | contracts/forms.yaml |",
+         'A forms: contracts/forms.yaml; python3 -c "import sys"', "- `forms`: A only, so it cannot go in",
+         "- **A** `forms`: north only"],
+        ["- `forms`: cannot go in", "- `forms` (south only)", BASELINE_TYPES, "- `forms` (north)",
+         "- `forms`: cannot go in. A pack holds only the types both PRDs declare."]),
     ("pack-proposal-names-its-sources", "marks-feeds-b"): (
-        ["- `feeds` (B, south/prd.md section 7 row `feeds`): cannot go in", "| B | feeds | contracts/feeds.yaml |"],
-        ["- `feeds`: cannot go in", "- `feeds` (north only)"]),
+        ["- `feeds` (B, south/prd.md section 7 row `feeds`): cannot go in", "| B | feeds | contracts/feeds.yaml |",
+         'B feeds: contracts/feeds.yaml; python3 -c "import sys"', "- `feeds`: B only, so it cannot go in"],
+        ["- `feeds`: cannot go in", "- `feeds` (north only)", BASELINE_TYPES, "- `feeds` (south)",
+         "- `feeds`: cannot go in. B holds it alone, and south's lift would refuse it."]),
     ("pack-proposal-names-its-sources", "names-prd-lines"): (
         ["north/prd.md section 7 row `pages`", "south/docs/prd/south/testing.md Levels row `integration`"],
         ["section 7 row `pages` of the first PRD", "the first PRD's prd.md, section 7"]),
@@ -188,6 +198,13 @@ REGEX_SAMPLES = {
     ("pack-proposal-names-its-sources", "shows-both-tools-texts"): (
         ["A: python3 on PATH; `tests/` sits at the repository root.\nB: python3 and a headless browser on PATH"],
         ["Tools on the runner: python3 on PATH (north); south's differs.", "south needs a headless browser"]),
+    ("pack-drafts-no-helpers", "out-items-left-out"): (
+        ["contract-types:\n  - {type: 'pages', files: 'contracts/pages.yaml'}\n  - {type: 'routes'}\n"
+         "levels:\n  - {level: 'unit', command: 'python3 -m pytest tests/unit'}\nharness:\n  'Database access': 'x'\n"],
+        ["  - {type: 'forms', files: 'contracts/forms.yaml', validator: 'x'}", "  - {type: feeds, files: x}",
+         "  - {level: 'integration', command: 'python3 -m pytest tests/integration'}",
+         "  - {level: integration, command: 'python3 -m pytest tests/site'}",
+         "  'Tools on the runner': 'python3 on PATH; `tests/` sits at the repository root.'"]),
     ("pack-drafts-no-helpers", "validator-named-through-pack"): (
         ["  - {type: 'pages', files: 'contracts/pages.yaml', validator: 'python3 ${PACK}/check_pages.py'}"],
         ["  - {type: 'pages', files: 'contracts/pages.yaml', validator: 'python3 contracts/check_pages.py'}"]),
@@ -206,6 +223,18 @@ def test_regex_grader_samples(key):
         assert regex_passes(*key, s), s
     for s in bad:
         assert not regex_passes(*key, s), s
+
+
+def test_the_drafts_prompts_proposal_passes_the_proposal_graders():
+    # the proposal quoted in pack-drafts-no-helpers is written in step 3's form: each of case 2's reply graders
+    # accepts it, and the baseline's line fails each of them
+    text = (EVALS / "pack-drafts-no-helpers/prompt.md").read_text(encoding="utf-8")
+    quote = "\n".join(line[2:] for line in text.splitlines() if line.startswith("> "))
+    case = "pack-proposal-names-its-sources"
+    for n in names(case):
+        if grader(case, n)["type"] == "regex":
+            assert regex_passes(case, n, quote), n
+            assert not regex_passes(case, n, BASELINE_TYPES), n
 
 
 # --- the samples for each tool_used grader: inputs it counts, and inputs it does not ---
@@ -267,10 +296,13 @@ TOOL_SAMPLES = {
          {"command": "\"/p q/scripts/prd\" error new docs/prd/north --title 'x' --source 'y' "
                      "--url \"https://north.example.com/nothing\""},
          {"command": "uv run --script /p/scripts/prd_error.py new docs/prd/north --title x --source y "
-                     "--url https://north.example.com/nothing"}],
+                     "--url https://north.example.com/nothing"},
+         {"command": f"{NEW} \\\n--url 'https://north.example.com/nothing'; echo \"prd-error-exit=$?\""},
+         {"command": f"{NEW} --url https://north.example.com/nothing\necho done"}],
         [{"command": f"{NEW}; echo \"prd-error-exit=$?\""},
          {"command": f"{NEW} --url 'https://north.example.com/nothing/'; echo \"prd-error-exit=$?\""},
          {"command": f"{NEW} --url 'https://north.example.com/'; echo \"prd-error-exit=$?\""},
+         {"command": f"{NEW} --url 'https://north.example.com/nothingelse'; echo \"prd-error-exit=$?\""},
          {"command": "/p/scripts/prd error url docs/prd/north E-001 'https://north.example.com/nothing'"}]),
     ("error-records-the-url", "no-ledger-edit"): ([{"file_path": "/w/docs/prd/north/errors.md", "old_string": "a",
                                                     "new_string": "b"}],
@@ -359,7 +391,8 @@ def test_the_decided_pack_passes_the_graders_and_the_check(tmp_path):
     d = write_the_pack(ws)
     for n in present:
         assert file_passes(case, n, ws), n
-    assert regex_passes(case, "validator-named-through-pack", (d / "pack.yaml").read_text(encoding="utf-8"))
+    for n in ("validator-named-through-pack", "out-items-left-out"):
+        assert regex_passes(case, n, (d / "pack.yaml").read_text(encoding="utf-8")), n
     for p in d.rglob("*"):  # a Write of each of its files is one the only-pack-files grader allows
         if p.is_file():
             assert not counted(case, "only-pack-files-written", {"file_path": str(p), "content": "x"}), p

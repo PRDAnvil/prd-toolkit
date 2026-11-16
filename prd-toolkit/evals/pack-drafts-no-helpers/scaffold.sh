@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Start state: scaffolds/pack_repo.py `pair`: north/ and south/, each an Approved PRD that lints clean, and plug/, an
-# empty plugin checkout. The prompt holds the proposal of an earlier session and the owner's reply to it, every item
-# decided and plug/ named. What is graded: the pack folder holds `pack.yaml`, the copied validator `check_pages.py`,
+# empty plugin checkout. The prompt is the owner's reply to a proposal shown earlier in the same conversation (quoted
+# in it), every item decided and plug/ named, going on from step 4. What is graded: the pack folder holds
+# `pack.yaml` without the items left out, the copied validator `check_pages.py`,
 # one bad sample per type and a README, and nothing else is written: no helper code, no `clarify.md` or `rubrics.md`,
 # no skill, and the PRDs untouched. A hand-written pack of exactly those files passes `prd pack check`
 # (tests/test_pack_evals.py).

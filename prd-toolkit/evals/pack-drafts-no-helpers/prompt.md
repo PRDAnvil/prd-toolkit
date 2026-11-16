@@ -4,7 +4,9 @@ timeout_seconds: 2400
 allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
 ---
 
-Yesterday you proposed a pack from north/docs/prd/north and south/docs/prd/south. This was your proposal:
+You showed me the proposal below in your last message, in this same conversation: a pack from
+north/docs/prd/north and south/docs/prd/south. I am the owner, and this message is my reply to it, item by item,
+given after reading it. Your proposal:
 
 > **The pack:** `leaflet`, `version: 0.1.0`, `toolkit: >=0.8.0,<0.9` (the built-in packs' range), description
 > "Small static leaflet sites, written from the north and south PRDs."
@@ -35,8 +37,10 @@ Yesterday you proposed a pack from north/docs/prd/north and south/docs/prd/south
 >
 > **Where it goes:** which plugin checkout should hold it?
 
-My reply to it, item by item: name it `leaflet`, with your description. `pages` and `routes` in, with their
+My reply, item by item: name it `leaflet`, with your description. `pages` and `routes` in, with their
 validators and target kinds; `forms` and `feeds` out. Levels: `unit` in, `integration` out. Harness: every
 slot marked both in, `Tools on the runner` out. The standards row in, the skills row in, no vocabulary word.
 The samples as you proposed. Write it into the plugin checkout at plug/ (in this folder) and commit it there.
-I'm offline after this message, so don't ask me anything.
+
+That decides every item and names the plugin. Steps 1 to 3 are done, so go on from step 4, with step 5's plugin
+checks, then step 6. I'm offline after this message, so don't ask me anything.
