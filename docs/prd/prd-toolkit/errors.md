@@ -292,6 +292,7 @@ Recurrence of: -
 ### E-026 Approving a lift leaves the vendored pack uncommitted
 Detected: 2026-11-16, review of the 0.8.12 skill text
 Classification: spec gap
+Confirmed: 2026-11-16, "spec gap is right for all three"
 Touches: FR-060
 Evidence: Review of the 0.8.12 skill text, 2026-11-16, in a scratch repository whose vendored copy was committed before the lift:
   prd change pack docs/prd/south leaflet 0.1.0 --lift, then prd hooks install docs/prd/south, the verdict, then prd change approve.
