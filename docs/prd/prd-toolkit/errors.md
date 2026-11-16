@@ -291,7 +291,7 @@ Recurrence of: -
 
 ### E-026 Approving a lift leaves the vendored pack uncommitted
 Detected: 2026-11-16, review of the 0.8.12 skill text
-Classification: unclassified
+Classification: spec gap
 Touches: FR-060
 Evidence: Review of the 0.8.12 skill text, 2026-11-16, in a scratch repository whose vendored copy was committed before the lift:
   prd change pack docs/prd/south leaflet 0.1.0 --lift, then prd hooks install docs/prd/south, the verdict, then prd change approve.
@@ -302,7 +302,7 @@ Evidence: Review of the 0.8.12 skill text, 2026-11-16, in a scratch repository w
   A clone of the approval commit, with no plugin installed, fails lint with exit 1:
   pack leaflet 0.1.0 ... not found, and two contracts-valid findings.
   After a version move (prd change pack without --lift) the approval commit holds the re-vendored pack and pack-sources.json.
-Diagnosis: -
+Diagnosis: Reproduced by the reviewer in a scratch repository. `_vendored_packs` in `prdlint/change_approve.py` stages `.prd-toolkit/packs/<name>` and `pack-sources.json` only for the packs `change.pack_moves` returns, which are lines whose pack version moved with the name and source unchanged; a lift adds a `Pack:` line the committed PRD lacks, so it returns none and the approval commit leaves out the vendored pack. No AC of FR-060 says what the approval of a lift commits (the area `change` is not adopted); only its Edge cases line says: "then `prd hooks install` vendors the pack and the owner approves with the dry-run record `no dry run (pack lifted)`, as for a version move".
 Resolution: -
 Recurrence of: -
 
