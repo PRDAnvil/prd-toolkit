@@ -2,8 +2,7 @@
 
 > **Date:** 2026-11-15
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Draft, for the owner's review. The design of sections 3 to 9 was approved in the
-> brainstorm (owner, 2026-11-15).
+> **Status:** Approved by the owner 2026-11-15. Plan: `../plans/2026-11-15-prd-toolkit-0.8.12.md`.
 > **Extends:** `2026-11-03-prd-toolkit-0.8-umbrella.md` (its 0.8.12 row), the backlog
 > `2026-11-08-prd-toolkit-0.8.6-backlog.md` (item 1, pack authoring) and the priority plan
 > `../plans/2026-11-14-prd-toolkit-engine-ports.md`.
