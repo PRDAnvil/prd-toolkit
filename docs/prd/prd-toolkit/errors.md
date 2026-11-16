@@ -305,3 +305,16 @@ Evidence: Review of the 0.8.12 skill text, 2026-11-16, in a scratch repository w
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-027 A validator that crashes from the pack folder counts as refusing its sample
+Detected: 2026-11-16, review of the 0.8.12 skill text
+Classification: unclassified
+Touches: FR-059
+Evidence: Review of the 0.8.12 skill text, 2026-11-16, on the fixture pack-authoring/sites:
+  A contract type's validator that reads a file by a path relative to the PRD folder is carried into the pack.
+  samples/<type>/bad.yaml is an unbroken copy of the PRD's own file, which the validator accepts when run from the PRD folder.
+  prd pack check <pack dir> <prd A> <prd B> runs the validator on the sample from the pack folder, where it stops with a traceback (the file it reads is not there) and exits 1.
+  The check prints no finding for the sample and exits 0: the crash counts as the sample being refused.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
