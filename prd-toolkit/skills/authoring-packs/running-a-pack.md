@@ -3,7 +3,8 @@
 **Steps:** 1 Preconditions, 2 Compare, 3 The proposal, 4 The owner decides, 5 Where it goes,
 6 Write, check, commit, 7 Report. Run every step, in order. The turn ends early only to stop (a
 failed precondition, step 5's plugin checks) or to wait for the owner: their reply to step 3's
-proposal, an item they left undecided, or a step 6 finding only a PRD can fix.
+proposal, an item they left undecided, the plugin step 5 asks them to name, or a step 6 finding
+only a PRD can fix.
 
 For the caller: `/prd-toolkit:prd-pack`, or any request to write a pack from two PRDs, to share two
 PRDs' contract types, validators, levels or harness between repositories, or to put a pack into a

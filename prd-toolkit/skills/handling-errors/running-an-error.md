@@ -116,8 +116,8 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    The commit holds `errors.md` alone. A failed deploy or a stopped build has already recorded its
    entry and committed it: start at step 2 with that entry.
 
-   **A URL given later.** At any step, an address for an entry that has none (or a new one) is set,
-   or replaced, its own call:
+   **A URL given later.** At any step, except with a vendored copy that predates 0.8.12 (above), an
+   address for an entry that has none (or a new one) is set, or replaced, its own call:
 
    ```bash
    <scripts>/prd error url docs/prd/<slug> <E-nnn> '<address>'; echo "prd-error-exit=$?"
