@@ -18,7 +18,8 @@ address of the url part of its features file's `Target:` line (FR-065); an area 
 after it, and holds no white space.
 
 ### UJ-06 An owner reading a card sees which area it is for and can open the thing it is about
-Status: approved
+Status: verified
+Source: prd-toolkit/templates/gates/inbox.html:283 @430c38e
 Flow: 1. record an error with `prd error new … --url <address>`, or set one later with `prd error url`
       → 2. give an area its URL on its `Target:` line: `Target: url https://example.com/orders`
       → 3. open the decision inbox: each card says `Area: <names>` or `Area: none`, and links to its URL
@@ -26,7 +27,8 @@ Flow: 1. record an error with `prd error new … --url <address>`, or set one la
 Traces: FR-062, FR-063, FR-064, FR-065, FR-066, FR-067
 
 ### FR-062 A gate's areas
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/cardcontext.py:28 @430c38e
 Acceptance (EARS):
 - AC-062.1 The gates command shall give an `error-class:<E-id>` gate as its areas, first, the areas of
   the blocks its entry's `Touches:` line names that the PRD defines, in the PRD's area order; then the
@@ -48,7 +50,8 @@ Tests: T-062.1 [integration], T-062.2 [integration], T-062.3 [integration], T-06
 Traces: UJ-06; cli:prd_gates; `prdlint/context.py` _entry_reqs
 
 ### FR-063 The URL: line of an error entry
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/model.py:101 @430c38e
 Acceptance (EARS):
 - AC-063.1 Where an `errors.md` entry holds a line that starts at column 0 with `URL:`, the PRD loader
   shall take the text after `URL:`, its surrounding white space removed, as the entry's URL, the first
@@ -65,7 +68,8 @@ Tests: T-063.1 [integration], T-063.2 [integration], T-063.3 [integration]  (tes
 Traces: UJ-06; cli:prd_lint; `prdlint/model.py` _errors_ledger
 
 ### FR-064 Write an entry's URL with prd error
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errors.py:97 @430c38e
 Acceptance (EARS):
 - AC-064.1 When `prd_error.py new <prd_dir> --title <title> --source <source>` is run with
   `--url <address>` and a well-formed address, the error command shall write the new entry as it writes
@@ -93,7 +97,8 @@ Tests: T-064.1 [integration], T-064.2 [integration], T-064.3 [integration], T-06
 Traces: UJ-06; cli:prd_error; `prdlint/errors.py` new
 
 ### FR-065 The url part of a Target: line
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/model.py:262 @430c38e
 Acceptance (EARS):
 - AC-065.1 Where a features file's `Target:` line holds one, two or three parts separated by commas, in
   the order `pack <name> <X.Y.Z> (<source>)`, `output language <code>` and `url <address>`, each at most
@@ -118,7 +123,8 @@ Tests: T-065.1 [integration], T-065.2 [integration], T-065.3 [integration]  (tes
 Traces: UJ-06; cli:prd_lint; `prdlint/model.py` _targets
 
 ### FR-066 A gate's URL
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/cardcontext.py:48 @430c38e
 Acceptance (EARS):
 - AC-066.1 The gates command shall give an `error-class:<E-id>` gate as its URL the entry's URL when
   the entry has one that is a well-formed address, else the URL of the first of the gate's areas
@@ -135,7 +141,8 @@ Tests: T-066.1 [integration], T-066.2 [integration], T-066.3 [integration], T-06
 Traces: UJ-06; cli:prd_gates
 
 ### FR-067 Where the area and the URL show
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/gates.py:48 @430c38e
 Acceptance (EARS):
 - AC-067.1 When `prd_gates.py list <prd_dir>` is run without `--json`, the gates command shall print
   what it printed before this area, byte for byte: one line `<id> <title>` per gate, in the same order,

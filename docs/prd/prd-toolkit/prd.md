@@ -199,18 +199,18 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-055 | The Practices part of the implement context pack | verified | features/practices.md |  |
 | FR-056 | A pack's sources | verified | features/practices.md |  |
 | UJ-05 | An owner with two adopted PRDs of one kind gets a pack from what they share | approved | features/pack-authoring.md |  |
-| UJ-06 | An owner reading a card sees which area it is for and can open the thing it is about | approved | features/card-context.md |  |
+| UJ-06 | An owner reading a card sees which area it is for and can open the thing it is about | verified | features/card-context.md |  |
 | FR-057 | Compare two PRDs, as text | approved | features/pack-authoring.md |  |
 | FR-058 | The comparison as JSON, and its refusals | approved | features/pack-authoring.md |  |
 | FR-059 | Check a written pack against both PRDs | approved | features/pack-authoring.md |  |
 | FR-060 | Lift a PRD onto the pack written from its own custom types | approved | features/pack-authoring.md |  |
 | FR-061 | The launcher and a vendored copy answer the same | approved | features/pack-authoring.md |  |
-| FR-062 | A gate's areas | approved | features/card-context.md |  |
-| FR-063 | The URL: line of an error entry | approved | features/card-context.md |  |
-| FR-064 | Write an entry's URL with prd error | approved | features/card-context.md |  |
-| FR-065 | The url part of a Target: line | approved | features/card-context.md |  |
-| FR-066 | A gate's URL | approved | features/card-context.md |  |
-| FR-067 | Where the area and the URL show | approved | features/card-context.md |  |
+| FR-062 | A gate's areas | verified | features/card-context.md |  |
+| FR-063 | The URL: line of an error entry | verified | features/card-context.md |  |
+| FR-064 | Write an entry's URL with prd error | verified | features/card-context.md |  |
+| FR-065 | The url part of a Target: line | verified | features/card-context.md |  |
+| FR-066 | A gate's URL | verified | features/card-context.md |  |
+| FR-067 | Where the area and the URL show | verified | features/card-context.md |  |
 | FR-068 | A standards row is never run on the vendored copy | approved | features/standards-run.md |  |
 
 ## 12. Assumptions index
