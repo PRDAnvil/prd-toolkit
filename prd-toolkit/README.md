@@ -211,21 +211,22 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
   Nothing is installed and no skill file is written before that approval; a plugin is installed only from a
   marketplace already added on the machine, at the scope the owner names; and a skill no plugin provides is
   written into the repository's `.claude/skills/`, from the approved sources, citing them.
-- The lint rule `practices` checks the file: the IDs, the Decisions, the dates, that a practice cites a source of
-  the table (an approved one once the PRD is Approved), that a `code` practice has a glob, and that an `S-nn`
-  a section 5 row names exists.
+- The lint rule `practices` checks the file: the IDs, the Decisions, the dates, that a `code` practice has a
+  glob, and that a practice, and each `S-nn` a section 5 row names, cites a source of the table that is
+  `approved` (or `proposed` while the PRD is not Approved; a `declined` or missing one is always a finding).
 - `prd practices` lists the sources, then the practices, one line each. `--paths <path> …` prints only the
   `code` practices whose glob matches one of the paths, matched as a section 5 row's glob is. `--json` prints
   `{"interface": 1, "kind": "practices", "sources": [{"id", "title", "location", "covers", "read", "decision", "line"}], "practices": [{"id", "source", "glob", "applies_to", "practice", "line"}]}`;
-  `--interface` prints `1`. Exit 0 printed, 2 usage or no PRD.
+  `--interface` prints `1`. Exit 0 printed, 2 usage or tool error (no PRD, an unsupported `--json=N`).
 - The builder is given the practices: on a PRD that holds `practices.md`, the implement context pack has a part
   `## Practices` with the `code` practices whose glob matches the area's Boundary, and the builder's report
   says of each `P-nn: followed`, `P-nn: not applicable (<why>)` or `P-nn: not followed (<why>)`. The last is a
   question for the caller and stops the build, as a required skill that cannot be found does. The `prd`
-  practices are answered with the quality checklist when a PRD is written, adopted or changed. No gate fails on
-  a practice: trace, the commit hook and CI do not read them.
+  practices are answered with the quality checklist when a PRD is written, adopted or changed. No gate checks
+  that code follows a practice: trace and the commit hook do not read them, and CI's lint checks only the form
+  of the rows.
 - `prd change ids next docs/prd/<slug> S` and `… P` give the next source and practice ID. A pack may list
-  `sources` in its `pack.yaml` (`{title, location, covers}` items), which the command proposes first.
+  `sources` in its `pack.yaml` (`{title, location, covers}` items), which `/prd-toolkit:prd-practices` proposes first.
 - A copy vendored before 0.8.11 has no `practices` command and no `practices` rule. Run `install` from the 0.8.11
   plugin to get them (see the changelog).
 
