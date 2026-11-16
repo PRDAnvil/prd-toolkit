@@ -58,7 +58,7 @@ Acceptance (EARS):
 - AC-057.6 The pack command shall print in the Standards part one line per section 5 row whose fifth
   cell, the Decision, is `enforced`, `<mark> <glob>: <linter>`, where `<glob>`, the item's key, is the
   first cell and `<linter>` the text of the second cell's first backticked span, its white space
-  collapsed; and in the Skills part one line per section 6 row whose third cell, the Decision, is
+  collapsed, or the second cell when it holds no backticked span; and in the Skills part one line per section 6 row whose third cell, the Decision, is
   `required` or `recommended`, `<mark> <activity>: <skill>`, where `<activity>`, the item's key, and
   `<skill>` are the first and second cells; each cell read as AC-057.7 reads a cell.
 - AC-057.7 The pack command shall read a cell by removing every backtick from it and collapsing each run
@@ -80,7 +80,7 @@ Acceptance (EARS):
   lines are ordered by `<a>` plus `<b>`, highest first, then by the word, in code-point order.
 Errors: -
 Edge cases: the comparison reads both folders as the lint command loads them and does not lint them, so a PRD lint reports is still compared → AC-057.1; nothing is matched by resemblance: two values are the same only when they are equal as AC-057.7 reads them → AC-057.7; a difference is never merged: both sides are printed, A's line first → AC-057.7; the built-in packs' vocabularies are empty today, so only the length and the language-table words leave a word out → AC-057.8
-Tests: T-057.1 [integration], T-057.2 [integration], T-057.3 [integration], T-057.4 [integration], T-057.5 [integration], T-057.6 [integration], T-057.7 [integration], T-057.8 [integration]  (test-cases/pack-authoring.yaml)
+Tests: T-057.1 [integration], T-057.2 [integration], T-057.3 [integration], T-057.4 [integration], T-057.5 [integration], T-057.6 [integration], T-057.7 [integration], T-057.8 [integration], T-057.9 [integration]  (test-cases/pack-authoring.yaml)
 Traces: UJ-05; cli:prd_pack
 
 ### FR-058 The comparison as JSON, and its refusals
@@ -177,7 +177,8 @@ Status: approved
 Acceptance (EARS):
 - AC-060.1 When run as `prd_change.py pack <prd_dir> <name> <X.Y.Z> --lift` and no check of AC-060.2 to
   AC-060.5 refuses it, the change command shall insert the line `- Pack: <name> <X.Y.Z> (<source>)`
-  into section 1 of `prd.md`, directly after the last line of section 1 that starts with `- `; replace
+  into section 1 of `prd.md`, directly after the last line of section 1 that starts with `- `, or, when
+  section 1 holds no such line, directly after section 1's heading line; replace
   the Validator cell, the third cell, of each section 7 row that is a custom row (AC-057.2) of a contract
   type the pack declares, so that the text between that cell's two `|` becomes ` pack `, the rest of the
   row as it was; record the change as a patch as `prd change record --bump patch` records one, the
@@ -220,7 +221,8 @@ Acceptance (EARS):
   this area, with the same output, record and refusals, among them
   `refused: no Pack: or Target: pack line names <name>` for a PRD that names no such pack.
 - AC-060.7 When a PRD that AC-060.1 lifted is linted while its pack resolves, the lint command shall
-  print the findings it printed for the PRD before the lift and exit with the same code; the PRD
+  print the findings it printed for the PRD before the lift, each finding at a line of `prd.md` below
+  the inserted `Pack:` line with its line number one higher, and exit with the same code; the PRD
   folder shall differ from its committed state only in the frontmatter lines `version:` and `updated:`,
   the `Pack:` line, the Validator cells AC-060.1 replaces and the section 14 row it adds, so that its
   `testing.md` (Levels and Harness), its section 5 and 6 rows and its test cases are unchanged; and the
@@ -234,11 +236,12 @@ Acceptance (EARS):
   the change command shall print the one stderr line
   `refused: pack <name> <X.Y.Z> comes from more than one source: <sources>; name one with --source <source>`,
   where `<sources>` is each such pack's source, in the order `prd lint --list-packs` lists them, joined
-  by `, `, write nothing and exit 1; and if `--source` is given without `--lift`, it shall print the
+  by `, `, and the line's last word is the text `<source>` as written here, naming no source, write
+  nothing and exit 1; and if `--source` is given without `--lift`, it shall print the
   stderr line `pack: --source belongs to --lift` and exit 2.
 Errors: -
 Edge cases: a lift is a patch, not a conversion: the pack declares what the PRD already declared, so no output changes → AC-060.7; the PRD's own Levels, Harness, standards and skills stay as they are → AC-060.1, AC-060.7; then `prd hooks install` vendors the pack and the owner approves with the dry-run record `no dry run (pack lifted)`, as for a version move; a lift is run from the plugin's scripts, as a version move is → AC-060.3; that the context pack names the pack and prints its harness defaults is a property of naming a pack, as for any area that names one, and what a build or a test produces does not change → AC-060.7; with exactly one pack of that name and version on the machine, no `--source` is needed → AC-060.3; a PRD that names the pack after its lift moves to a new version of it by the version move → AC-060.6
-Tests: T-060.1 [integration], T-060.2 [integration], T-060.3 [integration], T-060.4 [integration], T-060.5 [integration], T-060.6 [integration], T-060.7 [integration], T-060.8 [integration], T-060.9 [integration], T-060.10 [integration]  (test-cases/pack-authoring.yaml)
+Tests: T-060.1 [integration], T-060.2 [integration], T-060.3 [integration], T-060.4 [integration], T-060.5 [integration], T-060.6 [integration], T-060.7 [integration], T-060.8 [integration], T-060.9 [integration], T-060.10 [integration], T-060.11 [integration], T-060.12 [integration]  (test-cases/pack-authoring.yaml)
 Traces: UJ-05; cli:prd_change_pack_lift; cli:prd_change; `prdlint/change.py` pack
 
 ### FR-061 The launcher and a vendored copy answer the same

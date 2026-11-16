@@ -278,6 +278,35 @@ T-057.6:
     errors: []
     leaks: none
 
+T-057.9:
+  ac: AC-057.6
+  level: integration
+  target: "cli:prd_pack"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KL
+    cwd: "<tmp>"
+    command: python PACK compare north/docs/prd/north south/docs/prd/south
+    note: "KL takes the backticks off south's Linter cell: the linter is then the cell itself, which equals north's backticked span"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Standards:
+        - "## Standards"
+        - "both site/**/*.html: python3 tools/check_html.py"
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
 T-057.7:
   ac: AC-057.7
   level: integration
@@ -1222,6 +1251,75 @@ T-061.2:
       relations:
       - "run_1's stdout equals run_2's, byte for byte"
       - "run_3's stdout equals run_4's, byte for byte"
+    effects: []
+    errors: []
+    leaks: none
+
+T-060.11:
+  ac: AC-060.1
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KB
+    cwd: "<tmp>/north"
+    command: python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    note: "KB leaves section 1 with no line that starts with \"- \" and commits; <today> as testing.md (Harness, Assertions) defines it"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines:
+      - 1.0.1
+      - "| 1.0.1 | <today> | pack leaflet 0.1.0 lifted; pending | - |"
+    effects:
+    - "line 12 of docs/prd/north/prd.md is the inserted line \"- Pack: leaflet 0.1.0 (leaflet-kit@example)\", directly after line 11, \"## 1. Metadata & stack\", section 1's heading line; lines 13 and 14 are empty and line 15 is \"## 2. Summary & goals\""
+    - "`git status --porcelain` in <tmp>/north prints exactly the one line \" M docs/prd/north/prd.md\""
+    errors: []
+    leaks: none
+
+T-060.12:
+  ac: AC-060.7
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KA
+    cwd: "<tmp>/north"
+    runs:
+    - python LINT docs/prd/north
+    - python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    - python LINT docs/prd/north
+    note: "KA gives north one lint finding at line 40 of prd.md, below section 1, and commits; the lift inserts the Pack: line as line 22"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stderr: ""
+        stdout_exact_lines:
+        - "docs/prd/north/prd.md:40: assumption-indexed: A-99 has no row in section 12"
+      run_2:
+        exit: 0
+        stderr: ""
+      run_3:
+        exit: 1
+        stderr: ""
+        stdout_exact_lines:
+        - "docs/prd/north/prd.md:41: assumption-indexed: A-99 has no row in section 12"
     effects: []
     errors: []
     leaks: none

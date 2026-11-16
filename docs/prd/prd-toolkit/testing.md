@@ -133,6 +133,7 @@ The pack-authoring cases (`test-cases/pack-authoring.yaml`) build their state wi
 | KS | in `south/prd.md`, insert the line `| a new page | security-review | recommended |` directly after the line `| a change to a page | code-review | recommended |` |
 | KV | in `south/prd.md`, in the line that starts with `| pages |`, the text `chr(58)` becomes `chr(61)`: the two PRDs' pages validators differ |
 | KG | in `south/prd.md`, in the line that starts with `| routes |`, the text `` `contracts/routes.yaml` `` becomes `` `contracts/routes/*.yaml` ``: the two PRDs' routes globs differ |
+| KL | in `south/prd.md`, in the line that starts with ``| `site/**/*.html` |``, the text `` `python3 tools/check_html.py` `` becomes `python3 tools/check_html.py`: south's Linter cell holds no backticked span |
 | KN | in `south/prd.md`, delete the lines that start with `| pages |` and `| routes |` |
 | KZ | KN, then in `south/prd.md` delete the line that starts with `| feeds |`: south holds no custom contract type |
 | KP1 | delete the pack's `samples/routes/bad.yaml` |
@@ -142,6 +143,8 @@ The pack-authoring cases (`test-cases/pack-authoring.yaml`) build their state wi
 | KP5 | write `north/contracts/routes.yaml` with the one line `old-home: /`, which the routes validator refuses |
 | KP6 | delete `south/contracts/pages.yaml` |
 | KR1 | in `north/prd.md`, insert the line `- Pack: document 1.0.0 (prd-toolkit)` directly after line 21, `` - Not applicable: `contracts/fixtures/` — no fixture data ``, so that it becomes line 22; nothing is committed |
+| KB | in `north/prd.md`, delete lines 13 to 21, the nine lines of section 1 that start with `- `, so that line 11, `## 1. Metadata & stack`, is followed by two empty lines and then `## 2. Summary & goals`; then KC |
+| KA | in `north/prd.md`, insert the line `[ASSUMPTION A-99: a guess]` directly after line 39, `The site is a folder of static files.`, so that it becomes line 40; then KC |
 | KT1 | in `north/prd.md`, the line that starts with `| routes |` becomes `` | routes | `contracts/routes.yaml` | built-in | `` |
 | KT2 | in `north/prd.md`, in the line that starts with `| routes |`, the text `` `contracts/routes.yaml` `` becomes `` `contracts/routes*.yaml` `` |
 | KD | append the line `A note.` to `north/errors.md`; nothing is committed |
