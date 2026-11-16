@@ -61,7 +61,7 @@ new Python dependency in any phase.
 | 2 | **0.8.8** | **Invocation**, released: merged to `main`: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; prototype | done | 0.8.7 |
 | 3 | **0.8.9** | **Help catalogue**, delivered: a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | done | 0.8.8 |
 | 4 | **0.8.10** | **Next part in the status report**, delivered: an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | done | 0.8.8 |
-| 5 | **0.8.11** | **Best-practice sources**, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | large | 0.8.0 |
+| 5 | **0.8.11** | **Best-practice sources**, delivered, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | done | 0.8.0 |
 | 6 | **0.8.12** | **Pack authoring** from an example repository: a pack proposed and written from two repositories that declare the same custom contract types | backlog item 1 | large | best practices |
 | 7 | **0.8.13** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
 | 8 | after 0.8.13 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | prototype; backlog item 5 | small | none |

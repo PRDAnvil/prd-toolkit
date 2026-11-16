@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. Version 0.8.10.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. Version 0.8.11.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -26,7 +26,8 @@ for 0.8.6, the move to PRDAnvil, the plan [docs/superpowers/plans/2026-11-10-prd
 for 0.8.7, the fixes, the plan [docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md](../docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md),
 for 0.8.8 [docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md](../docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md),
 for 0.8.9 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md),
-and for 0.8.10 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md).
+for 0.8.10 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md),
+and for 0.8.11 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md).
 
 ## Install
 
@@ -56,6 +57,7 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 | `/prd-toolkit:prd-error [<E-nnn> \| <run id> \| <text>]` | `prd-toolkit:handling-errors` | Record an error in `errors.md` with `prd_error.py`, diagnose it, propose its class and wait for the user's confirmation; the fix starts from a failing test and goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build --fixes E-nnn`, and the close is checked with `prd_error.py check` |
 | `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
 | `/prd-toolkit:prd-change-set [<CS-nnn> \| <text>]` | `prd-toolkit:coordinating-prds` | Coordinate one change across linked PRDs in several repositories: one record, one approval for every member's PRD diff, then a build (and where a link needs it, a deploy) per repository in dependency order (see Change sets) |
+| `/prd-toolkit:prd-practices [<PRD folder>] [<what to source>]` | `prd-toolkit:sourcing-practices` | Propose best-practice sources, the practices taken from them, standards rows and the skills the PRD needs, each read and quoted, as one PRD change the owner approves; install or write an approved skill only after it (see Practices) |
 
 ## The prd command
 
@@ -185,6 +187,47 @@ uv run --script prd-toolkit/scripts/prd_lint.py docs/prd/<slug> --sample-tids 3
   itself fetches nothing and writes nothing.
 - A copy vendored before 0.8.10 prints the report without the Next part. Run `install` from the 0.8.10
   plugin to get it (see the changelog).
+
+## Practices
+
+```
+.prd-toolkit/prd practices docs/prd/<slug>                          # the sources and the practices
+.prd-toolkit/prd practices docs/prd/<slug> --paths src/app.py       # the practices that apply to these files
+```
+
+- A PRD folder may hold `practices.md`: where a platform's or a language's good practice comes from, and what
+  was taken from it. A PRD without the file works as before.
+  - **Sources**, each `S-nn`: a title, a location (a URL or a path in the repository), what it covers, the date
+    it was read, and a Decision: `approved`, `declined` or `proposed`. A `proposed` source blocks the PRD's
+    approval; a `declined` one stays, so it is not proposed again.
+  - **Practices**, each `P-nn`: the source it comes from, the files it applies to (a glob, or `-` for a practice
+    about the PRD itself), `code` or `prd`, and one sentence a reader can answer yes or no. A practice is what no
+    linter checks; a rule a linter checks is a section 5 row, which names its source's `S-nn` in "Rules live in".
+- `/prd-toolkit:prd-practices` fills it. It works out what to source from the PRD (packs, output languages, the
+  stack, linter configurations), reads each source before proposing it (a pack's own `sources`, ones the owner
+  names, and a search when the session has a web tool), and shows one proposal: the sources, the practices each
+  with the passage it came from, the standards rows, the skills, and any instruction it found inside a source
+  and did not follow. The owner decides each row, and the whole is one PRD change with its own approval.
+  Nothing is installed and no skill file is written before that approval; a plugin is installed only from a
+  marketplace already added on the machine, at the scope the owner names; and a skill no plugin provides is
+  written into the repository's `.claude/skills/`, from the approved sources, citing them.
+- The lint rule `practices` checks the file: the IDs, the Decisions, the dates, that a practice cites a source of
+  the table (an approved one once the PRD is Approved), that a `code` practice has a glob, and that an `S-nn`
+  a section 5 row names exists.
+- `prd practices` lists the sources, then the practices, one line each. `--paths <path> …` prints only the
+  `code` practices whose glob matches one of the paths, matched as a section 5 row's glob is. `--json` prints
+  `{"interface": 1, "kind": "practices", "sources": [{"id", "title", "location", "covers", "read", "decision", "line"}], "practices": [{"id", "source", "glob", "applies_to", "practice", "line"}]}`;
+  `--interface` prints `1`. Exit 0 printed, 2 usage or no PRD.
+- The builder is given the practices: on a PRD that holds `practices.md`, the implement context pack has a part
+  `## Practices` with the `code` practices whose glob matches the area's Boundary, and the builder's report
+  says of each `P-nn: followed`, `P-nn: not applicable (<why>)` or `P-nn: not followed (<why>)`. The last is a
+  question for the caller and stops the build, as a required skill that cannot be found does. The `prd`
+  practices are answered with the quality checklist when a PRD is written, adopted or changed. No gate fails on
+  a practice: trace, the commit hook and CI do not read them.
+- `prd change ids next docs/prd/<slug> S` and `… P` give the next source and practice ID. A pack may list
+  `sources` in its `pack.yaml` (`{title, location, covers}` items), which the command proposes first.
+- A copy vendored before 0.8.11 has no `practices` command and no `practices` rule. Run `install` from the 0.8.11
+  plugin to get them (see the changelog).
 
 ## Adopting an existing repo
 
@@ -963,6 +1006,16 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
+- **0.8.11:** best-practice sources, `practices.md` and `/prd-toolkit:prd-practices`. The standards and skills registries were filled only from what was already on the machine: linter configurations in the repository and the skills a session happened to list. A platform's good practice that no installed linter enforces never reached the PRD, so the builder never saw it. Now a PRD folder may hold `practices.md` (see Practices): the sources, each read and approved by the owner, and the practices taken from them, each one checkable sentence. The new skill `sourcing-practices`, run as `/prd-toolkit:prd-practices`, proposes sources, practices, standards rows and skills, quotes the passage behind each practice, reports any instruction it finds inside a source and follows none, and lands everything as one PRD change the owner approves; it installs a plugin only after that approval and only from a marketplace already added, and writes a skill into the repository only from approved sources. `prd practices` lists them, as text or JSON; `prd change ids next` takes `S` and `P`; the builder's implement pack carries the practices that apply and the builder reports on each; a pack may list `sources`. Lint has a 41st rule, `practices`, and the help catalogue has 48 entries. A PRD without `practices.md` lints, builds and reports as before, except that `--list-rules` prints 41 rules. The toolkit's own PRD is 7.0.0, a major version: two of its test cases name every lint rule line by line, and the new rule changes what they expect; the new area `practices` (UJ-04, FR-048 to FR-056) is verified. See the [design spec](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md).
+  - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). A repository gets the `practices` command and rule when `<plugin>/scripts/prd hooks install docs/prd/<slug>` is next run from the 0.8.11 plugin; commit `.prd-toolkit/`. The vendored `.prd-toolkit/prd hooks install` installs the hooks only and does not bring them. Until then the 0.8.11 skill stops on that repository and says so. A PRD needs no change: `practices.md` appears only when `/prd-toolkit:prd-practices` writes it. No hook, CI file or managed block changes.
+  - **Known limits:**
+    - `prd` exits 2 with uv's `Failed to inspect Python interpreter from virtual environment at .venv/bin/python` when the working directory holds a `.venv` whose interpreter cannot be read, as in a sandboxed session whose `.venv` links to a Python outside what the sandbox may read (E-022, open; not new in this release).
+    - Every `P-nn: not followed` line stops a build as a question for the caller.
+    - A plugin in a marketplace that is not added gets no skills row: the command prints the commands for the owner, and the row comes in a later change.
+    - An inbox answer given while several worktrees hold the PRD is committed in each (E-023), and with `core.hooksPath` set `hooks check` can report a hook stale after `hooks install`'s instruction is followed (E-024); both are open, from a repository on 0.8.10.
+  - **Evals and proof:**
+    - `claude plugin eval ./prd-toolkit --model sonnet --scaffold`, Claude Code 2.1.325, 2026-11-15, one run each (see `evals/BASELINE.md`): the six new `practices-*` cases score 1.00 with the plugin against 0.50 to 0.88 without, after three of their graders were corrected against the traces; eleven existing cases of the skills whose text changed ran, all 1.00. Fourteen existing cases and the new `builder-reports-practices` could not run: in the eval sandbox the launcher fails on the scaffold's `.venv` (E-022), and the same case fails the same way on 0.8.10. No eval exercises a real marketplace listing or install.
+    - Proof, in a scratch repository (see the [acceptance record](../docs/superpowers/plans/2026-11-15-prd-toolkit-0.8.11-acceptance.md)): the command proposed one source and three practices from a file in the repository and wrote nothing; after the owner's decision it wrote `practices.md` as a minor PRD change and stopped at the approval gate; and a build of one requirement then showed `P-01: followed`, `P-02: followed` and `P-03: followed` in the builder's report.
 - **0.8.10:** a Next part in `prd status`. The report said where every requirement stands and left the reader to work out the next move; a person and a client could each derive a different one. Now the report starts with the part Next (see Status): an ordered list of what the PRD needs, each item one sentence with the command that does it. Broken things come first (lint and trace findings, a stopped deploy run, an open error), then what waits on the owner (a gate, a question, a draft), then the work, furthest along first (deploy, verify, build, adopt); when nothing matches, one item says nothing waits. With `--json` the Next items come first in `items`, each with `kind`, `ids`, `area`, `command` and `waits_on` beside `part`, `id` and `text`; `interface` stays 1, since fields are added and none is removed or renamed. One thing changes for a reader of today's output: the Header is no longer the first part of the text or the first item of the JSON document, so a client that took `items[0]` as the Header selects it by `part`. Every other part is byte for byte what it was. The toolkit's own PRD is 6.4.0, with the new area `status-next` (UJ-03, FR-040 to FR-047) verified. See the [design spec](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md).
   - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). A repository gets the Next part when `<plugin>/scripts/prd hooks install docs/prd/<slug>` is next run from the 0.8.10 plugin; commit `.prd-toolkit/`. The vendored `.prd-toolkit/prd hooks install` installs the hooks only and does not bring it. Until then its report has no Next part and is otherwise as before. No hook, CI file or skill line changes.
   - **Known limits:** a section 13 question whose line ends in spaces is printed with those spaces and a second full stop (`An open question waits: Which month?   .`) (E-021, open). `prd status` now runs the PRD's section 7 validator commands, through lint, so a slow validator slows the report.
