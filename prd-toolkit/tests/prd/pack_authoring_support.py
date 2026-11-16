@@ -27,6 +27,7 @@ CHANGE = SCRIPTS / "prd_change.py"
 LINT = SCRIPTS / "prd_lint.py"
 CONTEXT = SCRIPTS / "prd_context.py"
 DISPATCH = SCRIPTS / "prd_dispatch.py"
+HOOKS = SCRIPTS / "prd_hooks.py"
 # Load paths are relative to contracts/fixtures/ (testing.md, Fixtures).
 FIXTURES = REPO / "docs" / "prd" / "prd-toolkit" / "contracts" / "fixtures"
 SITES = FIXTURES / "pack-authoring" / "sites.yaml"
@@ -307,6 +308,26 @@ def KP7(tmp: Path) -> None:
     write(tmp / "plugins.json",
           '{"plugins": {"leaflet-kit@example": [{"installPath": "' + str(tmp) + '/plug"}], '
           '"leaflet-copy@example": [{"installPath": "' + str(tmp) + '/plug2"}]}}\n')
+
+
+def KI(tmp: Path) -> None:
+    """Step KI: the identity, and no signing, of a commit a run of the case makes in <tmp>/north."""
+    repo = tmp / "north"
+    git(repo, "config", "user.name", "Sample")
+    git(repo, "config", "user.email", "sample@example.com")
+    git(repo, "config", "commit.gpgsign", "false")
+
+
+def KW(tmp: Path) -> None:
+    """Step KW: write north's review verdict from `prd_change.py digest`, then switch the hooks off in <tmp>/north."""
+    repo = tmp / "north"
+    r = run(CHANGE, "digest", "docs/prd/north", cwd=repo)
+    assert r.code == 0 and len(r.lines) == 1, f"setup KW: digest exited {r.code}: {r.stdout!r} {r.stderr!r}"
+    digest = r.lines[0]
+    write(north(tmp) / ".prd-review.json",
+          '{"digest": "' + digest + '", "touches": [], "dry_run": {"record": "no dry run (pack lifted)"}, '
+          '"ready": true}\n')
+    git(repo, "config", "core.hooksPath", "/dev/null")
 
 
 @pytest.fixture(name="kvc")
