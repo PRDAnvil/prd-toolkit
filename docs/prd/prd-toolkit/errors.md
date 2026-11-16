@@ -237,7 +237,7 @@ Recurrence of: -
 
 ### E-022 The prd launcher fails when the working directory holds a .venv whose interpreter cannot be read
 Detected: 2026-11-15, eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15)
-Classification: unclassified
+Classification: spec gap
 Evidence: Eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15), in the eval sandbox, in a scaffold repository that holds a .venv:
   <plugin>/scripts/prd lint docs/prd/notes; echo "prd-lint-exit=$?"
   error: Failed to inspect Python interpreter from virtual environment at `.venv/bin/python`
@@ -245,6 +245,6 @@ Evidence: Eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15), in t
     cause: failed to canonicalize path `<tmp>/home/cwd/.venv/bin/python`: Operation not permitted (os error 1)
   The same from prd context and prd status. Fifteen of 34 eval cases stopped at their first prd command.
   The same case (building-trigger) fails the same way against the released 0.8.10 plugin.
-Diagnosis: -
+Diagnosis: Reproduced once outside the eval sandbox: in a folder whose `.venv/bin/python` is a link into a directory with no read permission (and a `pyvenv.cfg` beside it), `prd-toolkit/scripts/prd --version` prints uv's `error: Failed to inspect Python interpreter from virtual environment at .venv/bin/python` with the cause `failed to canonicalize path`, and exits 2 before any script runs. Root cause: the launcher runs `uv run --quiet --no-project --project "$here" --python ">=3.11" --with-requirements …`, and uv, looking for an interpreter, inspects a `.venv` in the working directory first and treats one it cannot read as a hard error instead of passing over it. In the eval sandbox the scaffold's `.venv` links to a uv-managed Python under the home directory, which the sandbox does not let the session read, so every `prd` command of 15 of the 34 cases run for 0.8.11 failed; one of them, run against the released 0.8.10 plugin, fails the same way, so 0.8.11 did not cause it. The same cases ran in the 0.8.8 baseline of 2026-11-14 with the same uv and Claude Code versions; what changed on the machine since is not found. Class against the PRD: no requirement, contract or test case covers the launcher (searched features/lint-cli.md, features/help.md, features/status-next.md, features/practices.md, nfr.md and testing.md for the launcher, uv and a repository `.venv`; adoption.md maps `prd-toolkit/scripts/prd` in `trace-and-hooks`, which is not started), so the PRD is silent on what the launcher does when the repository's own environment cannot be read. A fix would make the launcher ignore the working directory's environment (the uv option or variable to be confirmed against uv's documentation) and add a test with an unreadable `.venv`.
 Resolution: -
 Recurrence of: -
