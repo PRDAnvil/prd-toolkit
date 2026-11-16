@@ -333,3 +333,15 @@ Evidence: Build of the area card-context, 2026-11-16, the builder's report:
 Diagnosis: Reproduced: `prd context docs/prd/prd-toolkit --area card-context --req FR-062 --for implement` exits 0 and holds neither "Words used below" nor the definition of the area order, which `features/card-context.md` gives in its lines before the first block. The pack prints the requirement blocks of a features file and none of its text before the first block. The area `context` is not adopted (adoption.md: `context | not started`), so no AC says what the pack takes from a features file outside its blocks; the format reference names no place in a features file for definitions the blocks share.
 Resolution: -
 Recurrence of: -
+
+### E-029 pack check reports nothing when a validator cannot be found or run from the pack folder on its second run
+Detected: 2026-11-16, builder report, build pack-authoring FR-059 --fixes E-027
+Classification: unclassified
+Touches: FR-059
+Evidence: Report of the builder that fixed E-027 (build pack-authoring FR-059, 2026-11-16):
+  On the second run from the pack folder, a validator that is not found or cannot be run gives no finding.
+  AC-059.7 names only "exits other than 0" and "runs past the time".
+  This is plausible when the validator's program is a relative path that resolves from the PRD folder and not from the pack folder.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
