@@ -304,7 +304,7 @@ Evidence: Review of the 0.8.12 skill text, 2026-11-16, in a scratch repository w
   pack leaflet 0.1.0 ... not found, and two contracts-valid findings.
   After a version move (prd change pack without --lift) the approval commit holds the re-vendored pack and pack-sources.json.
 Diagnosis: Reproduced by the reviewer in a scratch repository. `_vendored_packs` in `prdlint/change_approve.py` stages `.prd-toolkit/packs/<name>` and `pack-sources.json` only for the packs `change.pack_moves` returns, which are lines whose pack version moved with the name and source unchanged; a lift adds a `Pack:` line the committed PRD lacks, so it returns none and the approval commit leaves out the vendored pack. No AC of FR-060 says what the approval of a lift commits (the area `change` is not adopted); only its Edge cases line says: "then `prd hooks install` vendors the pack and the owner approves with the dry-run record `no dry run (pack lifted)`, as for a version move".
-Resolution: -
+Resolution: T-060.13 [integration], PRD 7.3.0, fixed in 307ebad
 Recurrence of: -
 
 ### E-027 A validator that crashes from the pack folder counts as refusing its sample
