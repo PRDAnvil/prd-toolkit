@@ -62,7 +62,7 @@ new Python dependency in any phase.
 | 3 | **0.8.9** | **Help catalogue**, delivered: a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | done | 0.8.8 |
 | 4 | **0.8.10** | **Next part in the status report**, delivered: an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | done | 0.8.8 |
 | 5 | **0.8.11** | **Best-practice sources**, delivered, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | done | 0.8.0 |
-| 6 | **0.8.12** | **Pack authoring** from an example repository: a pack proposed and written from two repositories that declare the same custom contract types | backlog item 1 | large | best practices |
+| 6 | **0.8.12** | **Pack authoring** from an example repository: a pack proposed and written from two repositories that declare the same custom contract types; and, added by the owner on 2026-11-15, cards in the decision inbox that show the area an issue is for and a URL when it has one | backlog item 1; owner | large | best practices |
 | 7 | **0.8.13** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
 | 8 | after 0.8.13 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | prototype; backlog item 5 | small | none |
 | 9 | after 0.8.13 | **Surface check** (phase 3) | prototype | medium | conversion, so the extractor key is designed once for retargeted packs |
