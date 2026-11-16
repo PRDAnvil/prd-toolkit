@@ -215,3 +215,16 @@ def test_tool_graders():
     assert counts(w, "no-skill-write", {"file_path": "/w/.claude/skills/releasing-quill-plugins/SKILL.md", "content": "x"})
     assert not counts(w, "no-skill-write", {"file_path": "/w/docs/notes.md", "content": "x"})
     assert counts("builder-reports-practices", "builder-dispatched", {"subagent_type": "prd-toolkit:prd-builder", "prompt": "x"})
+
+
+def test_no_grader_frontmatter_line_holds_three_dashes():
+    # the eval runner ends a grader's frontmatter at the first `---` it meets, even inside a pattern:
+    # three cases of this suite failed to load on a table's `|---|` row; write `-{3}` in a pattern
+    evals = Path(__file__).parent.parent / "evals"
+    bad = []
+    for grader in sorted(evals.glob("*/graders/*.md")):
+        lines = grader.read_text(encoding="utf-8").split("\n")
+        assert lines[0] == "---", grader
+        end = lines.index("---", 1)
+        bad += [f"{grader.parent.parent.name}/{grader.name}" for line in lines[1:end] if "---" in line]
+    assert bad == []
