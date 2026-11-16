@@ -35,14 +35,30 @@ def _run(argv: list[str], cwd: Path, timeout: int) -> tuple[str | None, subproce
     return None, done
 
 
-def _failed(done: subprocess.CompletedProcess) -> str:
+def _line(done: subprocess.CompletedProcess) -> str:
     """The first stderr line that is not blank, else the first such stdout line, else `exit <code>`."""
     lines = done.stderr.splitlines() + done.stdout.splitlines()
-    return "validator failed: " + next((x for x in lines if x.strip()), f"exit {done.returncode}")
+    return next((x for x in lines if x.strip()), f"exit {done.returncode}")
+
+
+def _failed(done: subprocess.CompletedProcess) -> str:
+    return "validator failed: " + _line(done)
+
+
+def _from_pack_folder(argv: list[str], files: list[str], prd_dir: Path, pack: packs.Pack, timeout: int) -> str | None:
+    """The run once more from the pack folder, the same files as absolute paths (AC-059.7): its problem, else None. A
+    program not found or not runnable from there is no finding of AC-059.7's."""
+    problem, done = _run(argv + [str((prd_dir / f).absolute()) for f in files], pack.root, timeout)
+    if problem == f"validator timed out after {timeout}s":
+        return problem
+    if done is not None and done.returncode != 0:
+        return "validator fails from the pack folder: " + _line(done)
+    return None
 
 
 def _prd_findings(pack: packs.Pack, prds: list[tuple[str, Path]], timeout: int) -> list[str]:
-    """Each type's validator on A's and then B's matching files, as lint runs a section 7 validator (AC-059.2)."""
+    """Each type's validator on A's and then B's matching files, as lint runs a section 7 validator (AC-059.2); a run
+    that passes runs once more from the pack folder (AC-059.7)."""
     out = []
     for ct in pack.contract_types:
         for arg, prd_dir in prds:
@@ -63,6 +79,8 @@ def _prd_findings(pack: packs.Pack, prds: list[tuple[str, Path]], timeout: int) 
                 out.append(f"{at}: {problem}")
             elif done.returncode != 0:
                 out.append(f"{at}: {_failed(done)}")
+            elif moved := _from_pack_folder(argv, files, prd_dir, pack, timeout):
+                out.append(f"{at}: {moved}")
     return out
 
 
