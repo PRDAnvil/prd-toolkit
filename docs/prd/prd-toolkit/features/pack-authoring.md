@@ -131,7 +131,7 @@ Tests: T-058.1 [integration], T-058.2 [integration], T-058.3 [integration], T-05
 Traces: UJ-05; cli:prd_pack; `prdlint/interface.py`
 
 ### FR-059 Check a written pack against both PRDs
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/packcheck.py:1 @4fd2e89
 Acceptance (EARS):
 - AC-059.1 If the pack manifest loader, the one `prd lint --list-packs` uses, refuses
