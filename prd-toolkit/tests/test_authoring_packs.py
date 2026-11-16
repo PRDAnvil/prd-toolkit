@@ -131,7 +131,10 @@ def test_procedure_writes_nothing_outside_the_decided_pack():
               "Neither PRD is edited, at any step.", "No marketplace file, no remote.",
               "Commit** only when the check exits `0`", "never `--no-verify`. Nothing is pushed.",
               "Run neither: no push, no publish, no install, no lift.",
-              "never change a validator to pass", "never stash it"):
+              "never change a validator to pass", "never stash it",
+              "Never leave the item out yourself", "the validator accepts it; a sample must be refused`. The",
+              "write nothing: show the new comparison as a new step 3 proposal",
+              "is not a side", "never initialised"):
         assert s in t, s
     assert "--no-verify" not in t.replace("never `--no-verify`", "")
 
@@ -161,10 +164,18 @@ def test_changing_prds_names_the_lift():
     for needle in ('<plugin scripts>/prd change pack docs/prd/<slug> <name> <X.Y.Z> --lift; echo "prd-change-exit=$?"',
                    '<plugin scripts>/prd hooks install docs/prd/<slug>; echo "prd-hooks-exit=$?"',
                    "`--dry-run 'no dry run (pack lifted)'`", "`pack <name> <X.Y.Z> lifted; no dry run (pack lifted)`",
-                   "`pack <name> <X.Y.Z> lifted; pending`", "--source",
-                   "`git add .prd-toolkit/packs/<name> .prd-toolkit/pack-sources.json`"):
+                   "`pack <name> <X.Y.Z> lifted; pending`", "--source", "you never install it",
+                   "<the PRD folder> has uncommitted changes; commit or set them aside first"):
         assert needle in s, needle
     assert s.index("A new pack version is a scripted patch.") < s.index("A lift is a scripted patch too.")
+    assert "(a version move or a lift, below, is not one)" in s
+    # the vendored copy is committed after `hooks install` and before the verdict and the approval
+    lift = s[s.index("A lift is a scripted patch too."):]
+    order = [lift.index(x) for x in ("--lift; echo", "prd hooks install docs/prd/<slug>", "`git add .prd-toolkit`",
+                                     'git commit -m "chore: vendor pack <name> <X.Y.Z>"', "step 4's lint",
+                                     "--dry-run 'no dry run (pack lifted)'")]
+    assert order == sorted(order)
+    assert "git add .prd-toolkit/packs/<name>" not in s
 
 
 def test_adopting_prds_names_the_pack_command_and_the_area_url():
@@ -180,6 +191,13 @@ def test_handling_errors_records_the_url_and_names_the_areas():
     assert "never guess or build one" in run
     assert "Show the user: the entry and its class; its areas" in run
     assert "`prd error new … --url <address>`" in flat(ERROR_SKILL)
+    assert "<scripts>/prd gates list docs/prd/<slug> --json; echo \"prd-gates-exit=$?\"" in run
+    assert 'git commit -m "docs(prd): set the URL of <E-nnn>" -m "Refs: <E-nnn>"' in run
+
+
+def test_old_vendored_copies_are_named():
+    for path in (ERROR_RUN, ADOPTING):
+        assert "holds no `prd_pack.py`, the vendored copy predates 0.8.12" in flat(path), path.name
 
 
 def test_references_document_the_url_and_the_pack_from_two_prds():

@@ -1,8 +1,9 @@
 # Running a pack
 
 **Steps:** 1 Preconditions, 2 Compare, 3 The proposal, 4 The owner decides, 5 Where it goes,
-6 Write, check, commit, 7 Report. Run every step, in order. The turn ends early only to stop at a
-failed precondition, or to wait for the owner's reply to step 3's proposal.
+6 Write, check, commit, 7 Report. Run every step, in order. The turn ends early only to stop (a
+failed precondition, step 5's plugin checks) or to wait for the owner: their reply to step 3's
+proposal, an item they left undecided, or a step 6 finding only a PRD can fix.
 
 For the caller: `/prd-toolkit:prd-pack`, or any request to write a pack from two PRDs, to share two
 PRDs' contract types, validators, levels or harness between repositories, or to put a pack into a
@@ -43,8 +44,9 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
 
    Then list the packs on this machine, its own call:
    `<plugin scripts>/prd lint --list-packs; echo "prd-list-packs-exit=$?"`. A pack name it already
-   lists is not proposed: a lift onto a name and version two plugins hold is refused until the owner
-   picks a source.
+   lists is not proposed, and a name the owner gives that it lists is said so and asked again: two
+   packs of one name make every lift onto it name a `--source`, and `service` and `document` are the
+   toolkit's own.
 
    A PRD that is not Approved or does not lint clean stops the run: say which, with the lint
    findings, and that it is settled in its own repository first. A repository with no PRD is
@@ -63,7 +65,8 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
    `prd_pack: <A> and <B> share no custom contract type; there is no pack to write`: stop, quote
    it, and say what is missing (a PRD whose section 7 has no custom row, a row whose Validator is
    neither `built-in` nor `pack`, has nothing to share; it is adopted with its custom types first).
-   `2` is a usage error or a folder that is not a PRD: fix the command.
+   `2` is a usage error (fix the command) or a folder that is not a PRD: quote the line and ask
+   for the PRD folder; never pick another.
 
    Then read what the shared types are made of. For each contract type marked `both`, or printed
    as an `A` and `B` pair: Glob each PRD folder for the type's files, and Read them. When a
@@ -79,14 +82,15 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
    - **Each manifest item,** part by part in the comparison's order, with where it comes from: its
      mark and its PRD line (`<slug A>/prd.md` section 7 row `pages`, `<slug B>/testing.md` Levels
      row `integration`, Harness slot `Tools on the runner`). An item marked `both` is recommended
-     in.
+     in, except the vocabulary candidates (below).
    - **Each difference,** both sides as the comparison prints them (or both validator files by
      name, after a `cmp-exit=1`), and a recommended resolution with its reason: take A's, take B's,
      or leave it out of the pack so each PRD keeps its own. Two facts decide some of them:
      - A contract type one PRD lacks (marked `A` or `B` alone) cannot go in: `prd pack check` runs
        each type on both PRDs (`glob matches no file`), and the other PRD's lift refuses it
-       (`contract type <type> of pack <name> is not a custom row of section 7`). Its target kind
-       goes with it. Say so; it is not a choice.
+       (`contract type <type> of pack <name> is not a custom row of section 7`). Say so; it is not
+       a choice. A Target kinds line is not decided on its own: a type's target kind goes in or out
+       with its type.
      - A shared type whose Files glob differs between the PRDs: the PRD whose glob the pack does
        not take cannot be lifted (`contract type <type>: section 7 has <cell>, pack <name> has
        <files>`). Recommend leaving it out.
@@ -119,17 +123,22 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
    but names no plugin). A reply that leaves an item undecided is answered, and that item asked
    again. The request that started this is never a decision, and neither is your own text. Each
    decision is what step 6 writes; a difference the owner settled is never re-merged into a third
-   text.
-5. **Where it goes.**
+   text. A reply that asks for a text neither PRD holds (the two merged, a new wording) is not a
+   side: say that this text goes into the PRDs first, through `/prd-toolkit:prd-change` in each
+   repository, and ask again: A's, B's, or out.
+5. **Where it goes.** When the reply names no plugin and asks for no new one, ask for it and end
+   the turn; write nothing.
    - **A plugin the owner names.** Read `<plugin>/.claude-plugin/plugin.json`: no such file means it
      is not a plugin checkout, so ask again. Then, each its own call:
-     `git -C <plugin> status --porcelain; echo "git-exit=$?"`, which must print nothing (uncommitted
-     work there is the owner's to commit or set aside: stop and say so, never stash it); Glob
+     `git -C <plugin> status --porcelain; echo "git-exit=$?"`: `git-exit=` must be `0` and the
+     output empty (uncommitted work there is the owner's to commit or set aside: stop and say so,
+     never stash it; a folder that is not a git repository is said so, never initialised); Glob
      `<plugin>/prd-packs/<name>/*`, which must find nothing (widening a pack that exists is not this
      skill's); then `git -C <plugin> switch -c pack-<name>-0.1.0; echo "git-exit=$?"`.
    - **A new plugin,** only when the owner said so, at the path they gave, which must not exist or
      be an empty folder: Write `<path>/.claude-plugin/plugin.json`,
-     `{"name": "<plugin name>", "version": "0.1.0", "description": "<the pack it holds>"}`, and
+     `{"name": "<plugin name>", "description": "<the pack it holds>"}` (no `version`: none was
+     chosen), and
      `<path>/README.md` (what the plugin holds; that publishing it and adding it to a marketplace are
      the owner's), then `git init -q -b pack-<name>-0.1.0 <path>; echo "git-exit=$?"`. No
      marketplace file, no remote.
@@ -138,9 +147,12 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
 6. **Write, check, commit.** Write only what step 4 decided, with the Write tool.
    - **The values.** Run, its own call,
      `<plugin scripts>/prd pack compare --json <A> <B>; echo "prd-pack-exit=$?"`, and take every
-     value from its `parts`, never retyped from memory.
+     value from its `parts`, never retyped from memory. If a decided item's value differs from what
+     the proposal showed, or the parts hold an item the proposal did not (a PRD changed since), write
+     nothing: show the new comparison as a new step 3 proposal.
    - **`<pack dir>/pack.yaml`,** in this form, each string in single quotes with each `'` in it
-     written `''`, and each key written only when step 4 decided one or more items for it:
+     written `''`, and each key written only when step 4 decided one or more items for it, except
+     `vocabulary`, written `[]` when no word was put in:
 
      ```yaml
      pack: '<name>'
@@ -165,18 +177,24 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
      comparison prints as null is left out, and `timeout` is written as a number when it has one.
      `target-kinds` holds one entry per contract type of the pack that a test case uses, the kind
      being the type's name, as the PRDs' `target:` values write it. `vocabulary` holds the words the
-     owner put in, or is `[]`. `builder-tests: none` only as step 3 says.
+     owner put in. `builder-tests: none` only as step 3 says.
    - **The validators.** A self-contained command (a `python3 -c …`) is the `validator` as it
      stands. A command that runs a file of its repository: Read that file and Write it unchanged to
      `<pack dir>/<its file name>`, and the `validator` is the command with that word replaced by
      `${PACK}/<its file name>`. When the two PRDs' files differed, it is the file of the side the
-     owner took. Never edit a copied validator: when it reads other files of its repository, the
-     check fails, and that type is the owner's to leave out.
+     owner took. Never edit a copied validator.
    - **The samples.** For each contract type of the pack, `<pack dir>/samples/<type>/bad.<ext>`: a
      copy of one PRD's real contract file of that type, broken in one named way that the
      validator's own text refuses (a key it requires removed, a line it requires cut), with the
      original file's extension. One break per file; a second break is a second file, `bad-2.<ext>`
-     is not read, so name it `bad.2.<ext>`.
+     is not read, so name it `bad.2.<ext>`. **Before you trust a sample,** prove the validator
+     accepts the unbroken file where the check runs it: write each `bad.<ext>` first as the
+     original's exact copy, run the check below, and require, for each type, the finding
+     `<pack dir>/samples/<type>/bad.<ext>: the validator accepts it; a sample must be refused`. The
+     check runs a sample's validator from the pack folder, so a validator that reads files of its
+     repository crashes there and "refuses" any file, broken or not. A type whose unbroken copy
+     draws no such finding is one of those: report it to the owner, who leaves that type out; never
+     edit it. Only then write each break in place of the copy.
    - **`<pack dir>/README.md`:** what the pack is for (the decided description); where each part
      came from, item by item (`both`, or A's or B's, with its PRD line); each sample, the file it
      copies and the break it holds; and the to-do list from step 3, as decided.
@@ -192,8 +210,10 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
      (`no bad.* sample`) is written; a key the loader names in `pack.yaml` is corrected to the
      decided value. A finding that only a PRD can fix (a validator that fails on a PRD's own files,
      one that refuses no break you can name, a level whose first word is not on PATH) is reported
-     to the owner, who leaves the item out or changes that PRD in its own repository; never change
-     a validator to pass. Run the check again after each fix. `2` is a usage error: fix the command.
+     to the owner, who leaves the item out or changes that PRD in its own repository: commit
+     nothing and end the turn to wait for their reply. Never leave the item out yourself, and never
+     change a validator to pass. Run the check again after each fix. `2` is a usage error: fix the
+     command.
    - **Commit** only when the check exits `0`, each its own call:
 
      ```bash
@@ -210,7 +230,7 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
       first). Then `<plugin scripts>/prd lint --list-packs` lists `<name> 0.1.0 (<source>)`.
    2. In each repository, move the PRD onto the pack with `/prd-toolkit:prd-change` (the lift in
       `prd-toolkit:changing-prds`, "Packs and retargeting"): `prd change pack docs/prd/<slug> <name>
-      0.1.0 --lift`, then `prd hooks install`, then lint, then the owner's approval with the
-      dry-run record `no dry run (pack lifted)`.
+      0.1.0 --lift`, then `prd hooks install` and a commit of the vendored copy, then lint, then the
+      owner's approval with the dry-run record `no dry run (pack lifted)`.
 
    Run neither: no push, no publish, no install, no lift.

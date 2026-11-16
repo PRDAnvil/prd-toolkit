@@ -69,7 +69,8 @@ the built-ins and every installed plugin's packs, `<name> <version> (<source>) �
 pack on that list exists, whatever a search of the repository found. So does a pack vendored in
 `.prd-toolkit/packs/<name>/` (its `pack.yaml`), which lint reads before any other copy.
 
-**A retarget of a built area is refused.** A change to the pack of an area that holds a block
+**A retarget of a built area is refused** (a version move or a lift, below, is not one). A
+change to the pack of an area that holds a block
 `built`, `verified` or `live` (a `live (since X.Y.Z)` included) is not a PRD change: its
 outputs, contracts and tests were built and checked under the old pack. Say, exactly:
 
@@ -111,8 +112,10 @@ harness slot) fails lint or the next build: that is a real change, through the s
 **A lift is a scripted patch too.** A PRD that names no pack (no `Pack:` line and no `Target: pack`
 line) moves onto a pack written from its own custom contract types (`/prd-toolkit:prd-pack`) by a
 lift: the pack declares only what §7 already declares, with the same globs, so nothing the PRD
-produces changes, and it is not a retarget. Install the plugin that holds the pack first. Then, each
-its own Bash call, from `<plugin scripts>` as above; on a refusal, stop and report it.
+produces changes, and it is not a retarget. The owner installs the plugin that holds the pack
+first; you never install it. Check that `--list-packs`, as above, lists `<name> <X.Y.Z> (<source>)`;
+when it does not, stop and say so. Then, each its own Bash call, from `<plugin scripts>` as above; on
+a refusal, stop and report it.
 
 - First `<plugin scripts>/prd change pack docs/prd/<slug> <name> <X.Y.Z> --lift; echo "prd-change-exit=$?"`.
   It writes the §1 `- Pack: <name> <X.Y.Z> (<source>)` line, sets the Validator cell of each §7 row
@@ -121,21 +124,22 @@ its own Bash call, from `<plugin scripts>` as above; on a refusal, stop and repo
   `the PRD already names pack <name> at <file>:<line>; a lift moves a PRD that names none` (a version
   move, above, or a conversion), `contract type <type> of pack <name> is not a custom row of section 7`,
   `contract type <type>: section 7 has <cell>, pack <name> has <files>`,
-  `no pack <name> <X.Y.Z> is on this machine; prd lint --list-packs lists the packs it finds`,
+  `no pack <name> <X.Y.Z> is on this machine; prd lint --list-packs lists the packs it finds` (with
+  `--source`, `no pack <name> <X.Y.Z> (<source>) is on this machine; …`),
   `pack <name> <X.Y.Z> comes from more than one source: <sources>; name one with --source <source>`
-  (run it again with `--source` and the source the owner names), or uncommitted changes in the PRD
-  folder.
+  (run it again with `--source` and the source the owner names), or
+  `<the PRD folder> has uncommitted changes; commit or set them aside first`. Exit `2` with
+  `pack: <X.Y.Z> is not a version X.Y.Z` is a mistyped version: fix the command.
 - Then `<plugin scripts>/prd hooks install docs/prd/<slug>; echo "prd-hooks-exit=$?"`, which vendors
-  the pack.
+  the pack, and commit the vendored copy on its own, before the verdict, since `approve` stages a
+  re-vendored pack only for a version move. Each its own call: `git add .prd-toolkit` (adding
+  `.gitignore` too when `git status --porcelain` lists it, as `hooks install` creates or changes it),
+  then `git commit -m "chore: vendor pack <name> <X.Y.Z>" -m "Refs: none (no behaviour change)"`.
+  The PRD folder stays uncommitted for the approval.
 - Then step 4's lint, whose `prd-lint-exit=` value must be `0` (the pack's validators now run where
   the PRD's own did), and the verdict with no dry run, and step 5's approval as for any patch, with
   `--dry-run 'no dry run (pack lifted)'`: §14 reads
   `pack <name> <X.Y.Z> lifted; no dry run (pack lifted)`.
-- Then the vendored pack. `approve` stages a re-vendored pack only for a version move, so after a
-  lift `.prd-toolkit/packs/<name>/` and `.prd-toolkit/pack-sources.json` are still uncommitted:
-  `git status --porcelain -- .prd-toolkit` lists them. Commit them, each its own call:
-  `git add .prd-toolkit/packs/<name> .prd-toolkit/pack-sources.json`, then
-  `git commit -m "chore: vendor pack <name> <X.Y.Z>" -m "Refs: none (no behaviour change)"`.
 
 The PRD's own Levels, Harness, standards and skills rows stay as they are, and a §7 type the pack
 does not declare keeps its own validator.

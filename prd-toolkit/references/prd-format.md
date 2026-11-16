@@ -193,8 +193,9 @@ profile. The area's test cases (`test-cases/<area>.yaml`) belong to its profile.
 The `url` part is the area's URL: where its output can be opened (a page, a dashboard). It is the
 line's last part, and its address runs to the end of the line, so it may hold a comma. The address
 starts with `http://` or `https://`, has one or more characters after it, and holds no white space;
-nothing fetches it. A gate of the area (`prd gates list --json`, a card in the decision inbox)
-carries it as its `url`. §1 holds no URL line. A malformed `url` part is a `pack-resolves` finding,
+nothing fetches it. A gate's `url` (`prd gates list --json`, a card in the decision inbox) is its
+area's URL for a signoff or adoption gate, and for an approval gate whose change touches that one
+area alone; an error-class gate takes its entry's `URL:` first. §1 holds no URL line. A malformed `url` part is a `pack-resolves` finding,
 and the line is then read as a malformed `Target:` line: the area takes §1's pack and output
 language and has no URL.
 
@@ -741,7 +742,7 @@ continuation lines indented two spaces, and never a secret value or data classif
 or `pii`. `Classification:` is one of `code bug`, `spec gap`, `invalid requirement`,
 `environment`, `standard`, `unclassified`. The `error-entries` rule reports a malformed `Detected:`
 or `Confirmed:`, an unknown class, an `Evidence:` over 20 lines, a `Recurrence of:` that names no
-entry, and a `Confirmed:` on an `unclassified` entry.
+entry, a `Confirmed:` on an `unclassified` entry, and a malformed `URL:` (below).
 
 Entries run from E-001 upward with no gap, newest last; lint reports a gap or an entry out of order. `Touches: -` means none.
 
@@ -765,8 +766,8 @@ concerns, comma-separated, and `-` means none. `index-consistent` reports a `Tou
 block defines. The context pack's Known defects part reads it.
 
 `URL:` is optional: `URL: <address>`, at column 0, after `Touches:`. It is where the trouble is (a
-page, a dashboard, a failed run), and the entry's card in the decision inbox links to it; with none,
-the card takes the URL of the first of the entry's areas whose `Target:` line has one. The first
+page, a dashboard, a failed run), and the entry's card in the decision inbox links to it; with none, or a
+malformed one, the card takes the URL of the first of the entry's areas whose `Target:` line has one. The first
 `URL:` line of the entry counts, wherever it stands; a line indented two spaces after `Evidence:` is
 evidence. `prd_error.py new --url <address>` writes it, after `Touches:` (after `Classification:`
 when there is no `Touches:` line), and `prd_error.py url <prd_dir> <E-id> <address>` sets or replaces

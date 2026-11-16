@@ -32,7 +32,9 @@ a plugin to hold it" and "they'll want it installed" change nothing below.
    adopted first (`/prd-toolkit:prd-adopt`). Never a pack from one PRD, or from a repository that
    has none.
 2. **Every manifest item comes from a line of one or both PRDs and the report says which; nothing a
-   PRD does not hold is added (no helper, no rule, no level).** A validator is the command the
+   PRD does not hold is added (no helper, no rule, no level).** The four header keys are the
+   exception: the name and the description the owner decides, `version: 0.1.0`, and the built-in
+   packs' `toolkit` range. A validator is the command the
    PRD's section 7 row gives, copied as it stands, or the repository file it runs, copied
    unchanged: never rewritten, widened or made stricter. No word, standard, source, slot or
    default enters the manifest from what you know of the platform.
@@ -53,8 +55,9 @@ a plugin to hold it" and "they'll want it installed" change nothing below.
    is drafted: the to-do list names them, and the files a person would start from.
 7. **Each validator can fail.** `prd pack check` exits 0 before anything is committed: every type
    has a `samples/<type>/bad.*` its validator refuses, made by breaking a copy of a real contract
-   file in one named way. A validator that refuses no such break is reported; it is never
-   replaced.
+   file in one named way, and the same validator, run where the check runs it, accepts that file
+   unbroken. A validator that refuses no such break, or refuses the unbroken file too, is
+   reported; it is never replaced.
 8. **The PRDs themselves are not edited by this skill.** No `Pack:` line, no Validator cell, no
    copy of a PRD edited to try the pack. Moving each PRD onto the pack is the lift, a separate
    `/prd-toolkit:prd-change` in its own repository, after the plugin is installed and with the

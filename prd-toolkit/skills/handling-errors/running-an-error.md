@@ -34,6 +34,10 @@ When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8
 the user the same and, when `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists,
 also to run `prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commit both
 together.
+When `.prd-toolkit/` exists but holds no `prd_pack.py`, the vendored copy predates 0.8.12, which has
+no `--url` and no `prd error url`: record the entry without `--url`, name the address in the report,
+and tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
+and commit `.prd-toolkit/`; the URL is set with `prd error url` after that.
 
 **One command per Bash call, with literal paths.** Each command below is its own Bash call, and
 every path, ID and SHA in it is typed out in full: paste what a command printed, never a variable
@@ -50,7 +54,7 @@ part in backticks; nothing was written. In a command, those backticks sit inside
 
 | Exit | Means | Next |
 |---|---|---|
-| 0 | done | `new` printed `E-<nnn>`; `propose`, `confirm` and `resolve` printed `E-<nnn> <state> <class>`; `check` printed nothing: go on |
+| 0 | done | `new` printed `E-<nnn>`; `propose`, `confirm` and `resolve` printed `E-<nnn> <state> <class>`; `url` printed `E-<nnn> <state>[ <class>]`, the class only when it is not the state; `check` printed nothing: go on |
 | 1 | refused | each reason is a `refused:` line on stderr (`check` prints findings on stdout instead): report them, and never work around one with another command or a hand edit |
 | 2 | usage | a command you mistyped, such as `--class code-bug` (`prd_error: class must be one of …`): fix it and run it again |
 
@@ -99,11 +103,7 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    when they give none; never guess or build one. An address that is not `http://` or `https://`,
    or holds white space, is refused
    (`refused: URL: must start with http:// or https:// and hold no white space`): report it as
-   given and record the entry without it. It prints the new `E-<nnn>`. An address given later is
-   set, or replaced, with
-   `<scripts>/prd error url docs/prd/<slug> <E-nnn> '<address>'; echo "prd-error-exit=$?"` (`-` in
-   place of the address removes it), which prints `E-<nnn> <state> <class>`, and `errors.md` is
-   committed as below, with the message `docs(prd): set the URL of <E-nnn>`. Never write an
+   given and record the entry without it. It prints the new `E-<nnn>`. Never write an
    entry or one of its lines by hand: every ledger write is a `prd_error.py` command (the one
    exception is step 6's fix of a `Resolution:` line that `check` reports wrong). Then, each its own
    call:
@@ -115,6 +115,21 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
 
    The commit holds `errors.md` alone. A failed deploy or a stopped build has already recorded its
    entry and committed it: start at step 2 with that entry.
+
+   **A URL given later.** At any step, an address for an entry that has none (or a new one) is set,
+   or replaced, its own call:
+
+   ```bash
+   <scripts>/prd error url docs/prd/<slug> <E-nnn> '<address>'; echo "prd-error-exit=$?"
+   ```
+
+   `-` in place of the address removes it. It prints the line `prd error propose` prints
+   (`E-001 proposed code bug`, `E-002 unclassified`). Then, each its own call:
+
+   ```bash
+   git add docs/prd/<slug>/errors.md
+   git commit -m "docs(prd): set the URL of <E-nnn>" -m "Refs: <E-nnn>"
+   ```
 2. **Reproduce.** Run the evidence and find the root cause, with `superpowers:systematic-debugging`
    when it is in your skills list. You may read the code and its history (`git log`, `git show`):
    you are not the black-box tester. Nothing is fixed here.
@@ -172,11 +187,19 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    git commit -m "docs(prd): propose <E-nnn>" -m "Refs: <E-nnn>"
    ```
 
-   Show the user: the entry and its class; its areas, as its card in the decision inbox shows them
-   (`Area: <names>`, or `Area: none`): the area of each block its `Touches:` names, then of each
-   block that owns a test case `known-failing` on it, each once (`features/<area>.md` holds the
-   block, and `nfr` for `nfr.md`); its URL when it has one; the PRD line quoted verbatim (for a
-   spec gap, the sections searched and found silent); the evidence; the root cause; the entry
+   Then take the entry's areas and URL from its card, its own call:
+
+   ```bash
+   <scripts>/prd gates list docs/prd/<slug> --json; echo "prd-gates-exit=$?"
+   ```
+
+   The gate `error-class:<E-nnn>` carries `areas` (a list, in the PRD's area order; empty means
+   none) and `url` (the entry's, else its first area's, or null). A vendored copy that predates
+   0.8.12 prints neither: name the areas of the blocks `Touches:` names instead.
+
+   Show the user: the entry and its class; its areas (`Area: <names>`, or `Area: none`) and its
+   URL, as the card shows them; the PRD line quoted verbatim (for a spec gap, the sections
+   searched and found silent); the evidence; the root cause; the entry
    named in `Recurrence of:`, if any; and the route step 5 takes for that class. Ask whether the
    class is right through **The decision inbox** below, with the gate `error-class:<E-nnn>`, or
    headless or in the chat as step 4 says, and end the turn to wait for the reply.
