@@ -1,5 +1,5 @@
 """pack-authoring: `prd_pack.py check` (FR-059; test-cases/pack-authoring.yaml)."""
-from pack_authoring_support import KP1, KP2, KP3, KP4, KP5, KP6, K0, PACK, one_json, run
+from pack_authoring_support import KP1, KP2, KP3, KP4, KP5, KP6, KP8, K0, PACK, one_json, run
 
 CHECK = ("check", "plug/prd-packs/leaflet", "north/docs/prd/north", "south/docs/prd/south")
 CHECK_JSON = ("check", "--json", "plug/prd-packs/leaflet", "north/docs/prd/north", "south/docs/prd/south")
@@ -87,3 +87,18 @@ def test_check_json(tmp_path, monkeypatch):
              "message": "no bad.* sample; add a file the validator must refuse"},
         ],
     }
+
+
+def test_check_validator_fails_from_pack_folder(tmp_path, monkeypatch):
+    """@prd T-059.8"""
+    K0(tmp_path, monkeypatch)
+    KP8(tmp_path)
+    r = run(PACK, *CHECK, cwd=tmp_path)
+    assert r.code == 1, r.stdout + r.stderr
+    assert r.stderr == ""
+    assert r.lines == [
+        "north/docs/prd/north/prd.md: contract type pages: validator fails from the pack folder: "
+        "Traceback (most recent call last):",
+        "south/docs/prd/south/prd.md: contract type pages: validator fails from the pack folder: "
+        "Traceback (most recent call last):",
+    ]

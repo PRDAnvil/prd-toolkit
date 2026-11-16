@@ -249,6 +249,16 @@ def KP3(tmp: Path) -> None:
     write(path, text.replace(old, '"no-such-runner tests/unit"'))
 
 
+def KP8(tmp: Path) -> None:
+    """Step KP8: the pages validator first reads `prd.md` by a relative path (the bytes spell `prd.md`)."""
+    path = the_pack(tmp) / "pack.yaml"
+    text = read(path)
+    old = "import sys; sys.exit(any(not open(f)"
+    assert text.count(old) == 1, f"setup: {path}: {text.count(old)} of {old!r}"
+    write(path, text.replace(old, "import sys, os; os.stat(bytes((112, 114, 100, 46, 109, 100))); "
+                                  "sys.exit(any(not open(f)"))
+
+
 def KP4(tmp: Path) -> None:
     path = the_pack(tmp) / "pack.yaml"
     write(path, read(path) + "colour: green\n")
