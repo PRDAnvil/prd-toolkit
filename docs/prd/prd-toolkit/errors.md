@@ -288,3 +288,20 @@ Evidence: Report from a repository that vendors prd-toolkit, 2026-11-15, after h
 Diagnosis: Reproduced once in a scratch repository: a PRD whose section 5 holds an enforced row with the glob `**/*.py` and a linter that refuses a line over 88 characters; after `prd hooks install` from the plugin, `git add .prd-toolkit` and `git commit` is refused by the pre-commit hook with `prd-toolkit: ... failed (exit 1) on .prd-toolkit/prd_block.py, .prd-toolkit/prd_build_check.py, ...`. Root cause: `pre_commit` in `prd-toolkit/scripts/prdlint/githook.py` gives a standards row every staged file its glob matches, and the generated CI job (`standards-<n>` in `prd-toolkit/scripts/prdlint/hooks.py`) lists every tracked file the glob matches; neither leaves out the vendored copy `.prd-toolkit/`, which must stay byte for byte what the plugin ships and so can never be changed to pass a repository's own linter. The same code is in every release since the hooks were written. Class against the PRD: no requirement, contract or test case covers the standards run of the commit hook or of the generated CI (searched every features file, nfr.md and testing.md for the standards run, pre-commit and the vendored copy; adoption.md maps `githook.py` and `hooks.py` in `trace-and-hooks`, which is not started), so the PRD does not say which files a standards row is run on. The fix adds a requirement that a standards row is never run on a file under `.prd-toolkit/`, in the hook and in the generated CI job, with test cases, then the code.
 Resolution: T-068.3 [integration], PRD 7.1.0, fixed in 27aab93
 Recurrence of: -
+
+### E-026 Approving a lift leaves the vendored pack uncommitted
+Detected: 2026-11-16, review of the 0.8.12 skill text
+Classification: unclassified
+Touches: FR-060
+Evidence: Review of the 0.8.12 skill text, 2026-11-16, in a scratch repository whose vendored copy was committed before the lift:
+  prd change pack docs/prd/south leaflet 0.1.0 --lift, then prd hooks install docs/prd/south, the verdict, then prd change approve.
+  The approval commit holds CLAUDE.md, docs/prd/README.md, docs/prd/south/README.md and docs/prd/south/prd.md.
+  git status --porcelain after it:
+   M .prd-toolkit/pack-sources.json
+  ?? .prd-toolkit/packs/leaflet/
+  A clone of the approval commit, with no plugin installed, fails lint with exit 1:
+  pack leaflet 0.1.0 ... not found, and two contracts-valid findings.
+  After a version move (prd change pack without --lift) the approval commit holds the re-vendored pack and pack-sources.json.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
