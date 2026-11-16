@@ -804,4 +804,98 @@ def pack(repo_root: Path, prd_root: Path, name: str, version: str, today: str) -
         raise
 
 
+# ---------------------------------------------------------------- pack --lift
+
+def _with_cell(line: str, index: int, text: str) -> str:
+    """`line` with the text between cell `index`'s two `|` (0-based, the pipes markdown.split_cells splits on: not
+    escaped, not inside backticks) replaced by `text`; a last cell with no closing `|` runs to the line's end."""
+    pipes, in_code, i = [], False, 0
+    while i < len(line):
+        c = line[i]
+        if c == "\\" and i + 1 < len(line) and line[i + 1] == "|":
+            i += 2
+            continue
+        if c == "`":
+            in_code = not in_code
+        elif c == "|" and not in_code:
+            pipes.append(i)
+        i += 1
+    start = pipes[index] + 1
+    end = pipes[index + 1] if index + 1 < len(pipes) else len(line.rstrip())
+    return line[:start] + text + line[end:]
+
+
+def _pack_globs(files) -> str:
+    """A pack type's `files`, a glob or a list of globs, as one cell's text: the globs joined by `, `."""
+    return ", ".join([files] if isinstance(files, str) else files)
+
+
+def _listed_packs(name: str, version: str, source: str | None) -> list:
+    """The packs `prd lint --list-packs` lists, run from these scripts, that have `name` and `version` (and `source`,
+    when given), in its order; its notes on stderr are not this command's output."""
+    import contextlib
+
+    from . import packs  # local: packs imports hooks, which imports change_approve
+
+    with contextlib.redirect_stderr(io.StringIO()):
+        listed = packs.discover()
+    return [p for p in listed if p.name == name and p.version == version and (source is None or p.source == source)]
+
+
+def lift(repo_root: Path, prd_root: Path, name: str, version: str, source: str | None, today: str) -> Recorded:
+    """Move a PRD that names no pack onto pack `name` `version`, which declares the PRD's own custom contract types:
+    section 1's `- Pack:` line, the Validator cell `pack` in each section 7 custom row of a type the pack declares,
+    recorded as a patch (§14 row `pack <name> <X.Y.Z> lifted; pending`); nothing is staged or committed (FR-060)."""
+    from .packcompare import cell, custom_rows
+
+    repo_root, prd_root = Path(repo_root).resolve(), Path(prd_root).resolve()
+    if not _SEMVER.fullmatch(version):
+        raise UsageError(f"pack: {version} is not a version X.Y.Z")
+    prd = model.load(prd_root)
+    named = _pack_lines(prd)
+    if named:
+        raise ChangeError(f"the PRD already names pack {named[0].name} at {named[0].file}:{named[0].line}; "
+                          "a lift moves a PRD that names none")
+    rel = prd_root.relative_to(repo_root).as_posix()
+    dirty = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all", "--", rel], cwd=repo_root, capture_output=True, text=True)
+    if dirty.returncode != 0 or dirty.stdout.strip():
+        raise ChangeError(f"{rel} has uncommitted changes; commit or set them aside first")
+    hits = _listed_packs(name, version, source)
+    if not hits:
+        at = f" ({source})" if source is not None else ""
+        raise ChangeError(f"no pack {name} {version}{at} is on this machine; prd lint --list-packs lists the packs it finds")
+    if len(hits) > 1:
+        raise ChangeError(f"pack {name} {version} comes from more than one source: {', '.join(p.source for p in hits)}; "
+                          "name one with --source <source>")
+    chosen = hits[0]
+    rows = custom_rows(prd)
+    for ct in chosen.contract_types:
+        mine = [r for r in rows if cell(r.cells[0]) == ct["type"]]
+        if not mine:
+            raise ChangeError(f"contract type {ct['type']} of pack {name} is not a custom row of section 7")
+        have, want = cell(mine[0].cells[1]), _pack_globs(ct["files"])
+        if have != want:
+            raise ChangeError(f"contract type {ct['type']}: section 7 has {have}, pack {name} has {want}")
+    s1 = _section(prd, 1)
+    if s1 is None:
+        raise ValueError("prd.md has no section 1")
+    after = max((n for n, t in s1.body if t.startswith("- ")), default=s1.line)  # 1-based: the new line follows it
+    declared = {ct["type"] for ct in chosen.contract_types}
+    path = prd_root / "prd.md"
+    was = path.read_bytes()
+    raw = was.decode("utf-8")
+    eol = "\r\n" if "\r\n" in raw else "\n"
+    lines = raw.replace("\r\n", "\n").split("\n")
+    for r in rows:
+        if cell(r.cells[0]) in declared:
+            lines[r.line - 1] = _with_cell(lines[r.line - 1], 2, " pack ")
+    lines.insert(after, f"- Pack: {name} {version} ({chosen.source})")  # section 1 comes before section 7
+    try:
+        path.write_bytes(eol.join(lines).encode("utf-8"))
+        return record(repo_root, prd_root, "HEAD", "patch", f"pack {name} {version} lifted", today)
+    except BaseException:  # a refused record leaves prd.md as it was
+        path.write_bytes(was)
+        raise
+
+
 from .change_approve import Approved, approve  # noqa: E402,F401  (the approve step lives in its own module)

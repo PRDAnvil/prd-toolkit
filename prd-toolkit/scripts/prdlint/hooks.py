@@ -12,7 +12,7 @@ from pathlib import Path
 from . import change_approve, standardsrun
 
 VENDOR_DIR = ".prd-toolkit"
-VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "prd_help.py", "prd_practices.py", "requirements.txt", "prd")
+VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "prd_help.py", "prd_practices.py", "prd_pack.py", "requirements.txt", "prd")
 HELP_FILE = "help.yaml"  # references/help.yaml in the plugin, .prd-toolkit/help.yaml vendored (AC-037.2)
 LAUNCHER = "prd"  # the sh launcher: .prd-toolkit/prd
 MARKER = "# prd-toolkit hook"
