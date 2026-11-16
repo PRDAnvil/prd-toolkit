@@ -279,6 +279,7 @@ Recurrence of: -
 ### E-025 The pre-commit standards run lints the vendored .prd-toolkit/ copy, so a re-vendor commit can be refused
 Detected: 2026-11-15, user report from a repository that vendors 0.8.11
 Classification: spec gap
+Confirmed: 2026-11-15, "spec gap is right, add it to the change"
 Evidence: Report from a repository that vendors prd-toolkit, 2026-11-15, after hooks install from the 0.8.11 plugin (vendored copy 0.8.4 to 0.8.11):
   The PRD's section 5 has an enforced row whose glob is **/*.py and whose linter enforces a line length the toolkit's own scripts do not keep.
   git add .prd-toolkit && git commit (a vendor-only commit, Refs: none) was refused by the pre-commit hook:
