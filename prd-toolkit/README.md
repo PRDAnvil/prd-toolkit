@@ -58,6 +58,7 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 | `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
 | `/prd-toolkit:prd-change-set [<CS-nnn> \| <text>]` | `prd-toolkit:coordinating-prds` | Coordinate one change across linked PRDs in several repositories: one record, one approval for every member's PRD diff, then a build (and where a link needs it, a deploy) per repository in dependency order (see Change sets) |
 | `/prd-toolkit:prd-practices [<PRD folder>] [<what to source>]` | `prd-toolkit:sourcing-practices` | Propose best-practice sources, the practices taken from them, standards rows and the skills the PRD needs, each read and quoted, as one PRD change the owner approves; install or write an approved skill only after it (see Practices) |
+| `/prd-toolkit:prd-pack <PRD folder A> <PRD folder B> [<pack name>]` | `prd-toolkit:authoring-packs` | Propose a pack from what two adopted PRDs share, each item with the PRD lines it comes from and each difference with both sides; on the owner's decisions, write it into the plugin the owner names, check it with `prd pack check` and commit it on a new branch, pushing and installing nothing |
 
 ## The prd command
 

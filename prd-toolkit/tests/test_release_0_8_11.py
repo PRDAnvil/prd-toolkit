@@ -27,8 +27,8 @@ def test_versions():
 def test_readme_counts_what_the_plugin_holds():
     skills = sorted(p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md"))
     commands = sorted(p.stem for p in (ROOT / "commands").glob("*.md"))
-    assert len(skills) == 10 and "sourcing-practices" in skills
-    assert len(commands) == 11 and "prd-practices" in commands
+    assert len(skills) == 11 and "sourcing-practices" in skills  # 0.8.12: authoring-packs
+    assert len(commands) == 12 and "prd-practices" in commands  # 0.8.12: prd-pack
     a = README.index("\n## Commands and skills\n")
     table = README[a:README.index("\n## ", a + 1)]
     assert "| `/prd-toolkit:prd-practices [<PRD folder>] [<what to source>]` | `prd-toolkit:sourcing-practices` |" in table

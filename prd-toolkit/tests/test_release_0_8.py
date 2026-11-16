@@ -112,7 +112,7 @@ def test_format_documents_pack_resolves_messages():
     f = flat(FORMAT)
     for msg in ("Pack: must be <name> <X.Y.Z> (<source>)",
                 "Output language: must be a BCP 47 tag such as es or pt-BR",
-                "Target: must be pack <name> <X.Y.Z> (<source>)[, output language <code>] or output language <code>",
+                "Target: must be one or more of pack <name> <X.Y.Z> (<source>), output language <code> and url <address>, comma-separated, in that order",  # 0.8.12
                 "Target: must come before the first requirement",
                 "Target: must come after the file's level-1 heading",
                 "vendored <name> <v1>, the PRD names <v2>; run prd_hooks.py install",

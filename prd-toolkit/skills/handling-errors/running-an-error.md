@@ -88,12 +88,22 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    runs the test or the command. With nothing to quote, leave out `--evidence-file`. Then:
 
    ```bash
-   <scripts>/prd error new docs/prd/<slug> --title '<the error in one line>' --source '<where it came from>' --touches <IDs> --evidence-file <TMP>/evidence.txt; echo "prd-error-exit=$?"
+   <scripts>/prd error new docs/prd/<slug> --title '<the error in one line>' --source '<where it came from>' --touches <IDs> --evidence-file <TMP>/evidence.txt --url '<address>'; echo "prd-error-exit=$?"
    ```
 
    `--source` says where it came from: `user report (/prd-toolkit:prd-error)`,
    `failing test T-001.2`. `--touches` takes the requirement IDs the error concerns, as
-   `FR-001,FR-002`; leave it out when none is known yet. It prints the new `E-<nnn>`. Never write an
+   `FR-001,FR-002`; leave it out when none is known yet. `--url` takes the address the report or
+   the failure gives for where the trouble is (a page, a dashboard, a failed run), exactly as given:
+   it becomes the entry's `URL:` line, the link its card in the decision inbox shows. Leave it out
+   when they give none; never guess or build one. An address that is not `http://` or `https://`,
+   or holds white space, is refused
+   (`refused: URL: must start with http:// or https:// and hold no white space`): report it as
+   given and record the entry without it. It prints the new `E-<nnn>`. An address given later is
+   set, or replaced, with
+   `<scripts>/prd error url docs/prd/<slug> <E-nnn> '<address>'; echo "prd-error-exit=$?"` (`-` in
+   place of the address removes it), which prints `E-<nnn> <state> <class>`, and `errors.md` is
+   committed as below, with the message `docs(prd): set the URL of <E-nnn>`. Never write an
    entry or one of its lines by hand: every ledger write is a `prd_error.py` command (the one
    exception is step 6's fix of a `Resolution:` line that `check` reports wrong). Then, each its own
    call:
@@ -162,11 +172,14 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    git commit -m "docs(prd): propose <E-nnn>" -m "Refs: <E-nnn>"
    ```
 
-   Show the user: the entry and its class; the PRD line quoted verbatim (for a spec gap, the
-   sections searched and found silent); the evidence; the root cause; the entry named in
-   `Recurrence of:`, if any; and the route step 5 takes for that class. Ask whether the class is
-   right through **The decision inbox** below, with the gate `error-class:<E-nnn>`, or headless or
-   in the chat as step 4 says, and end the turn to wait for the reply.
+   Show the user: the entry and its class; its areas, as its card in the decision inbox shows them
+   (`Area: <names>`, or `Area: none`): the area of each block its `Touches:` names, then of each
+   block that owns a test case `known-failing` on it, each once (`features/<area>.md` holds the
+   block, and `nfr` for `nfr.md`); its URL when it has one; the PRD line quoted verbatim (for a
+   spec gap, the sections searched and found silent); the evidence; the root cause; the entry
+   named in `Recurrence of:`, if any; and the route step 5 takes for that class. Ask whether the
+   class is right through **The decision inbox** below, with the gate `error-class:<E-nnn>`, or
+   headless or in the chat as step 4 says, and end the turn to wait for the reply.
 4. **Confirm.** Only a reply given after the proposal counts; the request that started the loop is
    never one. Entering here for a `proposed` entry that has no reply yet, show the proposal as step
    3 says and ask the same way, with the gate `error-class:<E-nnn>`. An outcome from `wait` is the

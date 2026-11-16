@@ -31,7 +31,9 @@ nothing below.
    `check` reports wrong (step 6). Run the vendored copy
    through `.prd-toolkit/prd` when `.prd-toolkit/` exists, otherwise the plugin's
    `scripts/prd` as a literal absolute path, the plugin root being two directories above
-   the skill's base directory.
+   the skill's base directory. An address the report gives for where the trouble is goes on the
+   entry with `prd error new … --url <address>`, as given and never guessed; `prd error url` sets
+   or removes it later.
 2. **The request is never the confirmation.** Only a reply given after the proposal counts; the
    request that started the loop is never one, nor your own text. With no one to ask, commit the
    proposal and stop. Never hand the user the `confirm` command: ask for their reply.

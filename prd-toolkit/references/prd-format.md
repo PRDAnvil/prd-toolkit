@@ -181,11 +181,22 @@ first level-3 heading. Blank lines and HTML comments may stand between:
 ```
 Target: pack document 1.0.0 (prd-toolkit), output language en
 Target: output language pt-BR
+Target: output language en, url https://example.com/orders
+Target: url https://example.com/orders
 ```
 
-Either part may be omitted, not both; the parts are comma-separated, pack first. An omitted part
-inherits §1. At most one `Target:` line per file. Blocks in `nfr.md` take §1's profile. The area's
-test cases (`test-cases/<area>.yaml`) belong to its profile.
+The line holds one, two or three parts, comma-separated, each at most once and in this order:
+`pack <name> <X.Y.Z> (<source>)`, `output language <code>` and `url <address>`. An omitted pack or
+output language inherits §1. At most one `Target:` line per file. Blocks in `nfr.md` take §1's
+profile. The area's test cases (`test-cases/<area>.yaml`) belong to its profile.
+
+The `url` part is the area's URL: where its output can be opened (a page, a dashboard). It is the
+line's last part, and its address runs to the end of the line, so it may hold a comma. The address
+starts with `http://` or `https://`, has one or more characters after it, and holds no white space;
+nothing fetches it. A gate of the area (`prd gates list --json`, a card in the decision inbox)
+carries it as its `url`. §1 holds no URL line. A malformed `url` part is a `pack-resolves` finding,
+and the line is then read as a malformed `Target:` line: the area takes §1's pack and output
+language and has no URL.
 
 ### `pack-resolves` messages
 
@@ -195,7 +206,8 @@ Lint rule `pack-resolves` reports each of these on the line that holds the fault
 |---|---|
 | `Pack: must be <name> <X.Y.Z> (<source>)` | a malformed `Pack:` line |
 | `Output language: must be a BCP 47 tag such as es or pt-BR` | a malformed `Output language:` line |
-| `Target: must be pack <name> <X.Y.Z> (<source>)[, output language <code>] or output language <code>` | a malformed `Target:` line |
+| `Target: must be one or more of pack <name> <X.Y.Z> (<source>), output language <code> and url <address>, comma-separated, in that order` | a `Target:` line that names no part, names a part twice or out of order, or holds a part that is none of the three |
+| `Target: url must start with http:// or https:// and hold no white space` | a `url` part whose address is not well formed |
 | `Target: must come before the first requirement` | a `Target:` line after the file's first level-3 heading |
 | `Target: must come after the file's level-1 heading` | a `Target:` line above the level-1 heading |
 | `<Label>: repeated (first at line N); one <Label>: line per PRD` | a second `Pack:` or `Output language:` line |
@@ -715,6 +727,7 @@ Detected: <date>, <source>
 Classification: code bug | spec gap | invalid requirement | environment | standard | unclassified
 Confirmed: <YYYY-MM-DD>, "<the user's reply, verbatim>"
 Touches: <requirement IDs or ->
+URL: <address>
 Evidence: <a command and its output, a failing test line or a log excerpt>
   <continuation lines, indented two spaces>
 Diagnosis: <why>
@@ -750,6 +763,16 @@ added inside its range.
 `Touches:` is optional. It lists the requirement IDs (`UJ-nn`, `FR-nnn`, `NFR-nnn`) the error
 concerns, comma-separated, and `-` means none. `index-consistent` reports a `Touches:` ID that no
 block defines. The context pack's Known defects part reads it.
+
+`URL:` is optional: `URL: <address>`, at column 0, after `Touches:`. It is where the trouble is (a
+page, a dashboard, a failed run), and the entry's card in the decision inbox links to it; with none,
+the card takes the URL of the first of the entry's areas whose `Target:` line has one. The first
+`URL:` line of the entry counts, wherever it stands; a line indented two spaces after `Evidence:` is
+evidence. `prd_error.py new --url <address>` writes it, after `Touches:` (after `Classification:`
+when there is no `Touches:` line), and `prd_error.py url <prd_dir> <E-id> <address>` sets or replaces
+it later (`-` removes it). The address starts with `http://` or `https://`, has one or more
+characters after it, and holds no white space; nothing fetches it. `error-entries` reports a
+malformed one, `<E-id>: URL: must start with http:// or https:// and hold no white space`.
 
 `unclassified` is allowed only on an open entry: a deploy failure is recorded as `unclassified`
 until it is diagnosed, and `index-consistent` reports `unclassified` on a resolved entry.
