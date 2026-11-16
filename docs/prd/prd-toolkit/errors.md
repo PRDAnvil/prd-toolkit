@@ -337,6 +337,7 @@ Recurrence of: -
 ### E-029 pack check reports nothing when a validator cannot be found or run from the pack folder on its second run
 Detected: 2026-11-16, builder report, build pack-authoring FR-059 --fixes E-027
 Classification: spec gap
+Confirmed: 2026-11-16, "spec gap is right, leave it unfixed"
 Touches: FR-059
 Evidence: Report of the builder that fixed E-027 (build pack-authoring FR-059, 2026-11-16):
   On the second run from the pack folder, a validator that is not found or cannot be run gives no finding.
