@@ -44,13 +44,13 @@ claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-p
   `prd` command fails. It is not a case of the suite.
 
 **The existing cases of the skills whose text changed** (authoring, adopting, changing, building, the builder agent),
-28 cases, one run each:
+25 cases, one run each:
 
 - **Ran, 11 cases, all 1.00 with the plugin:** `authoring-asks-packaging` (/ 0.00), `authoring-new-prd` (/ 0.00),
   `authoring-not-for-readme` (/ 1.00), `adopting-fix-restates-asks` (/ 0.67), `adopting-trigger` (/ 0.00),
   `changing-major-bump` (/ 0.00), `changing-new-id-not-reused` (/ 0.00), `changing-uses-prd-change` (/ 0.50),
   `change-uses-context-pack` (/ 0.67), `builder-checks-branch` (/ 0.80), `building-not-for-plain-code` (/ 1.00).
-- **Could not run, 15 cases (E-022):** in the sandbox every `prd` command of a scaffold that holds a `.venv` exits 2
+- **Could not run, 14 of them and the new `builder-reports-practices` (E-022):** in the sandbox every `prd` command of a scaffold that holds a `.venv` exits 2
   with uv's `Failed to inspect Python interpreter from virtual environment at .venv/bin/python` (the scaffold's
   interpreter link points at a uv-managed Python the sandbox may not read), so the session stops at its first command
   and the scores say nothing of the skill: `builder-document-no-unit`, `builder-reports-practices`,
@@ -65,7 +65,7 @@ claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-p
 
 **Result:** every case that could run passes at 1.00 with the plugin and none has a Δ at or below zero except
 `authoring-not-for-readme` and `building-not-for-plain-code`, the two negative cases, which score 1.00 either way.
-Sixteen cases could not run, fifteen of them existing ones, for a cause that is not this release's.
+Fifteen cases could not run, fourteen of them existing ones, for a cause that is not this release's.
 
 ## 0.8.8 baseline
 
