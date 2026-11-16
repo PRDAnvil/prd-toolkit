@@ -234,3 +234,44 @@ Evidence: Final review of the 0.8.10 branch, 2026-11-15:
 Diagnosis: Reproduced once on a scratch copy of fixture status-next/base whose section 13 line is `- Trailing spaces?` followed by three spaces: `prd status` prints `2. An open question waits: Trailing spaces?` then the three spaces and a full stop. Root cause: `_open_questions` in `prd-toolkit/scripts/prdlint/nextpart.py` keeps the trailing spaces of a section 13 line, and `_sentence` then finds no closing mark at the end and adds a full stop. Class against the PRD: the code does what the criteria say. AC-044.2 says "a line that starts with `- ` begins a question whose text is the line without its `- `", so the spaces are part of the text, and AC-047.1 adds no full stop only "Where the text a sentence of FR-043 to FR-046 inserts last already ends in `.`, `?` or `!`", which a text ending in spaces does not. The criteria are wrong for a line that ends in white space: the title of FR-047 is "A sentence ends with one full stop", and the sentence the reader sees ends with two marks. The fix revises AC-044.2 (the text of a question has no leading or trailing white space) with a test case, then the code.
 Resolution: -
 Recurrence of: -
+
+### E-022 The prd launcher fails when the working directory holds a .venv whose interpreter cannot be read
+Detected: 2026-11-15, eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15)
+Classification: spec gap
+Confirmed: 2026-11-15, "spec gap is right, start task 5"
+Evidence: Eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15), in the eval sandbox, in a scaffold repository that holds a .venv:
+  <plugin>/scripts/prd lint docs/prd/notes; echo "prd-lint-exit=$?"
+  error: Failed to inspect Python interpreter from virtual environment at `.venv/bin/python`
+    cause: Failed to query Python interpreter
+    cause: failed to canonicalize path `<tmp>/home/cwd/.venv/bin/python`: Operation not permitted (os error 1)
+  The same from prd context and prd status. Fifteen of 34 eval cases stopped at their first prd command.
+  The same case (building-trigger) fails the same way against the released 0.8.10 plugin.
+Diagnosis: Reproduced once outside the eval sandbox: in a folder whose `.venv/bin/python` is a link into a directory with no read permission (and a `pyvenv.cfg` beside it), `prd-toolkit/scripts/prd --version` prints uv's `error: Failed to inspect Python interpreter from virtual environment at .venv/bin/python` with the cause `failed to canonicalize path`, and exits 2 before any script runs. Root cause: the launcher runs `uv run --quiet --no-project --project "$here" --python ">=3.11" --with-requirements …`, and uv, looking for an interpreter, inspects a `.venv` in the working directory first and treats one it cannot read as a hard error instead of passing over it. In the eval sandbox the scaffold's `.venv` links to a uv-managed Python under the home directory, which the sandbox does not let the session read, so every `prd` command of 15 of the 34 cases run for 0.8.11 failed; one of them, run against the released 0.8.10 plugin, fails the same way, so 0.8.11 did not cause it. The same cases ran in the 0.8.8 baseline of 2026-11-14 with the same uv and Claude Code versions; what changed on the machine since is not found. Class against the PRD: no requirement, contract or test case covers the launcher (searched features/lint-cli.md, features/help.md, features/status-next.md, features/practices.md, nfr.md and testing.md for the launcher, uv and a repository `.venv`; adoption.md maps `prd-toolkit/scripts/prd` in `trace-and-hooks`, which is not started), so the PRD is silent on what the launcher does when the repository's own environment cannot be read. A fix would make the launcher ignore the working directory's environment (the uv option or variable to be confirmed against uv's documentation) and add a test with an unreadable `.venv`.
+Resolution: -
+Recurrence of: -
+
+### E-023 An error-class answer given in the inbox is committed in every worktree that holds the PRD
+Detected: 2026-11-15, user report from a repository that vendors 0.8.10
+Classification: unclassified
+Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
+  The repository has its main checkout on one branch and a worktree on another; both hold the PRD folder.
+  From the worktree: prd gates serve <prd> --gate approval:<branch>, and prd gates wait.
+  In that inbox the owner also answered eleven error-class gates, E-001 to E-011 ("Confirm the class (form)").
+  Each confirmation was committed twice: once on the worktree's branch and once on the main checkout's branch,
+  eleven `docs(prd): confirm E-nnn` commits on each side with identical errors.md content.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
+
+### E-024 hooks check reports a hook stale after hooks install's own instruction for core.hooksPath is followed
+Detected: 2026-11-15, user report from a repository that vendors 0.8.10
+Classification: unclassified
+Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
+  core.hooksPath is set to the repository's own .git/hooks. Its commit-msg and pre-commit were toolkit shims from an
+  earlier release (header "# prd-toolkit hook (prd_hooks.py install <prd>); ...", one uv run --script ... prd_git_hook.py line).
+  prd hooks install said: "core.hooksPath is set to ...; no shim written; replace its uv run --script ... prd_git_hook.py
+  line in .../commit-msg with this line: <line>".
+  After that line was replaced exactly as told, prd hooks check still said: "stale: .../commit-msg; run prd_hooks.py install".
+Diagnosis: -
+Resolution: -
+Recurrence of: -

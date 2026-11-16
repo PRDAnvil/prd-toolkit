@@ -14,13 +14,13 @@ def flat(s: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.10"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     assert "what a PRD needs next" in plugin["description"]
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.10", plugin["description"])]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.10"
-    assert "Version 0.8.10." in README
+        (plugin["version"], plugin["description"])]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in README
 
 
 def test_readme_has_the_status_section():

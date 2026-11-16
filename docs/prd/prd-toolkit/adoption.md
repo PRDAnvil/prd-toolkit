@@ -25,3 +25,4 @@
 | release | not started | `prd-toolkit/.claude-plugin/**`, `prd-toolkit/README.md`, `prd-toolkit/LICENSE`, `prd-toolkit/NOTICE`, `prd-toolkit/pyproject.toml`, `prd-toolkit/uv.lock` |
 | help | adopted | `prd-toolkit/scripts/prd_help.py`, `prd-toolkit/scripts/prdlint/helpcat.py`, `prd-toolkit/references/help.yaml` |
 | status-next | adopted | `prd-toolkit/scripts/prdlint/nextpart.py` |
+| practices | adopted | `prd-toolkit/scripts/prd_practices.py`, `prd-toolkit/scripts/prdlint/practices.py`, `prd-toolkit/scripts/prdlint/rules/practices.py` |

@@ -27,7 +27,7 @@ CLI_YAML = PRD_DIR / "contracts" / "cli.yaml"
 # The catalogue the toolkit ships, when it runs from the plugin (AC-037.2).
 SHIPPED = REPO / "prd-toolkit" / "references" / "help.yaml"
 
-# RULES: the 40 rule names of T-003.1 (test-cases/lint-cli.yaml), sorted; platform-word is the
+# RULES: the 41 rule names of T-003.1 (test-cases/lint-cli.yaml), sorted; platform-word is the
 # only one of severity warn.
 RULES = [
     "ac-ears", "ac-has-test", "assumption-indexed", "change-sets",
@@ -36,7 +36,7 @@ RULES = [
     "glossary-synonym", "id-format", "id-removed-reused", "id-unique",
     "index-consistent", "judged-case", "language-table", "links-format",
     "markers-open", "nfr-bound", "open-questions-empty", "pack-resolves",
-    "placeholder", "platform-word", "production-gate", "registries",
+    "placeholder", "platform-word", "practices", "production-gate", "registries",
     "runbook-env", "runbook-steps", "runbook-tests", "schema-refs",
     "sections", "snapshot-cited", "sufficiency", "test-cases-consistent",
     "test-level", "test-refs", "upstream-refs", "vague-word",

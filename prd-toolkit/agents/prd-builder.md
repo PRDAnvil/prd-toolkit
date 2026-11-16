@@ -57,6 +57,10 @@ these rules:
 - Run each `enforced` Standards-registry linter on the files you changed that match its glob.
 - For each `required` Skills-registry row your change touches, Read that skill's `SKILL.md` (you
   have no Skill tool) and follow it; one you cannot find is a QUESTION.
+- When the pack has a Practices part, follow each item (`P-nn (S-nn): <practice>`) in the files you
+  change, and report each once: `P-nn: followed` or `P-nn: not applicable (<why>)` as a CHANGES line
+  after the file lines, or `P-nn: not followed (<why>)` as a QUESTIONS line, a question for the
+  caller as a required skill you cannot find is. A part that says `None.`, or none, needs nothing.
 - A tester's test that looks wrong is a QUESTIONS line
   `<T-id>: test dispute: "<assertion, verbatim>" vs "<ac:/expect quote, verbatim>"`, never an edit.
 - Commit on the round branch with `git commit -m "<subject>" -m "Refs: <IDs>"`; never `--no-verify`,

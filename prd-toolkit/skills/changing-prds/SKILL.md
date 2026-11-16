@@ -170,6 +170,9 @@ nothing existing is minor, and one whose meaning changes is major; a test case o
 corrected to match its own unchanged AC is the patch below, and any other changed `expect` or
 contract item is major; a new test case under an unchanged AC adds a test expectation, so minor,
 unless it is a regression patch; any other file is decided by what its change does to behaviour.
+A change to `practices.md` is decided by the Level table, read this way: a new source or practice is
+minor, a practice reworded with its meaning kept is patch, and a removed practice or a source moved
+to `declined` is minor.
 Never hand the decision to the user, and never take `needs judgment` as leave to pick the lowest
 level.
 
@@ -236,7 +239,7 @@ so you count instead of it.
 2. **Edit the PRD.** New behaviour gets new IDs, each from `ids next`, its own Bash call:
    `<scripts>/prd change ids next docs/prd/<slug> <kind>; echo "prd-change-exit=$?"`,
    where `<kind>` is `FR`, `NFR`, `UJ`, `AC-<nnn>` (the next AC of block nnn) or `T-<nnn>` (the next
-   T-id of requirement nnn). It prints the ID and reads the files on disk, so write each ID into the
+   T-id of requirement nnn), or `S` and `P` for a source and a practice of `practices.md`. It prints the ID and reads the files on disk, so write each ID into the
    PRD before you ask for the next one of the same kind, and a new block's heading before its first
    `AC-<nnn>`. Use the ID it prints; never count one yourself, however obvious the next number
    looks: the count misses removed IDs and T-ids that survive only in §14. Changed and new
@@ -287,7 +290,11 @@ so you count instead of it.
    the dry-run record step 4 makes: `dry run T-002.3, T-003.3, 0 open questions, 1 dismissed by quote`,
    `no dry run (removal only)`, `no dry run (unit only)` or `no dry run (wording only)`. Step 5's
    `approve` writes it there.
-4. **Lint and dry run.** The `prd-lint-exit=` value must be `0`. Then dry-run the new and revised T-ids only, never a
+4. **Lint and dry run.** The `prd-lint-exit=` value must be `0`. When the folder holds `practices.md`,
+   answer each practice with Applies to `prd` that
+   `<scripts>/prd practices docs/prd/<slug>; echo "prd-practices-exit=$?"` lists (its own Bash call),
+   yes or no with the PRD line that shows it, as the quality checklist does; a no is a gap in the
+   change: fix the PRD. Then dry-run the new and revised T-ids only, never a
    `level: unit` one: unit cases read code, stay with the builder and are never sampled, as in
    authoring phase 6, where exit 1 from `--sample-tids` fails the gate. An empty slot is not a
    dry run and never passes; when every new and revised T-id is unit, record

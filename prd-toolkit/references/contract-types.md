@@ -317,7 +317,11 @@ A pack's contract type is a §7 row with the Validator cell `pack`:
 Manifest keys: `pack` (the folder name), `version` and `toolkit` (a version range) are required;
 `description`, `contract-types` (`{type, files, validator}`), `target-kinds` (a kind and the type its names
 resolve in), `levels`, `harness`, `standards`, `skills`, `vocabulary`, `builder-tests` (`unit` or `none`),
-`rubrics`, `clarify`, `grader` and `languages` are optional. `toolkit:` is comma-separated clauses, each an
+`rubrics`, `clarify`, `grader`, `languages` and `sources` (`{title, location, covers}`) are optional.
+`sources` lists the sources the pack's author recommends for its platform: a list whose every item is a
+mapping with `title`, `location` and `covers`, each a string (other keys beside them are allowed). Nothing
+mechanical reads it: `/prd-toolkit:prd-practices` proposes each item as a `proposed` source of
+`practices.md`, after reading it. `toolkit:` is comma-separated clauses, each an
 operator (`>=`, `>`, `<=`, `<`, `==` or `!=`) and a version `X`, `X.Y` or `X.Y.Z`; every clause must hold.
 `~=` and wildcards (`==0.8.*`) are not accepted.
 

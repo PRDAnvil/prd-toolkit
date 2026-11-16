@@ -111,6 +111,8 @@ prd_help:
     - kind.T
     - kind.E
     - kind.CS
+    - kind.S
+    - kind.P
     - block.title
     - block.status
     - block.flow
@@ -148,7 +150,62 @@ prd_help:
     - table.assumptions
     - marker.assumption
     - marker.needs_clarification
+    - file.practices
+    - table.sources
+    - table.practices
   encoding: "stdout and stderr are UTF-8 whatever the locale when run as a script (FR-035)"
   exit_codes:
     0: "the index, an entry, a rule, the JSON document, --interface or --help"
     2: "an unknown key or rule, a usage error, an unsupported --json=N without --interface, or a catalogue that cannot be used (FR-036)"
+prd_practices:
+  invocation: "uv run --script prd-toolkit/scripts/prd_practices.py [--paths PATH [PATH ...]] [--json] [--interface] prd_dir; through the launcher, prd practices"
+  arguments:
+    prd_dir: "the PRD folder; required unless --interface is given; it comes before --paths, which takes every argument after it (FR-050, FR-052)"
+    --paths PATH [PATH ...]: "print only the code practices whose glob matches one or more of the paths, each path relative to the repository root, as written (FR-050); with --json, limit practices to them (FR-051)"
+    --json: "print one JSON document instead of text; --json=1 is the same, any other --json=N is refused (FR-051, FR-052)"
+    --interface: "print the interface number 1; the folder is not read and a --json=N is not checked (FR-051)"
+    "-h, --help": "print the help to stdout"
+  output:
+    source_line: "stdout: <id> (<decision>, read <read>): <title>, <location>; covers <covers>, one line per source in the table's order (FR-050)"
+    practice_line: "stdout: <id> (<source>, <applies to>, <glob>): <practice>, one line per practice in the table's order, after the source lines; with --paths, only the matching code practices and no source line (FR-050)"
+    json_document: 'stdout, --json: one line, {"interface": 1, "kind": "practices", "sources": [{"id", "title", "location", "covers", "read", "decision", "line"}], "practices": [{"id", "source", "glob", "applies_to", "practice", "line"}]}; each value a string but line, a number (FR-051)'
+    json_error: 'stdout, --json on exit 2: one line, {"interface": 1, "kind": "practices", "error": <message>} (FR-052)'
+    interface: "stdout, --interface: 1 (FR-051)"
+    not_a_prd: "stderr: prd_practices: <resolved folder>: no prd.md, optionally followed by ; found <name>; the file name is lowercase prd.md (FR-052)"
+    internal_error: "stderr: prd_practices: internal error: <exception type>: <message> (FR-052)"
+    usage: "stderr: usage: prd_practices.py [-h] [--paths PATH [PATH ...]] [--json] [--interface] prd_dir, one line whatever the terminal width (FR-052)"
+    argparse_error: "stderr: usage line, then prd_practices.py: error: <argparse message> (FR-052)"
+    unsupported_interface: "stderr, --json=N with N other than 1 and no --interface: prd_practices: unsupported interface <N>; this toolkit speaks 1 (FR-052)"
+  encoding: "stdout and stderr are UTF-8 whatever the locale when run as a script (FR-051)"
+  lint_findings:
+    # What prd lint (prd_lint, AC-001.2's finding line) prints for the rule practices (FR-049), on a PRD folder that
+    # holds practices.md; each at its row's line, in practices.md unless the item says prd.md.
+    id_form: "practices.md: source ID '<id>' is not S- and two digits | practice ID '<id>' is not P- and two digits (FR-049)"
+    id_unique: "practices.md: <id> is already defined at practices.md:<line> (FR-049)"
+    decision: "practices.md: source <id>: Decision '<decision>' is not one of approved, declined, proposed (FR-049)"
+    proposed_on_approved: "practices.md: source <id> is still 'proposed' but the PRD is Approved (FR-049)"
+    practice_source: "practices.md: practice <id>: source '<source>' is not in the Sources table | practice <id>: source <source> is '<decision>', not approved (FR-049)"
+    applies_to: "practices.md: practice <id>: Applies to '<value>' is not code or prd (FR-049)"
+    code_glob: "practices.md: practice <id>: a code practice needs a glob in Object (glob) (FR-049)"
+    read_date: "practices.md: source <id>: Read '<read>' is not a date YYYY-MM-DD (FR-049)"
+    standards_source: "prd.md: standards row names <S-id>, which is not in practices.md | standards row names <S-id>, which is '<decision>' in practices.md, not approved (FR-049)"
+  exit_codes:
+    0: "the listing, printed or empty, the JSON document, --interface or --help"
+    2: "a usage error, an unsupported --json=N without --interface, a folder without prd.md, or an internal error (FR-052)"
+prd_change:
+  # Only what the practices area needs so far; the change area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_change.py ids next <prd_dir> <kind> [--json]; through the launcher, prd change ids next"
+  kinds: "FR, NFR, UJ, S (the next source ID, FR-054), P (the next practice ID, FR-054), AC-<nnn> or T-<nnn>"
+  output:
+    next_id: "stdout: the next free ID of the kind, one line (FR-054)"
+    json_document: 'stdout, --json: one line, {"interface": 1, "kind": "change.ids", "next": <the ID>} (FR-054)'
+    unknown_kind: "stderr: refused: unknown kind <kind>; use FR, NFR, UJ, S, P, AC-<nnn> or T-<nnn> (FR-054)"
+  exit_codes:
+    0: "the next ID printed"
+    1: "an unknown kind (FR-054)"
+prd_context:
+  # Only what the practices area needs so far; the context area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_context.py [--area AREA] [--req ID[,ID...]] [--for {decide,implement}] [--context N] [--json] [--interface] [prd_dir]; through the launcher, prd context"
+  implement_parts: "Header, Stack, Glossary, Requirements, Code, Practices, Levels, Harness defaults, Rubric conventions, Cited, Upstream contracts, Known defects, Open questions, History; a part with nothing to hold is left out or holds None. as before; Practices only when the PRD folder holds practices.md, holding None. when no code practice matches, and with no practices.md the pack is unchanged (FR-055)"
+  practices_item: "text: <id> (<source>): <practice>, one item per matching code practice; JSON: a parts entry {\"title\": \"Practices\", \"id\", \"file\": \"practices.md\", \"line\", \"text\", \"stale\": false, \"counted\": true, \"moved\": null} (FR-055)"
+  json_document: 'stdout, --json: one line, {"interface": 1, "kind": "context", "prd", "mode", "area", "ids", "parts": [<part entry>, …]}, the parts in the text pack''s order (FR-055)'

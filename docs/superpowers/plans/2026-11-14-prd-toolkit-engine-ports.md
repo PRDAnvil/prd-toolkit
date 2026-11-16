@@ -1,4 +1,4 @@
-# prd-toolkit: the open 0.8.x items and the prd-engine ports, in priority order — plan
+# prd-toolkit: the open 0.8.x items and four ideas from an earlier prototype, in priority order — plan
 
 > **Date:** 2026-11-14
 > **Author:** Ivan Histand & Claude Code
@@ -19,15 +19,17 @@
 > **Decided later (owner, 2026-11-15, in the 0.8.11 brainstorm):** 0.8.11 is best-practice sources and
 > the skills a PRD needs; pack authoring from an example repository becomes its own release, 0.8.12;
 > conversion moves to 0.8.13, its content unchanged.
-> **Source:** the review of `PRDAnvil/prd-engine` at `b6bd3e9` (v0.14.0) against prd-toolkit 0.8.6.
+> **Source:** the review of an earlier prototype of a PRD command-line tool against prd-toolkit 0.8.6.
+> The prototype is retired (owner, 2026-11-15) and its repository is gone: prd-toolkit is the only
+> line of development, and what this plan keeps from the prototype is the ideas below, restated here in full.
 
-**Goal:** Bring four ideas from prd-engine into prd-toolkit. Three are planned here: a replay that
+**Goal:** Bring four ideas from the prototype into prd-toolkit. Three are planned here: a replay that
 proves a fix turned its regression test green, one `prd` command with an Antigravity wrapper, and
 a check of the code's public surface against the contracts. The fourth, an approval the agent
 cannot forge, is deferred to the 2.0.0 roadmap (owner, 2026-11-14); its design is kept at the end
 of this document.
 
-**Shape:** One priority list (next section) over the carried 0.8.x items and four engine phases.
+**Shape:** One priority list (next section) over the carried 0.8.x items and four phases for those ideas.
 Each release has its own spec, plan, build and acceptance record, as every 0.8.x release has had. This document fixes the order, the design decisions and the
 interfaces between phases. It is not the task-level plan of any phase: each phase's spec comes
 first, then its plan (`superpowers:writing-plans`), then the build.
@@ -56,18 +58,18 @@ new Python dependency in any phase.
 | # | Release | Contents | From | Size | Needs |
 |---|---|---|---|---|---|
 | 1 | **0.8.7** | Released: merged to `main` | 0.8.7 plan | done | — |
-| 2 | **0.8.8** | **Invocation**, released: merged to `main`: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; engine | done | 0.8.7 |
+| 2 | **0.8.8** | **Invocation**, released: merged to `main`: uv environments no longer pile up per clone (PRDAnvil/prd-toolkit#2) and one `prd` command (phase 2), which share one upgrade note; the small leftovers (carried items C1 to C3); the umbrella and backlog renumbering. Delivered wider than first written: every skill, command and agent line runs the launcher (the 0.8.8 spec's Revisions) | backlog item 3; prototype | done | 0.8.7 |
 | 3 | **0.8.9** | **Help catalogue**, delivered: a machine-readable catalogue of the PRD format's fields and of every lint rule, for the terminal and for any client: `prd help`, with `--json` | owner, 2026-11-14 | done | 0.8.8 |
 | 4 | **0.8.10** | **Next part in the status report**, delivered: an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | done | 0.8.8 |
-| 5 | **0.8.11** | **Best-practice sources**, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | large | 0.8.0 |
+| 5 | **0.8.11** | **Best-practice sources**, delivered, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | done | 0.8.0 |
 | 6 | **0.8.12** | **Pack authoring** from an example repository: a pack proposed and written from two repositories that declare the same custom contract types | backlog item 1 | large | best practices |
 | 7 | **0.8.13** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
-| 8 | after 0.8.13 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | engine; backlog item 5 | small | none |
-| 9 | after 0.8.13 | **Surface check** (phase 3) | engine | medium | conversion, so the extractor key is designed once for retargeted packs |
-| 10 | after | **Antigravity wrapper** (phase 4), if its spike passes | engine | large, uncertain | the `prd` command |
+| 8 | after 0.8.13 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | prototype; backlog item 5 | small | none |
+| 9 | after 0.8.13 | **Surface check** (phase 3) | prototype | medium | conversion, so the extractor key is designed once for retargeted packs |
+| 10 | after | **Antigravity wrapper** (phase 4), if its spike passes | prototype | large, uncertain | the `prd` command |
 | — | every release | **One area adopted** in the toolkit's own PRD: `lint-ids` next, then `lint-testcases` | backlog item 2's policy | medium each | the release that last reshaped the area |
 | — | before 1.0.0 | **A production release path** (PRDAnvil/prd-toolkit#14): tagged releases from a commit that passed CI and the evals, each with its upgrade note; a marketplace entry on the latest release, with pinning and rollback; a standalone `prd` install for macOS and Linux; one version everywhere, checked by CI; a vendored copy that records the release it came from. A prerequisite for 1.0.0 (owner, 2026-11-14) | issue #14 | not sized | the `prd` command (0.8.8) |
-| — | 2.0.0 roadmap | **Signed approvals** | engine | medium | one of its three triggers |
+| — | 2.0.0 roadmap | **Signed approvals** | prototype | medium | one of its three triggers |
 
 Why this order:
 
@@ -101,10 +103,10 @@ the name is checked for clashes; downloads carry checksums; and the release runs
 toolkit PRD's own `operations.md` runbook through `/prd-toolkit:prd-deploy`. It is not ordered
 among the 0.8.x releases; it takes its place when 1.0.0 is planned.
 
-**prd-engine already prototyped priorities 5 and 6.** Its REQ-019 (best-practice sources, derived
-standards, skill acquisition) and REQ-020 (platform conversion, vocabulary warnings), with
-`practices.py` and `convert.py`, are a worked draft of both. Read them when those two specs are
-written; port ideas, not code.
+**The prototype had drafts of best-practice sources and of conversion.** What 0.8.11 took from the
+first is in its spec (`specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md`): one record of
+sources, standards and skills, approved by the owner. The conversion draft's one idea worth keeping
+is a warning for platform words, which the toolkit already has as `platform-word`.
 
 ## Carried items
 
@@ -169,8 +171,8 @@ fixed in 0dd4037`). The gap is narrower than "no receipt": nothing shows that th
 `fixed in` is what turned the test green.
 
 **Decision.** Replay from git, with no receipt file. Everything needed is already in the
-Resolution line, so the proof is recomputable by anyone, including CI. prd-engine's receipt in
-`.git/` is local and cannot be checked by a second party.
+Resolution line, so the proof is recomputable by anyone, including CI. A receipt file in
+`.git/`, as the prototype kept, is local and cannot be checked by a second party.
 
 **Files.**
 
@@ -313,7 +315,7 @@ Stdout is one document:
 ## Phase 4: Antigravity wrapper (spike first)
 
 **Why a spike.** The toolkit's black-box guarantee rests on `prd_tester_guard.py` knowing that the
-caller is `prd-tester`. What I know of Antigravity's plugin format comes only from prd-engine's
+caller is `prd-tester`. What I know of Antigravity's plugin format comes only from the prototype's
 wrapper (`plugin.json`, `hooks.json` with a `toolCall` payload, `rules/AGENTS.md`, subagents made
 with `define_subagent` and `invoke_subagent`), not from its documentation.
 
@@ -332,7 +334,7 @@ carry the toolkit's name without its main guarantee.
 **If it passes, the deliverables are:**
 
 - `prd-toolkit/plugin.json`, `prd-toolkit/hooks.json` and `prd-toolkit/rules/AGENTS.md` beside
-  the Claude Code manifest, as prd-engine laid them out.
+  the Claude Code manifest, as the prototype laid them out.
 - `prd_tester_guard.py` reads both payload shapes; one function
   `invocation(event: dict) -> tuple[str, str, str]` (kind, command, path) in front of the existing
   logic, with the existing tests run against both shapes.
@@ -360,7 +362,7 @@ Failure modes no single phase's tests own, most likely first:
 
 ## What this plan does not port
 
-- prd-engine's second implementation in Go.
+- The prototype's second implementation in Go.
 - Its environment-variable and command-regex owner check.
 - Its hash lockfile as a separate file: `change.digest` plus a signature per version gives the
   same record without a second source of truth beside `prd.md` §14.
@@ -383,7 +385,7 @@ Until then, keep required review on `main` in every repo that uses the toolkit. 
 is kept so the 2.0.0 spec starts from it.
 
 **Problem.** `change_approve.approve` writes the `docs(prd): approve <slug> <version>` commit from
-a reply string the agent supplies. prd-engine tried to solve this with an environment-variable
+a reply string the agent supplies. The prototype tried to solve this with an environment-variable
 check and a regex over Bash commands; both were bypassed in the review. A check on *who is
 calling* cannot work, because the agent runs as the owner.
 

@@ -48,6 +48,43 @@ def test_shipped_catalogue_covers_the_keys(tmp_path):
     ]
 
 
+def test_shipped_catalogue_covers_practices(tmp_path):
+    """@prd T-037.4"""
+    run_1 = run(["--json"], tmp_path)                 # PRD_HELP_FILE unset: the shipped catalogue
+    run_2 = run(["--rule", "practices"], tmp_path)
+    for r in (run_1, run_2):
+        assert r.exit == 0
+        assert r.stderr == ""
+
+    entries = json_doc(run_1)["entries"]
+    by_key = {}
+    for e in entries:
+        by_key.setdefault(e["key"], e)
+
+    assert "kind.S" in by_key, "no entry with the key kind.S"
+    assert by_key["kind.S"]["name"] == "Source"
+    assert "kind.P" in by_key, "no entry with the key kind.P"
+    assert by_key["kind.P"]["name"] == "Practice"
+
+    for key in ("file.practices", "table.sources", "table.practices"):
+        assert key in by_key, f"no entry with the key {key}"
+
+    five = ["kind.S", "kind.P", "file.practices", "table.sources", "table.practices"]
+    for key in five:
+        checked_by = by_key[key].get("checked_by")
+        assert isinstance(checked_by, list), f"{key}: checked_by is {checked_by!r}, not a list"
+        assert "practices" in checked_by, f"{key}: checked_by {checked_by!r} does not hold practices"
+
+    lines = run_2.stdout_lines
+    assert lines, "run_2 printed no stdout line"
+    assert lines[0] == "practices (error)"
+    last = lines[-1]
+    assert last.startswith("Checks: "), f"last line {last!r} does not start with 'Checks: '"
+    named = last[len("Checks: "):].split(", ")
+    missing = [k for k in five if k not in named]
+    assert missing == [], f"Checks line {last!r} does not name {missing}"
+
+
 def test_vendored_copy_answers_the_same(tmp_path, vendored):
     """@prd T-039.1"""
     run_1 = run(["--json"], tmp_path, script=vendored / "prd_help.py")

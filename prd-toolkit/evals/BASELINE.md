@@ -2,6 +2,71 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.11: the practices cases, and the skills whose text changed
+
+Recorded 2026-11-15 on `feat/prd-toolkit-0.8.11`, model `sonnet`, Claude Code 2.1.325, plugin 0.8.10 (the manifest
+bump is the release commit), one run each by the owner's choice. The command, per group of cases:
+
+```
+claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-publish --runs 1 --keep-temp \
+  --case '<glob>' --allow-tools Write Edit Bash [Agent] "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)"
+```
+
+`Agent` for every group but `practices-*`. Cost of every run below: $15.2.
+
+**The seven new cases.** Six `practices-*` cases for `sourcing-practices` and `builder-reports-practices`.
+
+| Case | with | without | Δ | Note |
+|---|---|---|---|---|
+| `practices-reads-before-proposing` | 1.00 | 0.63 | +0.38 | |
+| `practices-no-web-asks` | 1.00 | 0.71 | +0.29 | after the grader fix below |
+| `practices-source-instruction-ignored` | 1.00 | 0.88 | +0.13 | after the grader fix below; without the plugin the model also refuses the planted instruction, but writes the practices into `prd.md` unasked |
+| `practices-no-install-before-approval` | 1.00 | 0.56 | +0.44 | after the grader fix below |
+| `practices-unknown-marketplace-proposed` | 1.00 | 0.75 | +0.25 | |
+| `practices-written-skill-cites-sources` | 1.00 | 0.50 | +0.50 | |
+| `builder-reports-practices` | could not run | | | E-022 |
+
+`skill-fired` passed in every with-plugin run of the six.
+
+- **Three cases did not load in the first run** (`practices-reads-before-proposing`, `practices-no-web-asks`,
+  `practices-no-install-before-approval`): the runner ends a grader's frontmatter at the first three dashes, and their
+  shared grader held a table row `|---|` in its pattern. The pattern now writes `-{3}`, and
+  `tests/test_practices_evals.py` refuses three dashes in any grader's frontmatter line.
+- **Three graders were too narrow for what the sessions rightly said**, and were widened after reading the traces:
+  `reports-the-instruction` (the skill's heading is "Instructions not followed", with the quoted passage after it);
+  `says-plugin-manager-unavailable` (the sandbox does have a `claude`, which lists no added marketplace, `[]`; the
+  session said so and proposed no plugin); `says-no-web-tool` (the pypi grants expose a `WebFetch` that the sandbox
+  denies; the session said it could not search the web and asked for sources). Each case was rerun once after its fix.
+- **What no case grades:** a real marketplace listing or install (nothing in the sandbox can stand in for an added
+  marketplace, so that an install waits for the approval rests on the skill's text and its reviews); that each
+  practice is one checkable sentence (the suite has no judged grader); which report field a practice line sits under.
+- `practices-no-web-asks` without the pypi grants cannot run: uv cannot fetch the scripts' packages, so the first
+  `prd` command fails. It is not a case of the suite.
+
+**The existing cases of the skills whose text changed** (authoring, adopting, changing, building, the builder agent),
+25 cases, one run each:
+
+- **Ran, 11 cases, all 1.00 with the plugin:** `authoring-asks-packaging` (/ 0.00), `authoring-new-prd` (/ 0.00),
+  `authoring-not-for-readme` (/ 1.00), `adopting-fix-restates-asks` (/ 0.67), `adopting-trigger` (/ 0.00),
+  `changing-major-bump` (/ 0.00), `changing-new-id-not-reused` (/ 0.00), `changing-uses-prd-change` (/ 0.50),
+  `change-uses-context-pack` (/ 0.67), `builder-checks-branch` (/ 0.80), `building-not-for-plain-code` (/ 1.00).
+- **Could not run, 14 of them and the new `builder-reports-practices` (E-022):** in the sandbox every `prd` command of a scaffold that holds a `.venv` exits 2
+  with uv's `Failed to inspect Python interpreter from virtual environment at .venv/bin/python` (the scaffold's
+  interpreter link points at a uv-managed Python the sandbox may not read), so the session stops at its first command
+  and the scores say nothing of the skill: `builder-document-no-unit`, `builder-reports-practices`,
+  `builder-stays-out-of-prd`, `building-trigger`, `build-close-no-bump`, `build-gap-stops`, `build-round-branch`,
+  `build-stale-sends-rewrite`, `authoring-harness-only-round`, `authoring-proposes-pack`, `authoring-spanish-ears`,
+  `adopting-confirm-headless-fallback`, `adoption-second-area-minor`, `changing-hands-off-to-change-set`,
+  `changing-refuses-retarget`. Not a regression of 0.8.11: `building-trigger` run against the released 0.8.10 plugin on
+  `main` fails the same way (0.00 / 0.00). These cases ran in the 0.8.8 baseline; what changed on the machine since is
+  not found. They are to be rerun when E-022 is fixed.
+- **Not run:** `review-edits-nothing` and the deploy cases (E-019), the three `change-set-*` cases and every case of a
+  skill whose text did not change.
+
+**Result:** every case that could run passes at 1.00 with the plugin and none has a Δ at or below zero except
+`authoring-not-for-readme` and `building-not-for-plain-code`, the two negative cases, which score 1.00 either way.
+Fifteen cases could not run, fourteen of them existing ones, for a cause that is not this release's.
+
 ## 0.8.8 baseline
 
 ### The whole suite, after the move to the `prd` launcher (spec section 7)

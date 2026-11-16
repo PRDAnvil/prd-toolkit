@@ -19,10 +19,11 @@ BUILT_IN = "prd-toolkit"  # the source of a built-in pack
 UNRECORDED = "source not recorded"  # a vendored pack with no pack-sources.json entry (vendored before the record)
 SERVICE_DEFAULT = PackRef("service", None, BUILT_IN, "", 0)  # no Pack: line; not locked
 KEYS = ("pack", "version", "toolkit", "description", "contract-types", "target-kinds", "levels", "harness", "standards",
-        "skills", "vocabulary", "builder-tests", "rubrics", "clarify", "grader", "languages")
-LISTS = ("contract-types", "levels", "standards", "skills", "vocabulary")
+        "skills", "vocabulary", "builder-tests", "rubrics", "clarify", "grader", "languages", "sources")
+LISTS = ("contract-types", "levels", "standards", "skills", "vocabulary", "sources")
 MAPPINGS = ("target-kinds", "harness")
-ITEM_KEYS = {"levels": ("level", "command"), "standards": ("object", "linter"), "skills": ("activity", "skill")}
+ITEM_KEYS = {"levels": ("level", "command"), "standards": ("object", "linter"), "skills": ("activity", "skill"),
+             "sources": ("title", "location", "covers")}  # sources: read by no script; the skill proposes them (FR-056)
 _VERSION = re.compile(r"\d+\.\d+\.\d+")
 _CLAUSE = re.compile(r"\s*(>=|<=|==|!=|>|<)\s*(\d+(?:\.\d+){0,2})\s*")
 
@@ -213,7 +214,7 @@ def load_manifest(folder: Path, source: str) -> Pack:
     for key, need in ITEM_KEYS.items():
         for i, item in enumerate(data.get(key) or []):
             if not (isinstance(item, dict) and all(isinstance(item.get(k), str) for k in need)):
-                bad(key, f"{key}[{i}] must be a mapping with {' and '.join(need)}")
+                bad(key, f"{key}[{i}] must be a mapping with {', '.join(need[:-1])} and {need[-1]}")
     for i, item in enumerate(data.get("levels") or []):
         if "timeout" in item and not (type(item["timeout"]) is int and item["timeout"] >= 1):  # bool is not a timeout
             bad("levels", f"levels[{i}]: timeout must be a whole number of seconds of at least 1")

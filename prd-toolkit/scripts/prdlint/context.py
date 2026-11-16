@@ -13,7 +13,7 @@ from .rules.contracts import _custom_types
 
 yaml = require("yaml", "pyyaml")
 
-PARTS = ("Header", "Stack", "Glossary", "Requirements", "Code", "Levels", "Harness defaults", "Rubric conventions", "Cited", "Upstream contracts", "Known defects", "Open questions", "History")
+PARTS = ("Header", "Stack", "Glossary", "Requirements", "Code", "Practices", "Levels", "Harness defaults", "Rubric conventions", "Cited", "Upstream contracts", "Known defects", "Open questions", "History")
 PARTS_REPO = ("Header", "Stack", "Areas")
 MODES = ("decide", "implement")
 
@@ -436,6 +436,35 @@ def _code(blocks: list[ReqBlock], area: str, root: Path, context: int, counted: 
     return items or [_none("Code", f"features/{area}.md")]
 
 
+def _area_paths(prd: Prd, area: str, root: Path) -> list[str]:
+    """The paths of an area (AC-055.2): each file git lists that a glob of its Boundary cell matches, and each glob
+    with no `*` and no `?` as a path; with no adoption.md, each file git lists outside the PRD folder and .prd-toolkit/."""
+    from .trace import glob_re, in_boundary
+
+    r = _git(root, "ls-files", "-z", "--cached", "--others", "--exclude-standard")
+    listed = list(dict.fromkeys(p for p in r.stdout.split("\0") if p)) if r is not None and r.returncode == 0 else []
+    if prd.adoption is None:
+        outside = in_boundary(prd, root)  # with no adoption map: outside the PRD folder and .prd-toolkit/
+        return [p for p in listed if outside(p)]
+    row = next((a for a in prd.adoption if a.area == area), None)
+    if row is None:
+        return []
+    rxs = [glob_re(g) for g in row.boundary]
+    named = [g for g in row.boundary if "*" not in g and "?" not in g]
+    return list(dict.fromkeys([p for p in listed if any(rx.match(p) for rx in rxs)] + named))
+
+
+def _practices(prd: Prd, area: str, root: Path) -> list[Item]:
+    """The `code` practices whose glob matches a path of the area (AC-055.1); no part without practices.md."""
+    from . import practices
+
+    if practices.FILE not in prd.docs:
+        return []
+    hits = practices.matching(practices.load(prd).practices, _area_paths(prd, area, root))
+    items = [Item("Practices", p.id, practices.FILE, p.line, f"{p.id} ({p.source}): {p.practice}") for p in hits]
+    return items or [_none("Practices", practices.FILE)]
+
+
 def _levels(prd: Prd) -> list[Item]:
     if "testing.md" not in prd.docs:
         return [_none("Levels", "testing.md")]
@@ -482,7 +511,7 @@ def build_pack(prd: Prd, area: str | None, req: list[str] | None, mode: str = "d
     ids = {b.id for b in blocks}
     requirements = [Item("Requirements", b.id, b.file, b.line, t) for b, t in zip(blocks, texts)]
     patterns = [_word(i) for i in sorted(ids | {ac.id for b in blocks for ac in b.acs})] + [_word(area)]
-    implement = (_code(blocks, area, repo_root or prd.root, context, asked) + _levels(prd) + _harness(prd, area) + _rubrics(prd, area)) if mode == "implement" else []
+    implement = (_code(blocks, area, repo_root or prd.root, context, asked) + _practices(prd, area, repo_root or prd.root) + _levels(prd) + _harness(prd, area) + _rubrics(prd, area)) if mode == "implement" else []
     body = (_stack(prd) + _glossary(prd, text) + (requirements or [_none("Requirements", f"features/{area}.md")])
             + implement + _cited(prd, area, blocks, text) + _upstream_contracts(prd, blocks, text) + _defects(prd, ids, entries) + _questions(prd, patterns) + _history(prd, area))
     return [_header(prd, area, mode, display, body)] + body

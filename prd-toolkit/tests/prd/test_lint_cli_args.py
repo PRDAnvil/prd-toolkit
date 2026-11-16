@@ -14,8 +14,8 @@ RULES = [
     "glossary-synonym error", "id-format error", "id-removed-reused error", "id-unique error",
     "index-consistent error", "judged-case error", "language-table error", "links-format error",
     "markers-open error", "nfr-bound error", "open-questions-empty error", "pack-resolves error",
-    "placeholder error", "platform-word warn", "production-gate error", "registries error",
-    "runbook-env error", "runbook-steps error", "runbook-tests error", "schema-refs error",
+    "placeholder error", "platform-word warn", "practices error", "production-gate error",
+    "registries error", "runbook-env error", "runbook-steps error", "runbook-tests error", "schema-refs error",
     "sections error", "snapshot-cited error", "sufficiency error", "test-cases-consistent error",
     "test-level error", "test-refs error", "upstream-refs error", "vague-word error",
 ]
@@ -26,6 +26,7 @@ USAGE = "usage: prd_lint.py [-h] [--list-rules] [--list-packs] [--ci] [--sample-
 
 def test_t003_1_list_rules(tmp_path):
     """@prd T-003.1"""
+    assert not (tmp_path / "missing").exists()  # run 2's folder does not exist
     for args in (["--list-rules"], ["--list-rules", str(tmp_path / "missing")]):
         r = run(args, cwd=tmp_path)
         assert r.exit == 0, args

@@ -41,3 +41,10 @@ judgement. Answer each with yes or no. A "no" is a gap: fix it, then re-run lint
 - [ ] Could a tester who has never seen the code write the tests from this folder alone?
 
 The last question is the dry run's job (phase 6). Treat its questions as gaps.
+
+## The PRD's own practices
+
+When the PRD folder holds `practices.md`, each practice there with Applies to `prd` is one more question
+of this checklist. List them with `prd practices docs/prd/<slug>` (the practice lines whose second value in the
+parentheses is `prd`), and answer each yes or no with the PRD line that shows it, quoted with its file. A "no" is a
+gap, like any other answer here. A `code` practice is not asked here: the builder answers it.

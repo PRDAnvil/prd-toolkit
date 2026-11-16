@@ -1,0 +1,22 @@
+# Fixture practices/texts: the whole texts the practices Setup steps write (testing.md, Setup steps); one key per
+# text. format: a practices.md with the fixture's rows (practices/repo) on the same lines, whose cells test how the
+# loader reads them: a renamed header row (line 5), backticked and padded cells (line 7), a seventh cell (line 8),
+# backticked Source and Applies to cells and a Practice cell with a `|` inside backticks (line 14), and a row with
+# no Practice cell (line 16).
+format: |
+  # Practices
+
+  ## Sources
+
+  | Id | Name | Where | About | Read on | Status |
+  |---|---|---|---|---|---|
+  | `S-01` |   Python style guide   | `https://example.com/python-style` | Python | `2026-11-01` | `approved` |
+  | S-02 | Team notes — imports | `docs/notes/imports.md` | the importer | 2026-11-02 | declined | extra |
+
+  ## Practices
+
+  | ID | Source | Object (glob) | Applies to | Practice |
+  |---|---|---|---|---|
+  | P-01 | `S-01` | `src/**/*.py` | `code` | Each public function has a docstring; `pydoc a | less` shows it. |
+  | P-02 | S-01 | `tests/*.py` | code | Each test names the case it proves in its docstring. |
+  | P-03 | S-01 | - | prd |

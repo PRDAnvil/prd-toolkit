@@ -93,13 +93,6 @@ def test_keys_are_unique_and_well_formed():
     assert bad == [], f"keys not of the form {KEY.pattern}: {bad}"
 
 
-def test_catalogue_covers_the_contract_keys():
-    listed = yaml.safe_load(CLI_YAML.read_text(encoding="utf-8"))["prd_help"]["keys"]
-    assert len(listed) == 43
-    keys = {e.get("key") for e in ENTRIES}
-    assert [k for k in listed if k not in keys] == []
-
-
 def test_no_url_or_home_path():
     texts = [(e.get("key"), t) for e in ENTRIES for t in _texts(e)]
     texts += [(name, d) for name, d in registry.DESCRIPTION.items() if name in registry.RULES]

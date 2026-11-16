@@ -20,7 +20,7 @@ yaml = require("yaml", "pyyaml")
 REVIEW_FILE = ".prd-review.json"
 README = "README.md"  # the folder's generated root guide (prd_block.py): never part of the PRD's source
 _NUM = re.compile(r"(?:UJ|FR|NFR)-(\d+)")
-_KIND = re.compile(r"^(?:(UJ|FR|NFR)|(AC|T)-(\d+))$")
+_KIND = re.compile(r"^(?:(UJ|FR|NFR)|(AC|T)-(\d+)|(S|P))$")
 _FM_DROP = re.compile(r"^(?:version|updated):")
 
 
@@ -46,11 +46,21 @@ def _max(numbers) -> int:
 
 
 def next_id(prd: model.Prd, kind: str) -> str:
-    """The next free ID of `kind` (FR, NFR, UJ, AC-<nnn> or T-<nnn>); reads only, never writes."""
+    """The next free ID of `kind` (FR, NFR, UJ, S, P, AC-<nnn> or T-<nnn>); reads only, never writes."""
     m = _KIND.match(kind)
     if not m:
-        raise ChangeError(f"unknown kind {kind}; use FR, NFR, UJ, AC-<nnn> or T-<nnn>")
+        raise ChangeError(f"unknown kind {kind}; use FR, NFR, UJ, S, P, AC-<nnn> or T-<nnn>")
     changelog_ids = " ".join(c[3] for c in _table_cells(prd, 14) if len(c) > 3)
+    if m.group(4):  # S or P: practices.md's ID cells and the changelog's IDs cells (AC-054.1, AC-054.2)
+        from . import practices
+
+        letter = m.group(4)
+        rec = practices.load(prd)
+        cells = [s.id for s in rec.sources] if letter == "S" else [p.id for p in rec.practices]
+        own = re.compile(rf"{letter}-([0-9]+)")
+        nums = [int(f.group(1)) for c in cells if (f := own.fullmatch(c))]
+        nums += [int(n) for n in re.findall(rf"(?<![\w-]){letter}-([0-9]+)(?![\w-])", changelog_ids)]
+        return f"{letter}-{_max(nums) + 1:02d}"
     if m.group(1) == "UJ":
         nums = [int(b.id[3:]) for b in prd.blocks if b.kind == "UJ"]
         nums += [int(r.id[3:]) for r in prd.index if r.id.startswith("UJ-") and r.id[3:].isdigit()]

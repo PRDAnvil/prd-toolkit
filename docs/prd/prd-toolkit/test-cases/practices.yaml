@@ -1,0 +1,1231 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, the root of the scratch repository step P0
+#   builds (testing.md, Setup steps); <resolved tmp> is Path(<tmp>).resolve(); ORDERS = <tmp>/docs/prd/orders.
+#   "python" is the interpreter running the tests (sys.executable); a CLI case runs the script as a subprocess
+#   (testing.md Harness, Lifecycle), with <tmp> as the working directory.
+#   PRACTICES = <repo>/prd-toolkit/scripts/prd_practices.py
+#   LINT      = <repo>/prd-toolkit/scripts/prd_lint.py
+#   CHANGE    = <repo>/prd-toolkit/scripts/prd_change.py
+#   CONTEXT   = <repo>/prd-toolkit/scripts/prd_context.py
+#   DISPATCH  = <repo>/prd-toolkit/scripts/prd_dispatch.py
+#   The setup steps (P0, PN, PB1, ...) run in the order a case lists them; a path in a step is inside ORDERS
+#   unless it starts with <tmp>. The fixture's practices.md has the S-01 row on line 7, S-02 on line 8, P-01 on
+#   line 14, P-02 on line 15 and P-03 on line 16; its prd.md has the section 5 row on line 45.
+#   A lint finding's path starts `docs/prd/orders/`, the folder as the command line names it (AC-002.1).
+#   `pack_part_titles` and `pack_part_lines` are the assertion keys testing.md defines (Harness, Assertions).
+
+T-048.1:
+  ac: AC-048.1
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PM]
+    cwd: <tmp>
+    runs:
+      - python LINT docs/prd/orders
+      - python PRACTICES docs/prd/orders
+      - python PRACTICES --json docs/prd/orders
+      - python CHANGE ids next docs/prd/orders S
+      - python CHANGE ids next docs/prd/orders P
+      - python CONTEXT docs/prd/orders --area import --for implement
+    note: "PM moves practices.md to notes/practices.md: the PRD has no record, and the file in a subfolder is not one; run_6's part titles are the implement pack's without this area (AC-055.4)"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout: ""
+      run_2:
+        stdout: ""
+      run_3:
+        stdout_json: {interface: 1, kind: practices, sources: [], practices: []}
+      run_4:
+        stdout: "S-01\n"
+      run_5:
+        stdout: "P-01\n"
+      run_6:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Requirements", "## Code", "## Levels", "## Cited", "## Known defects", "## Open questions", "## History"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-048.2:
+  ac: AC-048.2
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PF2]
+    cwd: <tmp>
+    command: python PRACTICES --json docs/prd/orders
+    note: "PF2 renames the heading `## Practices` to `## Checklist`, so the file has no Practices table"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json:
+        interface: 1
+        kind: practices
+        sources:
+          - {id: S-01, title: Python style guide, location: "https://example.com/python-style", covers: Python, read: "2026-11-01", decision: approved, line: 7}
+          - {id: S-02, title: "Team notes — imports", location: docs/notes/imports.md, covers: the importer, read: "2026-11-02", decision: declined, line: 8}
+        practices: []
+    effects: []
+    errors: []
+    leaks: none
+
+T-048.3:
+  ac: AC-048.3
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo, practices/texts]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PF1]
+    cwd: <tmp>
+    runs:
+      - python PRACTICES --json docs/prd/orders
+      - python LINT docs/prd/orders
+    note: "PF1 writes texts.format: a renamed header row, backticked and padded cells, a seventh cell, a `|` inside backticks and a row with no Practice cell"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout_json:
+          interface: 1
+          kind: practices
+          sources:
+            - {id: S-01, title: Python style guide, location: "https://example.com/python-style", covers: Python, read: "2026-11-01", decision: approved, line: 7}
+            - {id: S-02, title: "Team notes — imports", location: docs/notes/imports.md, covers: the importer, read: "2026-11-02", decision: declined, line: 8}
+          practices:
+            - {id: P-01, source: S-01, glob: "src/**/*.py", applies_to: code, practice: "Each public function has a docstring; `pydoc a | less` shows it.", line: 14}
+            - {id: P-02, source: S-01, glob: "tests/*.py", applies_to: code, practice: Each test names the case it proves in its docstring., line: 15}
+            - {id: P-03, source: S-01, glob: "-", applies_to: prd, practice: "", line: 16}
+      run_2:
+        stdout: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.1:
+  ac: AC-049.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB1]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:8: practices: source ID 'S-2' is not S- and two digits"
+        - "docs/prd/orders/practices.md:16: practices: practice ID 'P-3' is not P- and two digits"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.2:
+  ac: AC-049.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB2]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:8: practices: S-01 is already defined at practices.md:7"
+        - "docs/prd/orders/practices.md:16: practices: P-02 is already defined at practices.md:15"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.3:
+  ac: AC-049.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB3]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:8: practices: source S-02: Decision 'maybe' is not one of approved, declined, proposed"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.4:
+  ac: AC-049.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB4]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "S-02 is proposed and no practice cites it; the PRD is Approved"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:8: practices: source S-02 is still 'proposed' but the PRD is Approved"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.5:
+  ac: AC-049.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB5, PB11]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "P-02 cites S-09, which the table does not hold; P-03 cites the declined S-02"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:15: practices: practice P-02: source 'S-09' is not in the Sources table"
+        - "docs/prd/orders/practices.md:16: practices: practice P-03: source S-02 is 'declined', not approved"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.6:
+  ac: AC-049.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB4, PB11]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "P-03 cites S-02, which is proposed, on an Approved PRD"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:8: practices: source S-02 is still 'proposed' but the PRD is Approved"
+        - "docs/prd/orders/practices.md:16: practices: practice P-03: source S-02 is 'proposed', not approved"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.7:
+  ac: AC-049.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB4, PB11, PR1]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "the same rows while the PRD is In review: a change may propose a source and its practices together"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.8:
+  ac: AC-049.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB6]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:15: practices: practice P-02: Applies to 'docs' is not code or prd"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.9:
+  ac: AC-049.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB7]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "P-01's Object (glob) cell is empty and P-02's is `-`; P-03, a prd practice, keeps its `-`"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:14: practices: practice P-01: a code practice needs a glob in Object (glob)"
+        - "docs/prd/orders/practices.md:15: practices: practice P-02: a code practice needs a glob in Object (glob)"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.10:
+  ac: AC-049.8
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB8]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "November 2026 is not in the form; 2026-02-30 is in the form and names no day"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/practices.md:7: practices: source S-01: Read 'November 2026' is not a date YYYY-MM-DD"
+        - "docs/prd/orders/practices.md:8: practices: source S-02: Read '2026-02-30' is not a date YYYY-MM-DD"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.11:
+  ac: AC-049.9
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB9]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "the section 5 row's Rules live in cell names S-01 (approved), S-02 (declined), S-07 (absent) and CS-08, which names no source"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+        - "docs/prd/orders/prd.md:45: practices: standards row names S-02, which is 'declined' in practices.md, not approved"
+        - "docs/prd/orders/prd.md:45: practices: standards row names S-07, which is not in practices.md"
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.12:
+  ac: AC-049.10
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python LINT docs/prd/orders
+      - python LINT --list-rules
+      - python LINT --json docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout: ""
+      run_2:
+        stdout_contains_line: "practices error"
+      run_3:
+        stdout_json_at:
+          findings: []
+          errors: 0
+          warnings: 0
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.13:
+  ac: AC-049.10
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PN]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "no practices.md, while the section 5 row still names S-01"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-049.14:
+  ac: AC-049.10
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB10]
+    cwd: <tmp>
+    command: python LINT docs/prd/orders
+    note: "P-01's glob lib/**/*.rb matches no file of the repository"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-050.1:
+  ac: AC-050.1
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    command: python PRACTICES docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines:
+        - "S-01 (approved, read 2026-11-01): Python style guide, https://example.com/python-style; covers Python"
+        - "S-02 (declined, read 2026-11-02): Team notes — imports, docs/notes/imports.md; covers the importer"
+        - "P-01 (S-01, code, src/**/*.py): Each public function has a docstring."
+        - "P-02 (S-01, code, tests/*.py): Each test names the case it proves in its docstring."
+        - "P-03 (S-01, prd, -): Each acceptance criterion names one observable result."
+    effects: []
+    errors: []
+    leaks: none
+
+T-050.2:
+  ac: AC-050.2
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python PRACTICES docs/prd/orders --paths src/orders/importer.py
+      - python PRACTICES docs/prd/orders --paths src/a.py                                    # `**/` stands for zero folders
+      - python PRACTICES docs/prd/orders --paths tests/unit/test_a.py                        # `*` does not cross `/`
+      - python PRACTICES docs/prd/orders --paths tests/test_b.py README.md src/x/y/z.py      # table order, not path order
+      - python PRACTICES docs/prd/orders --paths -                                           # P-03's `-` is a prd practice's
+      - python PRACTICES docs/prd/orders --paths SRC/orders/importer.py                      # case counts
+      - python PRACTICES docs/prd/orders --paths src/orders/importer.pyc                     # the whole path
+      - python PRACTICES docs/prd/orders --paths src/orders/importer.py src/a.py             # each practice once
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout_exact_lines: ["P-01 (S-01, code, src/**/*.py): Each public function has a docstring."]
+      run_2:
+        stdout_exact_lines: ["P-01 (S-01, code, src/**/*.py): Each public function has a docstring."]
+      run_3:
+        stdout: ""
+      run_4:
+        stdout_exact_lines:
+          - "P-01 (S-01, code, src/**/*.py): Each public function has a docstring."
+          - "P-02 (S-01, code, tests/*.py): Each test names the case it proves in its docstring."
+      run_5:
+        stdout: ""
+      run_6:
+        stdout: ""
+      run_7:
+        stdout: ""
+      run_8:
+        stdout_exact_lines: ["P-01 (S-01, code, src/**/*.py): Each public function has a docstring."]
+    effects: []
+    errors: []
+    leaks: none
+
+T-050.3:
+  ac: AC-050.2
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB10]
+    cwd: <tmp>
+    runs:
+      - python PRACTICES docs/prd/orders --paths src/orders/importer.py
+      - python PRACTICES docs/prd/orders
+    note: "P-01's glob lib/**/*.rb matches no file of the repository"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout: ""
+      run_2:
+        stdout_contains_line: "P-01 (S-01, code, lib/**/*.rb): Each public function has a docstring."
+    effects: []
+    errors: []
+    leaks: none
+
+T-051.1:
+  ac: AC-051.1
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    command: python PRACTICES --json docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_keys_at:
+        "": [interface, kind, sources, practices]
+        sources.0: [id, title, location, covers, read, decision, line]
+        practices.0: [id, source, glob, applies_to, practice, line]
+      stdout_json:
+        interface: 1
+        kind: practices
+        sources:
+          - {id: S-01, title: Python style guide, location: "https://example.com/python-style", covers: Python, read: "2026-11-01", decision: approved, line: 7}
+          - {id: S-02, title: "Team notes — imports", location: docs/notes/imports.md, covers: the importer, read: "2026-11-02", decision: declined, line: 8}
+        practices:
+          - {id: P-01, source: S-01, glob: "src/**/*.py", applies_to: code, practice: Each public function has a docstring., line: 14}
+          - {id: P-02, source: S-01, glob: "tests/*.py", applies_to: code, practice: Each test names the case it proves in its docstring., line: 15}
+          - {id: P-03, source: S-01, glob: "-", applies_to: prd, practice: Each acceptance criterion names one observable result., line: 16}
+      stdout_contains: "notes — imports"      # the dash as itself, in UTF-8 (the bytes e2 80 94)
+      stdout_not_contains: "\\u2014"
+    effects: []
+    errors: []
+    leaks: none
+
+T-051.2:
+  ac: AC-051.2
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python PRACTICES --json docs/prd/orders --paths tests/test_b.py
+      - python PRACTICES --json docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout_json_at:
+          practices:
+            - {id: P-02, source: S-01, glob: "tests/*.py", applies_to: code, practice: Each test names the case it proves in its docstring., line: 15}
+      relations:
+        - "run_1's `sources` list equals run_2's `sources` list"
+    effects: []
+    errors: []
+    leaks: none
+
+T-051.3:
+  ac: AC-051.3
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python PRACTICES --json=1 docs/prd/orders
+      - python PRACTICES --json docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's stdout equals run_2's stdout, byte for byte"
+    effects: []
+    errors: []
+    leaks: none
+
+T-051.4:
+  ac: AC-051.4
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - python PRACTICES --interface
+      - python PRACTICES --interface --json=2
+      - python PRACTICES --interface docs/prd/nothing    # the folder does not exist, and is not read
+      - python PRACTICES --interface --bogus
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout: "1\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-052.1:
+  ac: AC-052.1
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+      - "write <tmp>/docs/prd/upper/PRD.md with the text `x`"
+    cwd: <tmp>
+    runs:
+      - python PRACTICES docs/prd/nothing     # the folder does not exist
+      - python PRACTICES docs/prd/upper
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+      run_1:
+        stderr: "prd_practices: <resolved tmp>/docs/prd/nothing: no prd.md\n"
+      run_2:
+        stderr: "prd_practices: <resolved tmp>/docs/prd/upper: no prd.md; found PRD.md; the file name is lowercase prd.md\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-052.2:
+  ac: AC-052.2
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    env: {COLUMNS: "40"}
+    runs:
+      - python PRACTICES
+      - python PRACTICES docs/prd/orders --bogus
+      - python PRACTICES docs/prd/orders extra
+      - python PRACTICES docs/prd/orders --paths
+    note: COLUMNS narrower than the usage line shows it is never wrapped
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+      run_1:
+        stderr: "usage: prd_practices.py [-h] [--paths PATH [PATH ...]] [--json] [--interface] prd_dir\nprd_practices.py: error: the following arguments are required: prd_dir\n"
+      run_2:
+        stderr: "usage: prd_practices.py [-h] [--paths PATH [PATH ...]] [--json] [--interface] prd_dir\nprd_practices.py: error: unrecognized arguments: --bogus\n"
+      run_3:
+        stderr: "usage: prd_practices.py [-h] [--paths PATH [PATH ...]] [--json] [--interface] prd_dir\nprd_practices.py: error: unrecognized arguments: extra\n"
+      run_4:
+        stderr: "usage: prd_practices.py [-h] [--paths PATH [PATH ...]] [--json] [--interface] prd_dir\nprd_practices.py: error: argument --paths: expected at least one argument\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-052.3:
+  ac: AC-052.3
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PU1]
+    cwd: <tmp>
+    command: python PRACTICES docs/prd/orders
+    note: "PU1 makes practices.md bytes that are not UTF-8"
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr_single_line_starts: "prd_practices: internal error: UnicodeDecodeError: "
+      stderr_not_contains: Traceback
+    effects: []
+    errors: []
+    leaks: none
+
+T-052.4:
+  ac: AC-052.4
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PU1]
+    cwd: <tmp>
+    runs:
+      - python PRACTICES --json docs/prd/nothing
+      - python PRACTICES --json
+      - python PRACTICES --json docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 2
+      run_1:
+        stdout_json: {interface: 1, kind: practices, error: "<resolved tmp>/docs/prd/nothing: no prd.md"}
+        stderr: "prd_practices: <resolved tmp>/docs/prd/nothing: no prd.md\n"
+      run_2:
+        stdout_json: {interface: 1, kind: practices, error: "the following arguments are required: prd_dir"}
+        stderr_first_line_starts: "usage: prd_practices.py"
+        stderr_last_line: "prd_practices.py: error: the following arguments are required: prd_dir"
+      run_3:
+        stdout_json_keys_at:
+          "": [interface, kind, error]
+        stdout_json_at:
+          interface: 1
+          kind: practices
+        stderr_single_line_starts: "prd_practices: internal error: UnicodeDecodeError: "
+      relations:
+        - "run_3's `error` value starts with `internal error: UnicodeDecodeError: ` and equals run_3's stderr line without its `prd_practices: ` prefix and its line end"
+    effects: []
+    errors: []
+    leaks: none
+
+T-052.5:
+  ac: AC-052.5
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    command: python PRACTICES --json=2 docs/prd/nothing     # the folder does not exist, and is not read
+  expect:
+    output:
+      exit: 2
+      stdout_json: {interface: 1, kind: practices, error: "unsupported interface 2; this toolkit speaks 1"}
+      stderr: "prd_practices: unsupported interface 2; this toolkit speaks 1\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-053.1:
+  ac: AC-053.1
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python DISPATCH practices docs/prd/orders
+      - python PRACTICES docs/prd/orders
+      - python DISPATCH practices --json docs/prd/orders --paths src/a.py
+      - python PRACTICES --json docs/prd/orders --paths src/a.py
+      - python DISPATCH practices docs/prd/nothing
+      - python PRACTICES docs/prd/nothing
+  expect:
+    output:
+      run_1:
+        exit: 0
+      run_2:
+        exit: 0
+      run_3:
+        exit: 0
+      run_4:
+        exit: 0
+      run_5:
+        exit: 2
+      run_6:
+        exit: 2
+      relations:
+        - "run_1's stdout and stderr equal run_2's, byte for byte"
+        - "run_3's stdout and stderr equal run_4's, byte for byte"
+        - "run_5's stdout and stderr equal run_6's, byte for byte"
+    effects: []
+    errors: []
+    leaks: none
+
+T-053.2:
+  ac: AC-053.2
+  level: integration
+  target: cli:prd_practices
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+      - P0
+      - load fixture repo/vendored into <tmp>/.prd-toolkit (testing.md Fixtures, its check included)
+    cwd: <tmp>
+    runs:
+      - python <tmp>/.prd-toolkit/prd_practices.py docs/prd/orders
+      - python PRACTICES docs/prd/orders
+      - python <tmp>/.prd-toolkit/prd_practices.py --json docs/prd/orders
+      - python PRACTICES --json docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "run_1's stdout equals run_2's stdout, byte for byte"
+        - "run_3's stdout equals run_4's stdout, byte for byte"
+    effects: []
+    errors: []
+    leaks: none
+
+T-054.1:
+  ac: AC-054.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python CHANGE ids next docs/prd/orders S
+      - python CHANGE ids next docs/prd/orders S --json
+    note: "the table holds S-01 and the declined S-02; the changelog names no source"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout: "S-03\n"
+      run_2:
+        stdout_json: {interface: 1, kind: change.ids, next: S-03}
+    effects: []
+    errors: []
+    leaks: none
+
+T-054.2:
+  ac: AC-054.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python CHANGE ids next docs/prd/orders P
+      - python CHANGE ids next docs/prd/orders P --json
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout: "P-04\n"
+      run_2:
+        stdout_json: {interface: 1, kind: change.ids, next: P-04}
+    effects: []
+    errors: []
+    leaks: none
+
+T-054.3:
+  ac: AC-054.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python CHANGE ids next docs/prd/orders Q
+      - python CHANGE ids next docs/prd/orders s     # the kinds are upper case
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+      run_1:
+        stderr: "refused: unknown kind Q; use FR, NFR, UJ, S, P, AC-<nnn> or T-<nnn>\n"
+      run_2:
+        stderr: "refused: unknown kind s; use FR, NFR, UJ, S, P, AC-<nnn> or T-<nnn>\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-054.4:
+  ac: AC-054.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PI1]
+    cwd: <tmp>
+    command: python CHANGE ids next docs/prd/orders S
+    note: "the changelog names S-05, removed from the table, and the change set CS-009, which is not a source"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout: "S-06\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-054.5:
+  ac: AC-054.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PI1]
+    cwd: <tmp>
+    command: python CHANGE ids next docs/prd/orders P
+    note: "the changelog names P-07, removed from the table"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout: "P-08\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-055.1:
+  ac: AC-055.1
+  level: integration
+  target: cli:prd_context
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    command: python CONTEXT docs/prd/orders --area import --for implement
+    note: "the import area's Boundary is `src/orders/**`, which matches src/orders/importer.py, and `tests/test_import.py`, a path with no wildcard that does not exist yet"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Requirements", "## Code", "## Practices", "## Levels", "## Cited", "## Known defects", "## Open questions", "## History"]
+      pack_part_lines:
+        Practices:
+          - "## Practices"
+          - ""
+          - "P-01 (S-01): Each public function has a docstring."
+          - ""
+          - "P-02 (S-01): Each test names the case it proves in its docstring."
+          - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-055.2:
+  ac: AC-055.2
+  level: integration
+  target: cli:prd_context
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PA1]
+    cwd: <tmp>
+    command: python CONTEXT docs/prd/orders --area import --for implement
+    note: "no adoption.md: the paths are every file git lists outside the PRD folder, src/orders/importer.py and docs/reports/monthly.md"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      pack_part_lines:
+        Practices: ["## Practices", "", "P-01 (S-01): Each public function has a docstring.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-055.3:
+  ac: AC-055.2
+  level: integration
+  target: cli:prd_context
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, PB10]
+    cwd: <tmp>
+    command: python CONTEXT docs/prd/orders --area import --for implement
+    note: "P-01's glob lib/**/*.rb matches no path of the area"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      pack_part_lines:
+        Practices: ["## Practices", "", "P-02 (S-01): Each test names the case it proves in its docstring.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-055.4:
+  ac: AC-055.3
+  level: integration
+  target: cli:prd_context
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    command: python CONTEXT docs/prd/orders --area reports --for implement
+    note: "the reports area's Boundary `docs/reports/*.md` matches docs/reports/monthly.md, which no code practice's glob matches"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      pack_part_lines:
+        Practices: ["## Practices", "", "None.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-055.5:
+  ac: AC-055.4
+  level: integration
+  target: cli:prd_context
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0, P0B]
+    cwd: <tmp>
+    runs:
+      - python CONTEXT docs/prd/orders --area import
+      - python CONTEXT docs/prd/orders --area import --for implement
+      - python CONTEXT <tmp>/b/docs/prd/orders --area import --for implement
+    note: "<tmp>/b is the same repository without practices.md, so its pack has no Practices part"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Requirements", "## Cited", "## Known defects", "## Open questions", "## History"]
+      run_2:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Requirements", "## Code", "## Practices", "## Levels", "## Cited", "## Known defects", "## Open questions", "## History"]
+      run_3:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Requirements", "## Code", "## Levels", "## Cited", "## Known defects", "## Open questions", "## History"]
+      relations:
+        - "a part of a run is its lines from the line `## <title>` up to, not including, the next stdout line that starts with `## `, or to the end of stdout; every part of run_2 other than Header and Practices equals, line for line, the part of the same title in run_3"
+        - "the Header parts of run_2 and run_3 have the same number of lines; each holds exactly one line that starts with `PRD: ` (it names the folder) and exactly one that starts with `pack ` (the size line), at the same positions in both; every other line of the part, its `## Header` line and its empty lines included, is equal in both"
+    effects: []
+    errors: []
+    leaks: none
+
+T-055.6:
+  ac: AC-055.5
+  level: integration
+  target: cli:prd_context
+  environment: local
+  identity: none
+  preconditions: [practices/repo]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [P0]
+    cwd: <tmp>
+    runs:
+      - python CONTEXT --json docs/prd/orders --area import --for implement
+      - python CONTEXT --json docs/prd/orders --area reports --for implement
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+        - "the entries of run_1's `parts` whose `title` is `Practices` are exactly these two, in order: {\"title\": \"Practices\", \"id\": \"P-01\", \"file\": \"practices.md\", \"line\": 14, \"text\": \"P-01 (S-01): Each public function has a docstring.\", \"stale\": false, \"counted\": true, \"moved\": null} and {\"title\": \"Practices\", \"id\": \"P-02\", \"file\": \"practices.md\", \"line\": 15, \"text\": \"P-02 (S-01): Each test names the case it proves in its docstring.\", \"stale\": false, \"counted\": true, \"moved\": null}"
+        - "in run_1's `parts`, the two Practices entries come directly after the last entry whose `title` is `Code` and directly before the first entry whose `title` is `Levels`"
+        - "the entries of run_2's `parts` whose `title` is `Practices` are exactly one: {\"title\": \"Practices\", \"id\": null, \"file\": \"practices.md\", \"line\": null, \"text\": \"None.\", \"stale\": false, \"counted\": true, \"moved\": null}"
+    effects: []
+    errors: []
+    leaks: none
+
+T-056.1:
+  ac: AC-056.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: []
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [PK0, PK1]
+    cwd: <tmp>
+    command: python LINT --list-packs
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_contains_line: "demo 1.0.0 (demo@example) — A pack for the practices cases."
+    effects: []
+    errors: []
+    leaks: none
+
+T-056.2:
+  ac: AC-056.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: []
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [PK0, PK2]
+    cwd: <tmp>
+    command: python LINT --list-packs
+    note: "demo2's second sources item has no covers; demo3's sources is a string"
+  expect:
+    output:
+      exit: 0
+      stderr: "prd_lint: skipped <tmp>/plug/prd-packs/demo2: pack demo2: pack.yaml: sources[1] must be a mapping with title, location and covers\nprd_lint: skipped <tmp>/plug/prd-packs/demo3: pack demo3: pack.yaml: sources must be a list\n"
+      stdout_not_contains: ["demo2 ", "demo3 "]
+    effects: []
+    errors: []
+    leaks: none
+
+T-056.3:
+  ac: AC-056.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: []
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [PK0, PK3]
+    cwd: <tmp>
+    command: python LINT --list-packs
+    note: "demo4 has no sources key; demo5 misspells it as source"
+  expect:
+    output:
+      exit: 0
+      stderr: "prd_lint: skipped <tmp>/plug/prd-packs/demo5: pack demo5: pack.yaml: unknown key source\n"
+      stdout_contains_line: "demo4 1.0.0 (demo@example) — A pack without sources."
+      stdout_not_contains: "demo5 "
+    effects: []
+    errors: []
+    leaks: none

@@ -126,9 +126,12 @@ Acceptance (EARS):
   lists under `prd_help.keys`; every key in it shall be unique; and the `name` of `kind.UJ`,
   `kind.FR`, `kind.NFR`, `kind.T`, `kind.E` and `kind.CS` shall be `User journey`, `Requirement`,
   `Quality requirement`, `Test case`, `Error` and `Change set`.
+- AC-037.4 The shipped catalogue shall hold the entries `kind.S`, named `Source`, and `kind.P`, named
+  `Practice`, and the entries `file.practices`, `table.sources` and `table.practices`, and each of the
+  five shall name the lint rule `practices` in its `checked_by`.
 Errors: -
 Edge cases: the shipped catalogue may hold more entries than the listed keys → AC-037.3; a key writes `_` where the PRD's own YAML key has `-` (`case.known_failing` for `known-failing:`), and the entry's `rules` name the real spelling; `see` is the text of a heading of `references/prd-format.md`, a name for a reader, since that file is not vendored
-Tests: T-037.1 [integration], T-037.2 [integration], T-037.3 [integration]  (test-cases/help.yaml)
+Tests: T-037.1 [integration], T-037.2 [integration], T-037.3 [integration], T-037.4 [integration]  (test-cases/help.yaml)
 Traces: cli:prd_help; setting `PRD_HELP_FILE` (contracts/config.yaml)
 
 ### FR-038 Every lint rule carries a description
@@ -151,7 +154,7 @@ Traces: cli:prd_help; cli:prd_lint; `prdlint/registry.py` DESCRIPTION
 
 ### FR-039 A vendored copy answers the same
 Status: verified
-Source: prd-toolkit/scripts/prdlint/hooks.py:15 @858bb3b
+Source: prd-toolkit/scripts/prdlint/hooks.py:15 @541a963
 Acceptance (EARS):
 - AC-039.1 When `prd_help.py` of a vendored copy (`.prd-toolkit/prd_help.py`) is run with
   `--json` and `PRD_HELP_FILE` unset, the help command shall print, byte for byte, the document

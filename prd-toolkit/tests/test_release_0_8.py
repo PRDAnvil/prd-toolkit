@@ -52,8 +52,8 @@ def test_readme_rules_and_sections():
     import prdlint.rules  # noqa: F401
     from prdlint.registry import RULES
 
-    assert len(RULES) == 40
-    assert "a 40-rule linter" in flat(README) and "prints the 40 rules" in flat(README)
+    assert len(RULES) == 41
+    assert "a 41-rule linter" in flat(README) and "prints the 41 rules" in flat(README)
     assert "36-rule" not in README
     p = flat(section(README, "Packs"))
     for needle in ("pack.yaml", "prd_lint.py --list-packs", "<name> <version> (<source>) — <description>",

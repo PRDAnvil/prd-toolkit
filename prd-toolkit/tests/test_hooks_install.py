@@ -303,7 +303,7 @@ def test_every_vendored_script_runs_from_the_vendored_copy(repo):
         "prd_git_hook.py": ["commit-msg", PRD, "msg.txt"], "prd_error.py": ["list", PRD], "prd_links.py": ["check", PRD],
         "prd_confirm.py": ["status", PRD, "--area", "none"],
         "prd_judge.py": [PRD, "T-999.9", "msg.txt"], "prd_change.py": ["digest", PRD],
-        "prd_gates.py": ["list", PRD], "prd_help.py": ["--json"],
+        "prd_gates.py": ["list", PRD], "prd_help.py": ["--json"], "prd_practices.py": [PRD],
     }
     launcher_files = {"prd", "prd_dispatch.py", "requirements.txt"}  # the launcher trio is covered by test_vendor_copies_the_launcher
     assert set(calls) == set(hooks.VENDORED) - launcher_files, set(hooks.VENDORED) ^ set(calls)

@@ -38,7 +38,7 @@ def _build() -> argparse.ArgumentParser:
     ids_sub = ids.add_subparsers(dest="ids_cmd")
     nxt = ids_sub.add_parser("next", help="print the next free ID of a kind")
     nxt.add_argument("prd_dir")
-    nxt.add_argument("kind", help="FR, NFR, UJ, AC-<nnn> or T-<nnn>")
+    nxt.add_argument("kind", help="FR, NFR, UJ, S, P, AC-<nnn> or T-<nnn>")
     _flags(nxt, leaf=True)
     dig = sub.add_parser("digest", help="print the SHA-256 digest of the PRD folder")
     dig.add_argument("prd_dir")

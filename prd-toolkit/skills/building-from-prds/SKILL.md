@@ -146,7 +146,9 @@ its implementation starts, by this report's SOURCES rule.
    and follow it: for a `plugin:skill` row, `<installPath>/skills/<skill>/SKILL.md`, with the
    `installPath` recorded for the plugin in `~/.claude/plugins/installed_plugins.json`; for a bare
    skill, `.claude/skills/<skill>/SKILL.md` in the repo or the home directory. A required skill
-   you cannot find is a QUESTION.
+   you cannot find is a QUESTION. **Practices:** when the pack has a Practices part, follow each of
+   its items (`P-nn (S-nn): <practice>`) in the files you change, and report one line for each
+   (**The report**). A part that says `None.`, or a pack with no Practices part, needs nothing.
 6. **Commit with `Refs:`.** Commit on the round branch the `Branch:` line names, in the worktree
    you were dispatched in, one call each:
    `git add <path> <path>` with every path typed out, then
@@ -214,7 +216,8 @@ no status.
 In this order, each field on its own line:
 
 ```
-CHANGES     one line per file changed: <path>: <what changed>
+CHANGES     one line per file changed: <path>: <what changed>; then one line per item of the
+            pack's Practices part: P-nn: followed, or P-nn: not applicable (<why>)
 UNIT        <T-id>: pass | fail: <one line>, one line per unit T-id (none when you have none)
 SOURCES     <ID>: <path>:<line>, one line per block whose implementation start this round added
             or changed, and always one for a block with no `Source:` yet, in the round that
@@ -229,15 +232,21 @@ QUESTIONS   each PRD gap and each test dispute (below); an empty list is written
 COMMIT      the round branch and its commit SHAs
 ```
 
-QUESTIONS holds two kinds of line, and nothing else:
+Each practice of the pack's Practices part gets exactly one line: `P-nn: followed`,
+`P-nn: not applicable (<why>)` (the round's changes give it nothing to apply to) under CHANGES, or
+`P-nn: not followed (<why>)` under QUESTIONS, never both. No new field: the report keeps its five.
+
+QUESTIONS holds three kinds of line, and nothing else:
 
 - a **test dispute**, `<T-id>: test dispute: "<assertion, verbatim>" vs "<ac:/expect quote, verbatim>"`,
   which the caller reconciles by quote as a test misread or a code bug; the build goes on;
 - a **PRD gap**: a thing the PRD does not say that you needed, naming the ID and the file that
   should have said it. A PRD gap stops the build: `built` for the blocks an earlier round merged,
   otherwise no status (the caller's **Stops**).
+- a **practice not followed**, `P-nn: not followed (<why>)`: a question for the caller, as a required
+  skill you cannot find is, and it stops the build in the same way.
 
-Write `none` only if you met neither.
+Write `none` only if you met none of the three.
 
 ## Red Flags - STOP
 
