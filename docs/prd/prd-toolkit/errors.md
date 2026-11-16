@@ -310,6 +310,7 @@ Recurrence of: -
 ### E-027 A validator that crashes from the pack folder counts as refusing its sample
 Detected: 2026-11-16, review of the 0.8.12 skill text
 Classification: spec gap
+Confirmed: 2026-11-16, "spec gap is right for all three"
 Touches: FR-059
 Evidence: Review of the 0.8.12 skill text, 2026-11-16, on the fixture pack-authoring/sites:
   A contract type's validator that reads a file by a path relative to the PRD folder is carried into the pack.
