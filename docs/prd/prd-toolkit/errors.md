@@ -318,7 +318,7 @@ Evidence: Review of the 0.8.12 skill text, 2026-11-16, on the fixture pack-autho
   prd pack check <pack dir> <prd A> <prd B> runs the validator on the sample from the pack folder, where it stops with a traceback (the file it reads is not there) and exits 1.
   The check prints no finding for the sample and exits 0: the crash counts as the sample being refused.
 Diagnosis: Reproduced by the reviewer on the fixture pack-authoring/sites. `_sample_findings` in `prdlint/packcheck.py` reports a sample only when the validator exits 0, as AC-059.3 says: "the finding `<pack dir>/samples/<type>/<name>: the validator accepts it; a sample must be refused` when the validator exits 0". The code does what the AC says. No AC covers a validator that exits non-zero from the pack folder for a reason other than the sample (it reads a file by a path relative to the PRD folder and stops there): the check cannot tell that from a refusal, so a pack whose validator cannot run from the pack folder passes.
-Resolution: -
+Resolution: T-059.8 [integration], PRD 7.3.0, fixed in 2b8d036
 Recurrence of: -
 
 ### E-028 The implement pack leaves out the definitions a features file gives before its first block
