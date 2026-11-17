@@ -267,6 +267,7 @@ Recurrence of: -
 ### E-024 hooks check reports a hook stale after hooks install's own instruction for core.hooksPath is followed
 Detected: 2026-11-15, user report from a repository that vendors 0.8.10
 Classification: spec gap
+Confirmed: 2026-11-17, "both are right"
 Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
   core.hooksPath is set to the repository's own .git/hooks. Its commit-msg and pre-commit were toolkit shims from an
   earlier release (header "# prd-toolkit hook (prd_hooks.py install <prd>); ...", one uv run --script ... prd_git_hook.py line).
