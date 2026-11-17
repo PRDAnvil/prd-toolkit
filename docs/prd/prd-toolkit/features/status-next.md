@@ -115,7 +115,7 @@ Tests: T-043.1 [integration], T-043.2 [integration], T-043.3 [integration], T-04
 Traces: UJ-03; cli:prd_status; cli:prd_lint
 
 ### FR-044 Waiting on you: the decisions only the owner can make
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/nextpart.py:96 @3fc3086
 Acceptance (EARS):
 - AC-044.1 When `prd gates list`, run on the PRD folder in this checkout without `--worktrees`, lists
