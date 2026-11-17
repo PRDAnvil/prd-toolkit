@@ -350,6 +350,7 @@ Recurrence of: -
 ### E-030 a lift accepts a pack that declares no contract type, and a pack vocabulary adds lint findings after a lift
 Detected: 2026-11-17, final review of the 0.8.12 branch
 Classification: spec gap
+Confirmed: 2026-11-17, "spec gap is right"
 Touches: FR-060
 Evidence: Final review of the 0.8.12 branch, 2026-11-17, on the PRD's fixture pack-authoring/sites:
   a second plugin held pack bare 0.1.0 with vocabulary [visitor, redirect], builder-tests: none and no contract types.
