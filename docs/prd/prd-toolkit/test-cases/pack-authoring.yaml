@@ -1386,3 +1386,63 @@ T-060.13:
     effects: []
     errors: []
     leaks: none
+
+T-060.14:
+  ac: AC-060.10
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KE
+    cwd: "<tmp>/north"
+    command: python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    note: "E-030: KE leaves the pack with no contract type, so it is not a pack written from the PRD's custom types; the lift is refused before anything is written"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "refused: pack leaflet 0.1.0 declares no contract type; a lift moves a PRD onto a pack that declares its custom types\n"
+    effects:
+    - "`git status --porcelain` in <tmp>/north prints nothing"
+    errors: []
+    leaks: none
+
+T-060.15:
+  ac: AC-060.7
+  level: integration
+  target: "cli:prd_change_pack_lift"
+  environment: local
+  identity: none
+  preconditions:
+  - pack-authoring/sites
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - K0
+    - KX
+    cwd: "<tmp>/north"
+    runs:
+    - python LINT docs/prd/north
+    - python CHANGE pack docs/prd/north leaflet 0.1.0 --lift
+    - python LINT docs/prd/north
+    note: "E-030: KX puts the word visitor in the pack's vocabulary; after the lift, lint prints one platform-word finding for each live AC of north that names it, and nothing else is new"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        stdout: ""
+      run_3:
+        stdout: "docs/prd/north/features/site.md:6: warn: platform-word: AC-001.1 names 'visitor', a word of pack leaflet: move it to a contract, a Harness slot or the area's Target\ndocs/prd/north/features/site.md:7: warn: platform-word: AC-001.2 names 'visitor', a word of pack leaflet: move it to a contract, a Harness slot or the area's Target\ndocs/prd/north/features/site.md:14: warn: platform-word: AC-002.1 names 'visitor', a word of pack leaflet: move it to a contract, a Harness slot or the area's Target\ndocs/prd/north/features/site.md:21: warn: platform-word: AC-003.1 names 'visitor', a word of pack leaflet: move it to a contract, a Harness slot or the area's Target\n"
+    effects: []
+    errors: []
+    leaks: none

@@ -186,11 +186,11 @@ Tests: T-059.1 [integration], T-059.2 [integration], T-059.3 [integration], T-05
 Traces: UJ-05; cli:prd_pack; `prdlint/packs.py` load_manifest
 
 ### FR-060 Lift a PRD onto the pack written from its own custom types
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/change.py:821 @dcc43b5
 Acceptance (EARS):
 - AC-060.1 When run as `prd_change.py pack <prd_dir> <name> <X.Y.Z> --lift` and no check of AC-060.2 to
-  AC-060.5 refuses it, the change command shall insert the line `- Pack: <name> <X.Y.Z> (<source>)`
+  AC-060.5, AC-060.8 or AC-060.10 refuses it, the change command shall insert the line `- Pack: <name> <X.Y.Z> (<source>)`
   into section 1 of `prd.md`, directly after the last line of section 1 that starts with `- `, or, when
   section 1 holds no such line, directly after section 1's heading line; replace
   the Validator cell, the third cell, of each section 7 row that is a custom row (AC-057.2) of a contract
@@ -230,13 +230,15 @@ Acceptance (EARS):
   `refused: <the PRD folder, relative to the repository root> has uncommitted changes; commit or set them aside first`,
   write nothing and exit 1; the command shall check `<X.Y.Z>` first, as a version move does
   (`pack: <X.Y.Z> is not a version X.Y.Z` on stderr, exit 2), then AC-060.2, then this criterion, then
-  AC-060.3 and AC-060.8, then AC-060.4.
+  AC-060.3 and AC-060.8, then AC-060.10, then AC-060.4.
 - AC-060.6 When run without `--lift`, the change command shall move a pack's version as it did before
   this area, with the same output, record and refusals, among them
   `refused: no Pack: or Target: pack line names <name>` for a PRD that names no such pack.
 - AC-060.7 When a PRD that AC-060.1 lifted is linted while its pack resolves, the lint command shall
   print the findings it printed for the PRD before the lift, each finding at a line of `prd.md` below
-  the inserted `Pack:` line with its line number one higher, and exit with the same code; the PRD
+  the inserted `Pack:` line with its line number one higher, and beside them only the `platform-word`
+  findings that the words of the pack's `vocabulary` draw, none when the `vocabulary` is empty, and
+  exit with the same code; the PRD
   folder shall differ from its committed state only in the frontmatter lines `version:` and `updated:`,
   the `Pack:` line, the Validator cells AC-060.1 replaces and the section 14 row it adds, so that its
   `testing.md` (Levels and Harness), its section 5 and 6 rows and its test cases are unchanged; and the
@@ -260,9 +262,13 @@ Acceptance (EARS):
   and the file `.prd-toolkit/pack-sources.json`, each where it exists and git does not ignore it, as
   the approval of a version move does; so that after it `git status --porcelain --untracked-files=all`
   lists none of them.
+- AC-060.10 If the pack AC-060.3 takes declares no contract type, the change command shall print the
+  one stderr line
+  `refused: pack <name> <X.Y.Z> declares no contract type; a lift moves a PRD onto a pack that declares its custom types`,
+  write nothing and exit 1.
 Errors: -
-Edge cases: a lift is a patch, not a conversion: the pack declares what the PRD already declared, so no output changes → AC-060.7; the PRD's own Levels, Harness, standards and skills stay as they are → AC-060.1, AC-060.7; then `prd hooks install` vendors the pack and the owner approves with the dry-run record `no dry run (pack lifted)`, as for a version move; a lift is run from the plugin's scripts, as a version move is → AC-060.3; that the context pack names the pack and prints its harness defaults is a property of naming a pack, as for any area that names one, and what a build or a test produces does not change → AC-060.7; with exactly one pack of that name and version on the machine, no `--source` is needed → AC-060.3; a PRD that names the pack after its lift moves to a new version of it by the version move → AC-060.6
-Tests: T-060.1 [integration], T-060.2 [integration], T-060.3 [integration], T-060.4 [integration], T-060.5 [integration], T-060.6 [integration], T-060.7 [integration], T-060.8 [integration], T-060.9 [integration], T-060.10 [integration], T-060.11 [integration], T-060.12 [integration], T-060.13 [integration]  (test-cases/pack-authoring.yaml)
+Edge cases: a lift is a patch, not a conversion: the pack declares what the PRD already declared, so no output changes → AC-060.7; a pack that declares no contract type is not written from the PRD's custom types, so a lift onto it is refused → AC-060.10; a word the owner kept in the pack's `vocabulary` warns `platform-word`, after the lift, on each requirement title and live AC that names it, which is the one way lint's output may grow, and a finding of severity `warn` does not change the exit code → AC-060.7; the PRD's own Levels, Harness, standards and skills stay as they are → AC-060.1, AC-060.7; then `prd hooks install` vendors the pack and the owner approves with the dry-run record `no dry run (pack lifted)`, as for a version move; a lift is run from the plugin's scripts, as a version move is → AC-060.3; that the context pack names the pack and prints its harness defaults is a property of naming a pack, as for any area that names one, and what a build or a test produces does not change → AC-060.7; with exactly one pack of that name and version on the machine, no `--source` is needed → AC-060.3; a PRD that names the pack after its lift moves to a new version of it by the version move → AC-060.6
+Tests: T-060.1 [integration], T-060.2 [integration], T-060.3 [integration], T-060.4 [integration], T-060.5 [integration], T-060.6 [integration], T-060.7 [integration], T-060.8 [integration], T-060.9 [integration], T-060.10 [integration], T-060.11 [integration], T-060.12 [integration], T-060.13 [integration], T-060.14 [integration], T-060.15 [integration]  (test-cases/pack-authoring.yaml)
 Traces: UJ-05; cli:prd_change_pack_lift; cli:prd_change; `prdlint/change.py` pack
 
 ### FR-061 The launcher and a vendored copy answer the same

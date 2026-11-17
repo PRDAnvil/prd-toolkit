@@ -76,7 +76,7 @@ Tests: T-035.1 [integration], T-035.2 [integration], T-035.3 [integration], T-03
 Traces: UJ-02; cli:prd_help; `prdlint/interface.py`
 
 ### FR-036 Refuse what it cannot answer
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/helpcat.py:48 @858bb3b
 Acceptance (EARS):
 - AC-036.1 If `--key` names no catalogue entry, the help command shall print the one stderr line
@@ -90,7 +90,9 @@ Acceptance (EARS):
 - AC-036.3 If the catalogue cannot be used, the help command shall print the one stderr line
   `prd_help: <path>: <reason>`, print nothing on stdout and exit 2, whichever options are given
   other than `--interface` and `-h`, where `<path>` is the catalogue's path as FR-037 gives it and
-  `<reason>` is the first that applies of: `no such file`; `YAML parse error: <the parser's problem>`;
+  `<reason>` is the first that applies of: `no such file`; `cannot read: <message>` when the file is
+  there and reading it fails, `<message>` being the operating system's text for the failure
+  (`Permission denied` for a file the user may not read); `YAML parse error: <the parser's problem>`;
   `top level must be a list`; and then, entry by entry in file order, `<n>` counting from 1,
   `entry <n>: must be a mapping`, `entry <n>: missing '<field>'` (the first of `key`, `name`,
   `what`, `why` that is absent, empty or not a string), `entry <n>: '<field>' must be a list of strings`
@@ -108,8 +110,8 @@ Acceptance (EARS):
   `prd_help: unsupported interface <N>; this toolkit speaks 1`, and exit 2 without reading the
   catalogue.
 Errors: -
-Edge cases: exit 1 is never used: 1 means findings, and help has none; an unknown key is checked after the catalogue is read, so a catalogue that cannot be used wins → AC-036.3; a usage error is found before the catalogue is read → AC-036.2; no exit-2 path prints a traceback
-Tests: T-036.1 [integration], T-036.2 [integration], T-036.3 [integration], T-036.4 [integration], T-036.5 [integration]  (test-cases/help.yaml)
+Edge cases: exit 1 is never used: 1 means findings, and help has none; an unknown key is checked after the catalogue is read, so a catalogue that cannot be used wins → AC-036.3; a usage error is found before the catalogue is read → AC-036.2; no exit-2 path prints a traceback; a catalogue file that is there and cannot be read is refused like any other catalogue that cannot be used, with `--json` too → AC-036.3, AC-036.4
+Tests: T-036.1 [integration], T-036.2 [integration], T-036.3 [integration], T-036.4 [integration], T-036.5 [integration], T-036.6 [integration]  (test-cases/help.yaml)
 Traces: UJ-02; cli:prd_help; `prdlint/interface.py`
 
 ### FR-037 The catalogue it reads, and what the shipped one covers

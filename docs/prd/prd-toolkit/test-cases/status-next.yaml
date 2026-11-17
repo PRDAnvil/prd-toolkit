@@ -1135,6 +1135,53 @@ T-044.6:
     errors: []
     leaks: none
 
+T-044.7:
+  ac: AC-044.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: ["status-next/base", "status-next/files"]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0", "NQ4"]
+    cwd: ORDERS
+    runs:
+      - python STATUS .
+      - python STATUS --json .
+    note: "E-021: each of the two section 13 lines ends in spaces; the question's text ends in its own mark, and no second full stop follows"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        next_part_lines:
+          - "## Next"
+          - ""
+          - "1. An open question waits: Trailing spaces?"
+          - "2. An open question waits: Plain line!"
+          - "3. 1 requirement is verified and not live."
+          - "  run: /prd-toolkit:prd-deploy"
+          - "4. FR-002 is built and not verified."
+          - "  run: /prd-toolkit:prd-build import FR-002"
+          - "5. FR-001 is approved and not built."
+          - "  run: /prd-toolkit:prd-build import FR-001"
+          - "6. FR-005 is approved and not built."
+          - "  run: /prd-toolkit:prd-build reports FR-005"
+          - ""
+      run_2:
+        next_items_json:
+          - {"part": "Next", "id": null, "text": "An open question waits: Trailing spaces?", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "An open question waits: Plain line!", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+          - {"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+          - {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+    effects: []
+    errors: []
+    leaks: none
+
 T-045.1:
   ac: AC-045.1
   level: integration

@@ -1,9 +1,9 @@
 ---
 prd: prd-toolkit
-version: 7.3.0
+version: 8.0.0
 status: Approved
 owner: Ivan Histand
-updated: 2026-11-16
+updated: 2026-11-17
 ---
 
 <!-- Format: references/prd-format.md, "prd.md sections". -->
@@ -175,7 +175,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-033 | Print the index | verified | features/help.md |  |
 | FR-034 | Print one entry or one rule as text | verified | features/help.md |  |
 | FR-035 | Print the catalogue as one JSON document | verified | features/help.md |  |
-| FR-036 | Refuse what it cannot answer | verified | features/help.md |  |
+| FR-036 | Refuse what it cannot answer | approved | features/help.md |  |
 | FR-037 | The catalogue it reads, and what the shipped one covers | verified | features/help.md |  |
 | FR-038 | Every lint rule carries a description | verified | features/help.md |  |
 | FR-039 | A vendored copy answers the same | verified | features/help.md |  |
@@ -184,7 +184,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-041 | The Next items in the JSON document | verified | features/status-next.md |  |
 | FR-042 | The order of the items, each listed once | verified | features/status-next.md |  |
 | FR-043 | Broken: what must be fixed before anything else is trusted | verified | features/status-next.md |  |
-| FR-044 | Waiting on you: the decisions only the owner can make | verified | features/status-next.md |  |
+| FR-044 | Waiting on you: the decisions only the owner can make | approved | features/status-next.md |  |
 | FR-045 | Work: furthest along first | verified | features/status-next.md |  |
 | FR-046 | Nothing waits | verified | features/status-next.md |  |
 | FR-047 | A sentence ends with one full stop | verified | features/status-next.md |  |
@@ -203,7 +203,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-057 | Compare two PRDs, as text | verified | features/pack-authoring.md |  |
 | FR-058 | The comparison as JSON, and its refusals | verified | features/pack-authoring.md |  |
 | FR-059 | Check a written pack against both PRDs | verified | features/pack-authoring.md |  |
-| FR-060 | Lift a PRD onto the pack written from its own custom types | verified | features/pack-authoring.md |  |
+| FR-060 | Lift a PRD onto the pack written from its own custom types | approved | features/pack-authoring.md |  |
 | FR-061 | The launcher and a vendored copy answer the same | verified | features/pack-authoring.md |  |
 | FR-062 | A gate's areas | verified | features/card-context.md |  |
 | FR-063 | The URL: line of an error entry | verified | features/card-context.md |  |
@@ -248,3 +248,4 @@ None.
 | 7.1.0 | 2026-11-15 | a pack written from two adopted PRDs (prd pack compare, prd pack check, prd change pack --lift) and the areas and a URL of every gate in prd gates list --json and the inbox card; standards rows are not run on the vendored copy, for E-025; dry run T-068.7, T-068.5, T-068.6, 0 open questions, 0 dismissed by quote (nine earlier dry runs over all 63 non-unit T-ids: 21 gaps fixed) | UJ-05, UJ-06, FR-057, FR-058, FR-059, FR-060, FR-061, FR-062, FR-063, FR-064, FR-065, FR-066, FR-067, FR-068, AC-057.1, AC-057.2, AC-057.3, AC-057.4, AC-057.5, AC-057.6, AC-057.7, AC-057.8, AC-058.1, AC-058.2, AC-058.3, AC-058.4, AC-059.1, AC-059.2, AC-059.3, AC-059.4, AC-059.5, AC-059.6, AC-060.1, AC-060.2, AC-060.3, AC-060.4, AC-060.5, AC-060.6, AC-060.7, AC-060.8, AC-061.1, AC-061.2, AC-062.1, AC-062.2, AC-062.3, AC-062.4, AC-063.1, AC-063.2, AC-063.3, AC-064.1, AC-064.2, AC-064.3, AC-064.4, AC-065.1, AC-065.2, AC-065.3, AC-066.1, AC-066.2, AC-066.3, AC-066.4, AC-067.1, AC-067.2, AC-067.3, AC-067.4, AC-067.5, AC-067.6, AC-068.1, AC-068.2, AC-068.3, AC-068.4, AC-068.5, T-057.1, T-057.2, T-057.3, T-057.4, T-057.5, T-057.6, T-057.7, T-057.8, T-058.1, T-058.2, T-058.3, T-058.4, T-058.5, T-059.1, T-059.2, T-059.3, T-059.4, T-059.5, T-059.6, T-059.7, T-060.1, T-060.2, T-060.3, T-060.4, T-060.5, T-060.6, T-060.7, T-060.8, T-060.9, T-060.10, T-061.1, T-061.2, T-062.1, T-062.2, T-062.3, T-062.4, T-062.5, T-063.1, T-063.2, T-063.3, T-064.1, T-064.2, T-064.3, T-064.4, T-065.1, T-065.2, T-065.3, T-066.1, T-066.2, T-066.3, T-066.4, T-067.1, T-067.2, T-067.3, T-067.4, T-067.5, T-067.6, T-068.1, T-068.2, T-068.3, T-068.4, T-068.5, T-068.6, T-068.7 |
 | 7.2.0 | 2026-11-16 | pack-authoring gaps closed: the linter of a Linter cell with no backticked span, the Pack: line of a section 1 with no bullet, the line numbers of findings after a lift, the literal last word of the more-than-one-source refusal; dry run T-057.9, T-060.11, T-060.12, 0 open questions, 1 dismissed by quote | FR-057, FR-060, AC-057.6, AC-060.1, AC-060.7, AC-060.8, T-057.9, T-060.11, T-060.12 |
 | 7.3.0 | 2026-11-16 | fixes for E-026 and E-027: the approval of a lift commits the vendored pack, and the check proves each validator runs from the pack folder; dry run T-059.8, T-060.13, 0 open questions, 0 dismissed by quote (four earlier dry runs: 7 gaps fixed, 1 dismissed by quote) | FR-057, FR-058, FR-059, FR-060, FR-061, AC-059.7, AC-060.9, T-059.8, T-060.13 |
+| 8.0.0 | 2026-11-17 | fixes for E-020, E-021 and E-030: prd help refuses a catalogue file that is there and cannot be read with the reason cannot read (AC-036.3); a section 13 question is taken without the white space at its start and end, so a line ending in spaces gets no second full stop (AC-044.2, a changed result, so major); a lift refuses a pack that declares no contract type (AC-060.10, checked before AC-060.4), and AC-060.7 allows, beside the findings lint printed before a lift, the platform-word findings of the pack vocabulary; contracts/cli.yaml gains the refusal no_types, testing.md the steps NQ4, KE and KX; dry run T-036.6, T-044.7, T-060.14, T-060.15, 0 open questions, 1 dismissed by quote | FR-036, FR-044, FR-060, AC-036.3, AC-044.2, AC-060.1, AC-060.5, AC-060.7, AC-060.10, T-036.6, T-044.7, T-060.14, T-060.15 |

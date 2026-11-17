@@ -216,6 +216,7 @@ prd_change_pack_lift:
     names_pack: "stderr: refused: the PRD already names pack <name> at <file>:<line>; a lift moves a PRD that names none (FR-060)"
     not_found: "stderr: refused: no pack <name> <X.Y.Z> is on this machine; prd lint --list-packs lists the packs it finds, or with --source refused: no pack <name> <X.Y.Z> (<source>) is on this machine; prd lint --list-packs lists the packs it finds (FR-060)"
     more_than_one: "stderr: refused: pack <name> <X.Y.Z> comes from more than one source: <source>, <source>; name one with --source <source> (FR-060)"
+    no_types: "stderr: refused: pack <name> <X.Y.Z> declares no contract type; a lift moves a PRD onto a pack that declares its custom types (FR-060)"
     not_custom: "stderr: refused: contract type <type> of pack <name> is not a custom row of section 7 (FR-060)"
     glob: "stderr: refused: contract type <type>: section 7 has <cell>, pack <name> has <files> (FR-060)"
     dirty: "stderr: refused: <PRD folder from the repository root> has uncommitted changes; commit or set them aside first (FR-060, the version move's line)"

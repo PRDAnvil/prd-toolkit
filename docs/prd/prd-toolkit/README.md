@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 7.3.0 · Approved · Owner: Ivan Histand · Updated 2026-11-16
+Version 8.0.0 · Approved · Owner: Ivan Histand · Updated 2026-11-17
 
 ## What this PRD covers
 
