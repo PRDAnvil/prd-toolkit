@@ -253,6 +253,7 @@ Recurrence of: -
 ### E-023 An error-class answer given in the inbox is committed in every worktree that holds the PRD
 Detected: 2026-11-15, user report from a repository that vendors 0.8.10
 Classification: spec gap
+Confirmed: 2026-11-17, "both are right"
 Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
   The repository has its main checkout on one branch and a worktree on another; both hold the PRD folder.
   From the worktree: prd gates serve <prd> --gate approval:<branch>, and prd gates wait.
