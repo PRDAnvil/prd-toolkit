@@ -349,7 +349,7 @@ Recurrence of: -
 
 ### E-030 a lift accepts a pack that declares no contract type, and a pack vocabulary adds lint findings after a lift
 Detected: 2026-11-17, final review of the 0.8.12 branch
-Classification: unclassified
+Classification: spec gap
 Touches: FR-060
 Evidence: Final review of the 0.8.12 branch, 2026-11-17, on the PRD's fixture pack-authoring/sites:
   a second plugin held pack bare 0.1.0 with vocabulary [visitor, redirect], builder-tests: none and no contract types.
@@ -359,6 +359,6 @@ Evidence: Final review of the 0.8.12 branch, 2026-11-17, on the PRD's fixture pa
   AC-060.4 refuses only a declared type that is not a matching custom row; a pack with no type passes it.
   AC-060.7 says lint prints, after a lift, the findings it printed before it.
   The same new findings follow a lift onto a pack written by authoring-packs when the owner keeps a vocabulary word.
-Diagnosis: -
+Diagnosis: reproduced by the final review of the 0.8.12 branch on the fixture pack-authoring/sites (the evidence above), not run again here; the code was read. The lift does what AC-060.4 states: `lift` in prdlint/change.py checks only the types the pack declares ("If a contract type the pack declares has no section 7 row in `prd.md` that is a custom row"), and the manifest reader allows none (`contract_types` in prdlint/packs.py returns an empty list), so a pack with no contract type passes with nothing checked. No PRD line says what a lift does with such a pack, or with a pack that holds vocabulary words. AC-060.7 then states more than holds: "the lint command shall print the findings it printed for the PRD before the lift", while a pack vocabulary adds a `platform-word` finding for each requirement that names a word, as the pack procedure itself says of a kept word. What a change would add: a refusal of a pack that declares no contract type, under AC-060.4 and in the AC-060.5 order, and AC-060.7 and the sentences that repeat it (the README, references/contract-types.md, the changing-prds skill) qualified for a pack vocabulary.
 Resolution: -
 Recurrence of: -
