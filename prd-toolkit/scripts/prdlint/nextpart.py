@@ -109,7 +109,8 @@ def _section(prd: Prd, number: int):
 
 
 def _open_questions(prd: Prd) -> list[str]:
-    """AC-044.2: section 13's questions; a `- ` line begins one, its space-indented following lines continue it."""
+    """AC-044.2: section 13's questions; a `- ` line begins one, its space-indented following lines continue it, and
+    each question's text is taken without the white space at its start and at its end."""
     sec = _section(prd, 13)
     out: list[str] = []
     continuing = False
@@ -124,7 +125,7 @@ def _open_questions(prd: Prd) -> list[str]:
             continuing = False
         else:
             continuing = False
-    return out
+    return [q.strip() for q in out]
 
 
 def _question(prd: Prd) -> list[NextItem]:
