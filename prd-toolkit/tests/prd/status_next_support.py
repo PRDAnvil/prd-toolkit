@@ -302,6 +302,13 @@ def NQ3(tmp: Path) -> None:
                    ["- Who signs off the monthly report", "  before it is sent?", "Which month is the first one?"])
 
 
+def NQ4(tmp: Path) -> None:
+    prd_md = orders(tmp) / "prd.md"
+    _replace_frontmatter(prd_md, "status: Approved", "status: In review")
+    _replace_under(prd_md, "## 13. Open questions", "None.",
+                   ["- Trailing spaces?" + " " * 3, "Plain line!" + " " * 2])
+
+
 def ND1(tmp: Path) -> None:
     _replace_frontmatter(orders(tmp) / "prd.md", "version: 1.0.0", "version: 0.3.0")
 
@@ -370,7 +377,7 @@ def NLV(tmp: Path) -> None:
 
 STEPS = {
     "N0": N0, "N0E": N0E, "N0X": N0X, "NL1": NL1, "NL2": NL2, "NT1": NT1, "NT2": NT2,
-    "NE1": NE1, "NE2": NE2, "NE3": NE3, "NQ1": NQ1, "NQ2": NQ2, "NQ3": NQ3, "ND1": ND1, "NA1": NA1,
+    "NE1": NE1, "NE2": NE2, "NE3": NE3, "NQ1": NQ1, "NQ2": NQ2, "NQ3": NQ3, "NQ4": NQ4, "ND1": ND1, "NA1": NA1,
     "NR1": NR1, "NR2": NR2, "NR3": NR3, "NR4": NR4, "NR5": NR5, "NV2": NV2, "NB2": NB2, "NB3": NB3, "NLV": NLV,
 }
 

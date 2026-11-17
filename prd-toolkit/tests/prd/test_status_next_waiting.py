@@ -202,3 +202,35 @@ def test_a_wrapped_question_joins_and_a_plain_line_is_a_question_of_its_own(scra
 {"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
 {"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
 """)
+
+
+@given_steps("N0", "NQ4")
+def test_a_question_line_that_ends_in_spaces_ends_in_its_own_mark(scratch):
+    """@prd T-044.7"""
+    folder = orders(scratch)
+    runs = [run(folder, "STATUS", "."), run(folder, "STATUS", "--json", ".")]
+    for r in runs:
+        assert (r.exit, r.stderr) == (0, ""), r
+    assert next_part_lines(runs[0].stdout) == [
+        "## Next",
+        "",
+        "1. An open question waits: Trailing spaces?",
+        "2. An open question waits: Plain line!",
+        "3. 1 requirement is verified and not live.",
+        "  run: /prd-toolkit:prd-deploy",
+        "4. FR-002 is built and not verified.",
+        "  run: /prd-toolkit:prd-build import FR-002",
+        "5. FR-001 is approved and not built.",
+        "  run: /prd-toolkit:prd-build import FR-001",
+        "6. FR-005 is approved and not built.",
+        "  run: /prd-toolkit:prd-build reports FR-005",
+        "",
+    ]
+    assert next_items_json(runs[1].stdout) == json_lines(r"""
+{"part": "Next", "id": null, "text": "An open question waits: Trailing spaces?", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+{"part": "Next", "id": null, "text": "An open question waits: Plain line!", "kind": "question", "ids": [], "area": null, "command": null, "waits_on": "you"}
+{"part": "Next", "id": null, "text": "1 requirement is verified and not live.", "kind": "deploy", "ids": ["FR-003"], "area": null, "command": "/prd-toolkit:prd-deploy", "waits_on": "agent"}
+{"part": "Next", "id": null, "text": "FR-002 is built and not verified.", "kind": "verify", "ids": ["FR-002"], "area": "import", "command": "/prd-toolkit:prd-build import FR-002", "waits_on": "agent"}
+{"part": "Next", "id": null, "text": "FR-001 is approved and not built.", "kind": "build", "ids": ["FR-001"], "area": "import", "command": "/prd-toolkit:prd-build import FR-001", "waits_on": "agent"}
+{"part": "Next", "id": null, "text": "FR-005 is approved and not built.", "kind": "build", "ids": ["FR-005"], "area": "reports", "command": "/prd-toolkit:prd-build reports FR-005", "waits_on": "agent"}
+""")
