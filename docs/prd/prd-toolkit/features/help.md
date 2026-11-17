@@ -76,7 +76,7 @@ Tests: T-035.1 [integration], T-035.2 [integration], T-035.3 [integration], T-03
 Traces: UJ-02; cli:prd_help; `prdlint/interface.py`
 
 ### FR-036 Refuse what it cannot answer
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/helpcat.py:48 @858bb3b
 Acceptance (EARS):
 - AC-036.1 If `--key` names no catalogue entry, the help command shall print the one stderr line
