@@ -320,6 +320,26 @@ def KP7(tmp: Path) -> None:
           '"leaflet-copy@example": [{"installPath": "' + str(tmp) + '/plug2"}]}}\n')
 
 
+def KE(tmp: Path) -> None:
+    """Step KE: the pack declares no contract type (`contract-types: []`, its two rows deleted)."""
+    path = the_pack(tmp) / "pack.yaml"
+    lines = _lines(path)
+    i = _one(lines, lambda s: s == "contract-types:", "equal to 'contract-types:'", path)
+    assert lines[i + 1].startswith("  - {type: pages,"), f"setup: {path}: {lines[i + 1]!r}"
+    assert lines[i + 2].startswith("  - {type: routes,"), f"setup: {path}: {lines[i + 2]!r}"
+    lines[i:i + 3] = ["contract-types: []\n"]
+    _save(path, lines)
+
+
+def KX(tmp: Path) -> None:
+    """Step KX: the pack holds one vocabulary word, `visitor`."""
+    path = the_pack(tmp) / "pack.yaml"
+    lines = _lines(path)
+    i = _one(lines, lambda s: s == "vocabulary: []", "equal to 'vocabulary: []'", path)
+    lines[i] = "vocabulary: [visitor]\n"
+    _save(path, lines)
+
+
 def KI(tmp: Path) -> None:
     """Step KI: the identity, and no signing, of a commit a run of the case makes in <tmp>/north."""
     repo = tmp / "north"
