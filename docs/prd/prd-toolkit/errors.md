@@ -346,3 +346,19 @@ Evidence: Report of the builder that fixed E-027 (build pack-authoring FR-059, 2
 Diagnosis: not a defect: reproduced once on the PRD's pack-authoring fixture, with the pack's `pages` validator set to `./ok.sh`, a program that exists in each PRD folder and not in the pack folder. `prd pack check` printed one finding, `plug/prd-packs/leaflet/samples/pages/bad.yaml: validator not found: ./ok.sh`, and exited 1. The second run from the pack folder (AC-059.7) did print nothing, as the report says, and AC-059.7 asks for nothing there: it names a finding only "when that run exits other than 0" and "when it runs past the time AC-059.2 allows". The case is still reported, by AC-059.3: the sample run uses the same validator "with the pack folder as the working directory" and prints "the finding `<pack dir>/samples/<type>/<name>: <problem>` with AC-059.2's problem text when the validator does not split, is not found, cannot be run or times out"; and a type with no sample draws `no bad.* sample`. So a validator that cannot be found or run from the pack folder never passes the check; its finding sits on the sample's path, not on the PRD's. Root cause of the silence: `_from_pack_folder` in prdlint/packcheck.py drops the not-found and not-executable problems on purpose. What a change could add, if wanted: the same problem printed on the PRD's line too, which would say it twice.
 Resolution: -
 Recurrence of: -
+
+### E-030 a lift accepts a pack that declares no contract type, and a pack vocabulary adds lint findings after a lift
+Detected: 2026-11-17, final review of the 0.8.12 branch
+Classification: unclassified
+Touches: FR-060
+Evidence: Final review of the 0.8.12 branch, 2026-11-17, on the PRD's fixture pack-authoring/sites:
+  a second plugin held pack bare 0.1.0 with vocabulary [visitor, redirect], builder-tests: none and no contract types.
+  prd change pack docs/prd/north bare 0.1.0 --lift exited 0 and recorded: pack bare 0.1.0 lifted; pending
+  Lint then printed six new `platform-word` findings, the first:
+  features/site.md:6: warn: platform-word: AC-001.1 names 'visitor', a word of pack bare
+  AC-060.4 refuses only a declared type that is not a matching custom row; a pack with no type passes it.
+  AC-060.7 says lint prints, after a lift, the findings it printed before it.
+  The same new findings follow a lift onto a pack written by authoring-packs when the owner keeps a vocabulary word.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
