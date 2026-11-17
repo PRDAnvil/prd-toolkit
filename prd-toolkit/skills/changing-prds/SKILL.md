@@ -139,7 +139,8 @@ a refusal, stop and report it.
   folder or `pack-sources.json`, then
   `git commit -m "chore: refresh the vendored toolkit" -m "Refs: none (no behaviour change)"`.
 - Then step 4's lint, whose `prd-lint-exit=` value must be `0` (the pack's validators now run where
-  the PRD's own did), and the verdict with no dry run, and step 5's approval as for any patch, with
+  the PRD's own did), and the verdict with no dry run (`bump` answers `needs judgment` for the lift's
+  two `prd.md` lines: the level is the patch the lift recorded, decided in the verdict with that reason), and step 5's approval as for any patch, with
   `--dry-run 'no dry run (pack lifted)'`: §14 reads
   `pack <name> <X.Y.Z> lifted; no dry run (pack lifted)`.
 

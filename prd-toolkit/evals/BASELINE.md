@@ -5,7 +5,7 @@ Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier
 ## 0.8.12: the pack cases, the error URL case, and the skills whose text changed
 
 Recorded 2026-11-16 on `feat/prd-toolkit-0.8.12`, model `sonnet`, Claude Code 2.1.325, plugin 0.8.11 (the manifest
-bump is the release commit), one run each by the owner's choice, 27 cases and one probe. The command, per group:
+bump is the release commit), one run each by the owner's choice, 29 cases and one probe. The command, per group:
 
 ```
 claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-publish --runs 1 --keep-temp -j 3 \
@@ -14,7 +14,7 @@ claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-p
 
 Run from a clean copy of the plugin (`git archive HEAD prd-toolkit`): run in the working tree, the runner refuses a
 plugin directory that holds more than 20000 entries, and the unit suite's `.uv-test-cache/` holds more. Cost of every
-run below: $17.0.
+run below: $17.5.
 
 **E-022 did not recur.** The probe, `building-trigger`, ran (1.00 / 0.00), and so did every case of the 0.8.11
 section's "could not run" list. Nothing fixed E-022; what changed on the machine is not found, and the entry stays
@@ -42,12 +42,15 @@ open.
   helper written through Bash (`pack-drafts-no-helpers` sees Write and the files left on disk); the lift, which the
   release's proof runs in two real repositories.
 
-**The existing cases of the skills whose text changed** (handling-errors, adopting, changing), 12 cases:
+**The existing cases of the skills whose text changed** (handling-errors, adopting, changing), 14 cases; the two
+`handling-errors-*` cases were run on 2026-11-17, on the release commit, after the final review found them missing:
 
 | Case | with | without | Δ |
 |---|---|---|---|
 | `error-confirm-before-fix` | 1.00 | 1.00 | 0.00 |
 | `error-flaky-not-retried` | 1.00 | 0.50 | +0.50 |
+| `handling-errors-trigger` | 1.00 | 0.00 | +1.00 |
+| `handling-errors-not-without-prd` | 1.00 | 1.00 | 0.00 |
 | `adopting-confirm-headless-fallback` | 1.00 | 1.00 | 0.00 |
 | `adopting-fix-restates-asks` | 1.00 | 0.33 | +0.67 |
 | `adopting-trigger` | 1.00 | 0.00 | +1.00 |
@@ -63,7 +66,8 @@ open.
   in the tree, committed nothing and named `/prd-toolkit:prd-change-set`, but had not yet set `In review`, which step 2
   asks for before `impact`. The grader also wants a version other than 1.0.2, and the version is `bump`'s, in step 3,
   after the stop: the grader and the skill's order disagree there. Not rerun; the grader is to be looked at.
-- `error-confirm-before-fix` and `adopting-confirm-headless-fallback` score 1.00 without the plugin too.
+- `error-confirm-before-fix`, `adopting-confirm-headless-fallback` and `handling-errors-not-without-prd` (a negative
+  case) score 1.00 without the plugin too.
 
 **The cases E-022 stopped in 0.8.11**, 10 more, of skills whose text did not change in 0.8.12:
 
@@ -87,8 +91,8 @@ open.
 **Not run:** `review-edits-nothing` and the deploy cases (E-019), the three `change-set-*` cases, and every other case
 of a skill whose text did not change.
 
-**Result:** 24 of the 27 cases score 1.00 with the plugin; the three others score 0.90, 0.83 and 0.75, each for the
-one grader named above. No case has a Δ at or below zero except the two that score 1.00 either way.
+**Result:** 26 of the 29 cases score 1.00 with the plugin; the three others score 0.90, 0.83 and 0.75, each for the
+one grader named above. No case has a Δ at or below zero except the three that score 1.00 either way.
 
 ## 0.8.11: the practices cases, and the skills whose text changed
 

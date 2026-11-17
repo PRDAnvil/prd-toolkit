@@ -84,7 +84,7 @@ def test_changelog_entry():
                    "E-025", "E-026", "E-027",
                    "**Upgrade:**", "hooks install docs/prd/<slug>", "hooks ci --github --force docs/prd/<slug>",
                    "**Known limits:**", "E-028", "E-029", "needs judgment", "ordinary words",
-                   "**Evals and proof:**", "27 cases", "24", "two static web sites"):
+                   "**Evals and proof:**", "29 cases", "26 score 1.00", "two static web sites"):
         assert needle in e, needle
     assert "/Users/" not in e
 
