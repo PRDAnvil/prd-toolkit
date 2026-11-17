@@ -252,14 +252,14 @@ Recurrence of: -
 
 ### E-023 An error-class answer given in the inbox is committed in every worktree that holds the PRD
 Detected: 2026-11-15, user report from a repository that vendors 0.8.10
-Classification: unclassified
+Classification: spec gap
 Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
   The repository has its main checkout on one branch and a worktree on another; both hold the PRD folder.
   From the worktree: prd gates serve <prd> --gate approval:<branch>, and prd gates wait.
   In that inbox the owner also answered eleven error-class gates, E-001 to E-011 ("Confirm the class (form)").
   Each confirmation was committed twice: once on the worktree's branch and once on the main checkout's branch,
   eleven `docs(prd): confirm E-nnn` commits on each side with identical errors.md content.
-Diagnosis: -
+Diagnosis: Reproduced once in a scratch repository on 0.8.12: a PRD with one entry `proposed`, committed, and a second worktree on another branch cut from that commit. The inbox listing then holds the gate `error-class:E-002` twice, once in the group of each worktree, because the entry is `proposed` in both checkouts. Root cause: `listing` in `prd-toolkit/scripts/prdlint/gates.py` lists the gates of the PRD folder in every worktree and shows only a `deploy-step:` gate once ("a run is repo-wide: once, in the first group"); an answer to a card runs `prd error confirm` in that card's own worktree and commits there. So the owner is asked the same question once per worktree, and each answer is a commit on that worktree's branch with the same `errors.md` text, as the report says; one answer is not copied to the other worktree by the code. Class against the PRD: the area `gates` is not adopted (adoption.md: `gates | not started`), and no AC says how the inbox shows an entry that is `proposed` in more than one worktree. What a change could add: one card for an entry whose `proposed` text is the same in several worktrees, and a stated rule for which branch its answer is committed on.
 Resolution: -
 Recurrence of: -
 
