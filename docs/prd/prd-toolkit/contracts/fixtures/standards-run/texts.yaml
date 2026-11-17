@@ -1,0 +1,13 @@
+# Fixture standards-run/texts: the texts the standards-run setup steps write and the cases compare, one key per
+# text. rows: the three lines of the section 5 table (header, separator, the enforced row with the glob `**/*.py`
+# and the linter); linter: that row's linter command, which appends the paths it is given, joined by spaces, as
+# one line to lint.log in its working directory, prints on stderr each path that holds `.prd-toolkit/` or ends
+# in `bad.py`, and exits 1 when there is one; job_line: the command the generated CI gives the row's job
+# (AC-068.4); old_job_line: the command a release before standards-run gave it.
+rows:
+- '| Object (glob) | Linter command | Rules live in | Applies to | Decision |'
+- '|---|---|---|---|---|'
+- '| `**/*.py` | `python3 -c "import sys; open(''lint.log'', ''a'').write('' ''.join(sys.argv[1:]) + chr(10)); bad = [a for a in sys.argv[1:] if ''.prd-toolkit/'' in a or a.endswith(''bad.py'')]; print(*bad, file=sys.stderr); sys.exit(1 if bad else 0)"` | the command itself | every Python file | enforced |'
+linter: python3 -c "import sys; open('lint.log', 'a').write(' '.join(sys.argv[1:]) + chr(10)); bad = [a for a in sys.argv[1:] if '.prd-toolkit/' in a or a.endswith('bad.py')]; print(*bad, file=sys.stderr); sys.exit(1 if bad else 0)"
+job_line: git ls-files -z --format='./%(path)' -- ':(glob)**/*.py' ':(exclude).prd-toolkit' | xargs -0 -r python3 -c "import sys; open('lint.log', 'a').write(' '.join(sys.argv[1:]) + chr(10)); bad = [a for a in sys.argv[1:] if '.prd-toolkit/' in a or a.endswith('bad.py')]; print(*bad, file=sys.stderr); sys.exit(1 if bad else 0)"
+old_job_line: git ls-files -z --format='./%(path)' -- ':(glob)**/*.py' | xargs -0 -r python3 -c "import sys; open('lint.log', 'a').write(' '.join(sys.argv[1:]) + chr(10)); bad = [a for a in sys.argv[1:] if '.prd-toolkit/' in a or a.endswith('bad.py')]; print(*bad, file=sys.stderr); sys.exit(1 if bad else 0)"

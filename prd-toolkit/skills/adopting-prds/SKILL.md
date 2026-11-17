@@ -39,6 +39,10 @@ When `.prd-toolkit/` exists but holds no `prd`, the vendored copy predates 0.8.8
 the user the same and, when `.github/workflows/prd-toolkit.yml` or `.gitlab/prd-toolkit.yml` exists,
 also to run `prd_hooks.py ci --<forge> --force docs/prd/<slug>` from the plugin and commit both
 together.
+When `.prd-toolkit/` exists but holds no `prd_pack.py`, the vendored copy predates 0.8.12, whose
+lint refuses a `Target:` line's `url` part: write no `url` part, and tell the user to run
+`prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form) and commit
+`.prd-toolkit/` before one is written.
 A first adoption has no `.prd-toolkit/` until the hooks install, so it uses the plugin path; a later
 area in an adopted repo uses the vendored copy, so lint and trace match what CI runs.
 
@@ -178,7 +182,16 @@ picked. Otherwise show the map, recommend one area and why, and stop for the use
   its first `###` block: `Target: pack <name> <X.Y.Z> (<source>)[, output language <code>]`. An
   area whose pack is the PRD's default (§1's `Pack:` line, or `service` when there is none) needs
   no `Target:` line. Never write one the user has not confirmed: unconfirmed, the proposal is a
-  §13 question.
+  §13 question. The line may end with a third part, `url <address>`, where the area's output can
+  be opened (a page, a dashboard): its cards in the decision inbox link to it. Ask the owner for
+  it, and write it only as they give it, never guessed from the code, a config or a README:
+  `Target: pack <name> <X.Y.Z> (<source>), url <address>`, or `Target: url <address>` alone for an
+  area on the default pack.
+- **Custom contract types.** When no listed pack fits and the area's outputs are declared as
+  custom §7 types (each with its own Validator command), say so with the pack proposal, and again
+  at step 5's approval: a second repository of this kind, adopted the same way, is the moment for
+  `/prd-toolkit:prd-pack` (skill `prd-toolkit:authoring-packs`), which writes a pack from the two
+  adopted PRDs.
 - **Practices.** Offer `/prd-toolkit:prd-practices <area>` (skill `prd-toolkit:sourcing-practices`):
   it proposes the area's best-practice sources, read and quoted, with the practices, standards rows
   and skills they give. On the owner's yes, for the first area run it now: the rows it writes carry the

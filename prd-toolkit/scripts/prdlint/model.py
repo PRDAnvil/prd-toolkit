@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .cardcontext import TARGET_URL, well_formed
 from .findings import Finding
 from .markdown import Row, Section, frontmatter, sections, strip_code, tables
 from .yamlload import LineDict, load_yaml
@@ -96,6 +97,9 @@ class ErrorEntry:
     recurrence: str = ""
     recurrence_line: int = 0
     classification_line: int = 0
+    touches_line: int = 0  # the last `Touches:` line, `Touches: -` included; 0 when absent
+    url: str | None = None  # the trimmed value of the entry's first column-0 `URL:` line; None when it has none
+    url_line: int = 0
 
     @property
     def state(self) -> str:
@@ -255,6 +259,7 @@ class Target:
     line: int
     pack: PackRef | None  # None: inherits section 1
     output_language: str | None  # None: inherits section 1
+    url: str | None = None  # FR-065: the address of the line's url part; None without one
 
 
 @dataclass
@@ -302,6 +307,7 @@ _CONFIRMED_VALUE = re.compile(r'^(\d{4}-\d{2}-\d{2}),\s*"(.*)"$')
 _EVIDENCE = re.compile(r"^Evidence:\s*(.*?)\s*$")
 _DIAGNOSIS = re.compile(r"^Diagnosis:\s*(.*?)\s*$")
 _RECURRENCE = re.compile(r"^Recurrence of:\s*(.*?)\s*$")
+_URL = re.compile(r"^URL:(.*)$")
 CLASSES = ("code bug", "spec gap", "invalid requirement", "environment", "standard", "unclassified")
 DRIFT_CHECKS = ("version", "config")
 _TOUCH_ID = re.compile(r"\b(?:UJ|FR|NFR)-\d+\b")
@@ -453,6 +459,10 @@ def _errors_ledger(text: str) -> dict[str, ErrorEntry]:
         tm = _TOUCHES.match(orig) if cur else None
         if tm:
             cur.touches.extend((i, n) for i in _TOUCH_ID.findall(tm.group(1)))
+            cur.touches_line = n
+        um = _URL.match(orig) if cur and cur.url is None else None
+        if um:  # FR-063: the first column-0 URL: line of the entry, wherever it stands
+            cur.url, cur.url_line = um.group(1).strip(), n
     for e in ledger.values():
         e.end = e.end or last
     return ledger
@@ -748,7 +758,8 @@ _TARGET_LINE = re.compile(r"^Target:(.*)$")
 _COMMENT = re.compile(r"<!--.*?-->", re.S)
 PACK_GRAMMAR = "Pack: must be <name> <X.Y.Z> (<source>)"
 OUTPUT_GRAMMAR = "Output language: must be a BCP 47 tag such as es or pt-BR"
-TARGET_GRAMMAR = "Target: must be pack <name> <X.Y.Z> (<source>)[, output language <code>] or output language <code>"
+TARGET_GRAMMAR = ("Target: must be one or more of pack <name> <X.Y.Z> (<source>), output language <code> and url <address>, "
+                  "comma-separated, in that order")
 TARGET_PLACE = "Target: must come before the first requirement"
 TARGET_ABOVE = "Target: must come after the file's level-1 heading"
 
@@ -790,23 +801,32 @@ def _section_1_profile(s1: Section | None, problems: list) -> tuple[PackRef | No
     return pack, output
 
 
-def _target_value(value: str, rel: str, n: int) -> tuple[PackRef | None, str | None] | None:
-    """The parts of a `Target:` value; None when it is malformed or names neither part."""
-    parts = [x.strip() for x in value.split(",")] if value.strip() else []
+def _target_value(value: str, rel: str, n: int) -> tuple[PackRef | None, str | None, str | None] | str:
+    """The pack, output-language and url parts of a `Target:` value (FR-065), or the message of a malformed one.
+
+    The url part is the line's last part: its address runs to the end of the line, so it may hold a comma."""
+    pieces = value.split(",")
+    head, address = pieces, None
+    for i, piece in enumerate(pieces):
+        if piece.strip().startswith("url "):
+            head, address = pieces[:i], ",".join(pieces[i:]).strip()[4:].strip()
+            break
     pack: PackRef | None = None
     lang: str | None = None
-    if not 1 <= len(parts) <= 2:
-        return None
-    for i, part in enumerate(parts):
-        if part.startswith("pack ") and i == 0 and pack is None:
-            pack = _pack_ref(part[5:], rel, n)
+    last = -1  # the position, in AC-065.1's order, of the part before
+    for piece in head:
+        part = piece.strip()
+        if part.startswith("pack ") and last < 0:
+            pack, last = _pack_ref(part[5:], rel, n), 0
             if pack is None:
-                return None
-        elif part.startswith("output language ") and lang is None and _LANG_TAG.fullmatch(part[16:].strip()):
-            lang = part[16:].strip()
+                return TARGET_GRAMMAR
+        elif part.startswith("output language ") and last < 1 and _LANG_TAG.fullmatch(part[16:].strip()):
+            lang, last = part[16:].strip(), 1
         else:
-            return None
-    return pack, lang
+            return TARGET_GRAMMAR
+    if address is None:
+        return pack, lang, None
+    return (pack, lang, address) if well_formed(address) else TARGET_URL
 
 
 def _targets(docs: dict[str, str], problems: list) -> dict[str, Target]:
@@ -831,8 +851,8 @@ def _targets(docs: dict[str, str], problems: list) -> dict[str, Target]:
                 problems.append((rel, n, f"Target: repeated (first at line {out[area].line}); one Target: line per area"))
             else:
                 parts = _target_value(m.group(1), rel, n)
-                if parts is None:
-                    problems.append((rel, n, TARGET_GRAMMAR))
+                if isinstance(parts, str):
+                    problems.append((rel, n, parts))
                     out[area] = None  # the line is taken: a later one is still a repeat
                 else:
                     out[area] = Target(area, rel, n, *parts)

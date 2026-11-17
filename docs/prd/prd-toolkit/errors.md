@@ -275,3 +275,91 @@ Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-025 The pre-commit standards run lints the vendored .prd-toolkit/ copy, so a re-vendor commit can be refused
+Detected: 2026-11-15, user report from a repository that vendors 0.8.11
+Classification: spec gap
+Confirmed: 2026-11-15, "spec gap is right, add it to the change"
+Evidence: Report from a repository that vendors prd-toolkit, 2026-11-15, after hooks install from the 0.8.11 plugin (vendored copy 0.8.4 to 0.8.11):
+  The PRD's section 5 has an enforced row whose glob is **/*.py and whose linter enforces a line length the toolkit's own scripts do not keep.
+  git add .prd-toolkit && git commit (a vendor-only commit, Refs: none) was refused by the pre-commit hook:
+  prd-toolkit: `<linter>` failed (exit 1) on .prd-toolkit/prd_block.py, ... .prd-toolkit/prdlint/status.py
+  The vendored copy must stay byte for byte what the plugin ships, so it cannot be changed to pass.
+Diagnosis: Reproduced once in a scratch repository: a PRD whose section 5 holds an enforced row with the glob `**/*.py` and a linter that refuses a line over 88 characters; after `prd hooks install` from the plugin, `git add .prd-toolkit` and `git commit` is refused by the pre-commit hook with `prd-toolkit: ... failed (exit 1) on .prd-toolkit/prd_block.py, .prd-toolkit/prd_build_check.py, ...`. Root cause: `pre_commit` in `prd-toolkit/scripts/prdlint/githook.py` gives a standards row every staged file its glob matches, and the generated CI job (`standards-<n>` in `prd-toolkit/scripts/prdlint/hooks.py`) lists every tracked file the glob matches; neither leaves out the vendored copy `.prd-toolkit/`, which must stay byte for byte what the plugin ships and so can never be changed to pass a repository's own linter. The same code is in every release since the hooks were written. Class against the PRD: no requirement, contract or test case covers the standards run of the commit hook or of the generated CI (searched every features file, nfr.md and testing.md for the standards run, pre-commit and the vendored copy; adoption.md maps `githook.py` and `hooks.py` in `trace-and-hooks`, which is not started), so the PRD does not say which files a standards row is run on. The fix adds a requirement that a standards row is never run on a file under `.prd-toolkit/`, in the hook and in the generated CI job, with test cases, then the code.
+Resolution: T-068.3 [integration], PRD 7.1.0, fixed in 27aab93
+Recurrence of: -
+
+### E-026 Approving a lift leaves the vendored pack uncommitted
+Detected: 2026-11-16, review of the 0.8.12 skill text
+Classification: spec gap
+Confirmed: 2026-11-16, "spec gap is right for all three"
+Touches: FR-060
+Evidence: Review of the 0.8.12 skill text, 2026-11-16, in a scratch repository whose vendored copy was committed before the lift:
+  prd change pack docs/prd/south leaflet 0.1.0 --lift, then prd hooks install docs/prd/south, the verdict, then prd change approve.
+  The approval commit holds CLAUDE.md, docs/prd/README.md, docs/prd/south/README.md and docs/prd/south/prd.md.
+  git status --porcelain after it:
+   M .prd-toolkit/pack-sources.json
+  ?? .prd-toolkit/packs/leaflet/
+  A clone of the approval commit, with no plugin installed, fails lint with exit 1:
+  pack leaflet 0.1.0 ... not found, and two contracts-valid findings.
+  After a version move (prd change pack without --lift) the approval commit holds the re-vendored pack and pack-sources.json.
+Diagnosis: Reproduced by the reviewer in a scratch repository. `_vendored_packs` in `prdlint/change_approve.py` stages `.prd-toolkit/packs/<name>` and `pack-sources.json` only for the packs `change.pack_moves` returns, which are lines whose pack version moved with the name and source unchanged; a lift adds a `Pack:` line the committed PRD lacks, so it returns none and the approval commit leaves out the vendored pack. No AC of FR-060 says what the approval of a lift commits (the area `change` is not adopted); only its Edge cases line says: "then `prd hooks install` vendors the pack and the owner approves with the dry-run record `no dry run (pack lifted)`, as for a version move".
+Resolution: T-060.13 [integration], PRD 7.3.0, fixed in 307ebad
+Recurrence of: -
+
+### E-027 A validator that crashes from the pack folder counts as refusing its sample
+Detected: 2026-11-16, review of the 0.8.12 skill text
+Classification: spec gap
+Confirmed: 2026-11-16, "spec gap is right for all three"
+Touches: FR-059
+Evidence: Review of the 0.8.12 skill text, 2026-11-16, on the fixture pack-authoring/sites:
+  A contract type's validator that reads a file by a path relative to the PRD folder is carried into the pack.
+  samples/<type>/bad.yaml is an unbroken copy of the PRD's own file, which the validator accepts when run from the PRD folder.
+  prd pack check <pack dir> <prd A> <prd B> runs the validator on the sample from the pack folder, where it stops with a traceback (the file it reads is not there) and exits 1.
+  The check prints no finding for the sample and exits 0: the crash counts as the sample being refused.
+Diagnosis: Reproduced by the reviewer on the fixture pack-authoring/sites. `_sample_findings` in `prdlint/packcheck.py` reports a sample only when the validator exits 0, as AC-059.3 says: "the finding `<pack dir>/samples/<type>/<name>: the validator accepts it; a sample must be refused` when the validator exits 0". The code does what the AC says. No AC covers a validator that exits non-zero from the pack folder for a reason other than the sample (it reads a file by a path relative to the PRD folder and stops there): the check cannot tell that from a refusal, so a pack whose validator cannot run from the pack folder passes.
+Resolution: T-059.8 [integration], PRD 7.3.0, fixed in 2b8d036
+Recurrence of: -
+
+### E-028 The implement pack leaves out the definitions a features file gives before its first block
+Detected: 2026-11-16, stopped-builder report, the card-context build
+Classification: spec gap
+Confirmed: 2026-11-16, "spec gap is right for all three"
+Evidence: Build of the area card-context, 2026-11-16, the builder's report:
+  "The PRD's area order" and "well-formed address" are used by the acceptance criteria of FR-062 to FR-066.
+  Both are defined only in the paragraph "Words used below." at the top of features/card-context.md, before the first block.
+  prd context docs/prd/prd-toolkit --area card-context --req UJ-06,FR-062,FR-063,FR-064,FR-065,FR-066,FR-067 --for implement prints the blocks and not that paragraph.
+  The builder read lines 1 to 27 of features/card-context.md, outside the pack, to learn them.
+Diagnosis: Reproduced: `prd context docs/prd/prd-toolkit --area card-context --req FR-062 --for implement` exits 0 and holds neither "Words used below" nor the definition of the area order, which `features/card-context.md` gives in its lines before the first block. The pack prints the requirement blocks of a features file and none of its text before the first block. The area `context` is not adopted (adoption.md: `context | not started`), so no AC says what the pack takes from a features file outside its blocks; the format reference names no place in a features file for definitions the blocks share.
+Resolution: -
+Recurrence of: -
+
+### E-029 pack check reports nothing when a validator cannot be found or run from the pack folder on its second run
+Detected: 2026-11-16, builder report, build pack-authoring FR-059 --fixes E-027
+Classification: spec gap
+Confirmed: 2026-11-16, "spec gap is right, leave it unfixed"
+Touches: FR-059
+Evidence: Report of the builder that fixed E-027 (build pack-authoring FR-059, 2026-11-16):
+  On the second run from the pack folder, a validator that is not found or cannot be run gives no finding.
+  AC-059.7 names only "exits other than 0" and "runs past the time".
+  This is plausible when the validator's program is a relative path that resolves from the PRD folder and not from the pack folder.
+Diagnosis: not a defect: reproduced once on the PRD's pack-authoring fixture, with the pack's `pages` validator set to `./ok.sh`, a program that exists in each PRD folder and not in the pack folder. `prd pack check` printed one finding, `plug/prd-packs/leaflet/samples/pages/bad.yaml: validator not found: ./ok.sh`, and exited 1. The second run from the pack folder (AC-059.7) did print nothing, as the report says, and AC-059.7 asks for nothing there: it names a finding only "when that run exits other than 0" and "when it runs past the time AC-059.2 allows". The case is still reported, by AC-059.3: the sample run uses the same validator "with the pack folder as the working directory" and prints "the finding `<pack dir>/samples/<type>/<name>: <problem>` with AC-059.2's problem text when the validator does not split, is not found, cannot be run or times out"; and a type with no sample draws `no bad.* sample`. So a validator that cannot be found or run from the pack folder never passes the check; its finding sits on the sample's path, not on the PRD's. Root cause of the silence: `_from_pack_folder` in prdlint/packcheck.py drops the not-found and not-executable problems on purpose. What a change could add, if wanted: the same problem printed on the PRD's line too, which would say it twice.
+Resolution: -
+Recurrence of: -
+
+### E-030 a lift accepts a pack that declares no contract type, and a pack vocabulary adds lint findings after a lift
+Detected: 2026-11-17, final review of the 0.8.12 branch
+Classification: spec gap
+Confirmed: 2026-11-17, "spec gap is right"
+Touches: FR-060
+Evidence: Final review of the 0.8.12 branch, 2026-11-17, on the PRD's fixture pack-authoring/sites:
+  a second plugin held pack bare 0.1.0 with vocabulary [visitor, redirect], builder-tests: none and no contract types.
+  prd change pack docs/prd/north bare 0.1.0 --lift exited 0 and recorded: pack bare 0.1.0 lifted; pending
+  Lint then printed six new `platform-word` findings, the first:
+  features/site.md:6: warn: platform-word: AC-001.1 names 'visitor', a word of pack bare
+  AC-060.4 refuses only a declared type that is not a matching custom row; a pack with no type passes it.
+  AC-060.7 says lint prints, after a lift, the findings it printed before it.
+  The same new findings follow a lift onto a pack written by authoring-packs when the owner keeps a vocabulary word.
+Diagnosis: reproduced by the final review of the 0.8.12 branch on the fixture pack-authoring/sites (the evidence above), not run again here; the code was read. The lift does what AC-060.4 states: `lift` in prdlint/change.py checks only the types the pack declares ("If a contract type the pack declares has no section 7 row in `prd.md` that is a custom row"), and the manifest reader allows none (`contract_types` in prdlint/packs.py returns an empty list), so a pack with no contract type passes with nothing checked. No PRD line says what a lift does with such a pack, or with a pack that holds vocabulary words. AC-060.7 then states more than holds: "the lint command shall print the findings it printed for the PRD before the lift", while a pack vocabulary adds a `platform-word` finding for each requirement that names a word, as the pack procedure itself says of a kept word. What a change would add: a refusal of a pack that declares no contract type, under AC-060.4 and in the AC-060.5 order, and AC-060.7 and the sentences that repeat it (the README, references/contract-types.md, the changing-prds skill) qualified for a pack vocabulary.
+Resolution: -
+Recurrence of: -

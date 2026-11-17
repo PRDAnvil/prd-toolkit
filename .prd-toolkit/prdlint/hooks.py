@@ -9,10 +9,10 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import change_approve
+from . import change_approve, standardsrun
 
 VENDOR_DIR = ".prd-toolkit"
-VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "prd_help.py", "prd_practices.py", "requirements.txt", "prd")
+VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "prd_help.py", "prd_practices.py", "prd_pack.py", "requirements.txt", "prd")
 HELP_FILE = "help.yaml"  # references/help.yaml in the plugin, .prd-toolkit/help.yaml vendored (AC-037.2)
 LAUNCHER = "prd"  # the sh launcher: .prd-toolkit/prd
 MARKER = "# prd-toolkit hook"
@@ -548,8 +548,7 @@ def ci_jobs(prd, prd_rel: str) -> list[CiJob]:
     for row in standards_rows(prd):
         if row.decision == "enforced" and row.command:
             n += 1
-            # ./%(path): a path starting with `-` must not read as an option to the linter
-            out.append(CiJob(f"standards-{n}", [f"git ls-files -z --format='./%(path)' -- {shlex.quote(':(glob)' + row.glob)} | xargs -0 -r {row.command}"]))
+            out.append(CiJob(f"standards-{n}", [standardsrun.ci_command(row.glob, row.command)]))
     for level in prd.testing.levels:
         if gate_of(prd, level) == "build" and level in prd.testing.commands:
             out.append(CiJob(f"test-{level}", [prd.testing.commands[level]]))

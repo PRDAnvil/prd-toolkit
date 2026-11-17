@@ -26,3 +26,6 @@
 | help | adopted | `prd-toolkit/scripts/prd_help.py`, `prd-toolkit/scripts/prdlint/helpcat.py`, `prd-toolkit/references/help.yaml` |
 | status-next | adopted | `prd-toolkit/scripts/prdlint/nextpart.py` |
 | practices | adopted | `prd-toolkit/scripts/prd_practices.py`, `prd-toolkit/scripts/prdlint/practices.py`, `prd-toolkit/scripts/prdlint/rules/practices.py` |
+| pack-authoring | adopted | `prd-toolkit/scripts/prd_pack.py`, `prd-toolkit/scripts/prdlint/packcompare.py`, `prd-toolkit/scripts/prdlint/packcheck.py` |
+| card-context | adopted | `prd-toolkit/scripts/prdlint/cardcontext.py` |
+| standards-run | adopted | `prd-toolkit/scripts/prdlint/standardsrun.py` |

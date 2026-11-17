@@ -1,0 +1,137 @@
+# Fixture card-context/files: the texts the card-context setup steps write into a scratch repository built
+# from fixture status-next/base (testing.md, Setup steps), one key per text, each a file's full content or
+# the lines a step appends.
+features_import: |
+  # Import
+
+  Target: url https://example.com/orders/import
+
+  ### FR-001 Refuse a file with no header
+  Status: approved
+  Acceptance (EARS):
+  - AC-001.1 If the import file has no header line, the importer shall exit 2 with error IMPORT_NO_HEADER.
+  Errors: IMPORT_NO_HEADER (contracts/errors.yaml)
+  Tests: T-001.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-002 Skip a duplicate order
+  Status: built
+  Acceptance (EARS):
+  - AC-002.1 When an imported row's order key already exists, the importer shall skip the row.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-003 Store a new order
+  Status: verified
+  Acceptance (EARS):
+  - AC-003.1 When an imported row has a new order key, the importer shall store the row.
+  Errors: -
+  Tests: T-003.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-004 Count the imported rows
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-004.1 When an import ends, the importer shall print the number of rows it stored.
+  Errors: -
+  Tests: T-004.1 [integration]  (test-cases/import.yaml)
+features_reports: |
+  # Reports
+
+  Target: output language en
+
+  ### FR-005 Print the monthly report
+  Status: approved
+  Acceptance (EARS):
+  - AC-005.1 When asked for a month, the report command shall print one line per order of that month.
+  Errors: -
+  Tests: T-005.1 [integration], T-005.2 [judged]  (test-cases/reports.yaml)
+
+  ### FR-006 Total the monthly report
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-006.1 When it prints a monthly report, the report command shall end it with the month's total.
+  Errors: -
+  Tests: T-006.1 [integration]  (test-cases/reports.yaml)
+
+  ### FR-007 Refuse an unknown month
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-007.1 If the month has no orders, the report command shall print nothing and exit 1.
+  Errors: -
+  Tests: T-007.1 [integration]  (test-cases/reports.yaml)
+features_billing: |
+  # Billing
+
+  Target: url https://example.com/orders/billing
+errors_cards: |
+  # Error ledger
+
+  ### E-001 The importer stops at row 1000
+  Detected: 2026-11-03, a run on the October file
+  Classification: code bug
+  Touches: FR-003
+  URL: https://example.com/runs/1001
+  Resolution: -
+  Recurrence of: -
+
+  ### E-002 A monthly report printed no total
+  Detected: 2026-11-05, a reader of the October report
+  Classification: code bug
+  Touches: FR-006, FR-002
+  Resolution: -
+  Recurrence of: -
+
+  ### E-003 A report lists a cancelled order
+  Detected: 2026-11-06, a reader of the October report
+  Classification: spec gap
+  Touches: FR-006
+  Resolution: -
+  Recurrence of: -
+
+  ### E-004 A rerun printed a warning
+  Detected: 2026-11-07, a rerun of the October file
+  Classification: environment
+  Touches: -
+  Resolution: -
+  Recurrence of: -
+errors_lint: |
+  # Error ledger
+
+  ### E-001 A run on the October file failed
+  Detected: 2026-11-03, a run on the October file
+  Classification: code bug
+  URL: ftp://example.com/runs/1
+  Resolution: -
+  Recurrence of: -
+
+  ### E-002 A report printed no total
+  Detected: 2026-11-05, a reader of the October report
+  Classification: unclassified
+  URL: https://example.com/runs/2 3
+  Resolution: -
+  Recurrence of: -
+
+  ### E-003 A rerun printed a warning
+  Detected: 2026-11-07, a rerun of the October file
+  Classification: unclassified
+  URL:
+  Resolution: -
+  Recurrence of: -
+case_acceptance: |
+
+  T-005.3:
+    ac: AC-005.1
+    level: acceptance
+    target: code:reports.monthly
+    environment: staging
+    identity: none
+    preconditions: []
+    input: {month: "2026-10"}
+    steps:
+      - Ask for the October report
+      - Read each line against the October orders
+    signoff: Sample Owner
+    expect:
+      output: {lines: 2}
+      effects: []
+      errors: []
+      leaks: none

@@ -203,6 +203,143 @@ prd_change:
   exit_codes:
     0: "the next ID printed"
     1: "an unknown kind (FR-054)"
+prd_change_pack_lift:
+  # The --lift form of prd_change.py pack (pack-authoring); the version move without --lift is the change area's.
+  invocation: "uv run --script prd-toolkit/scripts/prd_change.py pack <prd_dir> <name> <X.Y.Z> --lift [--source SOURCE] [--json]; through the launcher, prd change pack … --lift (FR-060)"
+  arguments:
+    --lift: "move a PRD that names no pack onto a pack declaring its own custom contract types (FR-060)"
+    --source SOURCE: "with --lift: take the pack from that source when more than one holds the name and version (FR-060)"
+  output:
+    lift_lines: "stdout: <version>, then the row | <version> | <YYYY-MM-DD> | pack <name> <X.Y.Z> lifted; pending | - | (FR-060)"
+    lift_json: 'stdout, --json: one line, {"interface": 1, "kind": "change.pack", "version": <version>, "row": <row>} (FR-060)'
+    lift_writes: "prd.md: the line - Pack: <name> <X.Y.Z> (<source>) after section 1's last bullet; the Validator cell pack in each section 7 custom row of a type the pack declares; version, updated (the local date) and the section 14 row as a patch record; nothing staged or committed, so git status --porcelain lists  M <prd.md's path> (FR-060)"
+    names_pack: "stderr: refused: the PRD already names pack <name> at <file>:<line>; a lift moves a PRD that names none (FR-060)"
+    not_found: "stderr: refused: no pack <name> <X.Y.Z> is on this machine; prd lint --list-packs lists the packs it finds, or with --source refused: no pack <name> <X.Y.Z> (<source>) is on this machine; prd lint --list-packs lists the packs it finds (FR-060)"
+    more_than_one: "stderr: refused: pack <name> <X.Y.Z> comes from more than one source: <source>, <source>; name one with --source <source> (FR-060)"
+    not_custom: "stderr: refused: contract type <type> of pack <name> is not a custom row of section 7 (FR-060)"
+    glob: "stderr: refused: contract type <type>: section 7 has <cell>, pack <name> has <files> (FR-060)"
+    dirty: "stderr: refused: <PRD folder from the repository root> has uncommitted changes; commit or set them aside first (FR-060, the version move's line)"
+    bad_version: "stderr: pack: <X.Y.Z> is not a version X.Y.Z (FR-060, the version move's line)"
+    source_without_lift: "stderr: pack: --source belongs to --lift (FR-060)"
+  exit_codes:
+    0: "the lift written and recorded"
+    1: "the lift refused (FR-060)"
+    2: "a version not X.Y.Z, or --source without --lift (FR-060)"
+prd_context_profile:
+  # What the implement context pack prints that names an area's pack (pack-authoring, AC-060.7): the line forms a lift changes.
+  # The rest of prd_context is the context area's, and these lines are printed as before.
+  invocation: "uv run --script prd-toolkit/scripts/prd_context.py <prd_dir> --area <area> --for implement; through the launcher, prd context"
+  part: "stdout: a part is its title line ## <part> and the lines after it up to, not including, the next line that starts with ## ; the pack starts with the part ## Header, then ## Stack (AC-060.7)"
+  header_version_line: "stdout, the Header part's third line: PRD: <prd_dir as given> version <version> mode implement (AC-060.7)"
+  header_profile_line: "stdout, the Header part: Target: pack <name> <X.Y.Z> (<source>), output language <code>, or Target: pack <name> (default), output language <code> for an area that names no pack (AC-060.7)"
+  header_size_line: "stdout, the Header part's last line: pack <n> bytes (~<k>k tokens, bytes / 4); prd.md <n>; features/<area>.md <n>, each <n> a number with a comma between thousands (AC-060.7)"
+  stack_pack_line: "stdout, the Stack part: section 1 of prd.md as written, so a Pack: line shows as - Pack: <name> <X.Y.Z> (<source>) where section 1 holds it (AC-060.7)"
+  harness_defaults_part: "stdout, when the area's pack has a harness: the line ## Harness defaults, one empty line, one line - **<slot>.** <text> per slot in the pack's order, and one empty line, directly after the Levels part, before any Rubric conventions part and the Cited part (AC-060.7)"
+prd_pack:
+  invocation: "uv run --script prd-toolkit/scripts/prd_pack.py compare <prd_a> <prd_b> [--json] | check <pack_dir> <prd_a> <prd_b> [--json] | --interface; through the launcher, prd pack (FR-061)"
+  arguments:
+    compare: "two PRD folders, A first; prints what they share, part by part (FR-057, FR-058)"
+    check: "a pack folder, then the two PRD folders it was written from (FR-059)"
+    --json: "print one JSON document instead of text; --json=1 is the same, any other --json=N is refused (FR-058)"
+    --interface: "print the interface number 1; no folder is read and a --json=N is not checked (FR-058)"
+    "-h, --help": "print the help to stdout"
+  output:
+    part_title: "stdout, compare: ## <part>, for Contract types, Target kinds, Levels, Harness, Standards, Skills and Vocabulary, in that order; then the part's lines or None., then one empty line (FR-057)"
+    contract_type_line: "stdout, compare: <mark> <type>: <files>; <validator> (FR-057)"
+    target_kind_line: "stdout, compare: <mark> <type>: <a> in A, <b> in B (FR-057)"
+    level_line: "stdout, compare: <mark> <level>: <command>; environment <environment>; gate <gate>; timeout <timeout>, an empty value written - (FR-057)"
+    harness_line: "stdout, compare: <mark> <slot>: <text> (FR-057)"
+    standard_line: "stdout, compare: <mark> <glob>: <linter> (FR-057)"
+    skill_line: "stdout, compare: <mark> <activity>: <skill> (FR-057)"
+    vocabulary_line: "stdout, compare: both <word>: <a> in A, <b> in B (FR-057)"
+    mark: "both, A or B: both when the paired items are the same, A then B when they differ, A or B when one PRD holds the item (FR-057)"
+    compare_json: 'stdout, compare --json: one line, {"interface": 1, "kind": "pack.compare", "a": <folder A>, "b": <folder B>, "parts": {"contract-types": [{"mark", "type", "files", "validator"}], "target-kinds": [{"mark", "type", "a", "b"}], "levels": [{"mark", "level", "command", "environment", "gate", "timeout"}], "harness": [{"mark", "slot", "text"}], "standards": [{"mark", "glob", "linter"}], "skills": [{"mark", "activity", "skill"}], "vocabulary": [{"mark", "word", "a", "b"}]}}; a count a number, a value the text writes - as null (FR-058)'
+    nothing_shared: "stderr, compare: prd_pack: <folder A> and <folder B> share no custom contract type; there is no pack to write; with --json, stdout the error document with that message (FR-058)"
+    finding: "stdout, check: <pack file or PRD file>: <what>, one per line, in the order of the checks (FR-059)"
+    finding_manifest: "check: <pack dir>/pack.yaml: <the manifest loader's message> (FR-059)"
+    finding_validator: "check: <prd dir>/prd.md: contract type <type>: glob matches no file | validator does not parse: <error> | validator not found: <program> | validator not executable: <program> | validator timed out after <N>s | validator failed: <line> (FR-059)"
+    finding_pack_folder: "check: <prd dir>/prd.md: contract type <type>: validator fails from the pack folder: <line> (FR-059)"
+    finding_no_sample: "check: <pack dir>/samples/<type>: no bad.* sample; add a file the validator must refuse (FR-059)"
+    finding_sample_accepted: "check: <pack dir>/samples/<type>/<name>: the validator accepts it; a sample must be refused (FR-059)"
+    finding_level: "check: <pack dir>/pack.yaml: levels[<i>] (<level>): <word> is not on PATH (FR-059)"
+    check_json: 'stdout, check --json: one line, {"interface": 1, "kind": "pack.check", "findings": [{"file": <path>, "message": <what>}]} (FR-059)'
+    json_error: 'stdout, --json on exit 2: one line, {"interface": 1, "kind": "pack.compare" | "pack.check" | "pack", "error": <message>} (FR-058)'
+    interface: "stdout, --interface: 1 (FR-058)"
+    not_a_prd: "stderr: prd_pack: <resolved folder>: no prd.md, optionally followed by ; found <name>; the file name is lowercase prd.md (FR-058)"
+    internal_error: "stderr: prd_pack: internal error: <exception type>: <message> (FR-058)"
+    usage: "stderr: argparse's usage text, its first line starting usage: prd_pack.py, then a line ending error: <argparse message> (FR-058)"
+    unsupported_interface: "stderr, --json=N with N other than 1 and no --interface: prd_pack: unsupported interface <N>; this toolkit speaks 1 (FR-058)"
+  encoding: "stdout and stderr are UTF-8 whatever the locale when run as a script (FR-058)"
+  exit_codes:
+    0: "the comparison printed, a clean check, --interface or --help"
+    1: "compare: no shared custom contract type (FR-058); check: one or more findings (FR-059)"
+    2: "a usage error, an unsupported --json=N without --interface, a PRD folder without prd.md, or an internal error (FR-058)"
+prd_gates:
+  # Only what the card-context area needs so far; the gates area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_gates.py list <prd_dir> [--worktrees] [--json]; through the launcher, prd gates list"
+  output:
+    list_line: "stdout, list: <id> <title>, one line per gate, as before this area: the areas and the URL are not printed (FR-067)"
+    list_json: 'stdout, list --json: one line, {"interface": 1, "kind": "gates", "prd": <slug>, "gates": [{"id", "kind", "title", "question", "evidence", "choices", "source", …, "areas", "url"}]}; path and items only where the gate had them before, areas a list of strings and url a string or null on every gate (FR-062, FR-066, FR-067)'
+    card: "the inbox card: the dict prdlint.gates.card(gate: Gate, prd: Prd, root: pathlib.Path, rel: str) returns and /gates serves, one per gate of list_gates(prd, root) in its order (kind: approval, error-class, deploy-step, adoption, signoff; then id); the gate's keys as list --json gives them, then its kind's keys, then waiting (FR-067)"
+  card_keys:
+    # Each card's keys, in order (FR-067). The gate's keys are id, kind, title, question, evidence, choices, source, then path
+    # (with --worktrees, on an approval gate) and items (an adoption gate), then areas and url.
+    approval: "the gate's keys, then restate, touches, bump, impact, dry_run, diff_truncated, diff, version, waiting"
+    error-class: "the gate's keys, then class, diagnosis, waiting"
+    deploy-step: "the gate's keys, then run, step, env, actor, do, check, waiting; for a run log that cannot be read, run, unreadable, waiting"
+    adoption: "the gate's keys, then area (the area's name, a string, as before), waiting"
+    signoff: "the gate's keys, then tid, owner, input, expect, waiting"
+  gate_areas:
+    error-class: "the areas of the blocks Touches: names, then of the owners of the cases known-failing on the entry (FR-062)"
+    signoff: "the area of the test case's file (FR-062)"
+    approval: "the areas of the blocks the verdict's touches name (FR-062)"
+    adoption: "the area being adopted (FR-062)"
+    deploy-step: "none (FR-062)"
+  gate_url:
+    error-class: "the entry's well-formed URL:, else its first area's URL (FR-066)"
+    signoff: "its area's URL (FR-066)"
+    adoption: "its area's URL (FR-066)"
+    approval: "its area's URL when the change touches one area (FR-066)"
+    deploy-step: "null (FR-066)"
+  exit_codes:
+    0: "the gates listed"
+prd_error:
+  # Only what the card-context area needs so far; the errors area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_error.py new <prd_dir> --title T --source S [--touches IDS] [--evidence-file F] [--url ADDRESS] | url <prd_dir> <E-id> <address or -> | list <prd_dir> [--open]; through the launcher, prd error"
+  arguments:
+    --url ADDRESS: "new: write the line URL: <address> after Touches:, or after Classification: with no Touches: (FR-064)"
+    url: "set or replace the entry's URL: line; - removes it (FR-064)"
+  output:
+    new_id: "stdout, new: the new entry's ID, one line"
+    summary_line: "stdout, url: <E-id> <state>, then  <class> when the class is not the state (FR-064)"
+    list_line: "stdout, list: <E-id> <state>[ <class>] <touches or -> <title> (FR-063)"
+    bad_url: "stderr: refused: URL: must start with http:// or https:// and hold no white space (FR-064)"
+    no_entry: "stderr: refused: <E-id> is not an entry (FR-064)"
+  lint_findings:
+    url: "errors.md: <E-id>: URL: must start with http:// or https:// and hold no white space, rule error-entries (FR-063)"
+    target_url: "features/<area>.md: Target: url must start with http:// or https:// and hold no white space, rule pack-resolves (FR-065)"
+    target_grammar: "features/<area>.md: Target: must be one or more of pack <name> <X.Y.Z> (<source>), output language <code> and url <address>, comma-separated, in that order, rule pack-resolves (FR-065)"
+  exit_codes:
+    0: "the entry written or listed"
+    1: "a write refused (FR-064)"
+prd_git_hook:
+  # Only what the standards-run area needs so far; the trace-and-hooks area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_git_hook.py pre-commit <prd_dir>; the installed pre-commit hook runs it through the vendored launcher"
+  output:
+    linter_failed: "stderr: prd-toolkit: `<command>` failed (exit <code>) on <paths joined by , >, then : and the linter's output on the next lines when it has any (FR-068)"
+  exit_codes:
+    0: "every enforced row passed, or had no staged path outside .prd-toolkit/ (FR-068)"
+    1: "a linter failed (FR-068)"
+prd_hooks:
+  # Only what the standards-run area needs so far; the trace-and-hooks area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_hooks.py ci --github|--gitlab [--force] <prd_dir> | check --ci <prd_dir>"
+  output:
+    wrote: "stdout, ci: wrote <CI file>; for --gitlab also include: '<CI file>' (FR-068)"
+    standards_job: "the job standards-<n>: git ls-files -z --format='./%(path)' -- <:(glob)<glob> quoted> ':(exclude).prd-toolkit' | xargs -0 -r <command> (FR-068)"
+    stale_ci: "stdout, check --ci: stale: <CI file>: re-run prd_hooks.py ci --<forge> --force (FR-068)"
+  exit_codes:
+    0: "a CI file written, or check --ci found nothing stale"
+    1: "check --ci found something stale (FR-068)"
 prd_context:
   # Only what the practices area needs so far; the context area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_context.py [--area AREA] [--req ID[,ID...]] [--for {decide,implement}] [--context N] [--json] [--interface] [prd_dir]; through the launcher, prd context"

@@ -18,7 +18,7 @@ import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from . import confirm, deploy, formserver, model
+from . import cardcontext, confirm, deploy, formserver, model
 from .formserver import Bad
 from .model import Prd
 
@@ -41,9 +41,15 @@ class Gate:
     source: str
     path: str | None = None
     items: list[str] | None = None
+    areas: list[str] | None = None  # FR-062, set by cardcontext.attach when the gate is listed
+    url: str | None = None  # FR-066
 
     def to_dict(self) -> dict:
-        return {k: v for k, v in asdict(self).items() if v is not None}
+        """The gate's keys as before card-context, `path` and `items` only where set; then `areas` and `url` (null kept)."""
+        out = {k: v for k, v in asdict(self).items() if v is not None and k not in ("areas", "url")}
+        if self.areas is not None:
+            out.update(areas=list(self.areas), url=self.url)
+        return out
 
 
 def _git(cwd: Path, *args: str) -> str:
@@ -106,8 +112,9 @@ def approval_gate(prd_root: Path, branch: str, path: str | None = None) -> Gate 
     touches = [str(t) for t in verdict["touches"]]
     evidence = ([record] if record else []) + ([f"touches: {', '.join(touches)}"] if touches else [])
     restate = verdict.get("restate") or last.cells[2][:-len(PENDING)]
-    return Gate(f"approval:{branch}", "approval", f"Approve {slug} {version}", f"{restate} Approve it, or send it back with changes?",
+    gate = Gate(f"approval:{branch}", "approval", f"Approve {slug} {version}", f"{restate} Approve it, or send it back with changes?",
                 evidence[:MAX_EVIDENCE], ["approve", "changes"], REVIEW_FILE, path=path)
+    return cardcontext.attach(prd, gate, touches)  # its areas come from its own worktree's PRD
 
 
 def _approval(prd: Prd, repo_root: Path, worktrees: bool) -> list[Gate]:
@@ -250,8 +257,8 @@ def _signoff(prd: Prd) -> list[Gate]:
 
 def list_gates(prd: Prd, repo_root: Path, worktrees: bool = False) -> list[Gate]:
     """Every pending gate, in the kind order of KIND_ORDER, then by id."""
-    gates = (_approval(prd, Path(repo_root), worktrees) + _error_class(prd) + _deploy_step(prd, Path(repo_root))
-             + _adoption(prd, Path(repo_root)) + _signoff(prd))
+    others = _error_class(prd) + _deploy_step(prd, Path(repo_root)) + _adoption(prd, Path(repo_root)) + _signoff(prd)
+    gates = _approval(prd, Path(repo_root), worktrees) + [cardcontext.attach(prd, g) for g in others]
     return sorted(gates, key=lambda g: (KIND_ORDER.index(g.kind), g.id))
 
 

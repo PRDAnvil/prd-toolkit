@@ -69,7 +69,8 @@ the built-ins and every installed plugin's packs, `<name> <version> (<source>) �
 pack on that list exists, whatever a search of the repository found. So does a pack vendored in
 `.prd-toolkit/packs/<name>/` (its `pack.yaml`), which lint reads before any other copy.
 
-**A retarget of a built area is refused.** A change to the pack of an area that holds a block
+**A retarget of a built area is refused** (a version move or a lift, below, is not one). A
+change to the pack of an area that holds a block
 `built`, `verified` or `live` (a `live (since X.Y.Z)` included) is not a PRD change: its
 outputs, contracts and tests were built and checked under the old pack. Say, exactly:
 
@@ -107,6 +108,44 @@ the old version). On a refusal, stop and report it.
 An install refusal ending `; to move the PRD to <name> <have>, run prd_change.py pack <prd> <name> <have>`
 starts this flow. A new version that breaks what the PRD relies on (a contract type, a level, a
 harness slot) fails lint or the next build: that is a real change, through the steps below.
+
+**A lift is a scripted patch too.** A PRD that names no pack (no `Pack:` line and no `Target: pack`
+line) moves onto a pack written from its own custom contract types (`/prd-toolkit:prd-pack`) by a
+lift: the pack declares only what §7 already declares, with the same globs, so nothing the PRD
+produces changes, and it is not a retarget. The owner installs the plugin that holds the pack
+first; you never install it. Check that `--list-packs`, as above, lists `<name> <X.Y.Z> (<source>)`;
+when it does not, stop and say so. Then, each its own Bash call, from `<plugin scripts>` as above; on
+a refusal, stop and report it.
+
+- First `<plugin scripts>/prd change pack docs/prd/<slug> <name> <X.Y.Z> --lift; echo "prd-change-exit=$?"`.
+  It writes the §1 `- Pack: <name> <X.Y.Z> (<source>)` line, sets the Validator cell of each §7 row
+  of the pack's types to `pack`, and records `pack <name> <X.Y.Z> lifted; pending` as a patch,
+  leaving the tree uncommitted. A `refused:` line names what to fix:
+  `the PRD already names pack <name> at <file>:<line>; a lift moves a PRD that names none` (a version
+  move, above, or a conversion), `contract type <type> of pack <name> is not a custom row of section 7`,
+  `contract type <type>: section 7 has <cell>, pack <name> has <files>`,
+  `no pack <name> <X.Y.Z> is on this machine; prd lint --list-packs lists the packs it finds` (with
+  `--source`, `no pack <name> <X.Y.Z> (<source>) is on this machine; …`),
+  `pack <name> <X.Y.Z> comes from more than one source: <sources>; name one with --source <source>`
+  (run it again with `--source` and the source the owner names), or
+  `<the PRD folder> has uncommitted changes; commit or set them aside first`. Exit `2` with
+  `pack: <X.Y.Z> is not a version X.Y.Z` is a mistyped version: fix the command.
+- Then `<plugin scripts>/prd hooks install docs/prd/<slug>; echo "prd-hooks-exit=$?"`, which vendors
+  the pack. `.prd-toolkit/packs/<name>/` and `.prd-toolkit/pack-sources.json` stay uncommitted, as
+  the PRD folder does: `approve` stages the vendored pack and `.prd-toolkit/pack-sources.json` in
+  the approval commit. It stages nothing else: when `git status --porcelain` lists another path
+  that `hooks install` wrote (the rest of `.prd-toolkit/`, `.gitignore`), commit those paths on
+  their own before the verdict, each its own call: `git add <each such path>`, never the pack
+  folder or `pack-sources.json`, then
+  `git commit -m "chore: refresh the vendored toolkit" -m "Refs: none (no behaviour change)"`.
+- Then step 4's lint, whose `prd-lint-exit=` value must be `0` (the pack's validators now run where
+  the PRD's own did), and the verdict with no dry run (`bump` answers `needs judgment` for the lift's
+  two `prd.md` lines: the level is the patch the lift recorded, decided in the verdict with that reason), and step 5's approval as for any patch, with
+  `--dry-run 'no dry run (pack lifted)'`: §14 reads
+  `pack <name> <X.Y.Z> lifted; no dry run (pack lifted)`.
+
+The PRD's own Levels, Harness, standards and skills rows stay as they are, and a §7 type the pack
+does not declare keeps its own validator.
 
 ## Non-negotiable rules
 

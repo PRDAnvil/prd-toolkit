@@ -228,4 +228,20 @@ Two new adopted areas, each written before its code, as `help`, `status-next` an
 
 ## Revisions
 
-None yet.
+- **2026-11-15, while the requirements were written** (each is carried by an acceptance criterion):
+  - **A third area, `standards-run`, for a confirmed error** (owner): a standards row is never run on a
+    file under the vendored copy `.prd-toolkit/`, in the pre-commit hook and in the generated CI job
+    (E-025). The fix rides with this release as part of the same PRD change.
+  - **`prd gates list` as text is unchanged** (§8). The area in brackets after a title would have
+    changed an existing test case's expectation and made the PRD's version major. The area and the URL
+    are carried by `--json` and by the inbox's card, which is where the owner asked for them.
+  - **The list is a new field, `areas`** (§8). The adoption card already carries `area` as a string,
+    which a client reads; it stays, beside `areas`. No field changes type.
+  - **After a lift a context pack names the pack** on its profile line and prints the pack's harness
+    defaults (§7). That follows from naming a pack and is accepted; lint's findings, the PRD's own
+    tables and its test cases do not change.
+  - **Two installed packs of one name and version:** the lift is refused and names each source;
+    `--source <source>` picks one (§7).
+  - **The two parse requirements live in `card-context`** (§9): the commit hook asks only for a valid
+    `Refs:` trailer on a Boundary file, and the build check has no area check.
+  - **Twelve requirements in three areas**, with their own split (§9).

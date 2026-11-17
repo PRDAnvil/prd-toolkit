@@ -14,21 +14,21 @@ def flat(s: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.11"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     assert "best-practice sources" in plugin["description"] and "/prd-toolkit:prd-practices" in plugin["description"]
     assert "a 41-rule linter" in plugin["description"]
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.11", plugin["description"])]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.11"
-    assert "Version 0.8.11." in README
+        (plugin["version"], plugin["description"])]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in README
 
 
 def test_readme_counts_what_the_plugin_holds():
     skills = sorted(p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md"))
     commands = sorted(p.stem for p in (ROOT / "commands").glob("*.md"))
-    assert len(skills) == 10 and "sourcing-practices" in skills
-    assert len(commands) == 11 and "prd-practices" in commands
+    assert len(skills) >= 11 and "sourcing-practices" in skills  # the current count is pinned in the newest test_release_*.py
+    assert len(commands) >= 12 and "prd-practices" in commands
     a = README.index("\n## Commands and skills\n")
     table = README[a:README.index("\n## ", a + 1)]
     assert "| `/prd-toolkit:prd-practices [<PRD folder>] [<what to source>]` | `prd-toolkit:sourcing-practices` |" in table

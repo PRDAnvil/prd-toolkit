@@ -1,0 +1,1107 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, the root of the scratch repository the
+#   setup steps build from fixture status-next/base (testing.md, Setup steps); ORDERS = <tmp>/docs/prd/orders.
+#   "python" is the interpreter running the tests (sys.executable); a CLI case runs the script as a subprocess
+#   (testing.md Harness, Lifecycle), with the Subprocess environment minus the git variables Setup steps names.
+#   GATES  = <repo>/prd-toolkit/scripts/prd_gates.py
+#   ERROR  = <repo>/prd-toolkit/scripts/prd_error.py
+#   LINT   = <repo>/prd-toolkit/scripts/prd_lint.py
+#   STATUS = <repo>/prd-toolkit/scripts/prd_status.py
+#   HELP   = <repo>/prd-toolkit/scripts/prd_help.py
+#   A case runs from ORDERS with `.` as the PRD folder unless it gives another cwd. `files.<key>` is the text at
+#   that key of fixture card-context/files, or of status-next/files where a step or a case says so. The full
+#   state (steps N0, C1, CE, CK, CS, NR3, NA1, CB, CA1) holds one gate of each kind: the approval gate
+#   approval:cards, four error-class gates, a deploy-step gate, an adoption gate and a signoff gate; import's
+#   `Target:` line has the URL https://example.com/orders/import, reports' has no url part, billing's has
+#   https://example.com/orders/billing, and E-001 has its own `URL:` line.
+#   A path like `gates.1.url` is a stdout_json_at path (testing.md Harness, Assertions).
+
+T-062.1:
+  ac: AC-062.1
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CK
+    cwd: ORDERS
+    command: python GATES list --json .
+    note: "E-002 touches FR-006 (reports) and FR-002 (import), listed in the PRD's area order; E-003 touches FR-006, and T-001.1 of FR-001 (import) is known-failing on it (CK), so its Touches area comes first; E-004 has `Touches: -` (Review focus 5)"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "error-class:E-001"
+        gates.0.areas:
+        - import
+        gates.1.id: "error-class:E-002"
+        gates.1.areas:
+        - import
+        - reports
+        gates.2.id: "error-class:E-003"
+        gates.2.areas:
+        - reports
+        - import
+        gates.3.id: "error-class:E-004"
+        gates.3.areas: []
+    effects: []
+    errors: []
+    leaks: none
+
+T-062.2:
+  ac: AC-062.2
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CS
+    - NA1
+    - CB
+    cwd: ORDERS
+    command: python GATES list --json .
+    note: CS adds the acceptance case T-005.3 to test-cases/reports.yaml
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "adoption:billing"
+        gates.0.areas:
+        - billing
+        gates.1.id: "signoff:T-005.3"
+        gates.1.areas:
+        - reports
+    effects: []
+    errors: []
+    leaks: none
+
+T-062.3:
+  ac: AC-062.3
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CA1
+    cwd: ORDERS
+    command: python GATES list --json .
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "approval:cards"
+        gates.0.areas:
+        - import
+    effects: []
+    errors: []
+    leaks: none
+
+T-062.4:
+  ac: AC-062.3
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CA2
+    cwd: ORDERS
+    command: python GATES list --json .
+    note: "the verdict's touches are T-001.1 (FR-001, import), AC-005.1 (FR-005, reports) and README, which names no block; two areas give no URL (AC-066.3)"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "approval:cards"
+        gates.0.areas:
+        - import
+        - reports
+        gates.0.url: null
+    effects: []
+    errors: []
+    leaks: none
+
+T-062.5:
+  ac: AC-062.4
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - NR3
+    - NR4
+    cwd: ORDERS
+    command: python GATES list --json .
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "deploy-step:20261111T090000Z-all:2"
+        gates.0.areas: []
+        gates.1.id: "deploy-step:20261112T090000Z-all:unreadable"
+        gates.1.areas: []
+    effects: []
+    errors: []
+    leaks: none
+
+T-063.1:
+  ac: AC-063.1
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    cwd: "<tmp>"
+    runs:
+    - python LINT docs/prd/orders
+    - python GATES list --json docs/prd/orders
+    note: "E-001's `URL:` line is line 7 of errors.md, after its `Touches:` line"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout_not_contains:
+        - error-entries
+        - pack-resolves
+      run_2:
+        exit: 0
+        stderr: ""
+        stdout_json_at:
+          gates.0.id: "error-class:E-001"
+          gates.0.url: "https://example.com/runs/1001"
+    effects: []
+    errors: []
+    leaks: none
+
+T-063.2:
+  ac: AC-063.2
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - CL1
+    cwd: "<tmp>"
+    runs:
+    - python LINT docs/prd/orders
+    - python GATES list --json docs/prd/orders
+    note: "Review focus 5: another scheme (ftp), white space and an empty value are each a lint finding; E-001 is proposed, so it is a gate, and its malformed URL is never its card's (AC-066.1)"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stderr: ""
+        stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/errors.md:6: error-entries: E-001: URL: must start with http:// or https:// and hold no white space"
+        - "docs/prd/orders/errors.md:13: error-entries: E-002: URL: must start with http:// or https:// and hold no white space"
+        - "docs/prd/orders/errors.md:20: error-entries: E-003: URL: must start with http:// or https:// and hold no white space"
+      run_2:
+        exit: 0
+        stderr: ""
+        stdout_json_at:
+          gates.0.id: "error-class:E-001"
+          gates.0.areas: []
+          gates.0.url: null
+    effects: []
+    errors: []
+    leaks: none
+
+T-063.3:
+  ac: AC-063.3
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - NE1
+    cwd: "<tmp>"
+    runs:
+    - python LINT docs/prd/orders
+    - python ERROR list docs/prd/orders
+    note: "no entry holds a `URL:` line; both outputs are what the commands printed before this area"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout_exact_lines:
+        - "docs/prd/orders/test-cases/reports.yaml:27: warn: judged-case: T-005.2: threshold 0.9 needs all 2 items (1 of 2 is 0.5); write 0.5 to allow one miss, or 1.0"
+      run_2:
+        exit: 0
+        stderr: ""
+        stdout_exact_lines:
+        - E-001 confirmed code bug FR-003 The importer stops at row 1000
+        - E-002 unclassified FR-006 A monthly report printed no total
+    effects: []
+    errors: []
+    leaks: none
+
+T-064.1:
+  ac: AC-064.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    cwd: ORDERS
+    runs:
+    - "python ERROR new . --title 'A page shows the wrong total' --source 'a reader' --touches FR-006 --url https://example.com/reports/2026-10"
+    - "python ERROR new . --title 'The report page is slow' --source 'a reader' --url https://example.com/reports/slow"
+    note: "the base ledger holds only its placeholder line, which the first entry takes the place of; the second entry has no Touches: line, so its URL: line follows Classification:"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "E-001\n"
+        stderr: ""
+      run_2:
+        exit: 0
+        stdout: "E-002\n"
+        stderr: ""
+    effects:
+    - "after run_2, the lines of errors.md (`str.splitlines()`) are exactly these, in this order and with no other: `# Error ledger`, an empty line, `### E-001 A page shows the wrong total`, `Detected: <today>, a reader`, `Classification: unclassified`, `Touches: FR-006`, `URL: https://example.com/reports/2026-10`, `Diagnosis: -`, `Resolution: -`, `Recurrence of: -`, an empty line, `### E-002 The report page is slow`, `Detected: <today>, a reader`, `Classification: unclassified`, `URL: https://example.com/reports/slow`, `Diagnosis: -`, `Resolution: -` and `Recurrence of: -`; <today> as testing.md (Harness, Assertions) defines it"
+    errors: []
+    leaks: none
+
+T-064.2:
+  ac: AC-064.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - NE2
+    cwd: ORDERS
+    runs:
+    - "python ERROR url . E-001 https://example.com/runs/1001"
+    - "python ERROR url . E-001 https://example.com/runs/1002"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001 proposed code bug\n"
+        stderr: ""
+    effects:
+    - "after run_1, errors.md is the text files.errors_proposed (status-next/files) with the line `URL: https://example.com/runs/1001` inserted directly after its line `Touches: FR-003`, every other line as it was"
+    - "after run_2, errors.md is files.errors_proposed with the line `URL: https://example.com/runs/1002` at that place, and no other `URL:` line"
+    errors: []
+    leaks: none
+
+T-064.3:
+  ac: AC-064.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - NE2
+    cwd: ORDERS
+    runs:
+    - "python ERROR url . E-001 https://example.com/runs/1001"
+    - python ERROR url . E-001 -
+    - python ERROR url . E-001 -
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001 proposed code bug\n"
+        stderr: ""
+    effects:
+    - "after run_2, and again after run_3, errors.md is byte for byte the text files.errors_proposed (status-next/files)"
+    errors: []
+    leaks: none
+
+T-064.4:
+  ac: AC-064.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - NE2
+    cwd: ORDERS
+    runs:
+    - "python ERROR url . E-001 ftp://example.com/runs/1"
+    - "python ERROR url . E-009 https://example.com/runs/9"
+    - "python ERROR new . --title 'A total is wrong' --source 'a reader' --url 'https://example.com/a b'"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+      run_1:
+        stderr: "refused: URL: must start with http:// or https:// and hold no white space\n"
+      run_2:
+        stderr: "refused: E-009 is not an entry\n"
+      run_3:
+        stderr: "refused: URL: must start with http:// or https:// and hold no white space\n"
+    effects:
+    - "after each run, errors.md is byte for byte the text files.errors_proposed (status-next/files)"
+    errors: []
+    leaks: none
+
+T-065.1:
+  ac: AC-065.1
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CT3
+    cwd: "<tmp>"
+    runs:
+    - python LINT docs/prd/orders
+    - python GATES list --json docs/prd/orders
+    note: "CT3 gives import the three-part line `Target: pack service 1.0.0 (prd-toolkit), output language en, url https://example.com/orders/import?a=1,b=2`, whose address holds a comma; reports keeps its one-part `Target: output language en`; E-002 has no URL of its own and its first area is import"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout_not_contains: pack-resolves
+      run_2:
+        exit: 0
+        stderr: ""
+        stdout_json_at:
+          gates.1.id: "error-class:E-002"
+          gates.1.url: "https://example.com/orders/import?a=1,b=2"
+    effects: []
+    errors: []
+    leaks: none
+
+T-065.2:
+  ac: AC-065.2
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CT2
+    cwd: "<tmp>"
+    runs:
+    - python LINT docs/prd/orders
+    - python GATES list --json docs/prd/orders
+    note: "Review focus 5: CT2 writes `Target: url ftp://example.com/orders` (another scheme) in import and `Target: output language en, url https://example.com/a b` (white space) in reports; neither area has a URL, so E-002 gets none"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stderr: ""
+        stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/features/import.md:3: pack-resolves: Target: url must start with http:// or https:// and hold no white space"
+        - "docs/prd/orders/features/reports.md:3: pack-resolves: Target: url must start with http:// or https:// and hold no white space"
+      run_2:
+        exit: 0
+        stdout_json_at:
+          gates.0.url: "https://example.com/runs/1001"
+          gates.1.id: "error-class:E-002"
+          gates.1.url: null
+    effects: []
+    errors: []
+    leaks: none
+
+T-065.3:
+  ac: AC-065.3
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CT5
+    cwd: "<tmp>"
+    command: python LINT docs/prd/orders
+    note: "CT5 writes `Target: output language en, pack service 1.0.0 (prd-toolkit)`, its parts out of order"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_contains_line: "docs/prd/orders/features/reports.md:3: pack-resolves: Target: must be one or more of pack <name> <X.Y.Z> (<source>), output language <code> and url <address>, comma-separated, in that order"
+    effects: []
+    errors: []
+    leaks: none
+
+T-066.1:
+  ac: AC-066.1
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CK
+    cwd: ORDERS
+    command: python GATES list --json .
+    note: "E-001 has its own URL; E-002's first area, import, has one; E-003's areas are reports, which has none, then import; E-004 has no area (Review focus 5)"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.url: "https://example.com/runs/1001"
+        gates.1.url: "https://example.com/orders/import"
+        gates.2.url: "https://example.com/orders/import"
+        gates.3.url: null
+    effects: []
+    errors: []
+    leaks: none
+
+T-066.2:
+  ac: AC-066.2
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CS
+    - NA1
+    - CB
+    cwd: ORDERS
+    command: python GATES list --json .
+    note: "Review focus 5: reports' `Target:` line has no url part, so the signoff gate's URL is null"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "adoption:billing"
+        gates.0.url: "https://example.com/orders/billing"
+        gates.1.id: "signoff:T-005.3"
+        gates.1.url: null
+    effects: []
+    errors: []
+    leaks: none
+
+T-066.3:
+  ac: AC-066.3
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CA1
+    cwd: ORDERS
+    command: python GATES list --json .
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "approval:cards"
+        gates.0.url: "https://example.com/orders/import"
+    effects: []
+    errors: []
+    leaks: none
+
+T-066.4:
+  ac: AC-066.4
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - NR3
+    cwd: ORDERS
+    command: python GATES list --json .
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_at:
+        gates.0.id: "deploy-step:20261111T090000Z-all:2"
+        gates.0.url: null
+    effects: []
+    errors: []
+    leaks: none
+
+T-067.1:
+  ac: AC-067.1
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CK
+    - CS
+    - NR3
+    - NA1
+    - CB
+    - CA1
+    cwd: ORDERS
+    command: python GATES list .
+    note: "the full state gives the gates areas and URLs (T-067.2), and the text listing is still the one prd gates list printed before this area: no area, no URL"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines:
+      - "approval:cards Approve orders 1.1.0"
+      - "error-class:E-001 The importer stops at row 1000"
+      - "error-class:E-002 A monthly report printed no total"
+      - "error-class:E-003 A report lists a cancelled order"
+      - "error-class:E-004 A rerun printed a warning"
+      - "deploy-step:20261111T090000Z-all:2 Run 20261111T090000Z-all step 2: Approve production"
+      - "adoption:billing Adopt area billing"
+      - "signoff:T-005.3 Sign off T-005.3"
+    effects: []
+    errors: []
+    leaks: none
+
+T-067.2:
+  ac: AC-067.2
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CK
+    - CS
+    - NR3
+    - NA1
+    - CB
+    - CA1
+    cwd: ORDERS
+    command: python GATES list --json .
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json_keys_at:
+        ? ""
+        : - interface
+          - kind
+          - prd
+          - gates
+        gates.0:
+        - id
+        - kind
+        - title
+        - question
+        - evidence
+        - choices
+        - source
+        - areas
+        - url
+        gates.4:
+        - id
+        - kind
+        - title
+        - question
+        - evidence
+        - choices
+        - source
+        - areas
+        - url
+        gates.5:
+        - id
+        - kind
+        - title
+        - question
+        - evidence
+        - choices
+        - source
+        - areas
+        - url
+        gates.6:
+        - id
+        - kind
+        - title
+        - question
+        - evidence
+        - choices
+        - source
+        - items
+        - areas
+        - url
+      stdout_json_at:
+        interface: 1
+        kind: gates
+        prd: orders
+        gates.4.areas: []
+        gates.4.url: null
+        gates.6.areas:
+        - billing
+        gates.6.url: "https://example.com/orders/billing"
+    effects: []
+    errors: []
+    leaks: none
+
+T-067.3:
+  ac: AC-067.3
+  level: integration
+  target: "code:prdlint.gates.card"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CK
+    - CS
+    - NR3
+    - NA1
+    - CB
+    - CA1
+    cwd: ORDERS
+    call: "prd = prdlint.model.load(ORDERS), ORDERS a pathlib.Path (prd-toolkit/scripts on sys.path); gates = prdlint.gates.list_gates(prd, <tmp>), <tmp> a pathlib.Path: a list of Gate in list_gates' order, by kind (approval, error-class, deploy-step, adoption, signoff) and then by id; for each gate, prdlint.gates.card(gate, prd, <tmp>, \"docs/prd/orders\"), root a pathlib.Path and rel a str, as the inbox's /gates listing calls it, each returning a dict: the card"
+    note: "the keys a card held before this area keep their order and values; `areas` and `url` follow the gate's own keys (after `items` on an adoption card); the adoption card keeps `area`, the area's name"
+  expect:
+    output:
+      return:
+        ids:
+        - "approval:cards"
+        - "error-class:E-001"
+        - "error-class:E-002"
+        - "error-class:E-003"
+        - "error-class:E-004"
+        - "deploy-step:20261111T090000Z-all:2"
+        - "adoption:billing"
+        - "signoff:T-005.3"
+        keys_by_kind:
+          approval:
+          - id
+          - kind
+          - title
+          - question
+          - evidence
+          - choices
+          - source
+          - areas
+          - url
+          - restate
+          - touches
+          - bump
+          - impact
+          - dry_run
+          - diff_truncated
+          - diff
+          - version
+          - waiting
+          error-class:
+          - id
+          - kind
+          - title
+          - question
+          - evidence
+          - choices
+          - source
+          - areas
+          - url
+          - class
+          - diagnosis
+          - waiting
+          deploy-step:
+          - id
+          - kind
+          - title
+          - question
+          - evidence
+          - choices
+          - source
+          - areas
+          - url
+          - run
+          - step
+          - env
+          - actor
+          - do
+          - check
+          - waiting
+          adoption:
+          - id
+          - kind
+          - title
+          - question
+          - evidence
+          - choices
+          - source
+          - items
+          - areas
+          - url
+          - area
+          - waiting
+          signoff:
+          - id
+          - kind
+          - title
+          - question
+          - evidence
+          - choices
+          - source
+          - areas
+          - url
+          - tid
+          - owner
+          - input
+          - expect
+          - waiting
+        whole_cards:
+          "error-class:E-001":
+            id: "error-class:E-001"
+            kind: error-class
+            title: The importer stops at row 1000
+            question: "Proposed class: code bug. Confirm it, or correct it to another class."
+            evidence: []
+            choices:
+            - confirm
+            - correct
+            source: "errors.md:3"
+            areas:
+            - import
+            url: "https://example.com/runs/1001"
+            class: code bug
+            diagnosis: ""
+            waiting: false
+          "deploy-step:20261111T090000Z-all:2":
+            id: "deploy-step:20261111T090000Z-all:2"
+            kind: deploy-step
+            title: "Run 20261111T090000Z-all step 2: Approve production"
+            question: "Approve production. read the staging result and reply \"deploy production\""
+            evidence:
+            - "Check: the reply says \"deploy production\""
+            choices:
+            - confirm
+            source: operations.md
+            areas: []
+            url: null
+            run: 20261111T090000Z-all
+            step: 2
+            env: production
+            actor: human
+            do: "read the staging result and reply \"deploy production\""
+            check: "the reply says \"deploy production\""
+            waiting: false
+          "adoption:billing":
+            id: "adoption:billing"
+            kind: adoption
+            title: Adopt area billing
+            question: "0 of 0 items of area billing are open. Answer each, then mark the area done."
+            evidence: []
+            choices:
+            - done
+            source: .prd-confirm-billing.json
+            items: []
+            areas:
+            - billing
+            url: "https://example.com/orders/billing"
+            area: billing
+            waiting: false
+          "signoff:T-005.3":
+            id: "signoff:T-005.3"
+            kind: signoff
+            title: Sign off T-005.3
+            question: "Sample Owner walks the steps of T-005.3 and reports the result: pass or fail."
+            evidence:
+            - Ask for the October report
+            - Read each line against the October orders
+            choices:
+            - pass
+            - fail
+            source: "test-cases/reports.yaml:60"
+            areas:
+            - reports
+            url: null
+            tid: T-005.3
+            owner: Sample Owner
+            input:
+              month: 2026-10
+            expect:
+              output:
+                lines: 2
+              effects: []
+              errors: []
+              leaks: none
+            waiting: false
+        areas_and_url:
+          "approval:cards":
+            areas:
+            - import
+            url: "https://example.com/orders/import"
+          "error-class:E-002":
+            areas:
+            - import
+            - reports
+            url: "https://example.com/orders/import"
+          "error-class:E-003":
+            areas:
+            - reports
+            - import
+            url: "https://example.com/orders/import"
+          "error-class:E-004":
+            areas: []
+            url: null
+        note: "ids is the list of the cards' `id`, in the order of the calls; keys_by_kind gives, for each gate kind, the card's keys exactly and in order; whole_cards gives four cards whole, every key and value; areas_and_url gives the `areas` and `url` of the other four. The approval card's other values hold the verdict and a diff of the scratch repository and are not asserted."
+    effects: []
+    errors: []
+    leaks: none
+
+T-067.4:
+  ac: AC-067.4
+  level: unit
+  target: "code:templates/gates/inbox.html"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    call: "under the node harness the page's unit tests run its scripts with (tests/test_inbox_page.py), call the page's gateCard(entry, slots) for entry {key: \"k1\", gone: false, wt: {path: \"/w\", branch: \"main\"}, g: <the T-067.3 card of error-class:E-001, with areas [\"import\", \"reports\"]>} and for entry {key: \"k2\", gone: false, wt: {path: \"/w\", branch: \"main\"}, g: <the T-067.3 card of error-class:E-004>}, slots as the page passes them; each returns the card's section element"
+    note: "Review focus 5: an area with no URL shows `Area: none` and no link; the page is the builder's to test"
+  expect:
+    output:
+      return: "the first section holds, directly after its h3 title, an element whose text is `Area: import, reports`, and an a element whose text and href are https://example.com/runs/1001, with target=\"_blank\" and rel=\"noopener\"; the second holds `Area: none` and no a element whose href is a URL; every text is set as text, never as HTML"
+    effects: []
+    errors: []
+    leaks: none
+
+T-067.5:
+  ac: AC-067.5
+  level: integration
+  target: "cli:prd_status"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  - card-context/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - C1
+    - CE
+    - CK
+    - CS
+    - NR3
+    - NA1
+    - CB
+    - CA1
+    cwd: ORDERS
+    runs:
+    - python STATUS --json .
+    - python GATES list --json .
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      relations:
+      - "each run's stdout is one line ending in a newline, parsed as one JSON object: run_1's Next items are the entries of its `items` whose `part` is `Next`, in order, and run_2's gates are its `gates` list"
+      - "the Next items of run_1 whose kind is `gate` are, in order, one per gate of run_2's `gates`, each with `id` the gate's `id` and `text` the gate's `title` followed by ` waits for your answer.`, never its areas"
+      - "the gate item of `adoption:billing` has `area` \"billing\" and every other gate item has `area` null; the `error-class` items have `ids` the list of the entry's ID and the `signoff:T-005.3` item the list [\"T-005.3\"]"
+    effects: []
+    errors: []
+    leaks: none
+
+T-067.6:
+  ac: AC-067.6
+  level: integration
+  target: "cli:prd_help"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    command: python HELP --key kind.E
+    note: "PRD_HELP_FILE unset: the shipped catalogue"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_contains: "`URL: <address>`"
+    effects: []
+    errors: []
+    leaks: none

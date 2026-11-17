@@ -56,7 +56,7 @@
   why: The entry is the record that a defect was diagnosed and fixed; a test that fails on purpose until then names it in `known-failing:`.
   rules:
     - "The ID is `E-` and three digits; entries run from E-001 upward with no gap, newest last."
-    - "The lines are `Detected: <YYYY-MM-DD>, <source>`, `Classification:`, `Confirmed:` (optional, written only by `prd_error.py confirm`), `Touches:` (optional; requirement IDs, comma-separated, or `-`), `Evidence:` (optional; at most 20 lines, continuation lines indented two spaces, never a secret or a `confidential` or `pii` value), `Diagnosis:`, `Resolution:` and `Recurrence of:` (an `E-nnn` or `-`)."
+    - "The lines are `Detected: <YYYY-MM-DD>, <source>`, `Classification:`, `Confirmed:` (optional, written only by `prd_error.py confirm`), `Touches:` (optional; requirement IDs, comma-separated, or `-`), `URL: <address>` (optional; the web address the entry is about, with no white space, written by `prd_error.py new --url` or `prd_error.py url`), `Evidence:` (optional; at most 20 lines, continuation lines indented two spaces, never a secret or a `confidential` or `pii` value), `Diagnosis:`, `Resolution:` and `Recurrence of:` (an `E-nnn` or `-`)."
     - "`Classification:` is code bug, spec gap, invalid requirement, environment, standard or unclassified."
     - "An entry is open until its `Resolution:` holds a value other than empty, `-` or one starting with `open`."
     - "A resolution is `<T-id> [<level>], PRD <X.Y.Z>, fixed in <commit>` (code bug, spec gap, invalid requirement, standard), `<T-id or ->, PRD <X.Y.Z>, run <run id>` (environment), or `not a defect: <why>` (any class)."

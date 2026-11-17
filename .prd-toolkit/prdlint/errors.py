@@ -7,6 +7,7 @@ from pathlib import Path
 
 from . import deploy, trace
 from .buildcheck import _resolve, _show
+from .cardcontext import ENTRY_URL, well_formed
 from .deploy import LEDGER_PLACEHOLDER, Refused
 from .markdown import tables
 from .model import CLASSES, ErrorEntry, Prd, _errors_ledger, load
@@ -93,11 +94,13 @@ def parse_touches(raw: str) -> list[str]:
     return items
 
 
-def new(prd: Prd, title: str, source: str, touches: list[str], evidence: list[str], today: date) -> str:
+def new(prd: Prd, title: str, source: str, touches: list[str], evidence: list[str], today: date, url: str | None = None) -> str:
     title, source = _one(title), _one(source)
     if not title or not source:
         raise ValueError("a title and a source are required")
     _no_fence("--title", title)
+    if url is not None and not well_formed(url):  # FR-064: `-` is no address for new
+        raise Refused([ENTRY_URL])
     reasons = []
     known = {b.id for b in prd.blocks}
     unknown = [t for t in touches if t != "-" and t not in known]
@@ -117,6 +120,8 @@ def new(prd: Prd, title: str, source: str, touches: list[str], evidence: list[st
     block = [f"### {eid} {title}", f"Detected: {today.isoformat()}, {source}", "Classification: unclassified"]
     if touches:
         block.append("Touches: " + ", ".join(touches))
+    if url is not None:
+        block.append(f"URL: {url}")  # after Touches:, or after Classification: with no Touches:
     if evidence:
         block.append("Evidence: " + evidence[0])
         block += ["  " + ln for ln in evidence[1:]]
@@ -131,6 +136,25 @@ def new(prd: Prd, title: str, source: str, touches: list[str], evidence: list[st
         out = "# Error ledger\n\n" + entry + "\n"
     _write(prd, out)
     return eid
+
+
+def set_url(prd: Prd, eid: str, address: str) -> None:
+    """FR-064: write the entry's `URL:` line, or remove it for `-`; every other line of errors.md stays as it was."""
+    if address != "-" and not well_formed(address):
+        raise Refused([ENTRY_URL])
+    text = _read(prd)
+    e = _entry(text, eid)
+    lines = text.split("\n")
+    if address == "-":
+        if not e.url_line:
+            return  # no URL: line: errors.md is left byte for byte as it was
+        del lines[e.url_line - 1]
+    elif e.url_line:
+        lines[e.url_line - 1] = f"URL: {address}"
+    else:
+        after = max(e.detected_line, e.classification_line, e.confirmed_line, e.touches_line) or e.line
+        lines.insert(after, f"URL: {address}")
+    _write(prd, "\n".join(lines))
 
 
 def propose(prd: Prd, eid: str, cls: str, diagnosis: str, recurrence: str | None, touches: list[str] | None = None) -> None:

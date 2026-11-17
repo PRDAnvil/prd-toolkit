@@ -57,6 +57,9 @@ def _build() -> argparse.ArgumentParser:
     pck.add_argument("prd_dir")
     pck.add_argument("name", help="the pack's name")
     pck.add_argument("version", help="the version to move to, X.Y.Z")
+    pck.add_argument("--lift", action="store_true",
+                     help="move a PRD that names no pack onto a pack declaring its own custom contract types")
+    pck.add_argument("--source", help="with --lift: take the pack from that source when more than one holds the name and version")
     _flags(pck, leaf=True)
     app = sub.add_parser("approve", help="record the dry run, set the status and commit the approval")
     app.add_argument("prd_dir")
@@ -90,7 +93,13 @@ def _cmd_record(prd: model.Prd, args) -> tuple[str, dict]:
 
 
 def _cmd_pack(prd: model.Prd, args) -> tuple[str, dict]:
-    done = change.pack(change.repo_root(prd.root), prd.root, args.name, args.version, datetime.date.today().isoformat())
+    today = datetime.date.today().isoformat()
+    if args.lift:
+        done = change.lift(change.repo_root(prd.root), prd.root, args.name, args.version, args.source, today)
+        return f"{done.version}\n{done.row}\n", dataclasses.asdict(done)
+    if args.source is not None:
+        raise change.UsageError("pack: --source belongs to --lift")
+    done = change.pack(change.repo_root(prd.root), prd.root, args.name, args.version, today)
     return f"{done.version}\n{done.row}\n", dataclasses.asdict(done)
 
 

@@ -158,11 +158,16 @@ def _block(prd_root: Path) -> None:
 
 
 def _vendored_packs(repo_root: Path, prd_root: Path) -> list[str]:
-    """The re-vendored copy of each pack whose version the change moved, and pack-sources.json: the paths `install` wrote."""
+    """The re-vendored copy of each pack whose version the change moved, or the vendored copy of the pack a lift named
+    (AC-060.9), and pack-sources.json: the paths `install` wrote."""
     from . import change
     from .hooks import PACK_SOURCES, PACKS_DIR, VENDOR_DIR
 
-    out = [f"{VENDOR_DIR}/{PACKS_DIR}/{name}" for name in change.pack_moves(repo_root, prd_root, "HEAD")]
+    names = change.pack_moves(repo_root, prd_root, "HEAD")
+    lifted = change.pack_lift(repo_root, prd_root, "HEAD")
+    if lifted is not None and lifted not in names:
+        names.append(lifted)
+    out = [f"{VENDOR_DIR}/{PACKS_DIR}/{name}" for name in names]
     if out:
         out.append(f"{VENDOR_DIR}/{PACK_SOURCES}")
     return [p for p in out if (repo_root / p).exists() and not _ignored(repo_root, p)]

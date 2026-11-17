@@ -332,10 +332,42 @@ the `service` pack may use `validator: built-in`. A `pack` row whose type no res
 `contracts-valid` violation.
 
 Required, not machine-checked: a validator that fails on a real defect (prove it can fail).
-`levels`, `harness`, `standards` and `skills` are defaults the authoring skill copies into `testing.md`
+`levels`, `harness`, `standards` and `skills` are defaults the authoring-prds skill copies into `testing.md`
 and §5/§6 as `proposed` rows; lint never reads them from the manifest. A `levels` item is `{level, command}` with the
 optional `environment`, `gate` and `timeout`; `timeout` is a whole number of seconds, at least 1, copied
 into the level's `Timeout` cell in `testing.md` Levels. A helper a pack ships is stated in the pack's `harness` (the Assertions or Fixtures slot) with its parameters, their types and the shape of its result. A shipped helper whose shapes are not stated is a dry-run question, not a HARNESS CHOICE.
+
+### A pack written from two PRDs
+
+A pack for a kind of repository no pack covers is written from two adopted PRDs of that kind, each of
+which declares the kind's outputs as custom types (`/prd-toolkit:prd-pack`, skill
+`prd-toolkit:authoring-packs`). `prd pack compare <prd A> <prd B>` prints what the two share, part by part
+(Contract types, Target kinds, Levels, Harness, Standards, Skills and Vocabulary), each line marked `both`,
+`A` or `B`, and both sides of each item that differs; it exits 1 when they share no custom type. The owner
+decides each item, and what is written into the plugin, as `prd-packs/<name>/`, is only:
+
+- `pack.yaml`, at `version: 0.1.0`, holding the decided items, each from a line of one or both PRDs;
+- the validators: a custom type's validator command as it stands, or the repository file it runs, copied
+  into the pack and named in the command through `${PACK}`;
+- `samples/<type>/bad.*`: for each contract type, one or more files its validator must refuse, each a copy
+  of a real contract file broken in one named way;
+- a `README.md` that says where each part came from, how each sample was broken, and the to-do list: the
+  harness helpers, clarify questions and skill rules a person would write, with the files to start from.
+
+`prd pack check <pack dir> <prd A> <prd B>` checks it: the manifest loads; each type's validator, run on each
+PRD's files of the type from the PRD's root, exits 0, and so does a second run on the same files from the
+pack folder; run on each `samples/<type>/bad.*` from the pack folder, it exits non-zero, and a type with no sample is a finding; each `target-kinds` entry names a type of
+the pack; and each Levels command's first word is on PATH. A word kept in `vocabulary` warns `platform-word`
+on each requirement that names it.
+
+**The lift.** A PRD that names no pack moves onto such a pack with
+`prd change pack <prd dir> <name> <X.Y.Z> --lift` (`--source <source>` when two installed plugins hold the
+pack): it is allowed only when every contract type the pack declares is a custom §7 row of the PRD with the
+same Files glob. It writes the §1 `Pack:` line, sets those rows' Validator cell to `pack`, and records the
+patch `pack <name> <X.Y.Z> lifted; pending`; then `prd hooks install` vendors the pack, lint must exit 0, and
+the owner approves with the dry-run record `no dry run (pack lifted)`. What the PRD produces does not change:
+its Levels, Harness, standards and skills rows stay as they are. Changing the pack of a built area in any
+other way is a conversion, which a later release brings.
 
 ## outline
 

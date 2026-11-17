@@ -2,6 +2,98 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.12: the pack cases, the error URL case, and the skills whose text changed
+
+Recorded 2026-11-16 on `feat/prd-toolkit-0.8.12`, model `sonnet`, Claude Code 2.1.325, plugin 0.8.11 (the manifest
+bump is the release commit), one run each by the owner's choice, 29 cases and one probe. The command, per group:
+
+```
+claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-publish --runs 1 --keep-temp -j 3 \
+  --case '<glob>' --allow-tools Write Edit Bash Agent "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)"
+```
+
+Run from a clean copy of the plugin (`git archive HEAD prd-toolkit`): run in the working tree, the runner refuses a
+plugin directory that holds more than 20000 entries, and the unit suite's `.uv-test-cache/` holds more. Cost of every
+run below: $17.5.
+
+**E-022 did not recur.** The probe, `building-trigger`, ran (1.00 / 0.00), and so did every case of the 0.8.11
+section's "could not run" list. Nothing fixed E-022; what changed on the machine is not found, and the entry stays
+open.
+
+**The five new cases.** Four `pack-*` cases for `authoring-packs`, and `error-records-the-url` for `handling-errors`.
+
+| Case | with | without | Δ | Note |
+|---|---|---|---|---|
+| `pack-stops-without-custom-types` | 1.00 | 0.57 | +0.43 | |
+| `pack-proposal-names-its-sources` | 0.90 | 0.30 | +0.60 | after the grader fix below; first run 0.60 / 0.30 |
+| `pack-writes-nothing-before-decisions` | 1.00 | 0.63 | +0.38 | |
+| `pack-drafts-no-helpers` | 1.00 | 0.43 | +0.57 | the scripted reply was taken as the owner's |
+| `error-records-the-url` | 1.00 | 0.50 | +0.50 | |
+
+`skill-fired` passed in every with-plugin run of the five.
+
+- **Four graders of `pack-proposal-names-its-sources` were too narrow for what the first session rightly said**, and
+  were widened after reading its trace: it named each item's source by the PRD's name ("`forms` (north only)",
+  "north and south `prd.md` §7 row `pages`") where the graders wanted the comparison's marks `A`, `B` and `both`. A
+  bare "(north)", the 0.8.12 baseline's wording, still fails. The case was rerun once.
+- **The rerun's one miss is the session's**: it named its lines "§7 row `pages` in both PRDs", with no file, where
+  step 3 asks for `<slug>/prd.md`. `names-prd-lines` stands as written.
+- **What no case grades:** `prd pack check` exiting 0 on the written pack, the commit on the pack's branch, and a
+  helper written through Bash (`pack-drafts-no-helpers` sees Write and the files left on disk); the lift, which the
+  release's proof runs in two real repositories.
+
+**The existing cases of the skills whose text changed** (handling-errors, adopting, changing), 14 cases; the two
+`handling-errors-*` cases were run on 2026-11-17, on the release commit, after the final review found them missing:
+
+| Case | with | without | Δ |
+|---|---|---|---|
+| `error-confirm-before-fix` | 1.00 | 1.00 | 0.00 |
+| `error-flaky-not-retried` | 1.00 | 0.50 | +0.50 |
+| `handling-errors-trigger` | 1.00 | 0.00 | +1.00 |
+| `handling-errors-not-without-prd` | 1.00 | 1.00 | 0.00 |
+| `adopting-confirm-headless-fallback` | 1.00 | 1.00 | 0.00 |
+| `adopting-fix-restates-asks` | 1.00 | 0.33 | +0.67 |
+| `adopting-trigger` | 1.00 | 0.00 | +1.00 |
+| `adoption-second-area-minor` | 1.00 | 0.60 | +0.40 |
+| `changing-hands-off-to-change-set` | 0.75 | 0.25 | +0.50 |
+| `changing-major-bump` | 1.00 | 0.00 | +1.00 |
+| `changing-new-id-not-reused` | 1.00 | 0.00 | +1.00 |
+| `changing-refuses-retarget` | 1.00 | 0.83 | +0.17 |
+| `changing-uses-prd-change` | 1.00 | 0.50 | +0.50 |
+| `change-uses-context-pack` | 1.00 | 0.67 | +0.33 |
+
+- `changing-hands-off-to-change-set` failed `stops-in-review`: the session ran `links impact`, stopped with the edits
+  in the tree, committed nothing and named `/prd-toolkit:prd-change-set`, but had not yet set `In review`, which step 2
+  asks for before `impact`. The grader also wants a version other than 1.0.2, and the version is `bump`'s, in step 3,
+  after the stop: the grader and the skill's order disagree there. Not rerun; the grader is to be looked at.
+- `error-confirm-before-fix`, `adopting-confirm-headless-fallback` and `handling-errors-not-without-prd` (a negative
+  case) score 1.00 without the plugin too.
+
+**The cases E-022 stopped in 0.8.11**, 10 more, of skills whose text did not change in 0.8.12:
+
+| Case | with | without | Δ |
+|---|---|---|---|
+| `build-close-no-bump` | 1.00 | 0.71 | +0.29 |
+| `build-gap-stops` | 1.00 | 0.67 | +0.33 |
+| `build-round-branch` | 1.00 | 0.20 | +0.80 |
+| `build-stale-sends-rewrite` | 1.00 | 0.60 | +0.40 |
+| `builder-document-no-unit` | 1.00 | 0.86 | +0.14 |
+| `builder-reports-practices` | 1.00 | 0.25 | +0.75 |
+| `builder-stays-out-of-prd` | 1.00 | 0.75 | +0.25 |
+| `authoring-harness-only-round` | 1.00 | 0.75 | +0.25 |
+| `authoring-proposes-pack` | 0.83 | 0.50 | +0.33 |
+| `authoring-spanish-ears` | 1.00 | 0.40 | +0.60 |
+
+- `authoring-proposes-pack` failed `lint-exit-0`: the PRD's last lint did print `prd-lint-exit=0`, but in a call that
+  chained a `cd`, an `rm` and a script before it, which the grader does not bind to a lint of `docs/prd/…` and the
+  skill's one-command form does not allow. Not rerun.
+
+**Not run:** `review-edits-nothing` and the deploy cases (E-019), the three `change-set-*` cases, and every other case
+of a skill whose text did not change.
+
+**Result:** 26 of the 29 cases score 1.00 with the plugin; the three others score 0.90, 0.83 and 0.75, each for the
+one grader named above. No case has a Δ at or below zero except the three that score 1.00 either way.
+
 ## 0.8.11: the practices cases, and the skills whose text changed
 
 Recorded 2026-11-15 on `feat/prd-toolkit-0.8.11`, model `sonnet`, Claude Code 2.1.325, plugin 0.8.10 (the manifest

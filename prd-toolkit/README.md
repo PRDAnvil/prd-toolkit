@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. Version 0.8.11.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. `/prd-toolkit:prd-pack` writes a pack from what two adopted PRDs share, and every card in the decision inbox names its area and links to where the trouble is. Version 0.8.12.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -27,7 +27,8 @@ for 0.8.7, the fixes, the plan [docs/superpowers/plans/2026-11-11-prd-toolkit-0.
 for 0.8.8 [docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md](../docs/superpowers/specs/2026-11-14-prd-toolkit-0.8.8-invocation-design.md),
 for 0.8.9 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.9-help-catalogue-design.md),
 for 0.8.10 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.10-next-part-design.md),
-and for 0.8.11 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md).
+for 0.8.11 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md),
+and for 0.8.12 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.12-pack-authoring-design.md](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.12-pack-authoring-design.md).
 
 ## Install
 
@@ -58,6 +59,7 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 | `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
 | `/prd-toolkit:prd-change-set [<CS-nnn> \| <text>]` | `prd-toolkit:coordinating-prds` | Coordinate one change across linked PRDs in several repositories: one record, one approval for every member's PRD diff, then a build (and where a link needs it, a deploy) per repository in dependency order (see Change sets) |
 | `/prd-toolkit:prd-practices [<PRD folder>] [<what to source>]` | `prd-toolkit:sourcing-practices` | Propose best-practice sources, the practices taken from them, standards rows and the skills the PRD needs, each read and quoted, as one PRD change the owner approves; install or write an approved skill only after it (see Practices) |
+| `/prd-toolkit:prd-pack <PRD folder A> <PRD folder B> [<pack name>]` | `prd-toolkit:authoring-packs` | Propose a pack from what two adopted PRDs share, each item with the PRD lines it comes from and each difference with both sides; on the owner's decisions, write it into the plugin the owner names, check it with `prd pack check` and commit it on a new branch, pushing and installing nothing |
 
 ## The prd command
 
@@ -564,11 +566,24 @@ entry for each; `prd_error.py` is the only writer.
    `prd_error.py check <base>..<head>` validates every change to the ledger in the range.
 
 ```
-.prd-toolkit/prd error new docs/prd/<slug> --title "<title>" --source "<where seen>"
+.prd-toolkit/prd error new docs/prd/<slug> --title "<title>" --source "<where seen>" [--url <address>]
+.prd-toolkit/prd error url docs/prd/<slug> E-nnn <address>
 .prd-toolkit/prd error propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--touches FR-001,FR-002] [--recurrence E-mmm]
 .prd-toolkit/prd error list docs/prd/<slug> --open
 .prd-toolkit/prd error check docs/prd/<slug> <base>..<head>
 ```
+
+**Where the trouble is (0.8.12).** An entry may hold one line `URL: <address>`, after `Touches:`: the
+page, dashboard or failed run the error is about. `prd error new --url <address>` writes it, and
+`prd error url` sets or replaces it later (`-` removes it). An area may give its own address as the
+`url` part of its `Target:` line, the line's last part, after the pack and the output language:
+`Target: output language en, url https://example.com/orders`, or `Target: url <address>` alone. Both
+addresses start with `http://` or `https://` and hold no white space; lint reports a malformed one
+(`error-entries` for the entry's, `pack-resolves` for the area's), and nothing fetches either. The
+entry's card in the decision inbox names the entry's areas and links to its URL, else to the URL of
+its first area that has one (see Decision inbox). The handling-errors skill passes an address the
+report gives to `--url`. A copy vendored before 0.8.12 has neither option nor the `url` part: its
+lint refuses the part, so run `install` from the 0.8.12 plugin first (see the changelog).
 
 **Known-failing tests.** A case marked `known-failing` on an open entry is a strict expected failure
 that tags its citation `@prd T-nnn.n known-failing E-nnn`; it fails the day the bug is fixed, so the
@@ -734,7 +749,7 @@ A plugin adds a pack as `prd-packs/<name>/` in its install path. A PRD names its
 <name> <X.Y.Z> (<source>)`, with `- Output language: <code>` when it differs from `language:`) and, for one
 area, in a `Target:` line of `features/<area>.md`. `prd_hooks.py install` vendors each named pack, and
 `service`, into `.prd-toolkit/packs/<name>/` and records each one's source in `.prd-toolkit/pack-sources.json`;
-the vendored copy is then the one lint reads, and its version must equal the named one. `prd_lint.py --list-packs` lists what is installed, one `<name> <version> (<source>) — <description>` line per pack. A `Target:` line may also set an area's output language alone (`Target: output language pt-BR`). A pack's commands may use
+the vendored copy is then the one lint reads, and its version must equal the named one. `prd_lint.py --list-packs` lists what is installed, one `<name> <version> (<source>) — <description>` line per pack. A `Target:` line may also set an area's output language alone (`Target: output language pt-BR`), and since 0.8.12 it may end with the area's URL (`url <address>`; see Decision inbox). A pack's commands may use
 `${PACK}` for its own folder. The format is `references/prd-format.md` ("Target profiles") and the manifest
 is `references/contract-types.md` ("pack"). Lint adds `pack-resolves` (a profile line or pack that does
 not resolve) and the warning `platform-word` (a word from the area's pack vocabulary in a requirement).
@@ -746,6 +761,71 @@ from the plugin to re-vendor the pack, and give the owner's approval with the dr
 run (pack version only)`. It refuses a PRD with uncommitted changes, a pack no line names, lines that
 already name the version or that disagree on it, and a pack that does not resolve. `install` on an
 old version ends its refusal with the `prd_change.py pack` command to run.
+
+## Writing a pack
+
+```
+<plugin>/scripts/prd pack compare <prd A> <prd B>                          # what two PRDs share, part by part
+<plugin>/scripts/prd pack check <pack dir> <prd A> <prd B>                 # the written pack against both
+<plugin>/scripts/prd change pack docs/prd/<slug> <name> <X.Y.Z> --lift     # move one PRD onto it
+```
+
+A repository of a kind no pack covers is adopted with custom contract types: section 7 rows whose
+Validator is a command of the PRD's own. When a second repository of that kind is adopted the same
+way, `/prd-toolkit:prd-pack <PRD folder A> <PRD folder B> [<pack name>]` (skill
+`prd-toolkit:authoring-packs`) writes the pack the two can share, from what their PRDs already say.
+
+- **Compare.** `prd pack compare` reads both PRD folders and prints seven parts, Contract types (the
+  custom section 7 rows), Target kinds, Levels, Harness, Standards (the `enforced` rows), Skills and
+  Vocabulary (words both PRDs' requirements use, a candidate list for a person to cut), each line
+  marked `both`, `A` or `B`; an item that differs prints its `A` line, then its `B` line. "The same" is
+  exact equality after a cell's white space is collapsed; nothing is matched by resemblance. It writes
+  nothing. It exits 0 when printed, 1 when the two PRDs share no custom contract type (there is no pack
+  to write), 2 on usage or a folder that is not a PRD.
+- **Propose and decide.** Both PRDs must be Approved and lint clean. The skill shows one proposal: each
+  manifest item with the PRD line it comes from, each difference with both sides and a recommended
+  resolution (take A's, take B's, or leave it out so each PRD keeps its own), the vocabulary candidates,
+  and the to-do list. The owner decides each item; a difference is never merged into a third text, and a
+  contract type one PRD lacks never goes in. Nothing is written before the owner's reply.
+- **What is written,** into the plugin checkout the owner names, as `prd-packs/<name>/` on a new branch
+  `pack-<name>-0.1.0` (or into a new minimal plugin, a manifest and a README, only when the owner asks for
+  one, at the path they give):
+  - `pack.yaml`, at `version: 0.1.0`, with the built-in packs' `toolkit` range and the decided items;
+  - each validator, the command as it stands, or the repository file it runs, copied unchanged and named
+    in the command through `${PACK}`;
+  - `samples/<type>/bad.*`: for each contract type, a copy of a real contract file broken in one named
+    way, which the validator must refuse;
+  - `README.md`: where each item came from, how each sample was broken, and the to-do list, the harness
+    helpers, clarify questions and skill rules a person would write, each with the files to start from.
+
+  Nothing else: no helper code, `clarify.md`, `rubrics.md` or skill is drafted, and neither PRD is
+  edited. The skill commits the pack once the check is clean, and pushes, publishes or installs nothing.
+- **Check.** `prd pack check` loads the manifest with the toolkit's own loader; runs each type's
+  validator on each PRD's files of the type from the PRD's root, and again on the same files from the
+  pack folder (`validator fails from the pack folder: <line>` when only the second fails); runs it on
+  each sample from the pack folder, which must exit non-zero (a type with no sample is a finding); and
+  checks that each `target-kinds` entry names a type of the pack and each Levels command's first word is
+  on PATH. One finding per line, `<file>: <what>`; exit 0 clean, 1 findings, 2 usage.
+- **JSON.** Both take `--json`: `compare` prints
+  `{"interface": 1, "kind": "pack.compare", "a", "b", "parts"}`, with `parts` holding the keys
+  `contract-types`, `target-kinds`, `levels`, `harness`, `standards`, `skills` and `vocabulary`, each a
+  list of the part's lines with their `mark`; `check` prints
+  `{"interface": 1, "kind": "pack.check", "findings": [{"file", "message"}]}`. `--interface` prints `1`.
+- **The lift.** Once the owner has installed the plugin (`prd lint --list-packs` lists
+  `<name> 0.1.0 (<source>)`), each PRD moves onto the pack by its own `/prd-toolkit:prd-change`. The
+  lift, `prd change pack … --lift` run from the plugin (`--source <source>` when two installed plugins
+  hold the pack), is allowed only when the PRD names no pack and every contract type of the pack is a
+  custom section 7 row of the PRD with the same Files glob. It writes the section 1 `Pack:` line, sets
+  those rows' Validator cell to `pack`, and records the patch `pack <name> <X.Y.Z> lifted; pending`,
+  leaving the tree uncommitted. Then `prd hooks install` from the plugin vendors the pack, lint must exit
+  0 with the pack's validators, and the owner approves with the dry-run record
+  `no dry run (pack lifted)`; the approval commit holds `.prd-toolkit/packs/<name>/` and
+  `.prd-toolkit/pack-sources.json`. What the PRD produces does not change: its Levels, Harness,
+  standards and skills rows stay as they are. Changing the pack of a built area in any other way is a
+  conversion, which a later release brings.
+- A copy vendored before 0.8.12 has no `pack` command and no `--lift`; the skill runs `compare` and
+  `check` from the plugin, and a lift is run with the 0.8.12 plugin's own scripts, whose `hooks install` then vendors 0.8.12 (see the changelog).
+  The format is `references/contract-types.md` ("A pack written from two PRDs").
 
 ## Languages
 
@@ -819,7 +899,8 @@ and writes `.prd-review.json` in the PRD folder: `{"interface": 1, "kind": "revi
 the plugin loaded and the tools `Read`, `Grep`, `Glob`, `Bash` and `Agent`. The order a client runs: `bump`, then the review, then `record` at the level the verdict gives, then lint and trace; `record` does not change the digest, so the verdict stays valid.
 
 **Pending decisions.** `prd_gates.py list <prd dir> [--worktrees] --json` prints every decision a
-person owes, in one shape (`id`, `kind`, `title`, `question`, `evidence`, `choices`, `source`): an
+person owes, in one shape (`id`, `kind`, `title`, `question`, `evidence`, `choices`, `source`, and
+since 0.8.12 `areas` and `url`, as Decision inbox says): an
 approval (`approval:<branch>`), an error class (`error-class:E-nnn`), a deploy step
 (`deploy-step:<run id>:<step>`), an adoption area (`adoption:<area>`, with its open `items`) and a
 sign-off (`signoff:<T-id>`). `prd_gates.py answer <prd dir> <gate id> --reply "<verbatim>"
@@ -867,6 +948,28 @@ The inbox page is vendored at `.prd-toolkit/gates/inbox.html`. It passes the que
 every answer, so an answer to a gate that changed is refused. The page asks for a new list every 5
 seconds. A reply from a button ends with ` (form)` and the answer log's `by` is `form`; an answer by
 `prd_gates.py answer` has `by` `cli`.
+
+**Each card's area and URL (0.8.12).** In `prd gates list --json`, every gate holds two more keys, after
+the ones it held: `areas`, a list of area names in the PRD's area order (the empty list when it has
+none), and `url`, a string or null. The inbox's card carries both, and shows directly under its title
+the line `Area: <names>` (the areas joined by `, `) or `Area: none`, and, when `url` is a string, the URL
+as a link that opens in a new tab.
+
+| Gate | `areas` | `url` |
+|---|---|---|
+| `error-class:E-nnn` | the areas of the blocks its entry's `Touches:` names, then of the blocks that own a test case `known-failing` on it, each once | the entry's `URL:`, else the URL of its first area that has one |
+| `signoff:<T-id>` | the area of the test case's file | that area's |
+| `approval:<branch>` | the areas of the blocks the change touches (the verdict's `touches`) | that area's when the change touches exactly one area, else null |
+| `adoption:<area>` | the area | that area's |
+| `deploy-step:<run id>:<step>` | none: a run deploys the whole PRD | null |
+
+An area's URL is the `url <address>` part of the `Target:` line of `features/<area>.md`
+(`Target: url https://example.com/orders`); an entry's is its `URL:` line (see Handling errors). A
+malformed address is a lint finding and is passed over, so a card never links to it; nothing fetches a
+URL. The adoption card keeps `area`, a string, beside `areas`; no key is removed, renamed or changes
+type, so `interface` stays 1. The text listing (`prd gates list` without `--json`) and `prd status`'s
+Next part print what they printed before. A copy vendored before 0.8.12 prints neither key; run
+`install` from the 0.8.12 plugin to get them (see the changelog).
 
 These files live in the git common directory, so every worktree of the repository shares them:
 
@@ -1007,6 +1110,20 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
+- **0.8.12:** a pack written from two adopted PRDs, and cards that say where. A repository of a kind no pack covers could be adopted with custom contract types, but the second repository of that kind wrote them all again, and writing a pack was undocumented hand work. Now `/prd-toolkit:prd-pack`, the new skill `authoring-packs`, writes one from two adopted PRDs (see Writing a pack): `prd pack compare` (the new script `prd_pack.py`) prints what the two share, each line marked `both`, `A` or `B`; the skill proposes each item with the PRD line it comes from and each difference with both sides; the owner decides; and the skill writes `pack.yaml`, the validators the PRDs already run, one bad sample per type and a README with a to-do list into the plugin the owner names, checks it with `prd pack check` and commits it on a new branch, pushing and installing nothing. Each PRD then moves onto the pack with `prd change pack … --lift`, a patch the owner approves: the pack declares what the PRD already declared, so nothing it produces changes. And every card in the decision inbox now names its areas and links to where the trouble is (see Decision inbox): `prd gates list --json` gives every gate `areas` and `url`; an error entry may hold a `URL:` line, written by `prd error new --url` or set later by `prd error url`; an area's `Target:` line may end with a `url` part. The text listing of `prd gates list`, `prd status`'s Next part and `interface` 1 are unchanged. A standards row is no longer run on a file under `.prd-toolkit/`, in the pre-commit hook or in the generated CI job, so a commit that re-vendors the toolkit is no longer refused by a repository's own linter (E-025). Also fixed while building: the approval of a lift commits the vendored pack (E-026), and `prd pack check` runs each validator a second time from the pack folder, so a validator that only works from the PRD's root no longer passes (E-027). The toolkit's own PRD is 7.3.0: 7.1.0 added the areas `pack-authoring` (UJ-05, FR-057 to FR-061) and `card-context` (UJ-06, FR-062 to FR-067), each written before its code, and `standards-run` (FR-068) for E-025; 7.2.0 and 7.3.0 closed the gaps found while building them; all three are verified. The lint rule count stays 41. See the [design spec](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.12-pack-authoring-design.md).
+  - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.12 plugin and commit `.prd-toolkit/`; a repository with a generated CI file also re-runs `<plugin>/scripts/prd hooks ci --github --force docs/prd/<slug>` (or `--gitlab`) and commits it with them, since `prd hooks check --ci` reports a CI file an earlier release wrote as stale when it differs from what `ci` writes now (a `standards-<n>` job does). The vendored `.prd-toolkit/prd hooks install` installs the hooks only. A copy vendored before 0.8.12 lacks `prd_pack.py`, `prd error new --url`, `prd error url`, the `url` part of a `Target:` line (its lint refuses one) and `areas` and `url` on its gates; the 0.8.12 skills say so and work around it (an entry is recorded without its URL, which is named in the report; the areas are named from `Touches:`). Lint's `pack-resolves` message for a malformed `Target:` line changed with the `url` part (it now reads `Target: must be one or more of pack <name> <X.Y.Z> (<source>), output language <code> and url <address>, comma-separated, in that order`): a client or CI step that matches the earlier text needs the new one. A PRD needs no change.
+  - **Known limits:**
+    - A pack's samples prove little when its validator reads the repository: run from the pack folder, such a validator refuses every sample for missing files as well as for its named break, and `prd pack check` cannot tell the two apart. The second run from the pack folder (E-027) does catch a validator that cannot work there on the PRD's own files.
+    - `prd change bump` answers `needs judgment` for a lift (the `Pack:` line and the `pack` Validator cells), though `prd change pack … --lift` records a patch.
+    - A change that only adds an area's `Target:` line shows no area on its approval card (`"areas": []`, `"url": null`): a card's areas come from the blocks a change touches, and such a change touches none.
+    - The vocabulary candidates of `prd pack compare` are mostly ordinary words; every one is a candidate for a person to cut.
+    - No harness helper, clarify file or skill is drafted for a pack, by design: the README's to-do list names them and the files to start from.
+    - After a lift each repository keeps its own validator scripts, now unused; nothing removes them.
+    - A lift checks only the contract types a pack declares, so it accepts a pack that declares none, and a pack that holds vocabulary words adds a `platform-word` finding, after a lift, for each requirement that names one: for those two packs "nothing it produces changes" does not hold (E-030, open). Lift only onto a pack written from the PRD's own custom types, and expect the new findings where its vocabulary is not empty.
+    - The implement context pack leaves out the definitions a features file gives before its first block (E-028, open). `prd pack check` reports a validator that cannot be found or run from the pack folder on its sample's path, not on the PRD's (E-029, open: a confirmed spec gap whose diagnosis is "not a defect", left as it is). E-017 and E-019 to E-024 stay open.
+  - **Evals and proof:**
+    - `claude plugin eval ./prd-toolkit --model sonnet --scaffold`, Claude Code 2.1.325, 2026-11-16, one run each (see `evals/BASELINE.md`), 29 cases: the four new `pack-*` cases and `error-records-the-url`, the fourteen existing cases of the skills whose text changed, and the ten cases E-022 stopped in 0.8.11. 26 score 1.00 with the plugin; `pack-proposal-names-its-sources` scores 0.90 (after four of its graders were widened against the trace), `authoring-proposes-pack` 0.83 and `changing-hands-off-to-change-set` 0.75, each for one grader the baseline names. E-022 did not recur, and stays open. No case grades `prd pack check` on a written pack, the pack's commit or the lift.
+    - Proof (see the [acceptance record](../docs/superpowers/plans/2026-11-15-prd-toolkit-0.8.12-acceptance.md)): two static web sites hosted on the same platform, neither with a PRD at the start. One area of each was adopted with two custom contract types; `/prd-toolkit:prd-pack` compared the two PRDs, the owner decided every item, and the pack was written into a new minimal plugin with `prd pack check` exit 0; both PRDs were lifted onto it with lint clean and the integration suites as before. An approval card showed its area and the area's `Target:` URL, and an error-class card the entry's own `URL:`.
 - **0.8.11:** best-practice sources, `practices.md` and `/prd-toolkit:prd-practices`. The standards and skills registries were filled only from what was already on the machine: linter configurations in the repository and the skills a session happened to list. A platform's good practice that no installed linter enforces never reached the PRD, so the builder never saw it. Now a PRD folder may hold `practices.md` (see Practices): the sources, each read and approved by the owner, and the practices taken from them, each one checkable sentence. The new skill `sourcing-practices`, run as `/prd-toolkit:prd-practices`, proposes sources, practices, standards rows and skills, quotes the passage behind each practice, reports any instruction it finds inside a source and follows none, and lands everything as one PRD change the owner approves; it installs a plugin only after that approval and only from a marketplace already added, and writes a skill into the repository only from approved sources. `prd practices` lists them, as text or JSON; `prd change ids next` takes `S` and `P`; the builder's implement pack carries the practices that apply and the builder reports on each; a pack may list `sources`. Lint has a 41st rule, `practices`, and the help catalogue has 48 entries. A PRD without `practices.md` lints, builds and reports as before, except that `--list-rules` prints 41 rules. The toolkit's own PRD is 7.0.0, a major version: two of its test cases name every lint rule line by line, and the new rule changes what they expect; the new area `practices` (UJ-04, FR-048 to FR-056) is verified. See the [design spec](../docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.11-practices-design.md).
   - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). A repository gets the `practices` command and rule when `<plugin>/scripts/prd hooks install docs/prd/<slug>` is next run from the 0.8.11 plugin; commit `.prd-toolkit/`. The vendored `.prd-toolkit/prd hooks install` installs the hooks only and does not bring them. Until then the 0.8.11 skill stops on that repository and says so. A PRD needs no change: `practices.md` appears only when `/prd-toolkit:prd-practices` writes it. No hook, CI file or managed block changes.
   - **Known limits:**

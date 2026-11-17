@@ -33,7 +33,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
-      - run: "git ls-files -z --format='./%(path)' -- ':(glob)prd-toolkit/**' | xargs -0 -r npx -y @anthropic-ai/claude-code plugin validate ./prd-toolkit"
+      - run: "git ls-files -z --format='./%(path)' -- ':(glob)prd-toolkit/**' ':(exclude).prd-toolkit' | xargs -0 -r npx -y @anthropic-ai/claude-code plugin validate ./prd-toolkit"
 
   test-unit:
     runs-on: ubuntu-latest
