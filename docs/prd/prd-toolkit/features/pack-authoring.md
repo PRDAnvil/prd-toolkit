@@ -186,7 +186,7 @@ Tests: T-059.1 [integration], T-059.2 [integration], T-059.3 [integration], T-05
 Traces: UJ-05; cli:prd_pack; `prdlint/packs.py` load_manifest
 
 ### FR-060 Lift a PRD onto the pack written from its own custom types
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/change.py:821 @dcc43b5
 Acceptance (EARS):
 - AC-060.1 When run as `prd_change.py pack <prd_dir> <name> <X.Y.Z> --lift` and no check of AC-060.2 to
