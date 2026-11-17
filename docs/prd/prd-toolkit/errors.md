@@ -232,7 +232,7 @@ Evidence: Final review of the 0.8.10 branch, 2026-11-15:
   1. An open question waits: Trailing spaces?   .
   2. An open question waits: Plain line!  .
 Diagnosis: Reproduced once on a scratch copy of fixture status-next/base whose section 13 line is `- Trailing spaces?` followed by three spaces: `prd status` prints `2. An open question waits: Trailing spaces?` then the three spaces and a full stop. Root cause: `_open_questions` in `prd-toolkit/scripts/prdlint/nextpart.py` keeps the trailing spaces of a section 13 line, and `_sentence` then finds no closing mark at the end and adds a full stop. Class against the PRD: the code does what the criteria say. AC-044.2 says "a line that starts with `- ` begins a question whose text is the line without its `- `", so the spaces are part of the text, and AC-047.1 adds no full stop only "Where the text a sentence of FR-043 to FR-046 inserts last already ends in `.`, `?` or `!`", which a text ending in spaces does not. The criteria are wrong for a line that ends in white space: the title of FR-047 is "A sentence ends with one full stop", and the sentence the reader sees ends with two marks. The fix revises AC-044.2 (the text of a question has no leading or trailing white space) with a test case, then the code.
-Resolution: -
+Resolution: T-044.7 [integration], PRD 8.0.0, fixed in 0de147a
 Recurrence of: -
 
 ### E-022 The prd launcher fails when the working directory holds a .venv whose interpreter cannot be read
