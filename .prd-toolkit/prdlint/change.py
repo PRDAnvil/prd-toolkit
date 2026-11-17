@@ -880,6 +880,9 @@ def lift(repo_root: Path, prd_root: Path, name: str, version: str, source: str |
         raise ChangeError(f"pack {name} {version} comes from more than one source: {', '.join(p.source for p in hits)}; "
                           "name one with --source <source>")
     chosen = hits[0]
+    if not chosen.contract_types:
+        raise ChangeError(f"pack {name} {version} declares no contract type; "
+                          "a lift moves a PRD onto a pack that declares its custom types")
     rows = custom_rows(prd)
     for ct in chosen.contract_types:
         mine = [r for r in rows if cell(r.cells[0]) == ct["type"]]
