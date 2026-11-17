@@ -228,7 +228,7 @@ pipe, filter or truncate a gated command's output (no `| head`, no `| grep`).
       first). Then `<plugin scripts>/prd lint --list-packs` lists `<name> 0.1.0 (<source>)`.
    2. In each repository, move the PRD onto the pack with `/prd-toolkit:prd-change` (the lift in
       `prd-toolkit:changing-prds`, "Packs and retargeting"): `prd change pack docs/prd/<slug> <name>
-      0.1.0 --lift`, then `prd hooks install` and a commit of the vendored copy, then lint, then the
-      owner's approval with the dry-run record `no dry run (pack lifted)`.
+      0.1.0 --lift`, then `prd hooks install`, then lint, then the owner's approval with the dry-run
+      record `no dry run (pack lifted)`, whose commit holds the vendored pack.
 
    Run neither: no push, no publish, no install, no lift.
