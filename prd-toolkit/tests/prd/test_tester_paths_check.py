@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections import Counter
 
-from tester_paths_support import PRD_DIR, given_steps, run_check
+from tester_paths_support import PRD_DIR, given_steps, run_check, scratch  # noqa: F401  (scratch: the fixture)
 
 RUN = (PRD_DIR, "--diff", "base..HEAD")
 
