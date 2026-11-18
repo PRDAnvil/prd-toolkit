@@ -56,21 +56,21 @@ def test_failing_check_puts_the_install_commit_after_the_vendor_commit(tmp_path)
         "",
         "Refs: none (no behaviour change)",
     ]
-    assert git_lines(dst, "log", "-1", "--format=%aI%n%cI", "HEAD~1") == [
-        "2026-01-05T13:00:00+00:00",
-        "2026-01-05T13:00:00+00:00",
+    assert git_lines(dst, "log", "-1", "--format=%ad%n%cd", "--date=raw", "HEAD~1") == [
+        "1767618000 +0000",
+        "1767618000 +0000",
     ]
     assert git_lines(dst, "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD~1") == [
         "CLAUDE.md",
         "docs/prd/README.md",
         "docs/prd/greet/README.md",
     ]
-    assert git_lines(dst, "log", "--format=%aI", "HEAD~2") == [
-        "2026-01-05T12:00:00+00:00",
-        "2026-01-05T11:00:00+00:00",
-        "2026-01-04T12:00:00+00:00",
-        "2026-01-03T12:00:00+00:00",
-        "2026-01-02T12:00:00+00:00",
+    assert git_lines(dst, "log", "--format=%ad", "--date=raw", "HEAD~2") == [
+        "1767614400 +0000",
+        "1767610800 +0000",
+        "1767528000 +0000",
+        "1767441600 +0000",
+        "1767355200 +0000",
     ]
     assert git_stdout(dst, "status", "--porcelain") == ""
 
