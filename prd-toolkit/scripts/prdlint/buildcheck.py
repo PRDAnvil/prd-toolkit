@@ -13,7 +13,8 @@ import yaml
 from .yamlload import _Loader
 
 from .model import Prd
-from .trace import BadRange, cited_tids, citations
+from .testerpaths import roots_of, tester_tids
+from .trace import BadRange, citations
 
 RESULT = re.compile(r"^(T-\d{3}\.\d+): (pass|fail: .+|known-failing E-\d+)$")
 _LINE_TID = re.compile(r"^(T-\d{3}\.\d+)\b")
@@ -140,6 +141,7 @@ def diff_findings(prd: Prd, repo_root: Path, rng: str) -> list[str]:
         i += 1 + n
     prefix = Path(os.path.relpath(prd.root.resolve(), repo_root.resolve())).as_posix()
     levels = {tc.id: tc.data.get("level") for tc in prd.test_cases}
+    roots = roots_of(prd)
     findings: list[str] = []
     vendored: list[str] = []
     for path in dict.fromkeys(paths):
@@ -149,12 +151,8 @@ def diff_findings(prd: Prd, repo_root: Path, rng: str) -> list[str]:
         if path == ".prd-toolkit" or path.startswith(".prd-toolkit/"):
             vendored.append(path)
             continue
-        cited: dict[str, None] = {}
-        for rev in (base, head):
-            for tid in cited_tids(_show(repo_root, rev, path)):
-                cited[tid] = None
-        # a T-id with no test case is treated as non-unit: a tester owns anything not proven unit
-        non_unit = [t for t in cited if levels.get(t) != "unit"]
+        # only a path under a test root is a tester's test; its text is read at the base, then at the head
+        non_unit = tester_tids(path, (_show(repo_root, rev, path) for rev in (base, head)), levels, roots)
         if non_unit:
             findings.append(f"{path} cites {', '.join(non_unit)}, a tester's test: the builder may not edit it")
     if vendored:
