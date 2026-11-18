@@ -13,7 +13,7 @@ from .rules.contracts import _custom_types
 
 yaml = require("yaml", "pyyaml")
 
-PARTS = ("Header", "Stack", "Glossary", "Requirements", "Code", "Practices", "Levels", "Harness defaults", "Rubric conventions", "Cited", "Upstream contracts", "Known defects", "Open questions", "History")
+PARTS = ("Header", "Stack", "Glossary", "Area notes", "Requirements", "Code", "Practices", "Levels", "Harness defaults", "Rubric conventions", "Cited", "Upstream contracts", "Known defects", "Open questions", "History")
 PARTS_REPO = ("Header", "Stack", "Areas")
 MODES = ("decide", "implement")
 
@@ -512,7 +512,9 @@ def build_pack(prd: Prd, area: str | None, req: list[str] | None, mode: str = "d
     requirements = [Item("Requirements", b.id, b.file, b.line, t) for b, t in zip(blocks, texts)]
     patterns = [_word(i) for i in sorted(ids | {ac.id for b in blocks for ac in b.acs})] + [_word(area)]
     implement = (_code(blocks, area, repo_root or prd.root, context, asked) + _practices(prd, area, repo_root or prd.root) + _levels(prd) + _harness(prd, area) + _rubrics(prd, area)) if mode == "implement" else []
-    body = (_stack(prd) + _glossary(prd, text) + (requirements or [_none("Requirements", f"features/{area}.md")])
+    from . import contextnotes
+    notes = contextnotes.part(prd, area)  # FR-072: directly before Requirements, none without area notes
+    body = (_stack(prd) + _glossary(prd, text) + notes + (requirements or [_none("Requirements", f"features/{area}.md")])
             + implement + _cited(prd, area, blocks, text) + _upstream_contracts(prd, blocks, text) + _defects(prd, ids, entries) + _questions(prd, patterns) + _history(prd, area))
     return [_header(prd, area, mode, display, body)] + body
 
