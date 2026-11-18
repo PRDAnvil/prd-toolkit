@@ -13,7 +13,8 @@ Python first and hand uv that interpreter's path. The launcher is this area's on
 `prd_hooks.py vendor`, so it behaves the same. No other file changes.
 
 ### FR-069 The launcher runs on a system Python when uv finds one
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd:7 @144d179
 Acceptance (EARS):
 - AC-069.1 When the launcher runs, it shall first run `uv python find --system ">=3.11"`, printing nothing that
   command writes on stdout or stderr, and when that command exits 0 and prints a path on stdout, the launcher
