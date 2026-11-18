@@ -21,7 +21,8 @@ one. A **test root** is a backticked path of the `Test roots:` list in the Layou
 T-id when one of its lines holds `@prd`, white space and the T-id (`T-nnn.n`), as trace reads a citation.
 
 ### FR-074 The build check calls a changed file a tester's test only under a test root
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/testerpaths.py:1 @e4903d9
 Acceptance (EARS):
 - AC-074.1 When `prd_build_check.py <prd_dir> --diff <base>..<head>` reads a changed path that is outside the
   PRD folder and outside `.prd-toolkit/`, that lies under a test root, and whose text at `<base>` or at `<head>`
