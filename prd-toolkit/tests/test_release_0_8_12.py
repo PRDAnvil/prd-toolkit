@@ -20,23 +20,23 @@ def section(title: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.12"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     d = plugin["description"]
     assert "a pack written from two adopted PRDs" in d and "/prd-toolkit:prd-pack" in d
     assert "best-practice sources" in d and "/prd-toolkit:prd-practices" in d and "a 41-rule linter" in d
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.12", d)]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.12"
-    assert "Version 0.8.12." in README
+        (plugin["version"], d)]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in README
     assert "and for 0.8.12 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.12-pack-authoring-design.md]" in README
 
 
 def test_readme_counts_what_the_plugin_holds():
     skills = sorted(p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md"))
     commands = sorted(p.stem for p in (ROOT / "commands").glob("*.md"))
-    assert len(skills) == 11 and "authoring-packs" in skills
-    assert len(commands) == 12 and "prd-pack" in commands
+    assert len(skills) >= 11 and "authoring-packs" in skills  # the current count is pinned in the newest test_release_*.py
+    assert len(commands) >= 12 and "prd-pack" in commands
     table = section("Commands and skills")
     assert "| `/prd-toolkit:prd-pack <PRD folder A> <PRD folder B> [<pack name>]` | `prd-toolkit:authoring-packs` |" in table
     for name in commands:
