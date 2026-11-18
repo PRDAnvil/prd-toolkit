@@ -369,6 +369,7 @@ Recurrence of: -
 ### E-031 The build check reads an eval scaffold that holds `@prd T-` text as a tester's test, so no build can edit it
 Detected: 2026-11-18, stopped build (/prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18)
 Classification: spec gap
+Confirmed: 2026-11-18, "yes, E-031 is a spec gap"
 Evidence: /prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18, on bcf4d0c (PRD 8.2.1)
   The round's diff check exited 1 on the builder's commit 3dd8036 (branch prd-round/eval-scaffolds-2):
     prd-toolkit/evals/scaffolds/deploy_repo.py cites T-001.1, T-001.2, T-002.1, T-002.2, a tester's test: the builder may not edit it
