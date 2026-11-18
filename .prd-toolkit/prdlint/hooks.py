@@ -9,7 +9,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import change_approve, standardsrun
+from . import change_approve, hookshims, standardsrun
 
 VENDOR_DIR = ".prd-toolkit"
 VENDORED = ("prd_lint.py", "prd_trace.py", "prd_status.py", "prd_context.py", "prd_build_check.py", "prd_hooks.py", "prd_git_hook.py", "prd_deploy.py", "prd_drift.py", "prd_block.py", "prd_error.py", "prd_links.py", "prd_confirm.py", "prd_judge.py", "prd_change.py", "prd_gates.py", "prd_dispatch.py", "prd_help.py", "prd_practices.py", "prd_pack.py", "requirements.txt", "prd")
@@ -328,8 +328,7 @@ def install(repo_root: Path, prd_rel: str) -> list[str]:
     configured = _hooks_path_config(repo_root)
     hooks_dir, shown = _hooks_dir(repo_root)
     if configured:
-        for hook in HOOKS:
-            lines.append(_append_message(hook, prd_rel, shown, f"core.hooksPath is set to {configured}; no shim written", _read(hooks_dir / hook)))
+        lines += hookshims.install_configured(hooks_dir, shown, configured, prd_rel)
         return lines + _refresh(repo_root, module, tgts) + _install_stale_ci(repo_root, prd_rel)
     hooks_dir.mkdir(parents=True, exist_ok=True)
     for hook in HOOKS:
@@ -337,13 +336,18 @@ def install(repo_root: Path, prd_rel: str) -> list[str]:
         if path.exists() and not _ours(path):
             lines.append(_append_message(hook, prd_rel, shown, f"{shown}/{hook} already exists and was left alone", _read(path)))
             continue
-        old = _read(path)
-        with open(path, "w", encoding="utf-8", newline="\n") as f:
-            f.write(_render(_template_dir(), hook, prd_rel))
-        path.chmod(0o755)
-        lines.append(f"replaced {shown}/{hook} (it used uv run --script)" if old is not None and OLD_FORM.search(old)
-                     else f"installed {shown}/{hook}")
+        lines.append(_write_shim(path, hook, prd_rel, shown))
     return lines + _refresh(repo_root, module, tgts) + _install_stale_ci(repo_root, prd_rel)
+
+
+def _write_shim(path: Path, hook: str, prd_rel: str, shown: str) -> str:
+    """Write the shim for hook at path, executable; the line install prints for it."""
+    old = _read(path)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(_render(_template_dir(), hook, prd_rel))
+    path.chmod(0o755)
+    return (f"replaced {shown}/{hook} (it used uv run --script)" if old is not None and OLD_FORM.search(old)
+            else f"installed {shown}/{hook}")
 
 
 def _install_stale_ci(repo_root: Path, prd_rel: str) -> list[str]:

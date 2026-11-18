@@ -1,0 +1,161 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, the root of the scratch repository the
+#   tester-paths steps build from fixture status-next/base (testing.md, Setup steps). Its PRD folder is
+#   <tmp>/docs/prd/orders, whose every test case has the level integration or judged, and whose testing.md names
+#   the one test root `tests/`. "python" is the interpreter running the tests (sys.executable); every run is a
+#   subprocess with the environment the tester-paths steps give (testing.md, Setup steps: the runner's git
+#   config shut out), and <tmp> as its working directory.
+#   CHECK = <repo>/prd-toolkit/scripts/prd_build_check.py
+#   `base` in a range is the tag the steps set; HEAD is the commit the case's last step made.
+#   These cases are E-031's: the check called a file outside every test root a tester's test.
+
+T-074.1:
+  ac: AC-074.2
+  level: integration
+  target: "cli:prd_build_check"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - TP0
+    - TP1
+    cwd: "<tmp>"
+    runs:
+    - python CHECK docs/prd/orders --diff base..HEAD
+    note: "TP1 changes four files, none under the test root tests: scaffolds/make_repo.py, tests-old/test_old.py and checks/test_a.py each cite a T-id of level integration, and src/app.py cites none"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-074.2:
+  ac: AC-074.1
+  level: integration
+  target: "cli:prd_build_check"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - TP0
+    - TP1
+    - TP2
+    cwd: "<tmp>"
+    runs:
+    - python CHECK docs/prd/orders --diff base..HEAD
+    note: "TP2 changes tests/test_orders.py, which lies under the test root and cites the fixture's eight T-ids in that order; the four files TP1 changed get no line"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines:
+        - "tests/test_orders.py cites T-001.1, T-002.1, T-003.1, T-004.1, T-005.1, T-005.2, T-006.1, T-007.1, a tester's test: the builder may not edit it"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-074.3:
+  ac: AC-074.1
+  level: integration
+  target: "cli:prd_build_check"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - TP0
+    - TP3
+    cwd: "<tmp>"
+    runs:
+    - python CHECK docs/prd/orders --diff base..HEAD
+    note: "TP3 moves tests/test_orders.py out of the test root, to scaffolds/test_orders.py, and moves tests-old/test_old.py into it, to tests/test_old.py: four changed paths, of which the old path of the first move and the new path of the second lie under the root"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_lines_any_order_exact:
+        - "tests/test_orders.py cites T-001.1, T-002.1, T-003.1, T-004.1, T-005.1, T-005.2, T-006.1, T-007.1, a tester's test: the builder may not edit it"
+        - "tests/test_old.py cites T-003.1, a tester's test: the builder may not edit it"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-074.4:
+  ac: AC-074.1
+  level: integration
+  target: "cli:prd_build_check"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - TP0
+    - TP4
+    - TP1
+    - TP2
+    cwd: "<tmp>"
+    runs:
+    - python CHECK docs/prd/orders --diff base..HEAD
+    note: "TP4 makes checks/ the one test root and moves the tag base to its own commit, so the range holds TP1 and TP2 only: checks/test_a.py now lies under a test root and tests/test_orders.py under none"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines:
+        - "checks/test_a.py cites T-004.1, a tester's test: the builder may not edit it"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-074.5:
+  ac: AC-074.1
+  level: integration
+  target: "cli:prd_build_check"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - TP0
+    - TP5
+    - TP1
+    - TP2
+    cwd: "<tmp>"
+    runs:
+    - python CHECK docs/prd/orders --diff base..HEAD
+    note: "TP5 takes the Test roots: text out of testing.md and moves the tag base to its own commit, so the one test root is tests, the default"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines:
+        - "tests/test_orders.py cites T-001.1, T-002.1, T-003.1, T-004.1, T-005.1, T-005.2, T-006.1, T-007.1, a tester's test: the builder may not edit it"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none

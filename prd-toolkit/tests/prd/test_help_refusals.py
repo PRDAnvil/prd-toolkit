@@ -1,4 +1,8 @@
 """What the help command refuses, and how it says so (FR-036)."""
+import os
+
+import pytest
+
 from help_support import json_doc, json_equal, run, write_lines
 
 USAGE = "usage: prd_help.py [-h] [--key KEY | --rule RULE] [--json] [--interface]\n"
@@ -115,3 +119,28 @@ def test_unsupported_interface(tmp_path):
     assert json_equal(json_doc(r), {"interface": 1, "kind": "help",
                                     "error": "unsupported interface 2; this toolkit speaks 1"})
     assert r.stderr == "prd_help: unsupported interface 2; this toolkit speaks 1\n"
+
+
+def test_catalogue_that_cannot_be_read(tmp_path):
+    """@prd T-036.6"""
+    t = tmp_path
+    b11 = write_lines(t / "b11.yaml", ["- key: a.b", "  name: A", "  what: W", "  why: Y"])
+    os.chmod(b11, 0)
+    try:
+        if os.access(b11, os.R_OK):
+            # The case's note: a runner that reads every file (such as root) can read it.
+            pytest.skip("b11.yaml can be read on this runner (os.access R_OK is true after chmod 0)")
+        env = {"PRD_HELP_FILE": f"{t}/b11.yaml"}
+        run_1 = run([], t, env=env)
+        run_2 = run(["--key", "a.b"], t, env=env)
+        run_3 = run(["--json"], t, env=env)
+    finally:
+        os.chmod(b11, 0o600)
+
+    for r in (run_1, run_2, run_3):
+        assert r.exit == 2
+        assert r.stderr == f"prd_help: {t}/b11.yaml: cannot read: Permission denied\n"
+    assert run_1.stdout == ""
+    assert run_2.stdout == ""
+    assert json_equal(json_doc(run_3), {"interface": 1, "kind": "help",
+                                        "error": f"{t}/b11.yaml: cannot read: Permission denied"})

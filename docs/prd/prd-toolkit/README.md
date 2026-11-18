@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 7.3.0 · Approved · Owner: Ivan Histand · Updated 2026-11-16
+Version 8.3.1 · Approved · Owner: Ivan Histand · Updated 2026-11-18
 
 ## What this PRD covers
 
@@ -18,13 +18,19 @@ Version 7.3.0 · Approved · Owner: Ivan Histand · Updated 2026-11-16
 | Area | Adoption | File |
 |---|---|---|
 | card-context | adopted | [features/card-context.md](features/card-context.md) |
+| context-notes | adopted | [features/context-notes.md](features/context-notes.md) |
+| eval-scaffolds | adopted | [features/eval-scaffolds.md](features/eval-scaffolds.md) |
 | help | adopted | [features/help.md](features/help.md) |
+| hook-shims | adopted | [features/hook-shims.md](features/hook-shims.md) |
+| inbox-cards | adopted | [features/inbox-cards.md](features/inbox-cards.md) |
+| launcher | adopted | [features/launcher.md](features/launcher.md) |
 | lint-cli | adopted | [features/lint-cli.md](features/lint-cli.md) |
 | lint-structure | adopted | [features/lint-structure.md](features/lint-structure.md) |
 | pack-authoring | adopted | [features/pack-authoring.md](features/pack-authoring.md) |
 | practices | adopted | [features/practices.md](features/practices.md) |
 | standards-run | adopted | [features/standards-run.md](features/standards-run.md) |
 | status-next | adopted | [features/status-next.md](features/status-next.md) |
+| tester-paths | adopted | [features/tester-paths.md](features/tester-paths.md) |
 
 ## What is in this folder
 

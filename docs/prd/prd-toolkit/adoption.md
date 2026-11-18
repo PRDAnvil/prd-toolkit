@@ -8,7 +8,7 @@
 | lint-testcases | not started | `prd-toolkit/scripts/prdlint/rules/testcases.py` |
 | lint-contracts | not started | `prd-toolkit/scripts/prdlint/rules/contracts.py` |
 | lint-registries | not started | `prd-toolkit/scripts/prdlint/rules/registries.py`, `prd-toolkit/scripts/prdlint/rules/errors.py` |
-| trace-and-hooks | not started | `prd-toolkit/scripts/prd_trace.py`, `prd-toolkit/scripts/prdlint/trace.py`, `prd-toolkit/scripts/prd_git_hook.py`, `prd-toolkit/scripts/prdlint/githook.py`, `prd-toolkit/scripts/prd_hooks.py`, `prd-toolkit/scripts/prd_dispatch.py`, `prd-toolkit/scripts/requirements.txt`, `prd-toolkit/scripts/prd`, `prd-toolkit/scripts/prdlint/hooks.py`, `prd-toolkit/templates/hooks/**` |
+| trace-and-hooks | not started | `prd-toolkit/scripts/prd_trace.py`, `prd-toolkit/scripts/prdlint/trace.py`, `prd-toolkit/scripts/prd_git_hook.py`, `prd-toolkit/scripts/prdlint/githook.py`, `prd-toolkit/scripts/prd_hooks.py`, `prd-toolkit/scripts/prd_dispatch.py`, `prd-toolkit/scripts/requirements.txt`, `prd-toolkit/scripts/prdlint/hooks.py`, `prd-toolkit/templates/hooks/**` |
 | context | not started | `prd-toolkit/scripts/prd_context.py`, `prd-toolkit/scripts/prdlint/context.py` |
 | status | not started | `prd-toolkit/scripts/prd_status.py`, `prd-toolkit/scripts/prdlint/status.py`, `prd-toolkit/scripts/prd_block.py`, `prd-toolkit/templates/claude-block.md`, `prd-toolkit/scripts/prdlint/overview.py`, `prd-toolkit/templates/readme-prd.md`, `prd-toolkit/templates/readme-prds.md` |
 | build-check | not started | `prd-toolkit/scripts/prd_build_check.py`, `prd-toolkit/scripts/prdlint/buildcheck.py` |
@@ -29,3 +29,9 @@
 | pack-authoring | adopted | `prd-toolkit/scripts/prd_pack.py`, `prd-toolkit/scripts/prdlint/packcompare.py`, `prd-toolkit/scripts/prdlint/packcheck.py` |
 | card-context | adopted | `prd-toolkit/scripts/prdlint/cardcontext.py` |
 | standards-run | adopted | `prd-toolkit/scripts/prdlint/standardsrun.py` |
+| launcher | adopted | `prd-toolkit/scripts/prd` |
+| hook-shims | adopted | `prd-toolkit/scripts/prdlint/hookshims.py` |
+| inbox-cards | adopted | `prd-toolkit/scripts/prdlint/inboxcards.py` |
+| context-notes | adopted | `prd-toolkit/scripts/prdlint/contextnotes.py` |
+| eval-scaffolds | adopted | `prd-toolkit/evals/scaffolds/install_files.py` |
+| tester-paths | adopted | `prd-toolkit/scripts/prdlint/testerpaths.py` |

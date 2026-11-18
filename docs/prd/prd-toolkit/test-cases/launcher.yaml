@@ -1,0 +1,100 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root, an absolute path; <tmp> is the test's own tmp_path, an absolute path.
+#   LAUNCHER = <repo>/prd-toolkit/scripts/prd, run as a program (it is executable), with <tmp> or the folder the case
+#   names as the working directory and the Subprocess environment (testing.md Harness) plus the case's own env.
+#   SCRIPTS = <repo>/prd-toolkit/scripts, written exactly as LAUNCHER's folder is written in the command.
+#   `texts.<key>` is the text at that key of fixture launcher/texts. <PATH> is the value of PATH in the
+#   Subprocess environment. <version> is the value of the key `version` of <repo>/prd-toolkit/.claude-plugin/plugin.json,
+#   read as JSON: what `prd --version` prints from the plugin. These cases are E-022's: the launcher stopped where the working directory held a
+#   .venv whose interpreter could not be read.
+#   A uv log (T-069.1, T-069.2) is the file the stub uv of step LS0 writes: each argument of each call on its own
+#   line, then the line `--`; the test compares its text split by str.splitlines() to the case's list, in order
+#   and with nothing else. In an effect that lists a log's lines, `, ` separates two lines, and a line that holds a
+#   space is set in backticks, which are not part of the line.
+
+T-069.1:
+  ac: AC-069.1
+  level: integration
+  target: "cli:prd_launcher"
+  environment: local
+  identity: none
+  preconditions:
+  - launcher/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - LS0
+    cwd: "<tmp>"
+    env:
+      PATH: "<tmp>/bin:<PATH>"
+      UV_STUB_LOG: "<tmp>/uv.log"
+      UV_STUB_FIND: "<tmp>/py 3/bin/python3"
+    command: LAUNCHER --version
+    note: "the stub's find prints UV_STUB_FIND, a path holding a space, and exits 0; its run prints nothing and exits 0"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects:
+    - "<tmp>/uv.log holds exactly the lines: python, find, --system, >=3.11, --, run, --quiet, --no-project, --project, SCRIPTS, --python, `<tmp>/py 3/bin/python3`, --with-requirements, SCRIPTS/requirements.txt, python, SCRIPTS/prd_dispatch.py, --version, --"
+    errors: []
+    leaks: none
+
+T-069.2:
+  ac: AC-069.2
+  level: integration
+  target: "cli:prd_launcher"
+  environment: local
+  identity: none
+  preconditions:
+  - launcher/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - LS0
+    cwd: "<tmp>"
+    runs:
+    - env: {PATH: "<tmp>/bin:<PATH>", UV_STUB_LOG: "<tmp>/uv1.log", UV_STUB_FIND: "<tmp>/py/bin/python3", UV_STUB_FIND_EXIT: "1"}
+      command: LAUNCHER --version
+    - env: {PATH: "<tmp>/bin:<PATH>", UV_STUB_LOG: "<tmp>/uv2.log"}
+      command: LAUNCHER --version
+    note: "run_1: the find prints a path and exits 1; run_2: UV_STUB_FIND is unset, so the find prints nothing and exits 0; in both the stub's find writes the line `uv-stub: find` on stderr"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects:
+    - "<tmp>/uv1.log and <tmp>/uv2.log each hold exactly the lines: python, find, --system, >=3.11, --, run, --quiet, --no-project, --project, SCRIPTS, --python, >=3.11, --with-requirements, SCRIPTS/requirements.txt, python, SCRIPTS/prd_dispatch.py, --version, --"
+    errors: []
+    leaks: none
+
+T-069.3:
+  ac: AC-069.1
+  level: integration
+  target: "cli:prd_launcher"
+  environment: local
+  identity: none
+  preconditions:
+  - launcher/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - LV
+    cwd: "<tmp>/work"
+    command: LAUNCHER --version
+    note: "the real uv on PATH; <tmp>/work/.venv/bin/python is a link into <tmp>/locked, which nobody may read (step LV); E-022's failure was uv's `Failed to inspect Python interpreter from virtual environment` and exit 2"
+  expect:
+    output:
+      exit: 0
+      stdout: "<version>\n"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none

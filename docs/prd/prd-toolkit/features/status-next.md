@@ -133,14 +133,15 @@ Acceptance (EARS):
   empty, where a line that starts with `- ` begins a question whose text is the line without its
   `- `, each following line indented by one or more spaces continues that question, its text
   without the leading spaces joined to the question's with one space, and each other non-empty line
-  that is not `None.` is a question of its own whose text is the line; each item with no command,
-  `area` null and `waits_on` `you`.
+  that is not `None.` is a question of its own whose text is the line, and a question's text is taken
+  without the white space at its start and at its end; each item with no command, `area` null and
+  `waits_on` `you`.
 - AC-044.3 When the `version` in the frontmatter of `prd.md` is below 1.0.0, the status command shall
   list one `draft` item with the text `The PRD is a draft at version <version>, not yet approved.`,
   the command `/prd-toolkit:prd-new`, `ids` empty, `area` null and `waits_on` `you`.
 Errors: -
-Edge cases: the titles `prd gates list` prints are `Approve <slug> <version>` (approval), the entry's title (error-class), `Run <run id> step <N>: <step title>` (deploy-step), `run log <run id> could not be read` (deploy-step, for a run log that cannot be read), `Adopt area <area>` (adoption) and `Sign off <T-id>` (signoff) → AC-044.1; a `deploy-step` gate names a run, not an entry or a T-id, so its `ids` is empty → AC-044.1; the gates of other worktrees are not listed → AC-044.1; an assumption whose status is `open`, `confirmed` or `corrected` makes no item → AC-044.2
-Tests: T-044.1 [integration], T-044.2 [integration], T-044.3 [integration], T-044.4 [integration], T-044.5 [integration], T-044.6 [integration]  (test-cases/status-next.yaml)
+Edge cases: the titles `prd gates list` prints are `Approve <slug> <version>` (approval), the entry's title (error-class), `Run <run id> step <N>: <step title>` (deploy-step), `run log <run id> could not be read` (deploy-step, for a run log that cannot be read), `Adopt area <area>` (adoption) and `Sign off <T-id>` (signoff) → AC-044.1; a `deploy-step` gate names a run, not an entry or a T-id, so its `ids` is empty → AC-044.1; the gates of other worktrees are not listed → AC-044.1; an assumption whose status is `open`, `confirmed` or `corrected` makes no item → AC-044.2; a section 13 line that ends in spaces gives a question that ends in its last mark, so FR-047 adds no second full stop → AC-044.2
+Tests: T-044.1 [integration], T-044.2 [integration], T-044.3 [integration], T-044.4 [integration], T-044.5 [integration], T-044.6 [integration], T-044.7 [integration]  (test-cases/status-next.yaml)
 Traces: UJ-03; cli:prd_status; `prd gates list`
 
 ### FR-045 Work: furthest along first

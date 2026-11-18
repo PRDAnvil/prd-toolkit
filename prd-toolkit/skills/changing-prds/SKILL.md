@@ -112,7 +112,8 @@ harness slot) fails lint or the next build: that is a real change, through the s
 **A lift is a scripted patch too.** A PRD that names no pack (no `Pack:` line and no `Target: pack`
 line) moves onto a pack written from its own custom contract types (`/prd-toolkit:prd-pack`) by a
 lift: the pack declares only what §7 already declares, with the same globs, so nothing the PRD
-produces changes, and it is not a retarget. The owner installs the plugin that holds the pack
+produces changes, and it is not a retarget. Lint prints what it printed before, and beside it only a
+`platform-word` finding for each requirement that names a word the pack keeps in its `vocabulary`. The owner installs the plugin that holds the pack
 first; you never install it. Check that `--list-packs`, as above, lists `<name> <X.Y.Z> (<source>)`;
 when it does not, stop and say so. Then, each its own Bash call, from `<plugin scripts>` as above; on
 a refusal, stop and report it.
@@ -122,7 +123,9 @@ a refusal, stop and report it.
   of the pack's types to `pack`, and records `pack <name> <X.Y.Z> lifted; pending` as a patch,
   leaving the tree uncommitted. A `refused:` line names what to fix:
   `the PRD already names pack <name> at <file>:<line>; a lift moves a PRD that names none` (a version
-  move, above, or a conversion), `contract type <type> of pack <name> is not a custom row of section 7`,
+  move, above, or a conversion),
+  `pack <name> <X.Y.Z> declares no contract type; a lift moves a PRD onto a pack that declares its custom types`,
+  `contract type <type> of pack <name> is not a custom row of section 7`,
   `contract type <type>: section 7 has <cell>, pack <name> has <files>`,
   `no pack <name> <X.Y.Z> is on this machine; prd lint --list-packs lists the packs it finds` (with
   `--source`, `no pack <name> <X.Y.Z> (<source>) is on this machine; …`),

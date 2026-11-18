@@ -1,6 +1,6 @@
 """pack-authoring: `prd_change.py pack ... --lift` and the version move beside it (FR-060; test-cases/pack-authoring.yaml)."""
 from pack_authoring_support import (
-    CHANGE, CONTEXT, FIXTURES_LINE, KA, KB, KC, KD, KH, KP7, KR1, KT1, KT2, K0, LINT,
+    CHANGE, CONTEXT, FIXTURES_LINE, KA, KB, KC, KD, KE, KH, KP7, KR1, KT1, KT2, KX, K0, LINT,
     diff, hunk_lines, north, read, run, sites, status, untoday,
 )
 
@@ -265,3 +265,37 @@ def test_lift_moves_lint_findings_down_one_line(tmp_path, monkeypatch):
     assert r3.code == 1, r3.stderr
     assert r3.stderr == ""
     assert r3.lines == ["docs/prd/north/prd.md:41: assumption-indexed: A-99 has no row in section 12"]
+
+
+def test_lift_refused_pack_without_contract_types(tmp_path, monkeypatch):
+    """@prd T-060.14"""
+    K0(tmp_path, monkeypatch)
+    KE(tmp_path)
+    repo = tmp_path / "north"
+    r = run(CHANGE, *LIFT, cwd=repo)
+    assert r.code == 1, r.stderr
+    assert r.stdout == ""
+    assert r.stderr == ("refused: pack leaflet 0.1.0 declares no contract type; "
+                        "a lift moves a PRD onto a pack that declares its custom types\n")
+    assert status(repo) == ""
+
+
+def test_lift_brings_the_pack_vocabulary_into_lint(tmp_path, monkeypatch):
+    """@prd T-060.15"""
+    K0(tmp_path, monkeypatch)
+    KX(tmp_path)
+    repo = tmp_path / "north"
+    r1 = run(LINT, PRD, cwd=repo)
+    r2 = run(CHANGE, *LIFT, cwd=repo)
+    r3 = run(LINT, PRD, cwd=repo)
+    for i, r in enumerate((r1, r2, r3), 1):
+        assert r.code == 0, f"run_{i}: {r.stdout}{r.stderr}"
+        assert r.stderr == "", f"run_{i}: {r.stderr}"
+    assert r1.stdout == ""
+    hint = "a word of pack leaflet: move it to a contract, a Harness slot or the area's Target"
+    assert r3.stdout == (
+        f"docs/prd/north/features/site.md:6: warn: platform-word: AC-001.1 names 'visitor', {hint}\n"
+        f"docs/prd/north/features/site.md:7: warn: platform-word: AC-001.2 names 'visitor', {hint}\n"
+        f"docs/prd/north/features/site.md:14: warn: platform-word: AC-002.1 names 'visitor', {hint}\n"
+        f"docs/prd/north/features/site.md:21: warn: platform-word: AC-003.1 names 'visitor', {hint}\n"
+    )

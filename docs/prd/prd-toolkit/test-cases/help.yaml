@@ -418,6 +418,37 @@ T-036.5:
     errors: []
     leaks: none
 
+T-036.6:
+  ac: AC-036.3
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+      - "write <tmp>/b11.yaml with the four lines `- key: a.b`, `  name: A`, `  what: W`, `  why: Y`, each line, the last one included, ending in a newline, then set its mode to 000 (`os.chmod(<tmp>/b11.yaml, 0)`)"
+    cwd: <tmp>
+    runs:
+      - {env: {PRD_HELP_FILE: <tmp>/b11.yaml}, command: python HELP}
+      - {env: {PRD_HELP_FILE: <tmp>/b11.yaml}, command: python HELP --key a.b}
+      - {env: {PRD_HELP_FILE: <tmp>/b11.yaml}, command: python HELP --json}
+    note: "E-020: a catalogue file that is there and cannot be read; when `os.access(<tmp>/b11.yaml, os.R_OK)` is true after the setup (a runner that reads every file, such as root), the test ends as skipped, since the file can then be read"
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stderr: "prd_help: <tmp>/b11.yaml: cannot read: Permission denied\n"
+      run_1:
+        stdout: ""
+      run_2:
+        stdout: ""
+      run_3:
+        stdout_json: {interface: 1, kind: help, error: "<tmp>/b11.yaml: cannot read: Permission denied"}
+    effects: []
+    errors: []
+    leaks: none
+
 T-037.1:
   ac: AC-037.1
   level: integration

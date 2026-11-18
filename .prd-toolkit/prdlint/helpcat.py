@@ -87,7 +87,11 @@ def load() -> list[dict]:
     if not where.is_file():
         raise CatalogueError(f"{shown}: no such file")
     try:
-        data = yaml.safe_load(where.read_bytes())
+        raw = where.read_bytes()
+    except OSError as e:  # there, and reading it fails: the operating system's text, e.g. Permission denied (AC-036.3)
+        raise CatalogueError(f"{shown}: cannot read: {e.strerror or e}") from None
+    try:
+        data = yaml.safe_load(raw)
     except yaml.YAMLError as e:
         problem = getattr(e, "problem", None) or (str(e).splitlines() or ["not valid YAML"])[0]
         raise CatalogueError(f"{shown}: YAML parse error: {problem}") from None

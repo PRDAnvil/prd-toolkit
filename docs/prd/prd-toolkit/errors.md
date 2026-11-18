@@ -203,7 +203,7 @@ Evidence: claude plugin eval ./prd-toolkit --runs 1 --model sonnet --scaffold, 2
   ?? docs/prd/greet/README.md
   The same scaffold exits 1 the same way from main at fdcf473 (prd-toolkit 0.8.7).
 Diagnosis: Reproduced twice by hand: `evals/deploy-close-live/scaffold.sh` exits 1 in an empty directory from this branch and from main at fdcf473 (0.8.7), so 0.8.8 did not cause it. Root cause: `evals/scaffolds/deploy_repo.py` (and the scaffold `review-edits-nothing` uses) runs the plugin `prd_hooks.py install`, then commits only `.gitignore` and `.prd-toolkit`; since prd-toolkit 0.8.4 `install` also writes the managed block in `CLAUDE.md` and the two README files under `docs/prd/`, which stay untracked, and seven scaffolds end with a clean-tree check (`git status --porcelain` must print nothing). The scaffolds were written before 0.8.4 (f818be0, 2026-11-01) and the later baselines ran single cases, so nothing noticed. Class against the PRD: no requirement, contract or test case covers the eval suite or its scaffolds (searched features/lint-cli.md, features/lint-structure.md, nfr.md and testing.md; adoption.md maps `prd-toolkit/skills/**` but not `prd-toolkit/evals/**`), so the PRD is silent. E-017, a defect in a test outside every adopted Boundary, was confirmed as a code bug; the same may be the owner's choice here. Any fix must keep the scaffold commits' fixed dates and check which graders pin a commit SHA, since committing three more files changes every later SHA.
-Resolution: -
+Resolution: T-073.1 [integration], PRD 8.3.1, fixed in 3649ab8
 Recurrence of: -
 
 ### E-020 prd help prints a traceback and exits 1 when the catalogue file exists and cannot be read
@@ -218,7 +218,7 @@ Evidence: Final review of the 0.8.9 branch, 2026-11-15:
   exit=1
   The same with --json (stdout is empty: no error document) and with --key a.
 Diagnosis: Reproduced once: with `PRD_HELP_FILE` naming a file of mode 000, `prd help --json` prints a Python traceback ending `PermissionError: [Errno 13] Permission denied`, nothing on stdout, exit 1. Root cause: `load()` in `prd-toolkit/scripts/prdlint/helpcat.py` checks `is_file()`, then calls `read_bytes()` and catches only the YAML error, so an OSError from the read escapes. Class against the PRD: AC-036.3 says "If the catalogue cannot be used, the help command shall print the one stderr line `prd_help: <path>: <reason>`, print nothing on stdout and exit 2", where the reason "is the first that applies of: `no such file`; `YAML parse error: <the parser's problem>`; `top level must be a list`" and the entry reasons; none of them applies to a file that exists and cannot be read, and no test case covers it, so the PRD does not say which line to print. The FR-036 edge cases "exit 1 is never used" and "no exit-2 path prints a traceback" show the intent. The fix adds a reason to AC-036.3 (for example `cannot read: <the system's reason>`), a test case, and the catch in `load()`.
-Resolution: -
+Resolution: T-036.6 [integration], PRD 8.0.0, fixed in 619f073
 Recurrence of: -
 
 ### E-021 A section 13 question that ends in spaces gets a second full stop in the Next part
@@ -232,7 +232,7 @@ Evidence: Final review of the 0.8.10 branch, 2026-11-15:
   1. An open question waits: Trailing spaces?   .
   2. An open question waits: Plain line!  .
 Diagnosis: Reproduced once on a scratch copy of fixture status-next/base whose section 13 line is `- Trailing spaces?` followed by three spaces: `prd status` prints `2. An open question waits: Trailing spaces?` then the three spaces and a full stop. Root cause: `_open_questions` in `prd-toolkit/scripts/prdlint/nextpart.py` keeps the trailing spaces of a section 13 line, and `_sentence` then finds no closing mark at the end and adds a full stop. Class against the PRD: the code does what the criteria say. AC-044.2 says "a line that starts with `- ` begins a question whose text is the line without its `- `", so the spaces are part of the text, and AC-047.1 adds no full stop only "Where the text a sentence of FR-043 to FR-046 inserts last already ends in `.`, `?` or `!`", which a text ending in spaces does not. The criteria are wrong for a line that ends in white space: the title of FR-047 is "A sentence ends with one full stop", and the sentence the reader sees ends with two marks. The fix revises AC-044.2 (the text of a question has no leading or trailing white space) with a test case, then the code.
-Resolution: -
+Resolution: T-044.7 [integration], PRD 8.0.0, fixed in 0de147a
 Recurrence of: -
 
 ### E-022 The prd launcher fails when the working directory holds a .venv whose interpreter cannot be read
@@ -247,33 +247,35 @@ Evidence: Eval run for prd-toolkit 0.8.11 (claude plugin eval, 2026-11-15), in t
   The same from prd context and prd status. Fifteen of 34 eval cases stopped at their first prd command.
   The same case (building-trigger) fails the same way against the released 0.8.10 plugin.
 Diagnosis: Reproduced once outside the eval sandbox: in a folder whose `.venv/bin/python` is a link into a directory with no read permission (and a `pyvenv.cfg` beside it), `prd-toolkit/scripts/prd --version` prints uv's `error: Failed to inspect Python interpreter from virtual environment at .venv/bin/python` with the cause `failed to canonicalize path`, and exits 2 before any script runs. Root cause: the launcher runs `uv run --quiet --no-project --project "$here" --python ">=3.11" --with-requirements …`, and uv, looking for an interpreter, inspects a `.venv` in the working directory first and treats one it cannot read as a hard error instead of passing over it. In the eval sandbox the scaffold's `.venv` links to a uv-managed Python under the home directory, which the sandbox does not let the session read, so every `prd` command of 15 of the 34 cases run for 0.8.11 failed; one of them, run against the released 0.8.10 plugin, fails the same way, so 0.8.11 did not cause it. The same cases ran in the 0.8.8 baseline of 2026-11-14 with the same uv and Claude Code versions; what changed on the machine since is not found. Class against the PRD: no requirement, contract or test case covers the launcher (searched features/lint-cli.md, features/help.md, features/status-next.md, features/practices.md, nfr.md and testing.md for the launcher, uv and a repository `.venv`; adoption.md maps `prd-toolkit/scripts/prd` in `trace-and-hooks`, which is not started), so the PRD is silent on what the launcher does when the repository's own environment cannot be read. A fix would make the launcher ignore the working directory's environment (the uv option or variable to be confirmed against uv's documentation) and add a test with an unreadable `.venv`.
-Resolution: -
+Resolution: T-069.3 [integration], PRD 8.1.0, fixed in 144d179
 Recurrence of: -
 
 ### E-023 An error-class answer given in the inbox is committed in every worktree that holds the PRD
 Detected: 2026-11-15, user report from a repository that vendors 0.8.10
-Classification: unclassified
+Classification: spec gap
+Confirmed: 2026-11-17, "both are right"
 Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
   The repository has its main checkout on one branch and a worktree on another; both hold the PRD folder.
   From the worktree: prd gates serve <prd> --gate approval:<branch>, and prd gates wait.
   In that inbox the owner also answered eleven error-class gates, E-001 to E-011 ("Confirm the class (form)").
   Each confirmation was committed twice: once on the worktree's branch and once on the main checkout's branch,
   eleven `docs(prd): confirm E-nnn` commits on each side with identical errors.md content.
-Diagnosis: -
-Resolution: -
+Diagnosis: Reproduced once in a scratch repository on 0.8.12: a PRD with one entry `proposed`, committed, and a second worktree on another branch cut from that commit. The inbox listing then holds the gate `error-class:E-002` twice, once in the group of each worktree, because the entry is `proposed` in both checkouts. Root cause: `listing` in `prd-toolkit/scripts/prdlint/gates.py` lists the gates of the PRD folder in every worktree and shows only a `deploy-step:` gate once ("a run is repo-wide: once, in the first group"); an answer to a card runs `prd error confirm` in that card's own worktree and commits there. So the owner is asked the same question once per worktree, and each answer is a commit on that worktree's branch with the same `errors.md` text, as the report says; one answer is not copied to the other worktree by the code. Class against the PRD: the area `gates` is not adopted (adoption.md: `gates | not started`), and no AC says how the inbox shows an entry that is `proposed` in more than one worktree. What a change could add: one card for an entry whose `proposed` text is the same in several worktrees, and a stated rule for which branch its answer is committed on.
+Resolution: T-071.1 [integration], PRD 8.1.0, fixed in ba1736f
 Recurrence of: -
 
 ### E-024 hooks check reports a hook stale after hooks install's own instruction for core.hooksPath is followed
 Detected: 2026-11-15, user report from a repository that vendors 0.8.10
-Classification: unclassified
+Classification: spec gap
+Confirmed: 2026-11-17, "both are right"
 Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
   core.hooksPath is set to the repository's own .git/hooks. Its commit-msg and pre-commit were toolkit shims from an
   earlier release (header "# prd-toolkit hook (prd_hooks.py install <prd>); ...", one uv run --script ... prd_git_hook.py line).
   prd hooks install said: "core.hooksPath is set to ...; no shim written; replace its uv run --script ... prd_git_hook.py
   line in .../commit-msg with this line: <line>".
   After that line was replaced exactly as told, prd hooks check still said: "stale: .../commit-msg; run prd_hooks.py install".
-Diagnosis: -
-Resolution: -
+Diagnosis: Reproduced once in a scratch repository on 0.8.12: `core.hooksPath` set to the repository's own `.git/hooks`, whose `commit-msg` and `pre-commit` were toolkit shims of the earlier form (the header `# prd-toolkit hook (prd_hooks.py install <prd>); …` and one `uv run --script … prd_git_hook.py` line). `prd hooks install` printed `core.hooksPath is set to …; no shim written; replace its uv run --script … prd_git_hook.py line in …/commit-msg with this line: <line>`; with that line replaced as told, `prd hooks check` printed `stale: …/commit-msg; run prd_hooks.py install` for both hooks. Root cause, in `prd-toolkit/scripts/prdlint/hooks.py`: `install` writes no hook when `core.hooksPath` is set and gives the instruction for a hook of the user's own, while `_stale_shims` takes a file that holds the toolkit's header as the toolkit's own shim and compares it whole with the current template, which the edited file can never equal; its advice, `run prd_hooks.py install`, changes nothing, since install writes nothing there. The two commands disagree on whose hook it is, and no step ends the loop short of removing the header by hand. Class against the PRD: the hooks commands are in no adopted area (adoption.md), and no AC says what `install` and `check` do with a toolkit shim under a set `core.hooksPath`. What a change could add: `install` rewrites a hook that holds the toolkit's header where `core.hooksPath` is set, or `check` accepts the line `install` prints.
+Resolution: T-070.2 [integration], PRD 8.1.0, fixed in 92d60fe
 Recurrence of: -
 
 ### E-025 The pre-commit standards run lints the vendored .prd-toolkit/ copy, so a re-vendor commit can be refused
@@ -331,7 +333,7 @@ Evidence: Build of the area card-context, 2026-11-16, the builder's report:
   prd context docs/prd/prd-toolkit --area card-context --req UJ-06,FR-062,FR-063,FR-064,FR-065,FR-066,FR-067 --for implement prints the blocks and not that paragraph.
   The builder read lines 1 to 27 of features/card-context.md, outside the pack, to learn them.
 Diagnosis: Reproduced: `prd context docs/prd/prd-toolkit --area card-context --req FR-062 --for implement` exits 0 and holds neither "Words used below" nor the definition of the area order, which `features/card-context.md` gives in its lines before the first block. The pack prints the requirement blocks of a features file and none of its text before the first block. The area `context` is not adopted (adoption.md: `context | not started`), so no AC says what the pack takes from a features file outside its blocks; the format reference names no place in a features file for definitions the blocks share.
-Resolution: -
+Resolution: T-072.1 [integration], PRD 8.1.0, fixed in 3a021bf
 Recurrence of: -
 
 ### E-029 pack check reports nothing when a validator cannot be found or run from the pack folder on its second run
@@ -344,7 +346,7 @@ Evidence: Report of the builder that fixed E-027 (build pack-authoring FR-059, 2
   AC-059.7 names only "exits other than 0" and "runs past the time".
   This is plausible when the validator's program is a relative path that resolves from the PRD folder and not from the pack folder.
 Diagnosis: not a defect: reproduced once on the PRD's pack-authoring fixture, with the pack's `pages` validator set to `./ok.sh`, a program that exists in each PRD folder and not in the pack folder. `prd pack check` printed one finding, `plug/prd-packs/leaflet/samples/pages/bad.yaml: validator not found: ./ok.sh`, and exited 1. The second run from the pack folder (AC-059.7) did print nothing, as the report says, and AC-059.7 asks for nothing there: it names a finding only "when that run exits other than 0" and "when it runs past the time AC-059.2 allows". The case is still reported, by AC-059.3: the sample run uses the same validator "with the pack folder as the working directory" and prints "the finding `<pack dir>/samples/<type>/<name>: <problem>` with AC-059.2's problem text when the validator does not split, is not found, cannot be run or times out"; and a type with no sample draws `no bad.* sample`. So a validator that cannot be found or run from the pack folder never passes the check; its finding sits on the sample's path, not on the PRD's. Root cause of the silence: `_from_pack_folder` in prdlint/packcheck.py drops the not-found and not-executable problems on purpose. What a change could add, if wanted: the same problem printed on the PRD's line too, which would say it twice.
-Resolution: -
+Resolution: not a defect: AC-059.3 already reports the case on the sample path: it prints "the finding `<pack dir>/samples/<type>/<name>: <problem>` with AC-059.2's problem text when the validator does not split, is not found, cannot be run or times out", so a validator that cannot be found or run from the pack folder never passes the check
 Recurrence of: -
 
 ### E-030 a lift accepts a pack that declares no contract type, and a pack vocabulary adds lint findings after a lift
@@ -361,5 +363,41 @@ Evidence: Final review of the 0.8.12 branch, 2026-11-17, on the PRD's fixture pa
   AC-060.7 says lint prints, after a lift, the findings it printed before it.
   The same new findings follow a lift onto a pack written by authoring-packs when the owner keeps a vocabulary word.
 Diagnosis: reproduced by the final review of the 0.8.12 branch on the fixture pack-authoring/sites (the evidence above), not run again here; the code was read. The lift does what AC-060.4 states: `lift` in prdlint/change.py checks only the types the pack declares ("If a contract type the pack declares has no section 7 row in `prd.md` that is a custom row"), and the manifest reader allows none (`contract_types` in prdlint/packs.py returns an empty list), so a pack with no contract type passes with nothing checked. No PRD line says what a lift does with such a pack, or with a pack that holds vocabulary words. AC-060.7 then states more than holds: "the lint command shall print the findings it printed for the PRD before the lift", while a pack vocabulary adds a `platform-word` finding for each requirement that names a word, as the pack procedure itself says of a kept word. What a change would add: a refusal of a pack that declares no contract type, under AC-060.4 and in the AC-060.5 order, and AC-060.7 and the sentences that repeat it (the README, references/contract-types.md, the changing-prds skill) qualified for a pack vocabulary.
+Resolution: T-060.14 [integration], PRD 8.0.0, fixed in dbd0b07
+Recurrence of: -
+
+### E-031 The build check reads an eval scaffold that holds `@prd T-` text as a tester's test, so no build can edit it
+Detected: 2026-11-18, stopped build (/prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18)
+Classification: spec gap
+Confirmed: 2026-11-18, "yes, E-031 is a spec gap"
+Evidence: /prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18, on bcf4d0c (PRD 8.2.1)
+  The round's diff check exited 1 on the builder's commit 3dd8036 (branch prd-round/eval-scaffolds-2):
+    prd-toolkit/evals/scaffolds/deploy_repo.py cites T-001.1, T-001.2, T-002.1, T-002.2, a tester's test: the builder may not edit it
+  deploy_repo.py is an eval scaffold, not a test: it holds, as text, the test files of the demo repository it builds.
+  Their docstrings read @prd T-001.1, @prd T-001.2, @prd T-002.1 and @prd T-002.2 (lines 187, 192, 217, 232): the demo PRD's T-ids.
+  This PRD has cases with the same four IDs at a non-unit level, so the check reads the file as a tester's test.
+  features/eval-scaffolds.md (FR-073) names deploy_repo.py as a file the build edits, so every round fails the same way.
+  The build stopped before any merge; FR-073 stays approved and E-019 stays open.
+Diagnosis: Reproduced: `prd_build_check.py docs/prd/prd-toolkit --diff bcf4d0c..3dd8036` exits 1 with `prd-toolkit/evals/scaffolds/deploy_repo.py cites T-001.1, T-001.2, T-002.1, T-002.2, a tester's test: the builder may not edit it`. Root cause: `diff_findings` in `prd-toolkit/scripts/prdlint/buildcheck.py` reads every changed path outside the PRD folder and `.prd-toolkit/` for `@prd T-` citations, at the base and at the head, and reports the path when a cited T-id is not a `unit` case of the PRD; it never asks where the file is. `deploy_repo.py` is an eval scaffold that holds the demo repository's test files as text, with the demo PRD's T-001.1, T-001.2, T-002.1 and T-002.2 in their docstrings; this PRD has cases with those IDs at the integration level, so the scaffold reads as a tester's test and no builder round can change it. The same holds for any file outside the test roots that quotes such a citation. Class against the PRD: testing.md Harness, Layout says where a tester's test is, "the black-box characterization tests are `prd-toolkit/tests/prd/test_<area>_*.py`", but no requirement, contract or test case covers the build check: adoption.md lists `build-check` as `not started`, so the PRD is silent on which changed files the check may call a tester's test. It blocks the fix of E-019: FR-073 names `deploy_repo.py` as a file its build edits, and a commit made after the scaffold's deploy run is no way round it, since `prd_deploy.py resume` then answers `refused: HEAD moved since the run started`.
+Resolution: T-074.1 [integration], PRD 8.3.0, fixed in e4903d9
+Recurrence of: -
+
+### E-032 The tester guard refuses the tester's Read of its own background run's output file
+Detected: 2026-11-18, tester report, the FR-073 builds for E-019
+Classification: unclassified
+Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a worktree of this repository
+  (claude -p, the prd-tester agent in suite mode, the FR-073 builds for E-019).
+  The tester started the harness in the background, as its rule 7 says for a run longer than the Bash timeout,
+  and then called Read on that run's own output file:
+    <system temp>/<project folder>/<session id>/tasks/<task id>.output
+  The guard refused the Read. Its message named only the PRD folder, prd-toolkit/tests and .prd-toolkit/packs
+  as the places the tester may read. An ls of that tasks folder was refused too.
+  The tester's rule 7 (skills/testing-from-prds/SKILL.md) says: "read its `<id>.output` file, and never another
+  task's output. The `tasks` folder also holds the caller's background tasks; the guard lets you read only an
+  `<id>.output` file there."
+  The tester did not retry by another path; it ran the same harness command in the foreground, which finished
+  within the timeout, so the RESULTS of both builds stand.
+  Not reproduced outside those sessions, and the cause is not diagnosed yet.
+Diagnosis: -
 Resolution: -
 Recurrence of: -
