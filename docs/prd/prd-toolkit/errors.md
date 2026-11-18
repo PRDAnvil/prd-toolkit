@@ -365,3 +365,18 @@ Evidence: Final review of the 0.8.12 branch, 2026-11-17, on the PRD's fixture pa
 Diagnosis: reproduced by the final review of the 0.8.12 branch on the fixture pack-authoring/sites (the evidence above), not run again here; the code was read. The lift does what AC-060.4 states: `lift` in prdlint/change.py checks only the types the pack declares ("If a contract type the pack declares has no section 7 row in `prd.md` that is a custom row"), and the manifest reader allows none (`contract_types` in prdlint/packs.py returns an empty list), so a pack with no contract type passes with nothing checked. No PRD line says what a lift does with such a pack, or with a pack that holds vocabulary words. AC-060.7 then states more than holds: "the lint command shall print the findings it printed for the PRD before the lift", while a pack vocabulary adds a `platform-word` finding for each requirement that names a word, as the pack procedure itself says of a kept word. What a change would add: a refusal of a pack that declares no contract type, under AC-060.4 and in the AC-060.5 order, and AC-060.7 and the sentences that repeat it (the README, references/contract-types.md, the changing-prds skill) qualified for a pack vocabulary.
 Resolution: T-060.14 [integration], PRD 8.0.0, fixed in dbd0b07
 Recurrence of: -
+
+### E-031 The build check reads an eval scaffold that holds `@prd T-` text as a tester's test, so no build can edit it
+Detected: 2026-11-18, stopped build (/prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18)
+Classification: unclassified
+Evidence: /prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18, on bcf4d0c (PRD 8.2.1)
+  The round's diff check exited 1 on the builder's commit 3dd8036 (branch prd-round/eval-scaffolds-2):
+    prd-toolkit/evals/scaffolds/deploy_repo.py cites T-001.1, T-001.2, T-002.1, T-002.2, a tester's test: the builder may not edit it
+  deploy_repo.py is an eval scaffold, not a test: it holds, as text, the test files of the demo repository it builds.
+  Their docstrings read @prd T-001.1, @prd T-001.2, @prd T-002.1 and @prd T-002.2 (lines 187, 192, 217, 232): the demo PRD's T-ids.
+  This PRD has cases with the same four IDs at a non-unit level, so the check reads the file as a tester's test.
+  features/eval-scaffolds.md (FR-073) names deploy_repo.py as a file the build edits, so every round fails the same way.
+  The build stopped before any merge; FR-073 stays approved and E-019 stays open.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
