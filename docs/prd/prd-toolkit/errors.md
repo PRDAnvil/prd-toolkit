@@ -261,7 +261,7 @@ Evidence: Report from a repository that vendors prd-toolkit 0.8.10, 2026-11-15:
   Each confirmation was committed twice: once on the worktree's branch and once on the main checkout's branch,
   eleven `docs(prd): confirm E-nnn` commits on each side with identical errors.md content.
 Diagnosis: Reproduced once in a scratch repository on 0.8.12: a PRD with one entry `proposed`, committed, and a second worktree on another branch cut from that commit. The inbox listing then holds the gate `error-class:E-002` twice, once in the group of each worktree, because the entry is `proposed` in both checkouts. Root cause: `listing` in `prd-toolkit/scripts/prdlint/gates.py` lists the gates of the PRD folder in every worktree and shows only a `deploy-step:` gate once ("a run is repo-wide: once, in the first group"); an answer to a card runs `prd error confirm` in that card's own worktree and commits there. So the owner is asked the same question once per worktree, and each answer is a commit on that worktree's branch with the same `errors.md` text, as the report says; one answer is not copied to the other worktree by the code. Class against the PRD: the area `gates` is not adopted (adoption.md: `gates | not started`), and no AC says how the inbox shows an entry that is `proposed` in more than one worktree. What a change could add: one card for an entry whose `proposed` text is the same in several worktrees, and a stated rule for which branch its answer is committed on.
-Resolution: -
+Resolution: T-071.1 [integration], PRD 8.1.0, fixed in ba1736f
 Recurrence of: -
 
 ### E-024 hooks check reports a hook stale after hooks install's own instruction for core.hooksPath is followed
