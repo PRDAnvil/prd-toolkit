@@ -214,7 +214,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-068 | A standards row is never run on the vendored copy | verified | features/standards-run.md |  |
 | FR-069 | The launcher runs on a system Python when uv finds one | verified | features/launcher.md |  |
 | FR-070 | Install rewrites the toolkit's own hooks where core.hooksPath is set | verified | features/hook-shims.md |  |
-| FR-071 | The inbox shows an error entry's card in the first worktree that holds it | approved | features/inbox-cards.md |  |
+| FR-071 | The inbox shows an error entry's card in the first worktree that holds it | verified | features/inbox-cards.md |  |
 | FR-072 | The context pack prints an area's notes | approved | features/context-notes.md |  |
 
 ## 12. Assumptions index

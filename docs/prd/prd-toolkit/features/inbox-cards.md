@@ -15,7 +15,8 @@ text after `### <E-id> ` on its heading line, and its `Detected:` value the text
 `Detected:` line, both with surrounding white space removed.
 
 ### FR-071 The inbox shows an error entry's card in the first worktree that holds it
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/inboxcards.py:6 @ba1736f
 Acceptance (EARS):
 - AC-071.1 When the inbox lists its gates, it shall leave the gate `error-class:<E-id>` out of a group when the
   PRD folder of an earlier group holds an `errors.md` entry with that ID, the same title and the same `Detected:`
