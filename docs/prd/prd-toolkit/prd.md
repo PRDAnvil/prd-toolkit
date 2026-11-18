@@ -216,7 +216,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-070 | Install rewrites the toolkit's own hooks where core.hooksPath is set | verified | features/hook-shims.md |  |
 | FR-071 | The inbox shows an error entry's card in the first worktree that holds it | verified | features/inbox-cards.md |  |
 | FR-072 | The context pack prints an area's notes | verified | features/context-notes.md |  |
-| FR-073 | The deploy and review eval scaffolds build their start states | approved | features/eval-scaffolds.md |  |
+| FR-073 | The deploy and review eval scaffolds build their start states | verified | features/eval-scaffolds.md |  |
 | FR-074 | The build check calls a changed file a tester's test only under a test root | verified | features/tester-paths.md |  |
 
 ## 12. Assumptions index
