@@ -1,6 +1,6 @@
 ---
 prd: prd-toolkit
-version: 8.3.0
+version: 8.3.1
 status: Approved
 owner: Ivan Histand
 updated: 2026-11-18
@@ -216,7 +216,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-070 | Install rewrites the toolkit's own hooks where core.hooksPath is set | verified | features/hook-shims.md |  |
 | FR-071 | The inbox shows an error entry's card in the first worktree that holds it | verified | features/inbox-cards.md |  |
 | FR-072 | The context pack prints an area's notes | verified | features/context-notes.md |  |
-| FR-073 | The deploy and review eval scaffolds build their start states | built | features/eval-scaffolds.md |  |
+| FR-073 | The deploy and review eval scaffolds build their start states | approved | features/eval-scaffolds.md |  |
 | FR-074 | The build check calls a changed file a tester's test only under a test root | verified | features/tester-paths.md |  |
 
 ## 12. Assumptions index
@@ -259,3 +259,4 @@ None.
 | 8.2.0 | 2026-11-18 | a new adopted area written before its code, for E-019: eval-scaffolds (deploy_repo.py commits every file install left untracked, in one dated commit after Vendor the PRD toolkit, so the six deploy scaffolds end with a clean tree; the review-edits-nothing scaffold expects the index row record writes, with an empty Since); contracts/cli.yaml gains eval_scaffolds; testing.md Tools on the runner names bash and the network need of T-073.1 to T-073.3; dry run T-073.1, T-073.2, T-073.3, T-073.4, 0 open questions, 0 dismissed by quote (two earlier rounds over the same T-ids: 7 gaps fixed) | FR-073, AC-073.1, AC-073.2, AC-073.3, T-073.1, T-073.2, T-073.3, T-073.4 |
 | 8.2.1 | 2026-11-18 | eval-scaffolds, found by the FR-073 build for E-019: the area text names a third file the build edits, error_repo.py, which builds on deploy_repo.py and makes its CLAUDE.md commit only when prd_block.py left something to commit; no AC, test case or contract changes; no dry run (no new or revised T-id) | FR-073 |
 | 8.3.0 | 2026-11-18 | a new adopted area written before its code, for E-031: tester-paths (the build check calls a changed file a tester test only when it lies under a test root of testing.md, tests when it names none, so a file outside the roots that holds a citation text can be changed by a build); contracts/cli.yaml gains prd_build_check, testing.md the tester-paths Setup steps, adoption.md the row; dry run T-074.1, T-074.2, T-074.3, T-074.4, T-074.5, 0 open questions, 0 dismissed by quote (three rounds: 3 gaps in the Setup steps text fixed after the first two, the third over T-074.2 and T-074.5 clean) | FR-074, AC-074.1, AC-074.2, T-074.1, T-074.2, T-074.3, T-074.4, T-074.5 |
+| 8.3.1 | 2026-11-18 | test case corrected for E-019: T-073.3 reads the commit dates in git raw form (seconds and offset), which every git version prints alike, where the ISO form it used prints offset zero as +00:00 or as Z by version; AC-073.2 and the code are unchanged; FR-073 returns to approved; dry run T-073.3, 0 open questions, 0 dismissed by quote | FR-073, T-073.3 |

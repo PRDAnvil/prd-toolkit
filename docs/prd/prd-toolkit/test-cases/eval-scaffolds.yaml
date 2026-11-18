@@ -71,9 +71,9 @@ T-073.3:
     effects:
     - "git in <tmp>/repo `log --format=%s` prints exactly the lines, newest first: `Try a friendlier greeting`, `Add the files install wrote`, `Vendor the PRD toolkit`, `Ignore the judge record`, `PRD: greet 1.0.0 Approved, every requirement verified`, `Add the deploy script and tests`, `Add the greet command`"
     - "git in <tmp>/repo `log -1 --format=%B HEAD~1` prints exactly the lines: `Add the files install wrote`, an empty line, `Refs: none (no behaviour change)`"
-    - "git in <tmp>/repo `log -1 --format=%aI%n%cI HEAD~1` prints exactly the lines: 2026-01-05T13:00:00+00:00, 2026-01-05T13:00:00+00:00"
+    - "git in <tmp>/repo `log -1 --format=%ad%n%cd --date=raw HEAD~1` prints exactly the lines: 1767618000 +0000, 1767618000 +0000 (the author date, then the committer date, each as seconds since 1970-01-01T00:00:00 UTC, a space and the offset: 2026-01-05T13:00:00+0000; the raw form is the same in every git version, where an ISO form writes offset zero as +00:00 or as Z)"
     - "git in <tmp>/repo `diff-tree --no-commit-id --name-only -r HEAD~1` prints exactly the lines: CLAUDE.md, docs/prd/README.md, docs/prd/greet/README.md"
-    - "git in <tmp>/repo `log --format=%aI HEAD~2` prints exactly the lines, newest first: 2026-01-05T12:00:00+00:00, 2026-01-05T11:00:00+00:00, 2026-01-04T12:00:00+00:00, 2026-01-03T12:00:00+00:00, 2026-01-02T12:00:00+00:00"
+    - "git in <tmp>/repo `log --format=%ad --date=raw HEAD~2` prints exactly the lines, newest first: 1767614400 +0000, 1767610800 +0000, 1767528000 +0000, 1767441600 +0000, 1767355200 +0000 (2026-01-05T12:00:00, 2026-01-05T11:00:00, 2026-01-04T12:00:00, 2026-01-03T12:00:00 and 2026-01-02T12:00:00, each at offset +0000)"
     - "git in <tmp>/repo `status --porcelain` prints nothing"
     errors: []
     leaks: none

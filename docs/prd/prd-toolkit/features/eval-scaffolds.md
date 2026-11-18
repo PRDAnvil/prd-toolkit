@@ -18,7 +18,7 @@ three files outside it: `prd-toolkit/evals/scaffolds/deploy_repo.py`, to call th
 itself, to make that commit only when there is something to commit. No other file changes.
 
 ### FR-073 The deploy and review eval scaffolds build their start states
-Status: built
+Status: approved
 Source: prd-toolkit/evals/scaffolds/install_files.py:1 @3649ab8
 Acceptance (EARS):
 - AC-073.1 When `deploy_repo.py` builds any of its five states, it shall commit every file that
