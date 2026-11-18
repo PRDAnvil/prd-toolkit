@@ -359,6 +359,14 @@ eval_scaffolds:
   exit_codes:
     0: "the start state is built"
     other: "the build failed; the eval case does not run"
+prd_build_check:
+  # Only what the tester-paths area needs so far (FR-074); the build-check area adds the rest when it is adopted.
+  invocation: "uv run --script prd-toolkit/scripts/prd_build_check.py <prd_dir> --diff <base>..<head>"
+  tester_test: "stdout, one line per changed path that lies under a test root of testing.md (tests when it names none) and whose text at <base> or <head> cites a T-id of a level other than unit: <path> cites <T-ids>, a tester's test: the builder may not edit it; a changed path under no test root gets no such line (FR-074)"
+  exit_codes:
+    0: "no finding"
+    1: "at least one finding line on stdout"
+    2: "usage, dependency or internal error"
 prd_launcher:
   # The sh launcher prd-toolkit/scripts/prd and its vendored copy .prd-toolkit/prd, the same file (launcher, FR-069).
   invocation: "prd-toolkit/scripts/prd <command> [arguments], or .prd-toolkit/prd <command> [arguments]; prd --version prints the toolkit's version"

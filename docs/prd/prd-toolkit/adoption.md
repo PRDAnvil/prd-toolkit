@@ -34,3 +34,4 @@
 | inbox-cards | adopted | `prd-toolkit/scripts/prdlint/inboxcards.py` |
 | context-notes | adopted | `prd-toolkit/scripts/prdlint/contextnotes.py` |
 | eval-scaffolds | adopted | `prd-toolkit/evals/scaffolds/install_files.py` |
+| tester-paths | adopted | `prd-toolkit/scripts/prdlint/testerpaths.py` |

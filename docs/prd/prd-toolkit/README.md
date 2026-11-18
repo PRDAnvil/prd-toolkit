@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 8.2.1 · Approved · Owner: Ivan Histand · Updated 2026-11-18
+Version 8.3.0 · Approved · Owner: Ivan Histand · Updated 2026-11-18
 
 ## What this PRD covers
 
@@ -30,6 +30,7 @@ Version 8.2.1 · Approved · Owner: Ivan Histand · Updated 2026-11-18
 | practices | adopted | [features/practices.md](features/practices.md) |
 | standards-run | adopted | [features/standards-run.md](features/standards-run.md) |
 | status-next | adopted | [features/status-next.md](features/status-next.md) |
+| tester-paths | adopted | [features/tester-paths.md](features/tester-paths.md) |
 
 ## What is in this folder
 
