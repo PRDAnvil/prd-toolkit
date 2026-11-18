@@ -304,6 +304,10 @@ prd_gates:
     deploy-step: "null (FR-066)"
   exit_codes:
     0: "the gates listed"
+  # What the inbox-cards area needs: the decision inbox's listing and its answer, read in-process (FR-071).
+  serve_invocation: "uv run --script prd-toolkit/scripts/prd_gates.py serve <prd_dir>; through the launcher, prd gates serve; in-process, server, token = prdlint.gates.make_inbox(prd_dir: pathlib.Path), server.server_close() releasing the inbox's lock file (FR-071)"
+  listing: "the dict server.state.listing() returns and GET /gates serves: {\"prd\": <slug>, \"started\", \"worktrees\": [<group>, …], \"answers\"}; one group per worktree whose checkout holds the PRD folder, the inbox's own worktree first, then the others in git worktree list order; a group {\"path\": <the worktree's resolved absolute path>, \"branch\": <its branch, or HEAD when detached>, \"gates\": [<card>, …]}, or with \"gates\": [] and \"error\" when its PRD folder cannot be read; an error-class gate left out of a group when an earlier group holds its entry (FR-071)"
+  inbox_answer: "the pair (status, result) server.state.answer(body) returns and POST /answer serves; body {\"worktree\": <a group's path>, \"gate\": <id>, \"question\": <the card's question>, \"choice\": \"confirm\" | \"correct\", \"words\": <text>, \"class\": <class, with correct>}; 200 and {\"gate\": <id>, \"result\": {\"stdout\": [<lines>], \"exit\": 0}} when the answer ran, committed in that worktree alone (FR-071)"
 prd_error:
   # Only what the card-context area needs so far; the errors area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_error.py new <prd_dir> --title T --source S [--touches IDS] [--evidence-file F] [--url ADDRESS] | url <prd_dir> <E-id> <address or -> | list <prd_dir> [--open]; through the launcher, prd error"
@@ -341,9 +345,25 @@ prd_hooks:
   exit_codes:
     0: "a CI file written, or check --ci found nothing stale"
     1: "check --ci found something stale (FR-068)"
+  # What the hook-shims area needs: install and check of the toolkit's own hooks where core.hooksPath is set (FR-070).
+  hooks_invocation: "uv run --script prd-toolkit/scripts/prd_hooks.py install <prd_dir> | check <prd_dir>; through the launcher, prd hooks install, prd hooks check (FR-070)"
+  hook_written: "stdout, install: replaced <hooks>/<hook> (it used uv run --script) or installed <hooks>/<hook>, one line per hook written, commit-msg before pre-commit, <hooks> as git rev-parse --git-path hooks prints it; where core.hooksPath is set, for a hook file that is the toolkit's own (FR-070)"
+  hook_left_alone: "stdout, install where core.hooksPath is set, for a hook that is absent or the user's own: core.hooksPath is set to <value>; no shim written; add this line to <hooks>/<hook> (an sh hook; place it before any `exit 0` in it): <line>, or ...; replace its uv run --script … prd_git_hook.py line in <hooks>/<hook> with this line: <line> (FR-070)"
+  hook_stale: "stdout, check: stale: <hooks>/<hook>; run prd_hooks.py install, for a toolkit hook that is not the current shim; check exits 1 when it prints any line (FR-070)"
+prd_launcher:
+  # The sh launcher prd-toolkit/scripts/prd and its vendored copy .prd-toolkit/prd, the same file (launcher, FR-069).
+  invocation: "prd-toolkit/scripts/prd <command> [arguments], or .prd-toolkit/prd <command> [arguments]; prd --version prints the toolkit's version"
+  find: "first: uv python find --system \">=3.11\", its stderr not shown (FR-069)"
+  run: "then exec: uv run --quiet --no-project --project <here> --python <the path the find printed, or >=3.11 when it exited other than 0 or printed nothing> --with-requirements <req> python <here>/prd_dispatch.py <command> [arguments] (FR-069)"
+  output:
+    no_uv: "stderr: prd: uv is not on PATH; install uv"
+  exit_codes:
+    2: "uv is not on PATH"
+    other: "the exit code of the uv run line, which is the command's"
 prd_context:
   # Only what the practices area needs so far; the context area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_context.py [--area AREA] [--req ID[,ID...]] [--for {decide,implement}] [--context N] [--json] [--interface] [prd_dir]; through the launcher, prd context"
   implement_parts: "Header, Stack, Glossary, Requirements, Code, Practices, Levels, Harness defaults, Rubric conventions, Cited, Upstream contracts, Known defects, Open questions, History; a part with nothing to hold is left out or holds None. as before; Practices only when the PRD folder holds practices.md, holding None. when no code practice matches, and with no practices.md the pack is unchanged (FR-055)"
   practices_item: "text: <id> (<source>): <practice>, one item per matching code practice; JSON: a parts entry {\"title\": \"Practices\", \"id\", \"file\": \"practices.md\", \"line\", \"text\", \"stale\": false, \"counted\": true, \"moved\": null} (FR-055)"
   json_document: 'stdout, --json: one line, {"interface": 1, "kind": "context", "prd", "mode", "area", "ids", "parts": [<part entry>, …]}, the parts in the text pack''s order (FR-055)'
+  area_notes_part: "with --area, in either mode: the part Area notes, directly before Requirements, when the area's features file holds area notes (features/context-notes.md); text: ## Area notes, an empty line, the notes' lines, an empty line; JSON: a parts entry {\"title\": \"Area notes\", \"id\": null, \"file\": \"features/<area>.md\", \"line\", \"text\", \"stale\": false, \"counted\": true, \"moved\": null}; with no area notes the pack is as before (FR-072)"

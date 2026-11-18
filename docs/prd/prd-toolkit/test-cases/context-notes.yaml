@@ -1,0 +1,106 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, the root of the scratch repository step N0
+#   builds from fixture status-next/base (testing.md, Setup steps), whose area import has the features file
+#   docs/prd/orders/features/import.md. `texts.<key>` is the text at that key of fixture context-notes/texts.
+#   "python" is the interpreter running the tests (sys.executable); every run is a subprocess with the environment
+#   the context-notes steps give.
+#   CONTEXT = <repo>/prd-toolkit/scripts/prd_context.py
+#   `pack_part_titles`, `pack_part_lines` and `relations` are the assertion keys testing.md
+#   defines (Harness, Assertions).
+#   These cases are E-028's: the pack left out the definitions a features file gives before its first block.
+
+T-072.1:
+  ac: AC-072.1
+  level: integration
+  target: "cli:prd_context"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - context-notes/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - CN1
+    cwd: "<tmp>"
+    runs:
+    - python CONTEXT docs/prd/orders --area import --req FR-001 --for decide
+    - python CONTEXT docs/prd/orders --area import --for implement
+    - python CONTEXT docs/prd/orders --area import --req FR-001 --json
+    note: "CN1 writes texts.features_import_notes, whose area notes are its lines 7 to 12 less the comment on lines 10 and 11; line 12 ends in an inline comment, which stays; run_3 gives no --for, the decide pack"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Area notes", "## Requirements", "## Cited", "## Known defects", "## Open questions", "## History"]
+        pack_part_lines:
+          Area notes:
+          - "## Area notes"
+          - ""
+          - "Words used below. A **header line** is the first line of an import file;"
+          - "  an **order key** is the order's number and its date."
+          - ""
+          - "The importer reads one file at a time. <!-- an inline comment, kept with its line -->"
+          - ""
+      run_2:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Area notes", "## Requirements", "## Code", "## Levels", "## Cited", "## Known defects", "## Open questions", "## History"]
+        pack_part_lines:
+          Area notes:
+          - "## Area notes"
+          - ""
+          - "Words used below. A **header line** is the first line of an import file;"
+          - "  an **order key** is the order's number and its date."
+          - ""
+          - "The importer reads one file at a time. <!-- an inline comment, kept with its line -->"
+          - ""
+      relations:
+      - "run_3's stdout is one line ending in a newline, which parses as one JSON object; in its list at the key `parts`, call R the first entry whose title is `Requirements` and N the entry directly before R"
+      - "N equals the mapping {title: Area notes, id: null, file: features/import.md, line: 7, text: NOTES, stale: false, counted: true, moved: null}, every key and value as stdout_json compares them, and its keys are, in this order, title, id, file, line, text, stale, counted, moved; NOTES is the string `Words used below. A **header line** is the first line of an import file;`, a newline, `  an **order key** is the order's number and its date.` (two leading spaces), two newlines and `The importer reads one file at a time. <!-- an inline comment, kept with its line -->`, with no newline at its end"
+      - "the entry directly before N has the title `Glossary`, and no entry of `parts` other than N has the title `Area notes`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-072.2:
+  ac: AC-072.2
+  level: integration
+  target: "cli:prd_context"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - context-notes/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - N0
+    - CN2
+    - CNB
+    cwd: "<tmp>"
+    runs:
+    - python CONTEXT docs/prd/orders --area import --for implement
+    - {cwd: "<tmp>/b", command: python CONTEXT docs/prd/orders --area import --for implement}
+    - python CONTEXT docs/prd/orders --area import --req FR-001 --json
+    note: "CN2 writes texts.features_import_quiet, whose lines before the first block are only the title line, comments, empty lines and the Target: line; <tmp>/b (CNB) is the same repository with texts.features_import_blank, which differs only in holding an empty line wherever the quiet file holds a line of a comment: the same Target: line, and every block on the same line"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+      run_1:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Requirements", "## Code", "## Levels", "## Cited", "## Known defects", "## Open questions", "## History"]
+      run_2:
+        pack_part_titles: ["## Header", "## Stack", "## Glossary", "## Requirements", "## Code", "## Levels", "## Cited", "## Known defects", "## Open questions", "## History"]
+      relations:
+      - "a part of a run is its lines from the line `## <title>` up to, not including, the next stdout line that starts with `## `, or to the end of stdout; every part of run_1 other than Header equals, line for line, the part of the same title in run_2"
+      - "the Header parts of run_1 and run_2 have the same number of lines and differ in one line at most, and when they differ, the line at that position starts with `pack ` in both runs (the size line, which counts the features file's bytes)"
+      - "no entry of the list at the key `parts` of run_3's stdout, parsed as one JSON object, has the title `Area notes`"
+    effects: []
+    errors: []
+    leaks: none

@@ -1,0 +1,18 @@
+# Fixture launcher/texts: the texts the launcher setup steps write, one key per text. stub_uv: an sh program that
+# stands in for uv: it appends each argument it is given, each on its own line, and then the line `--`, to the file
+# the variable UV_STUB_LOG names; called as `uv python find …` it writes the line `uv-stub: find` on stderr, prints
+# the value of UV_STUB_FIND and a newline on stdout when that variable is set and not empty, and exits with the
+# value of UV_STUB_FIND_EXIT (0 when unset); any other call prints nothing and exits 0. pyvenv_cfg: the one line of
+# the pyvenv.cfg of step LV's .venv.
+stub_uv: |
+  #!/bin/sh
+  for a in "$@"; do printf '%s\n' "$a" >> "$UV_STUB_LOG"; done
+  printf '%s\n' -- >> "$UV_STUB_LOG"
+  if [ "$1" = python ] && [ "$2" = find ]; then
+    echo "uv-stub: find" >&2
+    [ -n "$UV_STUB_FIND" ] && printf '%s\n' "$UV_STUB_FIND"
+    exit "${UV_STUB_FIND_EXIT:-0}"
+  fi
+  exit 0
+pyvenv_cfg: |
+  home = /usr/bin

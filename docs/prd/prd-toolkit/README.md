@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 8.0.0 · Approved · Owner: Ivan Histand · Updated 2026-11-17
+Version 8.1.0 · Approved · Owner: Ivan Histand · Updated 2026-11-17
 
 ## What this PRD covers
 
@@ -18,7 +18,11 @@ Version 8.0.0 · Approved · Owner: Ivan Histand · Updated 2026-11-17
 | Area | Adoption | File |
 |---|---|---|
 | card-context | adopted | [features/card-context.md](features/card-context.md) |
+| context-notes | adopted | [features/context-notes.md](features/context-notes.md) |
 | help | adopted | [features/help.md](features/help.md) |
+| hook-shims | adopted | [features/hook-shims.md](features/hook-shims.md) |
+| inbox-cards | adopted | [features/inbox-cards.md](features/inbox-cards.md) |
+| launcher | adopted | [features/launcher.md](features/launcher.md) |
 | lint-cli | adopted | [features/lint-cli.md](features/lint-cli.md) |
 | lint-structure | adopted | [features/lint-structure.md](features/lint-structure.md) |
 | pack-authoring | adopted | [features/pack-authoring.md](features/pack-authoring.md) |

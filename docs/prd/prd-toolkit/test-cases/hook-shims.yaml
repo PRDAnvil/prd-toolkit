@@ -1,0 +1,116 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path; each scratch repository is built by a hook-shims
+#   step (testing.md, Setup steps) from fixture status-next/empty, whose PRD folder is docs/prd/orders.
+#   `texts.<key>` is the text at that key of fixture hook-shims/texts. "python" is the interpreter running the
+#   tests (sys.executable); every run is a subprocess with the environment the hook-shims steps give.
+#   HOOKS = <repo>/prd-toolkit/scripts/prd_hooks.py
+#   A file "executable by its owner" has the bit 0o100 set in os.stat(<file>).st_mode.
+#   These cases are E-024's: where core.hooksPath was set, install wrote no hook and check called the toolkit's
+#   own hook stale, a loop.
+
+T-070.1:
+  ac: AC-070.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - hook-shims/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - HS0
+    cwd: "<tmp>/b"
+    runs:
+    - {cwd: "<tmp>/b", command: python HOOKS install docs/prd/orders}
+    - {cwd: "<tmp>/a", command: python HOOKS install docs/prd/orders}
+    note: "<tmp>/a sets core.hooksPath to .git/hooks and <tmp>/b sets none; both hold the 0.8.7 shims in .git/hooks"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout_lines_in_this_relative_order:
+        - "replaced .git/hooks/commit-msg (it used uv run --script)"
+        - "replaced .git/hooks/pre-commit (it used uv run --script)"
+      relations:
+      - "the stdout lines (str.splitlines()) of run_2 that start with `replaced ` or `installed ` equal, in number, order and text, those of run_1"
+    effects:
+    - "<tmp>/a/.git/hooks/commit-msg is byte-identical to <tmp>/b/.git/hooks/commit-msg, and <tmp>/a/.git/hooks/pre-commit to <tmp>/b/.git/hooks/pre-commit"
+    - "each of those four files is executable by its owner"
+    errors: []
+    leaks: none
+
+T-070.2:
+  ac: AC-070.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - hook-shims/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - HS1
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS install docs/prd/orders
+    - python HOOKS check docs/prd/orders
+    note: "E-024 as reported: core.hooksPath is hooks; hooks/commit-msg is a toolkit shim whose last line was replaced by the line install printed, and hooks/pre-commit is a 0.8.7 shim"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout_lines_in_this_relative_order:
+        - "installed hooks/commit-msg"
+        - "replaced hooks/pre-commit (it used uv run --script)"
+        stdout_not_contains: "core.hooksPath is set to"
+      run_2:
+        stderr: ""
+        stdout_not_contains:
+        - "stale: hooks/commit-msg"
+        - "stale: hooks/pre-commit"
+    effects:
+    - "after run_1, <tmp>/hooks/commit-msg and <tmp>/hooks/pre-commit are each executable by their owner"
+    errors: []
+    leaks: none
+
+T-070.3:
+  ac: AC-070.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - hook-shims/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - HS2
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+    note: "core.hooksPath is hooks; hooks/commit-msg is absent and hooks/pre-commit is the user's own"
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_contains:
+      - "core.hooksPath is set to hooks; no shim written; add this line to hooks/commit-msg (an sh hook; place it before any `exit 0` in it): "
+      - "core.hooksPath is set to hooks; no shim written; add this line to hooks/pre-commit (an sh hook; place it before any `exit 0` in it): "
+      stdout_not_contains:
+      - "installed hooks/"
+      - "replaced hooks/"
+    effects:
+    - "<tmp>/hooks/pre-commit is byte-identical to texts.own_pre_commit"
+    - "<tmp>/hooks/commit-msg does not exist"
+    errors: []
+    leaks: none

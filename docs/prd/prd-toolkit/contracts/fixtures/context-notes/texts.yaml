@@ -1,0 +1,127 @@
+# Fixture context-notes/texts: the features files the context-notes setup steps write over features/import.md of
+# fixture status-next/base, one key per text, each the fixture's own text with lines added before its first
+# block. features_import_notes: a comment above the title line, the title `# Import`, a `Target:` line, the area
+# notes (lines 7 to 12: a paragraph of two lines, the second indented two spaces, an empty line, a comment over
+# lines 10 and 11, and one line of prose that ends in an inline comment) and then the blocks from line 14; features_import_quiet: the same title
+# and blocks with only comments, empty lines and the `Target:` line before the first block, so no area notes;
+# features_import_blank: features_import_quiet with each line of a comment replaced by an empty line, so its
+# lines, and the line of each block, are those of features_import_quiet.
+features_import_notes: |
+  <!-- Format: references/prd-format.md, "Requirement blocks". -->
+
+  # Import
+
+  Target: output language en
+
+  Words used below. A **header line** is the first line of an import file;
+    an **order key** is the order's number and its date.
+
+  <!-- a hint for the author,
+       over two lines -->
+  The importer reads one file at a time. <!-- an inline comment, kept with its line -->
+
+  ### FR-001 Refuse a file with no header
+  Status: approved
+  Acceptance (EARS):
+  - AC-001.1 If the import file has no header line, the importer shall exit 2 with error IMPORT_NO_HEADER.
+  Errors: IMPORT_NO_HEADER (contracts/errors.yaml)
+  Tests: T-001.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-002 Skip a duplicate order
+  Status: built
+  Acceptance (EARS):
+  - AC-002.1 When an imported row's order key already exists, the importer shall skip the row.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-003 Store a new order
+  Status: verified
+  Acceptance (EARS):
+  - AC-003.1 When an imported row has a new order key, the importer shall store the row.
+  Errors: -
+  Tests: T-003.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-004 Count the imported rows
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-004.1 When an import ends, the importer shall print the number of rows it stored.
+  Errors: -
+  Tests: T-004.1 [integration]  (test-cases/import.yaml)
+features_import_quiet: |
+  <!-- Format: a comment above the title line. -->
+
+  # Import
+
+  <!-- a hint for the author -->
+
+  Target: output language en
+
+  <!-- a hint for the author,
+       over two lines -->
+
+  ### FR-001 Refuse a file with no header
+  Status: approved
+  Acceptance (EARS):
+  - AC-001.1 If the import file has no header line, the importer shall exit 2 with error IMPORT_NO_HEADER.
+  Errors: IMPORT_NO_HEADER (contracts/errors.yaml)
+  Tests: T-001.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-002 Skip a duplicate order
+  Status: built
+  Acceptance (EARS):
+  - AC-002.1 When an imported row's order key already exists, the importer shall skip the row.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-003 Store a new order
+  Status: verified
+  Acceptance (EARS):
+  - AC-003.1 When an imported row has a new order key, the importer shall store the row.
+  Errors: -
+  Tests: T-003.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-004 Count the imported rows
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-004.1 When an import ends, the importer shall print the number of rows it stored.
+  Errors: -
+  Tests: T-004.1 [integration]  (test-cases/import.yaml)
+features_import_blank: |
+
+
+  # Import
+
+
+
+  Target: output language en
+
+
+
+
+  ### FR-001 Refuse a file with no header
+  Status: approved
+  Acceptance (EARS):
+  - AC-001.1 If the import file has no header line, the importer shall exit 2 with error IMPORT_NO_HEADER.
+  Errors: IMPORT_NO_HEADER (contracts/errors.yaml)
+  Tests: T-001.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-002 Skip a duplicate order
+  Status: built
+  Acceptance (EARS):
+  - AC-002.1 When an imported row's order key already exists, the importer shall skip the row.
+  Errors: -
+  Tests: T-002.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-003 Store a new order
+  Status: verified
+  Acceptance (EARS):
+  - AC-003.1 When an imported row has a new order key, the importer shall store the row.
+  Errors: -
+  Tests: T-003.1 [integration]  (test-cases/import.yaml)
+
+  ### FR-004 Count the imported rows
+  Status: live (since 1.0.0)
+  Acceptance (EARS):
+  - AC-004.1 When an import ends, the importer shall print the number of rows it stored.
+  Errors: -
+  Tests: T-004.1 [integration]  (test-cases/import.yaml)

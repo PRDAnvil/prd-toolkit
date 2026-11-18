@@ -1,6 +1,6 @@
 ---
 prd: prd-toolkit
-version: 8.0.0
+version: 8.1.0
 status: Approved
 owner: Ivan Histand
 updated: 2026-11-17
@@ -212,6 +212,10 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-066 | A gate's URL | verified | features/card-context.md |  |
 | FR-067 | Where the area and the URL show | verified | features/card-context.md |  |
 | FR-068 | A standards row is never run on the vendored copy | verified | features/standards-run.md |  |
+| FR-069 | The launcher runs on a system Python when uv finds one | approved | features/launcher.md |  |
+| FR-070 | Install rewrites the toolkit's own hooks where core.hooksPath is set | approved | features/hook-shims.md |  |
+| FR-071 | The inbox shows an error entry's card in the first worktree that holds it | approved | features/inbox-cards.md |  |
+| FR-072 | The context pack prints an area's notes | approved | features/context-notes.md |  |
 
 ## 12. Assumptions index
 
@@ -249,3 +253,4 @@ None.
 | 7.2.0 | 2026-11-16 | pack-authoring gaps closed: the linter of a Linter cell with no backticked span, the Pack: line of a section 1 with no bullet, the line numbers of findings after a lift, the literal last word of the more-than-one-source refusal; dry run T-057.9, T-060.11, T-060.12, 0 open questions, 1 dismissed by quote | FR-057, FR-060, AC-057.6, AC-060.1, AC-060.7, AC-060.8, T-057.9, T-060.11, T-060.12 |
 | 7.3.0 | 2026-11-16 | fixes for E-026 and E-027: the approval of a lift commits the vendored pack, and the check proves each validator runs from the pack folder; dry run T-059.8, T-060.13, 0 open questions, 0 dismissed by quote (four earlier dry runs: 7 gaps fixed, 1 dismissed by quote) | FR-057, FR-058, FR-059, FR-060, FR-061, AC-059.7, AC-060.9, T-059.8, T-060.13 |
 | 8.0.0 | 2026-11-17 | fixes for E-020, E-021 and E-030: prd help refuses a catalogue file that is there and cannot be read with the reason cannot read (AC-036.3); a section 13 question is taken without the white space at its start and end, so a line ending in spaces gets no second full stop (AC-044.2, a changed result, so major); a lift refuses a pack that declares no contract type (AC-060.10, checked before AC-060.4), and AC-060.7 allows, beside the findings lint printed before a lift, the platform-word findings of the pack vocabulary; contracts/cli.yaml gains the refusal no_types, testing.md the steps NQ4, KE and KX; dry run T-036.6, T-044.7, T-060.14, T-060.15, 0 open questions, 1 dismissed by quote | FR-036, FR-044, FR-060, AC-036.3, AC-044.2, AC-060.1, AC-060.5, AC-060.7, AC-060.10, T-036.6, T-044.7, T-060.14, T-060.15 |
+| 8.1.0 | 2026-11-17 | four new adopted areas written before their code, for E-022, E-023, E-024 and E-028: launcher (the prd launcher asks uv python find --system for a Python 3.11 or later and runs on the path it prints, else on >=3.11 as before), hook-shims (prd hooks install rewrites the toolkit own hooks where core.hooksPath is set, so check no longer calls them stale), inbox-cards (the decision inbox shows an error-class card once, in the first worktree group whose PRD folder holds the same entry, and its answer commits there alone) and context-notes (prd context --area prints the text a features file gives before its first block as a part Area notes before Requirements); contracts/cli.yaml gains prd_launcher and new keys of prd_hooks, prd_gates and prd_context, testing.md the fixtures launcher/texts, hook-shims/texts and context-notes/texts, Setup steps for the four areas and a cwd per run, adoption.md the four rows, the launcher moving out of trace-and-hooks; dry run T-069.1, T-069.2, T-069.3, T-070.1, T-070.2, T-070.3, T-071.1, T-071.2, T-071.3, T-071.4, T-071.5, T-072.1, T-072.2, 0 open questions, 1 dismissed by quote (four earlier rounds over the same T-ids: 16 gaps fixed) | FR-055, FR-062, FR-066, FR-067, FR-068, FR-069, FR-070, FR-071, FR-072, AC-069.1, AC-069.2, AC-070.1, AC-070.2, AC-070.3, AC-071.1, AC-071.2, AC-071.3, AC-072.1, AC-072.2, T-069.1, T-069.2, T-069.3, T-070.1, T-070.2, T-070.3, T-071.1, T-071.2, T-071.3, T-071.4, T-071.5, T-072.1, T-072.2 |

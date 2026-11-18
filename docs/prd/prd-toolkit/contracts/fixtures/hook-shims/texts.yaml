@@ -1,0 +1,30 @@
+# Fixture hook-shims/texts: the hook files the hook-shims setup steps write, one key per text, each for the PRD
+# folder docs/prd/orders. old_commit_msg and old_pre_commit: the shims an earlier release (0.8.7) installed, whose
+# second line is the toolkit's header `# prd-toolkit hook: …` and whose last line runs `uv run --script …
+# prd_git_hook.py`; edited_commit_msg: old_commit_msg with its last line replaced by the line `prd_hooks.py install`
+# prints for commit-msg where core.hooksPath is set (E-024: the instruction followed); own_pre_commit: a hook of the
+# user's own, which holds no toolkit header.
+old_commit_msg: |
+  #!/bin/sh
+  # prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall
+  top=$(git rev-parse --show-toplevel) || exit 1
+  [ -f "$top/.prd-toolkit/prd_git_hook.py" ] && [ -d "$top/docs/prd/orders" ] || { echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; exit 0; }
+  command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }
+  exec uv run --script "$top/.prd-toolkit/prd_git_hook.py" commit-msg "$top/docs/prd/orders" "$@"
+old_pre_commit: |
+  #!/bin/sh
+  # prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall
+  top=$(git rev-parse --show-toplevel) || exit 1
+  [ -f "$top/.prd-toolkit/prd_git_hook.py" ] && [ -d "$top/docs/prd/orders" ] || { echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; exit 0; }
+  command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }
+  exec uv run --script "$top/.prd-toolkit/prd_git_hook.py" pre-commit "$top/docs/prd/orders"
+edited_commit_msg: |
+  #!/bin/sh
+  # prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall
+  top=$(git rev-parse --show-toplevel) || exit 1
+  [ -f "$top/.prd-toolkit/prd_git_hook.py" ] && [ -d "$top/docs/prd/orders" ] || { echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; exit 0; }
+  command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }
+  prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f "$prd_top/.prd-toolkit/prd_git_hook.py" ] && [ ! -f "$prd_top/.prd-toolkit/prd" ]; then echo "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped" >&2; elif [ -f "$prd_top/.prd-toolkit/prd_git_hook.py" ] && [ -f "$prd_top/.prd-toolkit/prd" ] && [ -d "$prd_top/docs/prd/orders" ]; then command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }; sh "$prd_top/.prd-toolkit/prd" git-hook commit-msg "$prd_top/docs/prd/orders" "$@" || exit $?; else echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; fi
+own_pre_commit: |
+  #!/bin/sh
+  echo "own pre-commit hook"

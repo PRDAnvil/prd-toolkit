@@ -1,0 +1,174 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path. Step IC0 (testing.md, Setup steps) builds the
+#   repository <tmp>/main from fixture status-next/base with E-001 `proposed` (status-next/files errors_proposed:
+#   heading `### E-001 The importer stops at row 1000`, `Detected: 2026-11-03, a run on the October file`),
+#   commits it on the branch main, and adds the worktree <tmp>/wt on the branch other; step IC2 adds <tmp>/wt2 on
+#   the branch third. MAIN, WT and WT2 are str(pathlib.Path(<tmp>/main).resolve()), and the same of <tmp>/wt and
+#   <tmp>/wt2: the paths the inbox gives its groups.
+#   LISTING(P) is the inbox listing of the PRD folder P, a pathlib.Path, read in the test process with
+#   prd-toolkit/scripts on sys.path: `server, token = prdlint.gates.make_inbox(P)`, then `server.state.listing()`,
+#   the dict GET /gates serves (contracts/cli.yaml prd_gates.listing), then `server.server_close()`, which runs
+#   even when the listing raises (a `finally`), so that the inbox's lock file is released. GROUPS(L) is, for a listing L, the list
+#   with one mapping per entry of L["worktrees"], in order: {path: <its path>, branch: <its branch>, ids: <the id
+#   of each of its gates, in order>}.
+#   "python" is the interpreter running the tests (sys.executable); a CLI run is a subprocess with the environment
+#   the inbox-cards steps give.
+#   GATES = <repo>/prd-toolkit/scripts/prd_gates.py
+#   A case's `call:` runs with the case's `cwd` as the test process's working directory (monkeypatch.chdir, once the
+#   setup has made it). In an effect, "`<git command>` prints X" means the command's whole stdout is X followed by
+#   one newline, and "prints nothing" that its stdout is empty.
+#   These cases are E-023's: an error-class card showed once per worktree, and each answer was committed on each
+#   branch.
+
+T-071.1:
+  ac: AC-071.1
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    call: "L1 = LISTING(<tmp>/main/docs/prd/orders), then L2 = LISTING(<tmp>/wt/docs/prd/orders); the return is {first: GROUPS(L1), second: GROUPS(L2)}"
+    note: "E-001 is proposed, with the same heading and Detected: line, in both worktrees: the inbox started from main, then the one started from wt"
+  expect:
+    output:
+      return:
+        first:
+        - {path: MAIN, branch: main, ids: ["error-class:E-001"]}
+        - {path: WT, branch: other, ids: []}
+        second:
+        - {path: WT, branch: other, ids: ["error-class:E-001"]}
+        - {path: MAIN, branch: main, ids: []}
+    effects: []
+    errors: []
+    leaks: none
+
+T-071.2:
+  ac: AC-071.1
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    - IC2
+    - ICN
+    cwd: "<tmp>/main"
+    call: "G = GROUPS(LISTING(<tmp>/main/docs/prd/orders)); the return is {count: len(G), first: G[0], later_ids: [g[\"ids\"] for g in G[1:]], later_paths: sorted(g[\"path\"] for g in G[1:])}"
+    note: "main's errors.md holds no entry (ICN, uncommitted); wt and wt2 both hold E-001, proposed; git gives the order of wt and wt2, so the case names the second group by its place, not its path"
+  expect:
+    output:
+      return:
+        count: 3
+        first: {path: MAIN, branch: main, ids: []}
+        later_ids: [["error-class:E-001"], []]
+        later_paths: [WT, WT2]
+    effects: []
+    errors: []
+    leaks: none
+
+T-071.3:
+  ac: AC-071.1
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    - IC2
+    - ICT
+    - ICD
+    cwd: "<tmp>/main"
+    call: "G = GROUPS(LISTING(<tmp>/main/docs/prd/orders)); the return is {count: len(G), first: G[0], later_ids: [g[\"ids\"] for g in G[1:]], later_paths: sorted(g[\"path\"] for g in G[1:])}"
+    note: "E-001 is proposed in all three worktrees, but its title differs in wt (ICT) and its Detected: line in wt2 (ICD): three different entries"
+  expect:
+    output:
+      return:
+        count: 3
+        first: {path: MAIN, branch: main, ids: ["error-class:E-001"]}
+        later_ids: [["error-class:E-001"], ["error-class:E-001"]]
+        later_paths: [WT, WT2]
+    effects: []
+    errors: []
+    leaks: none
+
+T-071.4:
+  ac: AC-071.2
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    call: "before the call the test keeps the text of <tmp>/wt/docs/prd/orders/errors.md and the commit `git rev-parse main` and `git rev-parse other` print in <tmp>/main; then, with one server = prdlint.gates.make_inbox(<tmp>/main/docs/prd/orders)[0]: L1 = server.state.listing(); card = the card of L1[\"worktrees\"][0] whose id is error-class:E-001; (status, result) = server.state.answer({\"worktree\": MAIN, \"gate\": \"error-class:E-001\", \"question\": card[\"question\"], \"choice\": \"confirm\", \"words\": \"\"}), the request POST /answer serves (contracts/cli.yaml prd_gates.inbox_answer); L2 = server.state.listing(); then server.server_close(); the return is {status: status, exit: result[\"result\"][\"exit\"], before: GROUPS(L1), after: GROUPS(L2)}"
+    note: "the owner confirms the class from main's card; wt's entry stays proposed in wt's checkout"
+  expect:
+    output:
+      return:
+        status: 200
+        exit: 0
+        before:
+        - {path: MAIN, branch: main, ids: ["error-class:E-001"]}
+        - {path: WT, branch: other, ids: []}
+        after:
+        - {path: MAIN, branch: main, ids: []}
+        - {path: WT, branch: other, ids: []}
+    effects:
+    - "in <tmp>/main, `git rev-list --count <the commit main named before>..main` prints 1, and `git log -1 --format=%s main` prints `docs(prd): confirm E-001`"
+    - "in <tmp>/main, `git rev-parse other` prints the commit it printed before the call"
+    - "<tmp>/wt/docs/prd/orders/errors.md is byte-identical to its text before the call, and `git status --porcelain` in <tmp>/wt prints nothing"
+    errors: []
+    leaks: none
+
+T-071.5:
+  ac: AC-071.3
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/wt"
+    command: python GATES list docs/prd/orders
+    note: "main holds the same E-001, so the inbox would leave wt's card out; list reads wt's PRD folder alone"
+  expect:
+    output:
+      exit: 0
+      stdout: "error-class:E-001 The importer stops at row 1000\n"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
