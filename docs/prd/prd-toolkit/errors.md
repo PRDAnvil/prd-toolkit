@@ -381,3 +381,23 @@ Evidence: /prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18
 Diagnosis: Reproduced: `prd_build_check.py docs/prd/prd-toolkit --diff bcf4d0c..3dd8036` exits 1 with `prd-toolkit/evals/scaffolds/deploy_repo.py cites T-001.1, T-001.2, T-002.1, T-002.2, a tester's test: the builder may not edit it`. Root cause: `diff_findings` in `prd-toolkit/scripts/prdlint/buildcheck.py` reads every changed path outside the PRD folder and `.prd-toolkit/` for `@prd T-` citations, at the base and at the head, and reports the path when a cited T-id is not a `unit` case of the PRD; it never asks where the file is. `deploy_repo.py` is an eval scaffold that holds the demo repository's test files as text, with the demo PRD's T-001.1, T-001.2, T-002.1 and T-002.2 in their docstrings; this PRD has cases with those IDs at the integration level, so the scaffold reads as a tester's test and no builder round can change it. The same holds for any file outside the test roots that quotes such a citation. Class against the PRD: testing.md Harness, Layout says where a tester's test is, "the black-box characterization tests are `prd-toolkit/tests/prd/test_<area>_*.py`", but no requirement, contract or test case covers the build check: adoption.md lists `build-check` as `not started`, so the PRD is silent on which changed files the check may call a tester's test. It blocks the fix of E-019: FR-073 names `deploy_repo.py` as a file its build edits, and a commit made after the scaffold's deploy run is no way round it, since `prd_deploy.py resume` then answers `refused: HEAD moved since the run started`.
 Resolution: T-074.1 [integration], PRD 8.3.0, fixed in e4903d9
 Recurrence of: -
+
+### E-032 The tester guard refuses the tester's Read of its own background run's output file
+Detected: 2026-11-18, tester report, the FR-073 builds for E-019
+Classification: unclassified
+Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a worktree of this repository
+  (claude -p, the prd-tester agent in suite mode, the FR-073 builds for E-019).
+  The tester started the harness in the background, as its rule 7 says for a run longer than the Bash timeout,
+  and then called Read on that run's own output file:
+    <system temp>/<project folder>/<session id>/tasks/<task id>.output
+  The guard refused the Read. Its message named only the PRD folder, prd-toolkit/tests and .prd-toolkit/packs
+  as the places the tester may read. An ls of that tasks folder was refused too.
+  The tester's rule 7 (skills/testing-from-prds/SKILL.md) says: "read its `<id>.output` file, and never another
+  task's output. The `tasks` folder also holds the caller's background tasks; the guard lets you read only an
+  `<id>.output` file there."
+  The tester did not retry by another path; it ran the same harness command in the foreground, which finished
+  within the timeout, so the RESULTS of both builds stand.
+  Not reproduced outside those sessions, and the cause is not diagnosed yet.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
