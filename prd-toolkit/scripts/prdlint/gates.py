@@ -18,7 +18,7 @@ import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from . import cardcontext, confirm, deploy, formserver, model
+from . import cardcontext, confirm, deploy, formserver, inboxcards, model
 from .formserver import Bad
 from .model import Prd
 
@@ -1000,13 +1000,14 @@ class _Inbox:
             raise Bad(404, str(e)) from None
 
     def listing(self) -> dict:
-        groups, shown = [], set()
+        groups, shown, held = [], set(), set()
         for wt in worktree_prds(self.root, self.rel):
             root = Path(wt["path"])
             try:
                 prd = model.load(root / self.rel)
                 found = [card(g, prd, root, self.rel) for g in list_gates(prd, root)
-                         if not (g.kind == "deploy-step" and g.id in shown)]  # a run is repo-wide: once, in the first group
+                         if not (g.kind == "deploy-step" and g.id in shown)  # a run is repo-wide: once, in the first group
+                         and not inboxcards.held_earlier(g, prd, held)]  # an entry's card: in the first group holding it
             except (model.NotAPrd, OSError) as e:
                 if isinstance(e, model.NotAPrd) or not (root / self.rel).is_dir():
                     continue  # the worktree was removed while listing
@@ -1016,6 +1017,7 @@ class _Inbox:
                 groups.append({**wt, "gates": [], "error": f"{type(e).__name__}: {e}"})
                 continue
             shown |= {g["id"] for g in found if g["kind"] == "deploy-step"}
+            held |= inboxcards.entries(prd)  # a group listed with an error holds no entry
             groups.append({**wt, "gates": found})
         answers = [ln for ln in read_log(self.root) if ln.get("prd") == self.slug and str(ln.get("at", "")) >= self.started]
         return {"prd": self.slug, "started": self.started, "worktrees": groups, "answers": answers}

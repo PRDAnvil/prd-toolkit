@@ -87,6 +87,15 @@ def head(root):
     return git(root, "rev-parse", "HEAD").strip()
 
 
+def own_entry(root):
+    """Make the worktree's E-003 another entry (another `Detected:` value), so its group lists its own card."""
+    errors = Path(root) / PRD / "errors.md"
+    text = errors.read_text(encoding="utf-8")
+    assert "Detected: 2026-11-04, test failure in T-001.3" in text
+    errors.write_text(text.replace("Detected: 2026-11-04, test failure in T-001.3", "Detected: 2026-11-05, test failure in T-001.3"),
+                      encoding="utf-8")
+
+
 # --- the listing ---
 
 def test_every_request_needs_the_token(inbox):
@@ -105,6 +114,7 @@ def test_the_page_is_served_with_the_csp(inbox):
 
 
 def test_gates_groups_each_worktree_with_its_own_error_class_gate(inbox):
+    own_entry(inbox.second)
     doc = inbox.gates()
     groups = doc["worktrees"]
     assert [Path(g["path"]) for g in groups] == [inbox.repo, inbox.second]
@@ -536,6 +546,7 @@ def test_every_card_carries_waiting_from_the_wait_markers(inbox):
     import hashlib
     import os
 
+    own_entry(inbox.second)
     doc = inbox.gates()
     cards = [g for group in doc["worktrees"] for g in group["gates"]]
     assert cards and all(g["waiting"] is False for g in cards)
