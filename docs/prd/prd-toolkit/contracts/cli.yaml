@@ -350,6 +350,15 @@ prd_hooks:
   hook_written: "stdout, install: replaced <hooks>/<hook> (it used uv run --script) or installed <hooks>/<hook>, one line per hook written, commit-msg before pre-commit, <hooks> as git rev-parse --git-path hooks prints it; where core.hooksPath is set, for a hook file that is the toolkit's own (FR-070)"
   hook_left_alone: "stdout, install where core.hooksPath is set, for a hook that is absent or the user's own: core.hooksPath is set to <value>; no shim written; add this line to <hooks>/<hook> (an sh hook; place it before any `exit 0` in it): <line>, or ...; replace its uv run --script … prd_git_hook.py line in <hooks>/<hook> with this line: <line> (FR-070)"
   hook_stale: "stdout, check: stale: <hooks>/<hook>; run prd_hooks.py install, for a toolkit hook that is not the current shim; check exits 1 when it prints any line (FR-070)"
+eval_scaffolds:
+  # The start states the deploy and review eval cases build (eval-scaffolds, FR-073); not shipped behaviour of a prd command.
+  invocation: "python3 -B prd-toolkit/evals/scaffolds/deploy_repo.py <dst> <ready|staging-done|failing-check|at-gate|at-ui-steps>; bash prd-toolkit/evals/review-edits-nothing/scaffold.sh, run in an empty folder"
+  install_commit: "deploy_repo.py, every state: after Vendor the PRD toolkit, one commit Add the files install wrote (Refs: none (no behaviour change), dated 2026-01-05T13:00:00+0000) holding every file install left untracked; git status --porcelain then prints nothing (FR-073)"
+  output:
+    run_line: "stdout, last line, states staging-done, at-gate and at-ui-steps: run=<id>"
+  exit_codes:
+    0: "the start state is built"
+    other: "the build failed; the eval case does not run"
 prd_launcher:
   # The sh launcher prd-toolkit/scripts/prd and its vendored copy .prd-toolkit/prd, the same file (launcher, FR-069).
   invocation: "prd-toolkit/scripts/prd <command> [arguments], or .prd-toolkit/prd <command> [arguments]; prd --version prints the toolkit's version"

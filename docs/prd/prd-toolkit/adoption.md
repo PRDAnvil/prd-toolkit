@@ -33,3 +33,4 @@
 | hook-shims | adopted | `prd-toolkit/scripts/prdlint/hookshims.py` |
 | inbox-cards | adopted | `prd-toolkit/scripts/prdlint/inboxcards.py` |
 | context-notes | adopted | `prd-toolkit/scripts/prdlint/contextnotes.py` |
+| eval-scaffolds | adopted | `prd-toolkit/evals/scaffolds/install_files.py` |

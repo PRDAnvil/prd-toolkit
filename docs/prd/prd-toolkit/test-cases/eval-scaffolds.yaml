@@ -1,0 +1,100 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root, an absolute path; <tmp> is the test's own tmp_path, an absolute path.
+#   DEPLOY_REPO = <repo>/prd-toolkit/evals/scaffolds/deploy_repo.py, run with the test's own interpreter as
+#   `python -B DEPLOY_REPO <dst> <state>`, with <tmp> as the working directory and the Subprocess environment
+#   (testing.md Harness). <dst> does not exist before the command; the command creates it and builds a git
+#   repository there. The build runs `uv lock` and `uv sync`, so it needs uv and the package index uv reads.
+#   Every command of a case, and every git command of its effects, runs with the Subprocess environment minus
+#   GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE and GIT_COMMON_DIR, plus GIT_CONFIG_GLOBAL=/dev/null and
+#   GIT_CONFIG_NOSYSTEM=1, so that no setting of the runner's own git config and no outer repository reaches it.
+#   "git in <dst>" is `git -C <dst> <arguments>`, which must exit 0; its stdout is split by str.splitlines(), the
+#   empty lines at its start and at its end are dropped, and the lines left are compared to the case's list, in
+#   the order the case lists them and with nothing else. "prints nothing" means stdout is empty.
+#   T-073.4 runs bash, which testing.md Harness (Tools on the runner) names beside python3, uv and git.
+#   These cases are E-019's: six deploy scaffolds left the files install wrote untracked and failed their own
+#   clean-tree check, and the scaffold of review-edits-nothing expected an index row `record` does not write.
+
+T-073.1:
+  ac: AC-073.1
+  level: integration
+  target: "cli:eval_scaffolds"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    command: python -B DEPLOY_REPO <tmp>/repo ready
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "git in <tmp>/repo `status --porcelain` prints nothing"
+    - "git in <tmp>/repo `ls-files CLAUDE.md docs/prd/README.md docs/prd/greet/README.md` prints exactly the lines: CLAUDE.md, docs/prd/README.md, docs/prd/greet/README.md"
+    errors: []
+    leaks: none
+
+T-073.2:
+  ac: AC-073.1
+  level: integration
+  target: "cli:eval_scaffolds"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    command: python -B DEPLOY_REPO <tmp>/repo at-gate
+    note: "at-gate adds a deploy run that stops at the human step 3; the run writes only ignored files and files it commits"
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "the last line of stdout (str.splitlines()) starts with `run=` and holds at least one more character"
+    - "git in <tmp>/repo `status --porcelain` prints nothing"
+    errors: []
+    leaks: none
+
+T-073.3:
+  ac: AC-073.2
+  level: integration
+  target: "cli:eval_scaffolds"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    command: python -B DEPLOY_REPO <tmp>/repo failing-check
+    note: "failing-check adds one commit, `Try a friendlier greeting`, after the commit of AC-073.1"
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "git in <tmp>/repo `log --format=%s` prints exactly the lines, newest first: `Try a friendlier greeting`, `Add the files install wrote`, `Vendor the PRD toolkit`, `Ignore the judge record`, `PRD: greet 1.0.0 Approved, every requirement verified`, `Add the deploy script and tests`, `Add the greet command`"
+    - "git in <tmp>/repo `log -1 --format=%B HEAD~1` prints exactly the lines: `Add the files install wrote`, an empty line, `Refs: none (no behaviour change)`"
+    - "git in <tmp>/repo `log -1 --format=%aI%n%cI HEAD~1` prints exactly the lines: 2026-01-05T13:00:00+00:00, 2026-01-05T13:00:00+00:00"
+    - "git in <tmp>/repo `diff-tree --no-commit-id --name-only -r HEAD~1` prints exactly the lines: CLAUDE.md, docs/prd/README.md, docs/prd/greet/README.md"
+    - "git in <tmp>/repo `log --format=%aI HEAD~2` prints exactly the lines, newest first: 2026-01-05T12:00:00+00:00, 2026-01-05T11:00:00+00:00, 2026-01-04T12:00:00+00:00, 2026-01-03T12:00:00+00:00, 2026-01-02T12:00:00+00:00"
+    - "git in <tmp>/repo `status --porcelain` prints nothing"
+    errors: []
+    leaks: none
+
+T-073.4:
+  ac: AC-073.3
+  level: integration
+  target: "cli:eval_scaffolds"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+    - "create the empty folder <tmp>/work"
+    cwd: "<tmp>/work"
+    command: bash <repo>/prd-toolkit/evals/review-edits-nothing/scaffold.sh
+    note: "run with the environment the conventions above give, as every command of a case is; the scaffold passes its own user name and email to git, so it needs none from the runner; the scaffold builds a git repository in the working directory and leaves an uncommitted change there, as the case needs"
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "<tmp>/work/docs/prd/orders/prd.md holds the line `| FR-001 | Import an orders file | approved | features/import.md |  |`, the backticks not part of it"
+    errors: []
+    leaks: none
