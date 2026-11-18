@@ -2,6 +2,63 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.13: the cases E-019 stopped, and the changing-prds cases
+
+Recorded 2026-11-18 on `release/prd-toolkit-0.8.13`, model `sonnet`, Claude Code 2.1.327, plugin 0.8.12 (the manifest
+bump is the release commit; the two reruns below ran on the bumped tree, 0.8.13), one run each, 14 cases. The
+command, per group, is the 0.8.12 section's, run from a clean copy of the plugin. Cost of every run below: $6.6.
+
+**The cases E-019 stopped**, 7, whose scaffolds failed until this release, and `deploy-confirms-named-steps`, which
+the `deploy-*` glob takes with them:
+
+| Case | with | without | Δ | Note |
+|---|---|---|---|---|
+| `deploy-by-hand-records` | 1.00 | 0.86 | +0.14 | after the grader fix below; first run 0.86 / 0.86 |
+| `deploy-close-live` | 1.00 | 0.43 | +0.57 | |
+| `deploy-close-staging-only` | 1.00 | 0.80 | +0.20 | |
+| `deploy-failure-no-improvise` | 1.00 | 0.71 | +0.29 | |
+| `deploy-stops-at-human` | 1.00 | 1.00 | 0.00 | |
+| `deploying-trigger` | 1.00 | 1.00 | 0.00 | |
+| `review-edits-nothing` | 1.00 | 0.50 | +0.50 | after the prompt fix below; first run 0.50 / 0.50 |
+| `deploy-confirms-named-steps` | 1.00 | 0.80 | +0.20 | |
+
+Every scaffold built, so E-019's fix holds in the runner as well as in the PRD's own tests. `skill-fired` passed in
+every with-plugin run of the eight, the first run of `review-edits-nothing` excepted.
+
+- **Two eval files still used the bare command names**, written before 0.8.7 named every command in full and
+  never run since, because E-019 stopped their cases. Both were corrected after reading the first run's trace, and
+  each case was rerun once:
+  - `deploy-by-hand-records`, grader `says-live-waits`: the session rightly said that `live` needs a
+    `/prd-toolkit:prd-deploy` run, and the pattern matched only `/prd-deploy`. It now matches either name.
+  - `review-edits-nothing`, the prompt: it began `/prd-change --review …`, which current Claude Code does not run
+    as a command, so the skill never loaded and the session edited the AC it was asked to fix. The prompt now
+    begins `/prd-toolkit:prd-change --review …`; with it the review edits nothing and writes its verdict.
+- `deploy-stops-at-human` and `deploying-trigger` score 1.00 without the plugin too.
+
+**The existing cases of the skill whose text changed** (changing-prds: the lift's new refusal and its vocabulary
+findings), 6 cases:
+
+| Case | with | without | Δ |
+|---|---|---|---|
+| `changing-hands-off-to-change-set` | 0.75 | 0.25 | +0.50 |
+| `changing-major-bump` | 1.00 | 0.00 | +1.00 |
+| `changing-new-id-not-reused` | 1.00 | 0.00 | +1.00 |
+| `changing-refuses-retarget` | 1.00 | 0.83 | +0.17 |
+| `changing-uses-prd-change` | 1.00 | 0.50 | +0.50 |
+| `change-uses-context-pack` | 1.00 | 0.67 | +0.33 |
+
+- `changing-hands-off-to-change-set` failed `stops-in-review`, as in the 0.8.12 section and for the reason given
+  there: the session stopped at the hand-off with the edits in the tree and nothing committed, before `bump`, and
+  the grader wants a bumped version. Not rerun; the grader is still to be looked at. Its prompt begins with the
+  bare `/prd-change` too, and the skill loads all the same; the prompt is left as it is.
+
+**Not run:** every case of a skill whose text did not change, the build cases among them: no case grades the part
+`Area notes` in the builder's pack (E-028), the launcher on a system Python (E-022) or the inbox (E-023); the PRD's
+own integration tests cover those.
+
+**Result:** 13 of the 14 cases score 1.00 with the plugin; the other scores 0.75 for the one grader named above. No
+case has a Δ at or below zero except the two that score 1.00 either way.
+
 ## 0.8.12: the pack cases, the error URL case, and the skills whose text changed
 
 Recorded 2026-11-16 on `feat/prd-toolkit-0.8.12`, model `sonnet`, Claude Code 2.1.325, plugin 0.8.11 (the manifest
