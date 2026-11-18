@@ -368,7 +368,7 @@ Recurrence of: -
 
 ### E-031 The build check reads an eval scaffold that holds `@prd T-` text as a tester's test, so no build can edit it
 Detected: 2026-11-18, stopped build (/prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18)
-Classification: unclassified
+Classification: spec gap
 Evidence: /prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18, on bcf4d0c (PRD 8.2.1)
   The round's diff check exited 1 on the builder's commit 3dd8036 (branch prd-round/eval-scaffolds-2):
     prd-toolkit/evals/scaffolds/deploy_repo.py cites T-001.1, T-001.2, T-002.1, T-002.2, a tester's test: the builder may not edit it
@@ -377,6 +377,6 @@ Evidence: /prd-toolkit:prd-build eval-scaffolds FR-073 --fixes E-019, 2026-11-18
   This PRD has cases with the same four IDs at a non-unit level, so the check reads the file as a tester's test.
   features/eval-scaffolds.md (FR-073) names deploy_repo.py as a file the build edits, so every round fails the same way.
   The build stopped before any merge; FR-073 stays approved and E-019 stays open.
-Diagnosis: -
+Diagnosis: Reproduced: `prd_build_check.py docs/prd/prd-toolkit --diff bcf4d0c..3dd8036` exits 1 with `prd-toolkit/evals/scaffolds/deploy_repo.py cites T-001.1, T-001.2, T-002.1, T-002.2, a tester's test: the builder may not edit it`. Root cause: `diff_findings` in `prd-toolkit/scripts/prdlint/buildcheck.py` reads every changed path outside the PRD folder and `.prd-toolkit/` for `@prd T-` citations, at the base and at the head, and reports the path when a cited T-id is not a `unit` case of the PRD; it never asks where the file is. `deploy_repo.py` is an eval scaffold that holds the demo repository's test files as text, with the demo PRD's T-001.1, T-001.2, T-002.1 and T-002.2 in their docstrings; this PRD has cases with those IDs at the integration level, so the scaffold reads as a tester's test and no builder round can change it. The same holds for any file outside the test roots that quotes such a citation. Class against the PRD: testing.md Harness, Layout says where a tester's test is, "the black-box characterization tests are `prd-toolkit/tests/prd/test_<area>_*.py`", but no requirement, contract or test case covers the build check: adoption.md lists `build-check` as `not started`, so the PRD is silent on which changed files the check may call a tester's test. It blocks the fix of E-019: FR-073 names `deploy_repo.py` as a file its build edits, and a commit made after the scaffold's deploy run is no way round it, since `prd_deploy.py resume` then answers `refused: HEAD moved since the run started`.
 Resolution: -
 Recurrence of: -
