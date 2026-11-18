@@ -12,8 +12,10 @@ stayed untracked, so the six cases never ran. A seventh case, `review-edits-noth
 `scaffold.sh` expected the index row of a requirement that moved back to `approved` to keep its Since value,
 and `prd_change.py record` writes that row with an empty Since (E-019). This area's one module is
 `prd-toolkit/evals/scaffolds/install_files.py`, which commits what install left untracked. The same build edits
-two files outside it: `prd-toolkit/evals/scaffolds/deploy_repo.py`, to call the module, and
-`prd-toolkit/evals/review-edits-nothing/scaffold.sh`, to expect the row `record` writes. No other file changes.
+three files outside it: `prd-toolkit/evals/scaffolds/deploy_repo.py`, to call the module;
+`prd-toolkit/evals/review-edits-nothing/scaffold.sh`, to expect the row `record` writes; and
+`prd-toolkit/evals/scaffolds/error_repo.py`, which builds on `deploy_repo.py` and then committed `CLAUDE.md`
+itself, to make that commit only when there is something to commit. No other file changes.
 
 ### FR-073 The deploy and review eval scaffolds build their start states
 Status: approved
@@ -30,6 +32,6 @@ Acceptance (EARS):
   and its check of FR-001's index row shall expect the row `prd_change.py record` writes for a requirement that
   moved from `live (since 1.0.0)` to `approved`: `| FR-001 | Import an orders file | approved | features/import.md |  |`.
 Errors: -
-Edge cases: with nothing untracked after `Vendor the PRD toolkit`, `deploy_repo.py` makes no commit for AC-073.1 → AC-073.1; an ignored file (`.deploy/`, `.venv/`, a cache folder) is not committed → AC-073.1; a commit made before install keeps its SHA, since the new commit comes after all of them, so the case `deploy-by-hand-records` still finds the PRD commit by the SHA its prompt names → AC-073.2; `doc_repo.py` and `link_repo.py` also run install and no case of theirs requires a clean tree, so they are unchanged; the case `deploy-confirms-named-steps` requires only a clean tracked tree and passes before and after
+Edge cases: with nothing untracked after `Vendor the PRD toolkit`, `deploy_repo.py` makes no commit for AC-073.1 → AC-073.1; an ignored file (`.deploy/`, `.venv/`, a cache folder) is not committed → AC-073.1; a commit made before install keeps its SHA, since the new commit comes after all of them, so the case `deploy-by-hand-records` still finds the PRD commit by the SHA its prompt names → AC-073.2; `error_repo.py` calls `deploy_repo.py`'s build and then runs the vendored `prd_block.py`: it makes its commit `Add the CLAUDE.md block` only when `git status --porcelain -- CLAUDE.md docs` prints a line after `prd_block.py` ran, as `link_repo.py` already does for its own commit, and with nothing printed it makes no commit and goes on to the state's own commits, so each of its three states builds as before → AC-073.1; `doc_repo.py` and `link_repo.py` also run install and no case of theirs requires a clean tree, so they are unchanged; the case `deploy-confirms-named-steps` requires only a clean tracked tree and passes before and after
 Tests: T-073.1 [integration], T-073.2 [integration], T-073.3 [integration], T-073.4 [integration]  (test-cases/eval-scaffolds.yaml)
 Traces: cli:eval_scaffolds; E-019
