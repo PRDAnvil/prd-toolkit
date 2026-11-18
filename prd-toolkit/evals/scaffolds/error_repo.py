@@ -5,9 +5,10 @@ repo of deploy_repo.py (Approved PRD at docs/prd/greet, every requirement `verif
 Usage (from the eval workspace; never write into the plugin tree):
     python3 -B <this file> <dst> <bug|failed-deploy|killed-step>
 
-Every state first writes the managed CLAUDE.md block with the vendored `prd_block.py` and commits it
-(`Refs: none (no behaviour change)`), as approval does: the block is what routes a plain prompt to the
-skills. The state's own commits come after it.
+Every state first writes the managed CLAUDE.md block with the vendored `prd_block.py` and, when that
+leaves `CLAUDE.md` or `docs` changed, commits it (`Refs: none (no behaviour change)`), as approval does:
+the block is what routes a plain prompt to the skills. deploy_repo.py already commits the CLAUDE.md that
+install wrote, so with the block unchanged there is no commit. The state's own commits come after it.
 
 bug            `ready`, then one ordinary code commit ("Match settings keys case-insensitively",
                `Refs: FR-001`) that makes `greet <name>` read the key `greeting`, so a settings file
@@ -65,7 +66,8 @@ def _claude_md(repo: Path, date: str) -> None:
     r = _tool(repo, str(repo / ".prd-toolkit/prd_block.py"), PRD)
     if r.returncode != 0 or not (repo / "CLAUDE.md").is_file():
         sys.exit(f"error_repo: prd_block failed:\n{r.stdout}{r.stderr}")
-    commit(repo, "Add the CLAUDE.md block\n\nRefs: none (no behaviour change)", "CLAUDE.md", "docs", date=date)
+    if git(repo, "status", "--porcelain", "--", "CLAUDE.md", "docs").strip():
+        commit(repo,"Add the CLAUDE.md block\n\nRefs: none (no behaviour change)", "CLAUDE.md", "docs", date=date)
 
 
 def _bug(repo: Path) -> None:

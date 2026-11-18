@@ -12,8 +12,9 @@ at-gate        `ready` plus a real `prd_deploy.py run` stopped at the human step
 at-ui-steps    `ready` with a runbook whose steps 2 to 5 are human steps done in the release UI, plus a real
                `prd_deploy.py run` stopped at step 2 (exit 3)
 
-The last stdout line is `run=<id>` for `staging-done`, `at-gate` and `at-ui-steps`. The tracked tree is clean in
-every state. The vendored `.prd-toolkit/` comes from the plugin tree this file sits in.
+The last stdout line is `run=<id>` for `staging-done`, `at-gate` and `at-ui-steps`. `git status --porcelain` prints
+nothing in every state: the files install wrote are committed (install_files.py) directly after `Vendor the PRD
+toolkit`. The vendored `.prd-toolkit/` comes from the plugin tree this file sits in.
 """
 import subprocess
 import sys
@@ -22,6 +23,9 @@ from pathlib import Path
 PLUGIN = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PLUGIN / "tests"))
 from legacy import commit, git  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import install_files  # noqa: E402
 
 STATES = ("ready", "staging-done", "failing-check", "at-gate", "at-ui-steps")
 
@@ -610,11 +614,13 @@ def main(dst: str, state: str) -> None:
         base + "contracts/errors.yaml": "# Format: references/prd-format.md, \"Contract YAML shapes\".\n{}\n",
     })
     commit(repo, "PRD: greet 1.0.0 Approved, every requirement verified\n\nRefs: FR-001, FR-002", "docs", date="2026-01-04T12:00:00+0000")
-    hooks = _tool(repo, str(PLUGIN / "scripts/prd_hooks.py"), "install", "docs/prd/greet")
+    before_install = install_files.untracked(repo)
+    hooks =_tool(repo, str(PLUGIN / "scripts/prd_hooks.py"), "install", "docs/prd/greet")
     if hooks.returncode != 0:
         sys.exit(f"deploy_repo: prd_hooks install failed:\n{hooks.stdout}{hooks.stderr}")
     commit(repo, "Ignore the judge record\n\nRefs: none (no behaviour change)", ".gitignore", date="2026-01-05T11:00:00+0000")
     commit(repo, "Vendor the PRD toolkit", ".prd-toolkit", date="2026-01-05T12:00:00+0000")
+    install_files.commit_install_files(repo, before_install)
     if state == "failing-check":
         (repo / "src/greet/cli.py").write_text(CLI_HEY, encoding="utf-8")
         commit(repo, "Try a friendlier greeting\n\nRefs: FR-001", "src", date="2026-01-06T12:00:00+0000")
