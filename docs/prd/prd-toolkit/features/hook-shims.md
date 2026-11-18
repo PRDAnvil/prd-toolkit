@@ -15,7 +15,8 @@ stated here. `<hooks>` below is the hooks folder as `git rev-parse --git-path ho
 value of `core.hooksPath`.
 
 ### FR-070 Install rewrites the toolkit's own hooks where core.hooksPath is set
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/hookshims.py:6 @92d60fe
 Acceptance (EARS):
 - AC-070.1 When `prd_hooks.py install <prd_dir>` runs where `core.hooksPath` is set, for each of `commit-msg` and
   `pre-commit` whose file in `<hooks>` is the toolkit's own, install shall write the text it writes for that hook
