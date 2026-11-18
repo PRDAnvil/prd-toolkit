@@ -20,7 +20,8 @@ what is left. Every other line is kept as it stands, its order, its indentation 
 lines included. A file with no title line has no area notes, and neither does one where nothing is left.
 
 ### FR-072 The context pack prints an area's notes
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/contextnotes.py:1 @3a021bf
 Acceptance (EARS):
 - AC-072.1 When `prd_context.py <prd_dir> --area <area>` prints a pack, with `--for decide` or `--for implement`
   and with or without `--req`, and the area's features file holds area notes, the pack shall hold the part
