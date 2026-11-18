@@ -333,7 +333,7 @@ Evidence: Build of the area card-context, 2026-11-16, the builder's report:
   prd context docs/prd/prd-toolkit --area card-context --req UJ-06,FR-062,FR-063,FR-064,FR-065,FR-066,FR-067 --for implement prints the blocks and not that paragraph.
   The builder read lines 1 to 27 of features/card-context.md, outside the pack, to learn them.
 Diagnosis: Reproduced: `prd context docs/prd/prd-toolkit --area card-context --req FR-062 --for implement` exits 0 and holds neither "Words used below" nor the definition of the area order, which `features/card-context.md` gives in its lines before the first block. The pack prints the requirement blocks of a features file and none of its text before the first block. The area `context` is not adopted (adoption.md: `context | not started`), so no AC says what the pack takes from a features file outside its blocks; the format reference names no place in a features file for definitions the blocks share.
-Resolution: -
+Resolution: T-072.1 [integration], PRD 8.1.0, fixed in 3a021bf
 Recurrence of: -
 
 ### E-029 pack check reports nothing when a validator cannot be found or run from the pack folder on its second run
