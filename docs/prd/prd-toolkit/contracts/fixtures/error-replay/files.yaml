@@ -1,0 +1,335 @@
+# Fixture error-replay/files: the texts the error-replay Setup steps (testing.md) write into the scratch
+# repository built from fixture status-next/base, one key per text, each a file's full content. The steps
+# commit them in the order a case names: the code with its bug, a test that fails on it, the fix, a later
+# test file, and the ledger's resolution.
+
+# docs/prd/orders/adoption.md: src/importer.py is in the adopted area import; src/calc.py, the code with the
+# bug, is only in the Boundary of reports, which is not started, so no adopted area covers it.
+adoption: |
+  # Adoption map
+
+  | Area | State | Boundary |
+  |---|---|---|
+  | import | adopted | `src/importer.py` |
+  | reports | not started | `src/calc.py` |
+
+# docs/prd/orders/testing.md: status-next/base's testing.md with Levels on lines 5 to 11: integration runs
+# one test with tools/one.py, slow with tools/slow.py and a Timeout of 2 seconds, system is a deploy-gate
+# level, and unit and judged have an empty One test cell.
+testing: |
+  # Testing
+
+  ## Levels
+
+  | Level | Harness command | Environment | Gate | One test | Timeout |
+  |---|---|---|---|---|---|
+  | unit | `pytest tests/unit` | local | build |  |  |
+  | integration | `pytest tests/integration` | local | build | `python3 tools/one.py` |  |
+  | judged | `pytest tests/judged` | local | build |  |  |
+  | slow | `pytest tests/slow` | local | build | `python3 tools/slow.py` | 2 |
+  | system | `pytest tests/system` | staging | deploy | `python3 tools/one.py` |  |
+
+  ## Harness
+
+  - **Lifecycle.** Nothing runs between tests; each test runs the importer or the report command itself.
+  - **Environment switch.** Not applicable: one test environment, `local`.
+  - **Database access.** Not applicable: no database.
+  - **Tools on the runner.** python3 on PATH; `tests/` sits at the repository root.
+  - **Clean state.** Every test starts from its own temporary directory.
+  - **Persistent environments.** Not applicable: no test environment keeps data.
+  - **Layout.** `tests/<level>/test_<area>.py`; each test's docstring cites its T-id, e.g. `@prd T-001.1`. Test roots: `tests/`
+  - **HTTP requests.** Not applicable: no HTTP API.
+  - **Fixtures.** Not applicable: the cases give their input inline.
+  - **Browser identity.** Not applicable: no user interface.
+  - **Assertions.** Fields a case does not list are not asserted.
+  - **Waits.** Not applicable: every command runs to completion first.
+  - **Effects.** Not applicable: the cases assert output only.
+  - **Leaks.** Not applicable: no classified data.
+  - **Acceptance.** Not applicable: no acceptance level.
+
+  ## Environments
+
+  | Environment | Purpose | Access | Base URL | Database | Logs |
+  |---|---|---|---|---|---|
+  | local | a developer's checkout | anyone with a clone | none | none | the command's output |
+  | staging | the service before release | the team | https://orders-staging.example.com | none | `./deploy.sh staging --logs` |
+  | production | the live service | the team | https://orders.example.com | none | `./deploy.sh production --logs` |
+
+  ## Leak checks
+
+  | Sink | Read from | Scanned for |
+  |---|---|---|
+  | command output | the test captures stdout and stderr | nothing: no classified data |
+
+  ## Fixtures
+
+  | Fixture | Creates | Load | Teardown |
+  |---|---|---|---|
+
+  ## Sign-offs
+
+  | T-id | Owner | Date | Result |
+  |---|---|---|---|
+
+# The same testing.md with the One test column taken out of the Levels table, every other line as it is.
+testing_nocol: |
+  # Testing
+
+  ## Levels
+
+  | Level | Harness command | Environment | Gate | Timeout |
+  |---|---|---|---|---|
+  | unit | `pytest tests/unit` | local | build |  |
+  | integration | `pytest tests/integration` | local | build |  |
+  | judged | `pytest tests/judged` | local | build |  |
+  | slow | `pytest tests/slow` | local | build | 2 |
+  | system | `pytest tests/system` | staging | deploy |  |
+
+  ## Harness
+
+  - **Lifecycle.** Nothing runs between tests; each test runs the importer or the report command itself.
+  - **Environment switch.** Not applicable: one test environment, `local`.
+  - **Database access.** Not applicable: no database.
+  - **Tools on the runner.** python3 on PATH; `tests/` sits at the repository root.
+  - **Clean state.** Every test starts from its own temporary directory.
+  - **Persistent environments.** Not applicable: no test environment keeps data.
+  - **Layout.** `tests/<level>/test_<area>.py`; each test's docstring cites its T-id, e.g. `@prd T-001.1`. Test roots: `tests/`
+  - **HTTP requests.** Not applicable: no HTTP API.
+  - **Fixtures.** Not applicable: the cases give their input inline.
+  - **Browser identity.** Not applicable: no user interface.
+  - **Assertions.** Fields a case does not list are not asserted.
+  - **Waits.** Not applicable: every command runs to completion first.
+  - **Effects.** Not applicable: the cases assert output only.
+  - **Leaks.** Not applicable: no classified data.
+  - **Acceptance.** Not applicable: no acceptance level.
+
+  ## Environments
+
+  | Environment | Purpose | Access | Base URL | Database | Logs |
+  |---|---|---|---|---|---|
+  | local | a developer's checkout | anyone with a clone | none | none | the command's output |
+  | staging | the service before release | the team | https://orders-staging.example.com | none | `./deploy.sh staging --logs` |
+  | production | the live service | the team | https://orders.example.com | none | `./deploy.sh production --logs` |
+
+  ## Leak checks
+
+  | Sink | Read from | Scanned for |
+  |---|---|---|
+  | command output | the test captures stdout and stderr | nothing: no classified data |
+
+  ## Fixtures
+
+  | Fixture | Creates | Load | Teardown |
+  |---|---|---|---|
+
+  ## Sign-offs
+
+  | T-id | Owner | Date | Result |
+  |---|---|---|---|
+
+# The Levels table of a testing.md whose One test cells are malformed, one way per row on lines 7 to 17, and
+# well formed on line 18 (fine); the rest of the file is as in `testing`.
+testing_bad: |
+  # Testing
+
+  ## Levels
+
+  | Level | Harness command | Environment | Gate | One test |
+  |---|---|---|---|---|
+  | unit | `pytest tests/unit` | local | build | `cd tests` |
+  | integration | `pytest tests/integration` | local | build | python3 tools/one.py |
+  | judged | `pytest tests/judged` | local | build | `TEST_ENV=ci python3 tools/one.py` |
+  | slow | `pytest tests/slow` | local | build | `python3 tools/one.py ~/x` |
+  | system | `pytest tests/system` | staging | deploy | `python3 tools/one.py; true` |
+  | quote | `pytest tests/quote` | local | build | `python3 'tools/one.py` |
+  | spans | `pytest tests/spans` | local | build | `python3` `tools/one.py` |
+  | pipe | `pytest tests/pipe` | local | build | `python3 tools/one.py | cat` |
+  | dollar | `pytest tests/dollar` | local | build | `python3 tools/one.py $X` |
+  | brace | `pytest tests/brace` | local | build | `python3 tools/one.py {a}` |
+  | and | `pytest tests/and` | local | build | `python3 tools/one.py && true` |
+  | fine | `pytest tests/fine` | local | build | `python3 "tools/one.py" -q` |
+
+  ## Harness
+
+  - **Lifecycle.** Nothing runs between tests; each test runs the importer or the report command itself.
+  - **Environment switch.** Not applicable: one test environment, `local`.
+  - **Database access.** Not applicable: no database.
+  - **Tools on the runner.** python3 on PATH; `tests/` sits at the repository root.
+  - **Clean state.** Every test starts from its own temporary directory.
+  - **Persistent environments.** Not applicable: no test environment keeps data.
+  - **Layout.** `tests/<level>/test_<area>.py`; each test's docstring cites its T-id, e.g. `@prd T-001.1`. Test roots: `tests/`
+  - **HTTP requests.** Not applicable: no HTTP API.
+  - **Fixtures.** Not applicable: the cases give their input inline.
+  - **Browser identity.** Not applicable: no user interface.
+  - **Assertions.** Fields a case does not list are not asserted.
+  - **Waits.** Not applicable: every command runs to completion first.
+  - **Effects.** Not applicable: the cases assert output only.
+  - **Leaks.** Not applicable: no classified data.
+  - **Acceptance.** Not applicable: no acceptance level.
+
+  ## Environments
+
+  | Environment | Purpose | Access | Base URL | Database | Logs |
+  |---|---|---|---|---|---|
+  | local | a developer's checkout | anyone with a clone | none | none | the command's output |
+  | staging | the service before release | the team | https://orders-staging.example.com | none | `./deploy.sh staging --logs` |
+  | production | the live service | the team | https://orders.example.com | none | `./deploy.sh production --logs` |
+
+  ## Leak checks
+
+  | Sink | Read from | Scanned for |
+  |---|---|---|
+  | command output | the test captures stdout and stderr | nothing: no classified data |
+
+  ## Fixtures
+
+  | Fixture | Creates | Load | Teardown |
+  |---|---|---|---|
+
+  ## Sign-offs
+
+  | T-id | Owner | Date | Result |
+  |---|---|---|---|
+
+# .gitignore: the file tools/needs.py looks for, and Python's byte-code folders.
+gitignore: |
+  .ready
+  __pycache__/
+
+# tools/one.py: runs the file it is given with the interpreter that runs it, and exits with that file's status.
+one_py: |
+  import subprocess
+  import sys
+
+  sys.exit(subprocess.run([sys.executable, sys.argv[1]]).returncode)
+
+# tools/slow.py: writes its process ID to the file ONE_STARTED names, when that is set, then sleeps 30 seconds
+# and exits 0, whatever it is given.
+slow_py: |
+  import os
+  import time
+
+  started = os.environ.get("ONE_STARTED")
+  if started:
+      with open(started, "w") as f:
+          f.write(str(os.getpid()))
+  time.sleep(30)
+
+# tools/needs.py: tools/one.py for a checkout that holds the file .ready, which .gitignore keeps out of every
+# commit; without it, it exits 3: a harness that cannot run in a fresh checkout.
+needs_py: |
+  import os
+  import subprocess
+  import sys
+
+  if not os.path.exists(".ready"):
+      sys.exit(3)
+  sys.exit(subprocess.run([sys.executable, sys.argv[1]]).returncode)
+
+# src/importer.py: a file of the adopted area import.
+importer: |
+  x = 1
+
+# src/calc.py with the bug: the total leaves out the first value.
+calc_bug: |
+  def total(values):
+      return sum(values[1:])
+
+# src/calc.py fixed.
+calc_fix: |
+  def total(values):
+      return sum(values)
+
+# src/calc.py changed, and still wrong: a fix that does not fix.
+calc_still: |
+  def total(values):
+      return sum(values[2:])
+
+# A test that cites T-006.1 and fails on calc_bug (the total of 1, 2 and 3 is 5) and on calc_still, and passes
+# on calc_fix; it exits 0 when it passes and 1 when it fails.
+test_total: |
+  # @prd T-006.1
+  import sys
+
+  sys.path.insert(0, "src")
+  import calc
+
+  sys.exit(0 if calc.total([1, 2, 3]) == 6 else 1)
+
+# A test that cites T-006.1 and passes on calc_bug and on calc_fix alike.
+test_pass: |
+  # @prd T-006.1
+  import sys
+
+  sys.path.insert(0, "src")
+  import calc
+
+  sys.exit(0 if calc.total([]) == 0 else 1)
+
+# A test that cites T-006.1, passes on calc_bug and fails on calc_fix.
+test_inv: |
+  # @prd T-006.1
+  import sys
+
+  sys.path.insert(0, "src")
+  import calc
+
+  sys.exit(0 if calc.total([1, 2, 3]) == 5 else 1)
+
+# A later test file that cites nothing and fails on every tree.
+test_later: |
+  import sys
+
+  sys.exit(1)
+
+# docs/prd/orders/errors.md: one confirmed code bug, E-001; the steps put the case's Resolution line in place of
+# the word RESOLUTION.
+ledger: |
+  # Error ledger
+
+  ### E-001 The total skips the first value
+  Detected: 2026-11-20, a run of the monthly report
+  Classification: code bug
+  Confirmed: 2026-11-20, "yes, a code bug"
+  Touches: -
+  Diagnosis: total starts from the second value
+  Resolution: RESOLUTION
+  Recurrence of: -
+
+# The same entry, confirmed and open.
+ledger_open: |
+  # Error ledger
+
+  ### E-001 The total skips the first value
+  Detected: 2026-11-20, a run of the monthly report
+  Classification: code bug
+  Confirmed: 2026-11-20, "yes, a code bug"
+  Touches: -
+  Diagnosis: total starts from the second value
+  Resolution: -
+  Recurrence of: -
+
+# The same entry, proposed and not confirmed.
+ledger_proposed: |
+  # Error ledger
+
+  ### E-001 The total skips the first value
+  Detected: 2026-11-20, a run of the monthly report
+  Classification: code bug
+  Touches: -
+  Diagnosis: total starts from the second value
+  Resolution: -
+  Recurrence of: -
+
+# The same entry, confirmed and open, classed spec gap.
+ledger_spec: |
+  # Error ledger
+
+  ### E-001 The total skips the first value
+  Detected: 2026-11-20, a run of the monthly report
+  Classification: spec gap
+  Confirmed: 2026-11-20, "yes, a spec gap"
+  Touches: -
+  Diagnosis: total starts from the second value
+  Resolution: -
+  Recurrence of: -
