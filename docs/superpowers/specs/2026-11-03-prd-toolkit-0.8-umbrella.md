@@ -53,6 +53,9 @@
 >   content unchanged.
 > - §4 (owner, 2026-11-17): the open entries of the toolkit's own error ledger are fixed as their own
 >   release, 0.8.13, with no feature; conversion moves to 0.8.14, its content unchanged.
+> - §4 (owner, 2026-11-19): conversion leaves the release line for the backlog: still wanted, with no
+>   release. 0.8.14 is the errors release: a replay that proves a fix, and a close for an error no
+>   adopted area covers. This note keeps its title.
 
 ## 1. Why
 
@@ -127,7 +130,8 @@ Every sub-release keeps these:
 | **0.8.11** | Best-practice sources: found by Claude and approved by the user, or added by the user; recorded per pack or per PRD; turned into §5 rows or checklist items. Finding, installing or writing a skill when a PRD needs one, recorded in §6 | 0.8.0 |
 | **0.8.12** | Pack authoring from example repositories: when a second repository declares the same custom contract types as a first, the toolkit reads both and proposes and writes the pack with its validator, for the owner to approve | 0.8.0, 0.8.11 |
 | **0.8.13** | Fixes, no feature: the open entries of the toolkit's own error ledger (E-019 to E-024, E-028, E-030, E-031), each fixed from a failing test through a PRD change and a build, in six small adopted areas | 0.8.12 |
-| **0.8.14** | Conversion: retarget an area or a whole PRD to another pack, with the `platform-word` findings as the worklist, contracts and Harness rebuilt, T-ids kept, and the old platform running until the new one is `verified` | 0.8.0, 0.8.11 |
+| **0.8.14** | Errors: `prd error replay`, which shows that the commit an entry names turned its test from failing to passing, through an optional `One test` column of the Levels table; and a fourth resolution form for a fix outside every adopted Boundary, which closes E-017 | 0.8.13 |
+| backlog | Conversion: retarget an area or a whole PRD to another pack, with the `platform-word` findings as the worklist, contracts and Harness rebuilt, T-ids kept, and the old platform running until the new one is `verified`. Still wanted, with no release (owner, 2026-11-19) | 0.8.0, 0.8.11 |
 
 Spec for 0.8.0: `2026-11-03-prd-toolkit-0.8.0-design.md`. Spec for 0.8.1:
 `2026-11-03-prd-toolkit-0.8.1-design.md`. Spec for 0.8.2:
@@ -137,8 +141,8 @@ Spec for 0.8.0: `2026-11-03-prd-toolkit-0.8.0-design.md`. Spec for 0.8.1:
 `2026-11-08-prd-toolkit-0.8.5-design.md`. Plan for 0.8.6, the move: `docs/superpowers/plans/2026-11-10-prd-toolkit-move-to-prdanvil.md`. Plan for 0.8.7, the fixes:
 `docs/superpowers/plans/2026-11-11-prd-toolkit-0.8.7.md`. Spec for 0.8.8, the invocation release:
 `2026-11-14-prd-toolkit-0.8.8-invocation-design.md`. Backlog for 0.8.11:
-`2026-11-08-prd-toolkit-0.8.6-backlog.md` (named for the release it was written for). The 0.8.9 to 0.8.12 specs and the 0.8.14 spec are written when their turn
-comes, each through its own brainstorm. 0.8.13, the fixes, has no spec: each fix is an `errors.md` entry and a
+`2026-11-08-prd-toolkit-0.8.6-backlog.md` (named for the release it was written for). The 0.8.9 to 0.8.12 specs are written when their turn
+comes, each through its own brainstorm; the 0.8.14 spec is `2026-11-20-prd-toolkit-0.8.14-error-replay-design.md`. 0.8.13, the fixes, has no spec: each fix is an `errors.md` entry and a
 change of the toolkit's own PRD.
 
 ## 5. Related work
