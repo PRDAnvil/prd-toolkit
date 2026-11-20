@@ -384,7 +384,7 @@ Recurrence of: -
 
 ### E-032 The tester guard refuses the tester's Read of its own background run's output file
 Detected: 2026-11-18, tester report, the FR-073 builds for E-019
-Classification: unclassified
+Classification: code bug
 Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a worktree of this repository
   (claude -p, the prd-tester agent in suite mode, the FR-073 builds for E-019).
   The tester started the harness in the background, as its rule 7 says for a run longer than the Bash timeout,
@@ -398,7 +398,7 @@ Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a 
   The tester did not retry by another path; it ran the same harness command in the foreground, which finished
   within the timeout, so the RESULTS of both builds stand.
   Not reproduced outside those sessions, and the cause is not diagnosed yet.
-Diagnosis: -
+Diagnosis: Reproduced once against the guard alone: a hook input for the agent `prd-toolkit:prd-tester` with a Read of `<tmp>/<project>/<session>/tasks/<id>.output` and no `scratchpad_dir` exits 2 with `prd-tester may only read under:` followed by the PRD folder, `prd-toolkit/tests` and `.prd-toolkit/packs`, the message in the evidence; the same input with `scratchpad_dir` set to the sibling scratchpad folder exits 0. Root cause: `Context.__init__` in prd-toolkit/scripts/prd_tester_guard.py finds the `tasks` folder only as the sibling of the hook input's `scratchpad_dir` (`tasks = self.scratch.parent / "tasks" if self.scratch else None`), and `can_read_task_output` returns False when there is none. The refusals in the evidence list no scratch folder among the read roots, so the hook input of those headless sessions carried no `scratchpad_dir`, and the Read of the run's own output could not be allowed. The guard lies in the area tester-guard, which adoption.md lists as not started: no PRD block describes it, and its code is outside every adopted Boundary. The rule it breaks is the tester's rule 7 in skills/testing-from-prds/SKILL.md: "the guard lets you read only an `<id>.output` file there." The refused `ls` of the tasks folder is the guard working as that rule says.
 Resolution: -
 Recurrence of: -
 
