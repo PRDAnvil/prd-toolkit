@@ -2,7 +2,7 @@
 
 > **Date:** 2026-11-20
 > **Author:** Ivan Histand & Claude Code
-> **Status:** Draft, for the owner's review.
+> **Status:** Approved by the owner 2026-11-20. Plan: `../plans/2026-11-20-prd-toolkit-0.8.14.md`.
 > **Extends:** the priority plan `../plans/2026-11-14-prd-toolkit-engine-ports.md` (its "Phase 1: red
 > replay", which this spec supersedes where they differ) and the backlog
 > `2026-11-08-prd-toolkit-0.8.6-backlog.md` (item 5).
@@ -125,7 +125,8 @@ Findings (the wording is settled in the PRD's acceptance criteria):
 - `<E-nnn>: <T-id> is cited by no test in <resolving commit>`.
 - `<E-nnn>: <T-id or test id> passes on <sha>^; <sha> did not turn it green`.
 - `<E-nnn>: <T-id or test id> fails on <sha>: <file or test id>`.
-- `<E-nnn>: <sha> has no parent`, `<E-nnn>: <level> is not a level of testing.md`, and
+- `<E-nnn>: <sha> has no parent`, `<E-nnn>: <sha> names no commit`,
+  `<E-nnn>: <sha> names more than one commit`, `<E-nnn>: <level> is not a level of testing.md`, and
   `<E-nnn>: timed out after <N> s on <commit>`.
 
 `--json` prints one document with `interface: 1`: the entry, `outcome` (`holds`, `skipped` or
@@ -168,8 +169,8 @@ prd error resolve docs/prd/<slug> <E-nnn> --commit <sha> --red-run <test id> --l
 - **The level** is not in Levels, is a deploy-gate level, or has no `One test` command. The last
   refusal says to add the column through `/prd-toolkit:prd-change`.
 - **The test id** holds white space or starts with `-`: it becomes a command argument.
-- **`--t` or `--version`** is given with `--red-run`, or `--red-run` without `--commit` and
-  `--level`.
+- **`--t`, `--version`, `--run` or `--not-a-defect`** is given with `--red-run`, or `--red-run`
+  without `--commit` and `--level`: a usage error, exit 2.
 - **The replay does not hold** (§4). `resolve` runs it before it writes the line and prints its
   findings as the refusal. A fix with a T-id is proven by its build; this form has no build, so the
   replay is its only proof and the command makes it.
@@ -233,7 +234,7 @@ One new adopted area, written before its code, as the areas of 0.8.12 and 0.8.13
   step settles where each requirement is written, as 0.8.12 did for its two parse requirements.
 - **The toolkit's own `testing.md`** gains the column for its two levels:
   `uv run --project prd-toolkit pytest -q -n auto` for `unit` and for `integration` (measured for
-  `unit`, §8; the plan measures `integration`).
+  `unit` in §8; for `integration`, one file of `prd-toolkit/tests/prd/` passed from the repository root).
 - Expected level: minor (8.3.1 to 8.4.0), unless an existing test case pins something these touch,
   which the change's `bump` step decides.
 - The skill's behaviour is not specified in the PRD: the `skills` area is adopted last. It is
