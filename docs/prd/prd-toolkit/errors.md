@@ -385,6 +385,7 @@ Recurrence of: -
 ### E-032 The tester guard refuses the tester's Read of its own background run's output file
 Detected: 2026-11-18, tester report, the FR-073 builds for E-019
 Classification: code bug
+Confirmed: 2026-11-20, "yes, as you recommend"
 Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a worktree of this repository
   (claude -p, the prd-tester agent in suite mode, the FR-073 builds for E-019).
   The tester started the harness in the background, as its rule 7 says for a run longer than the Bash timeout,
