@@ -401,3 +401,22 @@ Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a 
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-033 prd error replay writes the index of the repository it is started in when GIT_INDEX_FILE is set
+Detected: 2026-11-20, code review of the error-replay build
+Classification: unclassified
+Touches: FR-079
+Evidence: Code review of the error-replay build (9b17b5a..22218e9), verified by a probe in a scratch repository.
+  Setup: testing.md steps R0, RT, RF, RE; E-001 resolved `T-006.1 [integration], PRD 1.0.0, fixed in <fix>`.
+  Command: GIT_INDEX_FILE=<repo>/.git/index python prd_error.py replay docs/prd/orders E-001
+  Result: prints the proof line and exits 0.
+  Before the command: git status --porcelain prints nothing.
+  After the command: git status --porcelain prints
+  MM docs/prd/orders/errors.md
+  and the bytes of <repo>/.git/index differ from before.
+  prdlint/errorreplay.py _git passes the caller's environment to every git call:
+  env={**os.environ, "GIT_LITERAL_PATHSPECS": "1"}
+  git sets GIT_INDEX_FILE for the hooks it runs (pre-commit, commit-msg).
+Diagnosis: -
+Resolution: -
+Recurrence of: -
