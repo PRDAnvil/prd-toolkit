@@ -8,6 +8,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..errorreplay import malformed_one_test
 from ..findings import Finding
 from ..markdown import sections, tables
 from ..model import DRIFT_CHECKS, Prd, gate_of, production_envs, repo_root
@@ -233,12 +234,16 @@ def production_gate(prd: Prd) -> Iterator[Finding]:
                           f"step {steps[i].number} deploys {env} with no human step at or just before it")
 
 
-@rule("runbook-tests", description="Checks that each level a runbook tests step names is in testing.md Levels with Gate deploy and a Harness command, and that each Timeout cell is a whole number of seconds of at least 1. Add or fix the level's row, or name a deploy-gate level.")
+@rule("runbook-tests", description="Checks that each level a runbook tests step names is in testing.md Levels with Gate deploy and a Harness command, that each Timeout cell is a whole number of seconds of at least 1, and that each One test cell is one simple command in backticks. Add or fix the level's row, or name a deploy-gate level.")
 def runbook_tests(prd: Prd) -> Iterator[Finding]:
     for level, cell in prd.testing.timeouts.items():
         if cell and not (re.fullmatch(r"[0-9]+", cell) and int(cell) >= 1):
             yield Finding("testing.md", prd.testing.levels.get(level, 0), "runbook-tests",
                           f"level '{level}': Timeout '{cell}' is not a whole number of seconds of at least 1")
+    for level, cell in prd.testing.one_tests.items():  # FR-075
+        if malformed_one_test(cell):
+            yield Finding("testing.md", prd.testing.levels.get(level, 0), "runbook-tests",
+                          f"level '{level}': One test '{cell.strip()}' is not one simple command in backticks")
     for s in prd.operations.steps:
         for level in s.tests or []:
             line = s.labels["Run"][1]

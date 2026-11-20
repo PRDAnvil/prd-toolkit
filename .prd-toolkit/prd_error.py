@@ -6,6 +6,8 @@
 """The errors.md ledger: new, list, propose, confirm, resolve, url, check. Exit 0 done, 1 refused, 2 usage, dependency or internal error."""
 import argparse
 import os
+import re
+import signal
 import sys
 from collections import Counter
 from datetime import date
@@ -18,7 +20,7 @@ from prdlint import deps  # noqa: E402
 for _module, _package in (("yaml", "pyyaml"), ("sqlglot", "sqlglot"), ("openapi_spec_validator", "openapi-spec-validator")):
     deps.require(_module, _package)
 
-from prdlint import deploy, errors, model, registry, trace  # noqa: E402
+from prdlint import deploy, errorreplay, errors, interface, model, registry, trace  # noqa: E402
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -57,8 +59,13 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--commit")
     c.add_argument("--run")
     c.add_argument("--not-a-defect", dest="not_a_defect")
+    c.add_argument("--red-run", dest="red_run", help="the test id the level's One test command takes; with --commit and --level only")
+    c.add_argument("--level", help="a build-gate level of testing.md Levels with a One test command; with --red-run only")
     c = cmd("url")
     c.add_argument("address", help="the entry's URL, or - to remove its URL: line")
+    c = cmd("replay")
+    c.add_argument("--timeout", help="seconds for every run, a whole number of at least 1")
+    interface.add_flags(c)
     return p
 
 
@@ -88,6 +95,8 @@ def _run(args: argparse.Namespace, prd: model.Prd, today: date) -> list[str]:
         errors.confirm(prd, args.eid, args.reply, today, args.cls)
     elif args.cmd == "url":
         errors.set_url(prd, args.eid, args.address)
+    elif args.red_run is not None:  # FR-080: red_run_refusals has passed
+        errorreplay.write_red_run(prd, args.eid, args.commit, args.red_run, args.level)
     else:
         level = _level(prd, args.t) if args.t and not args.run and args.not_a_defect is None else None
         errors.resolve(prd, args.eid, t=args.t, level=level, version=args.version or "", commit=args.commit,
@@ -155,16 +164,88 @@ def _glue_touches(argv: list[str]) -> list[str]:
     return out
 
 
-def main(argv: list[str], today: date | None = None) -> int:
-    argv = _glue_touches(argv)
+RED_RUN_FLAGS = "--red-run takes --commit and --level, and no --t, --version, --run or --not-a-defect"
+
+
+def _red_run_usage(args: argparse.Namespace) -> str | None:
+    """AC-080.2 and AC-080.3: the flags `resolve --red-run` takes, and its commit's form."""
+    if args.red_run is None and args.level is None:
+        return None
+    if args.red_run is None or args.level is None or args.commit is None \
+            or any(v is not None for v in (args.t, args.version, args.run, args.not_a_defect)):
+        return RED_RUN_FLAGS
+    if not errors._COMMIT.fullmatch(args.commit):
+        return f"commit must be 7 to 40 lowercase hex digits; got '{args.commit}'"
+    return None
+
+
+def _replay(argv: list[str]) -> int:
+    """`replay` (FR-076 to FR-079): the proof, a skip or the findings; --json through prdlint/interface.py."""
+    argv, asked = interface.split_argv(argv)
     try:
         args = _parser().parse_args(argv)
     except SystemExit as e:
         return 0 if e.code in (0, None) else 2
+    bad = interface.check_version(asked)
+    if bad:
+        print(f"prd_error: {bad}", file=sys.stderr)
+        return 2
+    if args.timeout is not None and not (re.fullmatch(r"[0-9]+", args.timeout) and int(args.timeout) >= 1):
+        print("prd_error: --timeout must be a whole number of seconds of at least 1", file=sys.stderr)
+        return 2
+    signal.signal(signal.SIGINT, signal.default_int_handler)  # AC-079.4, even when started with SIGINT ignored
+    try:
+        prd = model.load(Path(args.prd_dir))
+        rep = errorreplay.replay(prd, model.repo_root(prd.root), args.eid, int(args.timeout) if args.timeout else None)
+    except KeyboardInterrupt:
+        return 130
+    except model.NotAPrd as e:
+        print(f"prd_error: {e}", file=sys.stderr)
+        return 2
+    except deploy.Refused as e:
+        for reason in e.reasons:
+            print(f"refused: {reason}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"prd_error: internal error: {type(e).__name__}: {e}", file=sys.stderr)
+        return 2
+    if args.json:
+        sys.stdout.write(interface.dump(errorreplay.KIND, rep.payload()))
+    else:
+        for line in rep.lines():
+            print(line)
+    return 1 if rep.outcome == "findings" else 0
+
+
+def main(argv: list[str], today: date | None = None) -> int:
+    argv = _glue_touches(argv)
+    if next((a for a in argv if not a.startswith("-")), None) == "replay":
+        if "--interface" in argv:  # AC-078.13: whatever other arguments are given, no folder read
+            print(interface.INTERFACE)
+            return 0
+        return interface.run(_replay, errorreplay.KIND, argv)
+    try:
+        args = _parser().parse_args(argv)
+    except SystemExit as e:
+        return 0 if e.code in (0, None) else 2
+    if args.cmd == "resolve":
+        usage = _red_run_usage(args)
+        if usage:
+            print(f"prd_error: {usage}", file=sys.stderr)
+            return 2
     try:
         prd = model.load(Path(args.prd_dir))
         today = today or date.today()
+        if args.cmd == "resolve" and args.red_run is not None:  # FR-080: refuse, or replay, before the guarded write
+            signal.signal(signal.SIGINT, signal.default_int_handler)
+            refusals = errorreplay.red_run_refusals(prd, model.repo_root(prd.root), args.eid, args.commit, args.red_run, args.level)
+            if refusals:
+                raise deploy.Refused(refusals)
         out = _run(args, prd, today) if args.cmd in ("check", "list") else _guarded_write(args, prd, today)
+    except KeyboardInterrupt:
+        if args.cmd == "resolve" and args.red_run is not None:  # FR-079: its replay's worktrees are gone
+            return 130
+        raise
     except (model.NotAPrd, ValueError, trace.BadRange) as e:
         print(f"prd_error: {e}", file=sys.stderr)
         return 2

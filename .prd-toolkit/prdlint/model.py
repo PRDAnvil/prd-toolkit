@@ -127,6 +127,7 @@ class Testing:
     levels_line: int = 0
     level_envs: dict[str, str] = field(default_factory=dict)  # level -> Environment cell
     timeouts: dict[str, str] = field(default_factory=dict)  # level -> raw Timeout cell (whitespace removed); only when the column exists
+    one_tests: dict[str, str] = field(default_factory=dict)  # level -> raw One test cell (whitespace removed); only when the column exists
     environments: dict[str, int] = field(default_factory=dict)
     fixtures: dict[str, int] = field(default_factory=dict)
     signoffs: list[Row] = field(default_factory=list)
@@ -978,6 +979,10 @@ def load(prd_dir: Path) -> Prd:
             if ti >= 0:
                 for r in lv.rows:
                     testing.timeouts[r.cells[0].strip("`")] = (r.cells[ti] if ti < len(r.cells) else "").strip()
+            oi = next((i for i, h in enumerate(lv.header) if h.strip().strip("`").strip().lower() == "one test"), -1)
+            if oi >= 0:  # FR-075: the optional One test column, found by its header name as Timeout is
+                for r in lv.rows:
+                    testing.one_tests[r.cells[0].strip("`")] = (r.cells[oi] if oi < len(r.cells) else "").strip()
         testing.environments = _names(_table_under(tsecs, "Environments"))
         testing.fixtures = _names(_table_under(tsecs, "Fixtures"))
         so = _table_under(tsecs, "Sign-offs")
