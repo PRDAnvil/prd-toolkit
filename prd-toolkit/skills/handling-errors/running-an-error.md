@@ -397,18 +397,23 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    `refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id` means
    a fix commit changed covered code. A covered path in any fix commit made for the entry, or one
    the path check shows before the edit, means the same: the fix needs covered code. An entry
-   holds one `Resolution:` line, so the entry is not this route's. Undo every fix commit made for
-   it, each with a new commit that cites the entry, never a reset or an amend, each its own call:
+   holds one `Resolution:` line, so the entry is not this route's. Undo every commit made on this
+   route for the entry, newest first: each fix commit, and the commit of a new test (an existing
+   test was never committed on this route, so nothing of it is undone; before the edit, the test
+   commit is the only one). Each is a new commit that cites the entry, never a reset or an amend,
+   each its own call:
 
    ```bash
    git revert --no-commit <sha>
-   git commit -m "revert: <sha>, which changed covered code" -m "Refs: <E-nnn>"
+   git commit -m "revert: <sha>, for a fix that needs covered code" -m "Refs: <E-nnn>"
    ```
 
-   Then the entry takes **A code bug** in step 5 whole. The test committed in step 5 stays as
-   committed (a new test is not reverted): the `--fixes` build must turn it green too. When no AC
-   of the covered area states the behaviour the fix restores, report that and stop: the entry stays
-   `confirmed`, and the class is the owner's question.
+   Nothing of the route is left for the `--fixes` build to trip on: its regression T-id's test is
+   the black-box tester's. Then the entry takes **A code bug** in step 5 whole, under the AC of the
+   covered area that states the behaviour, quoted in the regression patch. When no AC of the
+   covered area states it, report that and stop: the entry stays `confirmed` with its class (no
+   command changes a confirmed class), and the owner decides whether a `/prd-toolkit:prd-change`
+   adds that AC. Once that change is approved, **A code bug** goes on from its regression patch.
    `refused: <level> has no One test command; …` is step 5's stop.
 
    **The replay.** After a `resolve` that names a T-id (`--t`), and before `errors.md` is
@@ -464,9 +469,9 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    it with its commit. Exit 2 is a usage error: fix the command.
 
    **Report:** the entry and its class; the user's reply, quoted verbatim; each change, build and
-   deploy made for it, with their commits (for **Code no area covers**, the test commit and every
-   fix commit, and the code they changed that the diagnosis does not name); the resolution; the
-   replay's result (the proof, or the skip and its reason); and the check's result.
+   deploy made for it, with their commits (for **Code no area covers**, the test commit, every fix
+   commit and their reverts, and the code they changed that the diagnosis does not name); the
+   resolution; the replay's result (the proof, or the skip and its reason); and the check's result.
 
 ## The decision inbox
 

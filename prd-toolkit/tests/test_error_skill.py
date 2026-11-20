@@ -693,7 +693,7 @@ def test_0814_step_6_resolves_a_red_run_and_reads_its_refusals():
             'echo "prd-error-exit=$?"') in six
     assert "It replays before it writes" in six
     assert "`refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id`" in six
-    assert "Then the entry takes **A code bug** in step 5 whole." in six
+    assert "Then the entry takes **A code bug** in step 5 whole" in six
     assert "Never resolve again with another test id, level or commit to make it hold." in six
 
 
@@ -770,7 +770,7 @@ def test_0814_r1_covered_paths_and_the_revert():
             "`code bug` takes this route") in route
     six = step(6)
     assert "git revert --no-commit <sha>" in six
-    assert 'git commit -m "revert: <sha>, which changed covered code" -m "Refs: <E-nnn>"' in six
+    assert 'git commit -m "revert: <sha>, for a fix that needs covered code" -m "Refs: <E-nnn>"' in six
     assert "never a reset or an amend" in six
     assert "the uncovered part is fixed again" not in six
     assert "never resolve again with another T-id, version or commit to make it hold" in six
@@ -829,12 +829,8 @@ def test_0814_r3_one_route_per_entry():
     assert "the entry then takes **A code bug** whole, as step 6 says after the covered-path refusal" in _route()
     six = step(6)
     for s in ("An entry holds one `Resolution:` line, so the entry is not this route's.",
-              "Undo every fix commit made for it, each with a new commit that cites the entry",
-              "Then the entry takes **A code bug** in step 5 whole.",
-              ("The test committed in step 5 stays as committed (a new test is not reverted): the `--fixes` build "
-               "must turn it green too."),
-              ("When no AC of the covered area states the behaviour the fix restores, report that and stop: the entry "
-               "stays `confirmed`, and the class is the owner's question.")):
+              "Each is a new commit that cites the entry, never a reset or an amend",
+              "Then the entry takes **A code bug** in step 5 whole"):
         assert s in six, s
 
 
@@ -850,7 +846,7 @@ def test_0814_r3_every_fix_commit_is_checked_for_covered_paths():
     six = step(6)
     assert ("A covered path in any fix commit made for the entry, or one the path check shows before the edit, "
             "means the same: the fix needs covered code.") in six
-    assert "the test commit and every fix commit" in six.split("**Report:**", 1)[1]
+    assert "the test commit, every fix commit" in six.split("**Report:**", 1)[1]
 
 
 def test_0814_r3_a_faulty_test_is_changed_only_as_the_diagnosis_says():
@@ -882,3 +878,35 @@ def test_0814_r3_the_fix_may_change_other_uncovered_code_it_needs():
 def test_0814_r3_an_edited_t_id_line_with_findings_is_put_back():
     assert ("When that replay prints findings, put the line back the same way and commit nothing: report the "
             "finding with the commit that resolved the entry.") in step(6)
+
+
+# --- 0.8.14 fix round 4 (re-review 2 of 9891138) ---
+
+def test_0814_r4_a_fix_that_needs_covered_code_undoes_the_whole_route():
+    """R1: every commit made on the route, the new test's included, is undone newest first."""
+    six = step(6)
+    assert ("Undo every commit made on this route for the entry, newest first: each fix commit, and the commit of "
+            "a new test (an existing test was never committed on this route, so nothing of it is undone; before "
+            "the edit, the test commit is the only one).") in six
+    assert ("Nothing of the route is left for the `--fixes` build to trip on: its regression T-id's test is the "
+            "black-box tester's.") in six
+    assert "a new test is not reverted" not in six and "the `--fixes` build must turn it green too" not in six
+
+
+def test_0814_r4_no_covered_ac_stops_with_the_class_kept():
+    """R2: a confirmed class cannot change; the owner decides on a change that adds the AC."""
+    six = step(6)
+    assert ("the entry stays `confirmed` with its class (no command changes a confirmed class), and the owner "
+            "decides whether a `/prd-toolkit:prd-change` adds that AC. Once that change is approved, **A code bug** "
+            "goes on from its regression patch.") in six
+    assert "the class is the owner's question" not in six
+
+
+def test_0814_r4_the_regression_t_id_goes_under_the_covered_ac():
+    """R3: the entry quoted no AC, so the hand-off names the one the regression patch quotes."""
+    assert ("Then the entry takes **A code bug** in step 5 whole, under the AC of the covered area that states the "
+            "behaviour, quoted in the regression patch.") in step(6)
+
+
+def test_0814_r4_the_report_names_the_reverts():
+    assert "every fix commit and their reverts" in step(6).split("**Report:**", 1)[1]
