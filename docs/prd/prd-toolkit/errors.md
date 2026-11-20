@@ -422,3 +422,23 @@ Evidence: Code review of the error-replay build (9b17b5a..22218e9), verified by 
 Diagnosis: Reproduced once in a scratch repository: with `GIT_INDEX_FILE` set to the repository's own index, `prd error replay` printed the proof and exited 0, and `git status --porcelain` went from empty to `MM docs/prd/orders/errors.md`. Root cause: `_git` in prdlint/errorreplay.py runs every git command with the caller's environment (`{**os.environ, "GIT_LITERAL_PATHSPECS": "1"}`), so the checkout of `git worktree add` and the `git rm` and `git checkout` that replace the test roots write the index `GIT_INDEX_FILE` names instead of the temporary worktree's own; `GIT_DIR` and `GIT_WORK_TREE` are inherited the same way, and `resolve --red-run` replays through the same code. AC-079.1: "When the replay ends with the proof holding, `git worktree list --porcelain` in the repository shall print what it printed before the command started, the folder the command made in the system temporary folder shall no longer exist, and `git status --porcelain` shall print what it printed before." The area's definition of a worktree: "The command never writes the working tree or the index of the repository it is started in." No test case sets these variables.
 Resolution: -
 Recurrence of: -
+
+### E-034 test_done_right_after_the_last_answer_is_accepted fails once in a whole unit run and passes alone
+Detected: 2026-11-20, failing test, the whole unit suite
+Classification: unclassified
+Evidence: Whole unit suite, uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd, on 006b698 with an uncommitted PRD change in the tree:
+  FAILED tests/test_inbox_page.py::test_done_right_after_the_last_answer_is_accepted
+  2 failed, 3925 passed, 1 skipped in 518.60s
+  (the other failure, test_the_vendored_copy_matches_the_plugin, is the In review PRD's stale block, expected until approval)
+  The driver's error, from run_page:
+  AssertionError: TypeError: Cannot read properties of undefined (reading 'id')
+      at save (evalmachine.<anonymous>:174:22)
+      at evalmachine.<anonymous>:8:7
+  The driver line before it: const entry = [...I.seen.values()].find((e) => e.g.kind === 'adoption' && e.wt.path === <the test's worktree path>)
+  Second run, the file alone, same tree, a few minutes later:
+  uv run --directory prd-toolkit pytest -q -p no:cacheprovider tests/test_inbox_page.py
+  22 passed in 25.26s
+  The same test passed in three whole-suite runs earlier the same day (on e491e37, 22218e9 and 6e9cae9).
+Diagnosis: -
+Resolution: -
+Recurrence of: -
