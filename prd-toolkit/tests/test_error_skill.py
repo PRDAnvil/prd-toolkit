@@ -671,14 +671,16 @@ def test_0814_step_5_routes_code_no_area_covers_in_four_steps():
     for cond in ("only for faulty code outside every adopted Boundary", "only after `Confirmed:`",
                  "only with the test first", "everything else in the loop stands"):
         assert cond in route, cond
-    assert "never under a `Test roots:` folder of `testing.md`, which is the black-box tester's" in route
+    assert "A new file goes where `testing.md`'s Layout puts the project's unit tests" in route
+    assert "It cites no T-id, and you never edit a file that cites one: those are the black-box tester's" in route
+    assert "Test roots" not in route
     assert "never the fix first" in route
     assert "the builder and the tester work from requirement blocks, and this code has none" in route
     assert "A level with no `One test` command is a stop" in route
     assert "through `/prd-toolkit:prd-change`" in route and "approves the command before anything runs it" in route
     assert 'git commit -m "test: failing test for <E-nnn>" -m "Refs: <E-nnn>"' in route
     assert 'git commit -m "fix: <what it fixes>" -m "Refs: <E-nnn>"' in route
-    assert "never the test you committed" in route
+    assert "and never a test, with one exception" in route
     assert "a test missing from the commit before the fix fails there too, so the replay would call any fix proven" in route
     assert "a PRD with no adoption map covers every path" in route
     you = flat(RUN).split("**You diagnose; you never fix.**", 1)[1].split("**Which script.**", 1)[0]
@@ -754,7 +756,8 @@ def test_0814_r1_covered_paths_and_the_revert():
     five = step(5)
     route = five.split("**Code no area covers.**", 1)[1]
     assert "Before any edit, match every path the fix will change against the Boundary globs of `adoption.md`" in route
-    assert "never a file of the PRD folder or of `.prd-toolkit/`, never an existing test" in route
+    assert "never a file of the PRD folder or of `.prd-toolkit/`, and never a test, with one exception" in route
+    assert "never an existing test" not in route
     assert "When no build-gate level reproduces it, stop and report it: the entry stays `confirmed`." in route
     assert "add the column through `/prd-toolkit:prd-change` only" in route
     assert "from the repository root, with its output unpiped" in route
@@ -769,6 +772,20 @@ def test_0814_r1_covered_paths_and_the_revert():
     assert "the uncovered part is fixed again by step 5's route, in a fix commit that changes no covered path" in six
     assert "never resolve again with another T-id, version or commit to make it hold" in six
     assert "One that still exits 2 is a tool error: put the ledger back the same way" in six
+
+
+def test_0814_a_new_test_goes_where_the_layout_puts_unit_tests():
+    route = step(5).split("**Code no area covers.**", 1)[1]
+    assert ("A new file goes where `testing.md`'s Layout puts the project's unit tests, or beside the code when "
+            "it names no such place, even when an adopted Boundary's glob matches that place") in route
+    assert "It cites no T-id" in route
+
+
+def test_0814_a_test_the_diagnosis_names_as_faulty_may_be_changed_by_the_fix():
+    route = step(5).split("**Code no area covers.**", 1)[1]
+    assert ("When the diagnosis names a test as the faulty code (the test itself is wrong, and the owner "
+            "confirmed that diagnosis), that test is step 1's existing failing test, it cites no T-id, and the "
+            "fix commit changes it") in route
 
 
 def test_0814_r1_skill_rules_4_5_9_and_the_rationalization():

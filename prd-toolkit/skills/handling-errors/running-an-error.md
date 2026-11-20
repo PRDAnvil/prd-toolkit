@@ -310,14 +310,15 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
       and report it: the entry stays `confirmed`. A level with no `One test` command is a stop too:
       report it, and add the column through `/prd-toolkit:prd-change` only (a patch), so the owner
       approves the command before anything runs it; resume here once it is approved. The test is a
-      new file citing no T-id, or an existing test that already fails on the error, left exactly as
-      it is (no new file and no commit, but still run red as below). A new file may sit in the
-      project's unit-test tree even when an adopted Boundary's glob matches that tree (its commit
-      cites the confirmed entry), but never under a `Test roots:` folder of `testing.md`, which is
-      the black-box tester's. Run it once, as its own Bash call from the repository root, with its
-      output unpiped: the level's `One test` command with the test's path or id appended. It must
-      fail on the error; one that passes does not reproduce it, so write one that does, never the
-      fix first. Then commit it alone, each its own call:
+      new file, or an existing test that already fails on the error, left exactly as it is (no new
+      file and no commit, but still run red as below). A new file goes where `testing.md`'s Layout
+      puts the project's unit tests, or beside the code when it names no such place, even when an
+      adopted Boundary's glob matches that place (its commit cites the confirmed entry). It cites no
+      T-id, and you never edit a file that cites one: those are the black-box tester's. Run it once,
+      as its own Bash call from the repository root, with its output unpiped: the level's `One test`
+      command with the test's path or id appended. It must fail on the error; one that passes does
+      not reproduce it, so write one that does, never the fix first. Then commit it alone, each its
+      own call:
 
       ```bash
       git add <test path>
@@ -325,11 +326,13 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
       ```
    2. **The fix,** in its own commit. Before any edit, match every path the fix will change
       against the Boundary globs of `adoption.md`: a path an area covers is never yours to edit,
-      and takes **A code bug**. The fix commit changes only code outside every adopted Boundary:
-      never a file of the PRD folder or of `.prd-toolkit/`, never an existing test, and never the
-      test you committed. The test stays out of the fix commit because a test missing from the
-      commit before the fix fails there too, so the replay would call any fix proven. Commit it,
-      each its own call:
+      and takes **A code bug**. The fix commit changes only the faulty code the confirmed diagnosis
+      names, outside every adopted Boundary: never a file of the PRD folder or of `.prd-toolkit/`,
+      and never a test, with one exception. When the diagnosis names a test as the faulty code (the
+      test itself is wrong, and the owner confirmed that diagnosis), that test is step 1's existing
+      failing test, it cites no T-id, and the fix commit changes it. A new test stays out of the fix
+      commit because a test missing from the commit before the fix fails there too, so the replay
+      would call any fix proven. Commit it, each its own call:
 
       ```bash
       git add <fixed paths>
