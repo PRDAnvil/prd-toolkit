@@ -107,7 +107,8 @@ def test_the_priority_plan_has_the_fixes_and_moves_conversion():
     rows = plan.splitlines()
     fixes = next(l for l in rows if l.startswith("| 7 | **0.8.13** |"))
     assert "delivered" in fixes and "| done |" in fixes and "Conversion" not in fixes
-    conversion = next(l for l in rows if l.startswith("| 8 | **0.8.14** |"))
-    assert "**Conversion:**" in conversion
+    # 0.8.14 became the errors release and conversion went to the backlog (owner, 2026-11-19; the 0.8.14 spec)
+    conversion = next(l for l in rows if "**Conversion:**" in l)
+    assert conversion.startswith("| — | backlog |") or conversion.startswith("| 8 | **0.8.14** |")
     assert not [l for l in rows if l.startswith("|") and "after 0.8.13" in l]
     assert "conversion moves to 0.8.14" in plan

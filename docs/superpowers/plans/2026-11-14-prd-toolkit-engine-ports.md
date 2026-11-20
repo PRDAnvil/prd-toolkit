@@ -21,6 +21,9 @@
 > conversion moves to 0.8.13, its content unchanged.
 > **Decided later (owner, 2026-11-17, after 0.8.12):** the open entries of the error ledger are fixed before the
 > next feature, as their own release, 0.8.13; conversion moves to 0.8.14, its content unchanged.
+> **Decided later (owner, 2026-11-19):** conversion leaves the release line for the backlog: still wanted, with
+> no release. 0.8.14 is the errors release, row 8 below (spec:
+> `../specs/2026-11-20-prd-toolkit-0.8.14-error-replay-design.md`, which supersedes Phase 1 where they differ).
 > **Source:** the review of an earlier prototype of a PRD command-line tool against prd-toolkit 0.8.6.
 > The prototype is retired (owner, 2026-11-15) and its repository is gone: prd-toolkit is the only
 > line of development, and what this plan keeps from the prototype is the ideas below, restated here in full.
@@ -66,10 +69,10 @@ new Python dependency in any phase.
 | 5 | **0.8.11** | **Best-practice sources**, delivered, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | done | 0.8.0 |
 | 6 | **0.8.12** | **Pack authoring**, delivered, from an example repository: a pack proposed and written from two repositories that declare the same custom contract types; and, added by the owner on 2026-11-15, cards in the decision inbox that show the area an issue is for and a URL when it has one | backlog item 1; owner | done | best practices |
 | 7 | **0.8.13** | **Fixes**, delivered: the open entries of the toolkit's own error ledger, E-019 to E-024, E-028, E-030 and E-031 fixed, each from a failing test through a PRD change and a build, and E-029 closed as not a defect; E-017 waits for row 9 | owner, 2026-11-17 | done | 0.8.12 |
-| 8 | **0.8.14** | **Conversion:** retarget an area or a PRD to another pack | umbrella row | large | best practices |
-| 9 | after 0.8.14 | **Errors:** red replay (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | prototype; backlog item 5 | small | none |
-| 10 | after 0.8.14 | **Surface check** (phase 3) | prototype | medium | conversion, so the extractor key is designed once for retargeted packs |
-| 11 | after | **Antigravity wrapper** (phase 4), if its spike passes | prototype | large, uncertain | the `prd` command |
+| 8 | **0.8.14** | **Errors:** a replay that proves a fix turned its test green (phase 1) and a close for an error outside every adopted Boundary, which closes E-017 | prototype; backlog item 5 | small | none |
+| 9 | after conversion | **Surface check** (phase 3) | prototype | medium | conversion, so the extractor key is designed once for retargeted packs |
+| 10 | after | **Antigravity wrapper** (phase 4), if its spike passes | prototype | large, uncertain | the `prd` command |
+| — | backlog | **Conversion:** retarget an area or a PRD to another pack; still wanted, with no release (owner, 2026-11-19) | umbrella row | large | best practices |
 | — | release to be decided | **A starter PRD in a pack** (PRDAnvil/prd-toolkit#22): an optional `example/` in a pack, a complete approved PRD for the smallest project of that kind with its code and a passing suite, copied into an empty repository by a command and checked by `prd pack check`; the first one a hello-world web site | owner, 2026-11-16 | medium | pack authoring (0.8.12) |
 | — | every release | **One area adopted** in the toolkit's own PRD: `lint-ids` next, then `lint-testcases` | backlog item 2's policy | medium each | the release that last reshaped the area |
 | — | before 1.0.0 | **A production release path** (PRDAnvil/prd-toolkit#14): tagged releases from a commit that passed CI and the evals, each with its upgrade note; a marketplace entry on the latest release, with pinning and rollback; a standalone `prd` install for macOS and Linux; one version everywhere, checked by CI; a vendored copy that records the release it came from. A prerequisite for 1.0.0 (owner, 2026-11-14) | issue #14 | not sized | the `prd` command (0.8.8) |
@@ -124,8 +127,8 @@ listed.
 | R2 | After 0.8.7 merges: install it, remove `.worktrees/release-0.8.7`, update the site's two pages | priority 1 |
 | B1 | Best-practice sources (backlog item 1) | priority 5 |
 | B3 | One uv environment per script path, per clone (backlog item 3, issue #2). Likely fix: `uv run --with … python <script>`; the vendored copies, hooks and generated CI must keep working or be rewritten by `install`, `vendor` and `ci` | addressed in 0.8.8: one `prd` launcher and one uv environment per requirements list; what remains is in its changelog entry's Known limits (the `document` pack's validator, judged tests written before 0.8.8) |
-| B5 | An error in code no adopted area covers has no close; E-017 is open because of it (backlog item 5) | priority 7 |
-| U9 | Conversion (umbrella row) | priority 6 |
+| B5 | An error in code no adopted area covers has no close; E-017 is open because of it (backlog item 5) | priority 8 (0.8.14) |
+| U9 | Conversion (umbrella row) | backlog (owner, 2026-11-19) |
 | A1 | Adopt the next area: `lint-ids`, then `lint-testcases` | every release |
 | C1 | `prd.md` line 60, "Out of scope: the repository's other plugins and the `web/` docs site", is stale since the move; a PRD patch | done in 0.8.8 |
 | C2 | SHAs from `ihistand/claude-plugins` outside `docs/prd` (the plugin README's changelog, `evals/BASELINE.md`) resolve only there; add a note | done in 0.8.8 |
@@ -167,6 +170,11 @@ One line each; none is in a release yet.
 ---
 
 ## Phase 1: red replay
+
+> **Superseded in part by the 0.8.14 spec** (`../specs/2026-11-20-prd-toolkit-0.8.14-error-replay-design.md`):
+> the tests come from the commit that resolved the entry, a one-test command replaces the whole level and the
+> RESULTS line, there is no CI job, and the resolution with no T-id is decided. What follows is the sketch as
+> first written.
 
 **What the toolkit already has.** More than the review credited. A regression test is committed as
 a strict expected failure (`known-failing: <E-nnn>`), its RESULTS line is the red proof, and
