@@ -647,7 +647,8 @@ def test_0814_red_flags_quote_a1_and_a2_and_mark_the_replay():
     assert "a hand-written `Resolution:` line in one commit, the test never run red" in s
     assert "\"The fix can't start without a decision from the owner.\" (A2)" in s
     assert "\"Adopt `tools/count_names.py` as an area with an AC like …\"" in s
-    assert "`errors.md` committed after `prd error replay` printed findings, or with no replay run. (Spec §6.)" in s
+    assert ("`errors.md` committed after `prd error replay` printed findings, or before it printed its result (a replay "
+            "sent to the background or stopped counts as none). (0.8.14 spec §6.)") in s
     assert "Quoted from baseline runs (evals/baselines/handling-errors.md), except where marked." in s
 
 
@@ -670,15 +671,16 @@ def test_0814_step_5_routes_code_no_area_covers_in_four_steps():
     for cond in ("only for faulty code outside every adopted Boundary", "only after `Confirmed:`",
                  "only with the test first", "everything else in the loop stands"):
         assert cond in route, cond
-    assert "a new file where the level's tests live, citing no T-id and editing no existing file" in route
+    assert "never under a `Test roots:` folder of `testing.md`, which is the black-box tester's" in route
     assert "never the fix first" in route
     assert "the builder and the tester work from requirement blocks, and this code has none" in route
     assert "A level with no `One test` command is a stop" in route
     assert "through `/prd-toolkit:prd-change`" in route and "approves the command before anything runs it" in route
     assert 'git commit -m "test: failing test for <E-nnn>" -m "Refs: <E-nnn>"' in route
     assert 'git commit -m "fix: <what it fixes>" -m "Refs: <E-nnn>"' in route
-    assert "never the test" in route and "cannot tell a test that is missing from one that fails" in route
-    assert "A PRD with no adoption map covers every path" in route
+    assert "never the test you committed" in route
+    assert "a test missing from the commit before the fix fails there too, so the replay would call any fix proven" in route
+    assert "a PRD with no adoption map covers every path" in route
     you = flat(RUN).split("**You diagnose; you never fix.**", 1)[1].split("**Which script.**", 1)[0]
     assert "The one exception is code no adopted area covers (step 5's **Code no area covers**)" in you
 
@@ -689,7 +691,7 @@ def test_0814_step_6_resolves_a_red_run_and_reads_its_refusals():
             'echo "prd-error-exit=$?"') in six
     assert "It replays before it writes" in six
     assert "`refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id`" in six
-    assert "that part takes **A code bug** in step 5" in six
+    assert "the covered part takes **A code bug** in step 5" in six
     assert "Never resolve again with another test id, level or commit to make it hold." in six
 
 
@@ -700,7 +702,7 @@ def test_0814_step_6_replays_a_t_id_before_errors_md_is_committed():
             < six.index('git commit -m "docs(prd): resolve <E-nnn>"'))
     for s in ("`<E-nnn>: <T-id> fails on <sha>^ and passes on <sha>`", "`skipped: <E-nnn>: <reason>`",
               "name the skip and its reason in the report", "`<E-nnn>: <T-id> passes on <sha>^; <sha> did not turn it green`",
-              "git restore docs/prd/<slug>/errors.md", "never by an edit", "The entry stays `confirmed`",
+              "git restore --staged --worktree docs/prd/<slug>/errors.md", "never by an edit", "The entry stays `confirmed`",
               "report each finding", "return to step 5's `--fixes` build"):
         assert s in six, s
     assert "the replay's result" in six.split("**Report:**", 1)[1]
@@ -725,3 +727,69 @@ def test_0814_baselines_are_recorded_and_clean():
         assert quote in part, quote
     for leak in ("/Users/", "/home/", "/private/", "claude-502", "scratchpad", "/tmp/"):
         assert leak not in part, leak
+
+
+# --- 0.8.14 fix round 1 (reviews A and B of 6e9cae9) ---
+
+def test_0814_r1_the_edit_exception_never_touches_a_red_run():
+    s = flat(SKILL)
+    assert ("except one `Resolution:` line that `check` reports wrong (step 6): never into or within a red run, which "
+            "only `resolve --red-run` writes, and an edited T-id line is replayed before it is committed") in s
+    six = step(6)
+    assert "The Edit never writes a red run and never changes one: only `resolve --red-run` writes it" in six
+    assert "An edited T-id line is replayed, as **The replay** says, before it is committed." in six
+
+
+def test_0814_r1_the_class_of_code_no_area_covers():
+    three = step(3)
+    row = three.split("| code bug |", 1)[1].split("| spec gap |", 1)[0]
+    assert ("or, for code no adopted area covers, the code does not do what its own account says (its documentation, "
+            "the rule or convention it implements, the test it fails), quoted in the diagnosis in place of an AC") in row
+    gap = three.split("| spec gap |", 1)[1].split("| invalid requirement |", 1)[0]
+    assert "never a reason to write a requirement for code no area covers" in gap
+    assert "for code no adopted area covers, its own account" in three
+
+
+def test_0814_r1_covered_paths_and_the_revert():
+    five = step(5)
+    route = five.split("**Code no area covers.**", 1)[1]
+    assert "Before any edit, match every path the fix will change against the Boundary globs of `adoption.md`" in route
+    assert "never a file of the PRD folder or of `.prd-toolkit/`, never an existing test" in route
+    assert "When no build-gate level reproduces it, stop and report it: the entry stays `confirmed`." in route
+    assert "add the column through `/prd-toolkit:prd-change` only" in route
+    assert "from the repository root, with its output unpiped" in route
+    assert "another fix commit, never a change to the committed test; `--commit` names the commit that turns it green" in route
+    assert "left exactly as it is (no new file and no commit, but still run red as below)" in route
+    assert ("a PRD with no adoption map covers every path, so its code bugs take **A code bug**), the confirmed "
+            "`code bug` takes this route") in route
+    six = step(6)
+    assert "git revert --no-commit <sha>" in six
+    assert 'git commit -m "revert: <sha>, which changed covered code" -m "Refs: <E-nnn>"' in six
+    assert "never a reset or an amend" in six
+    assert "the uncovered part is fixed again by step 5's route, in a fix commit that changes no covered path" in six
+    assert "never resolve again with another T-id, version or commit to make it hold" in six
+    assert "One that still exits 2 is a tool error: put the ledger back the same way" in six
+
+
+def test_0814_r1_skill_rules_4_5_9_and_the_rationalization():
+    s = flat(SKILL)
+    assert "A `skipped:` line is not a proof; the build or the deploy run is, as step 6 says." in s
+    assert "(`prd error replay`, or the one `resolve --red-run` makes)" in s
+    assert "(a PRD with no adoption map covers every path, so this never applies to it)" in s
+    assert "(or take an existing test that already fails, as it is)" in s
+    assert "A resolution whose replay printed findings is not a ledger write to commit: it is put back (rule 4)." in s
+    assert "The fix waits for its failing test. |" in s and "The fix waits for its T-id." not in s
+
+
+def test_0814_r1_the_command_and_both_descriptions_name_the_route():
+    c = flat(COMMAND)
+    assert ("You never fix code yourself, except code no adopted area covers (its step 5's **Code no area covers**), "
+            "and the request is never the confirmation") in c
+    for path in (SKILL, COMMAND):
+        assert "or with a red run for code no adopted area covers" in frontmatter(path)["description"], path.name
+
+
+def test_0814_r1_step_2_old_copy_and_markers():
+    assert "step 5's red and green runs of the test **Code no area covers** writes are not counted" in step(2)
+    assert "before step 6's resolve of a fix that names a T-id" in flat(RUN)
+    assert "(0.8.14 spec §6.)" in flat(SKILL) and "(Spec §6.)" not in flat(SKILL)
