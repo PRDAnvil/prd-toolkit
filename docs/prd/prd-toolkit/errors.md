@@ -405,6 +405,7 @@ Recurrence of: -
 ### E-033 prd error replay writes the index of the repository it is started in when GIT_INDEX_FILE is set
 Detected: 2026-11-20, code review of the error-replay build
 Classification: code bug
+Confirmed: 2026-11-20, "yes, as you recommend"
 Touches: FR-079
 Evidence: Code review of the error-replay build (9b17b5a..22218e9), verified by a probe in a scratch repository.
   Setup: testing.md steps R0, RT, RF, RE; E-001 resolved `T-006.1 [integration], PRD 1.0.0, fixed in <fix>`.
