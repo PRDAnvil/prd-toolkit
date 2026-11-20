@@ -218,14 +218,14 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-072 | The context pack prints an area's notes | verified | features/context-notes.md |  |
 | FR-073 | The deploy and review eval scaffolds build their start states | verified | features/eval-scaffolds.md |  |
 | FR-074 | The build check calls a changed file a tester's test only under a test root | verified | features/tester-paths.md |  |
-| UJ-07 | Anyone with the repository sees whether the commit an entry names fixed it | approved | features/error-replay.md |  |
-| FR-075 | The One test column of the Levels table | approved | features/error-replay.md |  |
-| FR-076 | Replay an entry resolved with a T-id | approved | features/error-replay.md |  |
-| FR-077 | Replay an entry resolved with a red run | approved | features/error-replay.md |  |
-| FR-078 | What the replay prints and how it exits | approved | features/error-replay.md |  |
-| FR-079 | The replay leaves nothing behind and writes nothing | approved | features/error-replay.md |  |
-| FR-080 | Resolve a fix outside every adopted Boundary with a red run | approved | features/error-replay.md |  |
-| FR-081 | Check a red run, and the older forms as before | approved | features/error-replay.md |  |
+| UJ-07 | Anyone with the repository sees whether the commit an entry names fixed it | verified | features/error-replay.md |  |
+| FR-075 | The One test column of the Levels table | verified | features/error-replay.md |  |
+| FR-076 | Replay an entry resolved with a T-id | verified | features/error-replay.md |  |
+| FR-077 | Replay an entry resolved with a red run | verified | features/error-replay.md |  |
+| FR-078 | What the replay prints and how it exits | verified | features/error-replay.md |  |
+| FR-079 | The replay leaves nothing behind and writes nothing | verified | features/error-replay.md |  |
+| FR-080 | Resolve a fix outside every adopted Boundary with a red run | verified | features/error-replay.md |  |
+| FR-081 | Check a red run, and the older forms as before | verified | features/error-replay.md |  |
 
 ## 12. Assumptions index
 
