@@ -164,7 +164,7 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
 
    | Class | When |
    |---|---|
-   | code bug | the code does not do what an AC says; or, for code no adopted area covers, the code does not do what its own account says (its documentation, the rule or convention it implements, the test it fails), quoted in the diagnosis in place of an AC |
+   | code bug | the code does not do what an AC says; or, for code no adopted area covers, the code does not do what its own account says (its documentation, the rule or convention it implements, the test it fails), quoted in the diagnosis in place of an AC; for such code with no account of its own, the report's own words are the account, quoted in the diagnosis, and the owner confirms the class as always |
    | spec gap | the PRD says nothing about what happened: no AC, contract or test case covers it; for behaviour of an adopted area the PRD does not state, never a reason to write a requirement for code no area covers |
    | invalid requirement | the code does what an AC says, and the AC is wrong; or a test case or a contract that contradicts its own AC (the AC stands, the PRD's test case or contract is wrong) |
    | environment | the code and the PRD agree; an environment, its config or the runbook is wrong |
@@ -310,11 +310,13 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
       and report it: the entry stays `confirmed`. A level with no `One test` command is a stop too:
       report it, and add the column through `/prd-toolkit:prd-change` only (a patch), so the owner
       approves the command before anything runs it; resume here once it is approved. The test is a
-      new file, or an existing test that already fails on the error, left exactly as it is (no new
-      file and no commit, but still run red as below). A new file goes where `testing.md`'s Layout
-      puts the project's unit tests, or beside the code when it names no such place, even when an
-      adopted Boundary's glob matches that place (its commit cites the confirmed entry). It cites no
-      T-id, and you never edit a file that cites one: those are the black-box tester's. Run it once,
+      new file, or an existing test that already fails on the error, left exactly as it is in this
+      step (no new file and no commit, but still run red as below; only step 2's fix commit changes
+      it, and only when the confirmed diagnosis names it as the faulty code). A new file goes where
+      `testing.md`'s Layout puts that level's tests (the unit tests, for the unit level), or beside
+      the code when it names no such place, even when an adopted Boundary's glob matches that place
+      (its commit cites the confirmed entry). It cites no T-id, and you never edit a file that
+      cites one: those are the black-box tester's. Run it once,
       as its own Bash call from the repository root, with its output unpiped: the level's `One test`
       command with the test's path or id appended. It must fail on the error; one that passes does
       not reproduce it, so write one that does, never the fix first. Then commit it alone, each its
@@ -325,14 +327,18 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
       git commit -m "test: failing test for <E-nnn>" -m "Refs: <E-nnn>"
       ```
    2. **The fix,** in its own commit. Before any edit, match every path the fix will change
-      against the Boundary globs of `adoption.md`: a path an area covers is never yours to edit,
-      and takes **A code bug**. The fix commit changes only the faulty code the confirmed diagnosis
-      names, outside every adopted Boundary: never a file of the PRD folder or of `.prd-toolkit/`,
-      and never a test, with one exception. When the diagnosis names a test as the faulty code (the
-      test itself is wrong, and the owner confirmed that diagnosis), that test is step 1's existing
-      failing test, it cites no T-id, and the fix commit changes it. A new test stays out of the fix
-      commit because a test missing from the commit before the fix fails there too, so the replay
-      would call any fix proven. Commit it, each its own call:
+      against the Boundary globs of the `adopted` rows of `adoption.md`: a path an area covers is
+      never yours to edit, and the entry then takes **A code bug** whole, as step 6 says after the
+      covered-path refusal. The fix commit changes only the faulty code the confirmed diagnosis
+      names, and other code outside every adopted Boundary that the fix needs, named in the report:
+      never a file of the PRD folder or of `.prd-toolkit/`, and never a test, with one exception.
+      When the diagnosis names a test as the faulty code (the test itself is wrong, the code it
+      tests is right and the diagnosis names no other faulty code, and the owner confirmed that
+      diagnosis), that test is step 1's existing failing test, it cites no T-id, and the fix commit
+      changes it only as the diagnosis says it is wrong, removing, skipping or weakening none of
+      its assertions. A new test stays out of the fix commit because a test missing from the
+      commit before the fix fails there too, so the replay would call any fix proven. Commit it,
+      each its own call:
 
       ```bash
       git add <fixed paths>
@@ -341,8 +347,12 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
       ```
 
       Then run the test once more, the same way, as its own unpiped call: it must pass. A test
-      that still fails means another fix commit, never a change to the committed test; `--commit`
-      names the commit that turns it green, the SHA `git rev-parse HEAD` printed after it.
+      that still fails means another fix commit, never a change to the committed test, except the
+      faulty test of step 2's exception, in that further fix commit; `--commit` names the commit
+      that turns it green, the SHA `git rev-parse HEAD` printed after it. Before the resolve,
+      check the paths of every fix commit made for the entry the same way, not only the one
+      `--commit` names: `git show --name-only --format= <sha>`, each its own call. A covered path
+      in any of them is the covered case of step 6.
    3. **`resolve --red-run`,** in step 6, with that commit, the test's path or id and the level: it
       replays, and refuses a fix whose test did not fail on the commit before it and pass on it.
    4. **The ledger committed, then `prd error check`,** in step 6, as for every entry.
@@ -385,16 +395,20 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    not prove the fix: stop there. Never resolve again with another test id, level or commit to
    make it hold.
    `refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id` means
-   the fix commit changed covered code. Undo it with a new commit that cites the entry, never a
-   reset or an amend, each its own call:
+   a fix commit changed covered code. A covered path in any fix commit made for the entry, or one
+   the path check shows before the edit, means the same: the fix needs covered code. An entry
+   holds one `Resolution:` line, so the entry is not this route's. Undo every fix commit made for
+   it, each with a new commit that cites the entry, never a reset or an amend, each its own call:
 
    ```bash
    git revert --no-commit <sha>
    git commit -m "revert: <sha>, which changed covered code" -m "Refs: <E-nnn>"
    ```
 
-   Then the covered part takes **A code bug** in step 5, and the uncovered part is fixed again by
-   step 5's route, in a fix commit that changes no covered path.
+   Then the entry takes **A code bug** in step 5 whole. The test committed in step 5 stays as
+   committed (a new test is not reverted): the `--fixes` build must turn it green too. When no AC
+   of the covered area states the behaviour the fix restores, report that and stop: the entry stays
+   `confirmed`, and the class is the owner's question.
    `refused: <level> has no One test command; …` is step 5's stop.
 
    **The replay.** After a `resolve` that names a T-id (`--t`), and before `errors.md` is
@@ -443,15 +457,16 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    Edit of that one line, committed the same way as a new commit (never an amend). The Edit never
    writes a red run and never changes one: only `resolve --red-run` writes it, so a finding on a
    red run is reported. An edited T-id line is replayed, as **The replay** says, before it is
-   committed. The exception:
+   committed. When that replay prints findings, put the line back the same way and commit nothing:
+   report the finding with the commit that resolved the entry. The exception:
    a finding on a commit already made (a code commit that cited the entry before `Confirmed:`, a
    changed `Detected:` line) cannot be fixed by an edit, and history is never rewritten, so report
    it with its commit. Exit 2 is a usage error: fix the command.
 
    **Report:** the entry and its class; the user's reply, quoted verbatim; each change, build and
-   deploy made for it, with their commits (for **Code no area covers**, the test commit and the fix
-   commit); the resolution; the replay's result (the proof, or the skip and its reason); and the
-   check's result.
+   deploy made for it, with their commits (for **Code no area covers**, the test commit and every
+   fix commit, and the code they changed that the diagnosis does not name); the resolution; the
+   replay's result (the proof, or the skip and its reason); and the check's result.
 
 ## The decision inbox
 

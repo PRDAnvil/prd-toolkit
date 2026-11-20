@@ -56,7 +56,8 @@ nothing below.
    outside every adopted Boundary of the adoption map (a PRD with no adoption map covers every
    path, so this never applies to it), the confirmed `code bug` takes step 5's **Code no area
    covers**: you write the failing test and commit it alone (or take an existing test that already
-   fails, as it is), then the fix in its own commit, then `resolve --red-run`, which replays. The
+   fails, as it is, changed only by the fix commit, when the diagnosis names it as the faulty
+   code), then the fix in its own commit, then `resolve --red-run`, which replays. The
    builder and the tester work from requirement blocks, and this code has none. It holds only for
    faulty code outside every adopted Boundary, only after `Confirmed:`, and only with the test
    first; never invent a requirement or wait on an adoption for it.
