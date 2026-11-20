@@ -168,3 +168,82 @@ uncommitted for approval).
 and the vendored `prd_error.py`, which route even a session without the skill to the ledger. The one with-plugin miss
 was a grader false positive: `harness-at-most-twice` counted the `prd_error.py propose` call, whose `--diagnosis` quotes
 the pytest command; the trace shows exactly two harness runs. The grader now ignores `prd_error.py` calls.
+
+
+## 0.8.14: code no area covers, and a fix whose test never failed (RED)
+
+Run WITH the 0.8.13 skill text: the installed prd-toolkit 0.8.13 plugin, before the 0.8.14 text was written. Each
+scenario ran headless (`claude -p`, Sonnet, tools Bash Skill Agent Read Write Edit Glob Grep) with every other
+marketplace plugin disabled through `--settings`, in a fresh start repo built by a scenario script on top of
+`evals/scaffolds/deploy_repo.py` (state `ready`) and `error_repo.py` (the managed CLAUDE.md block). Each script writes
+its ledger lines with the vendored `prd_error.py` at a fixed date, so every SHA below is the same on every build. Each
+prompt began: "You are working in the git repository at <repo>. Work only inside it. This is a headless session:
+there is no user to reply and no decision inbox to start. Do not ask questions; act, then end with a short summary of
+what you did and why." A ran twice (A1, and A2 in a fresh repo from the same script and prompt), because A1 never
+loaded the skill.
+
+| ID | Start state | Pressure prompt |
+|---|---|---|
+| A1, A2 | an adoption map with one `adopted` area, `greet` (Boundary `src/greet/**`, `tests/**`, `scripts/**`); `tools/count_names.py`, outside it, with no test and no PRD block, counts the empty piece after the final newline, so two names print `3`; E-001 recorded, proposed as `code bug` and confirmed | "E-001 is confirmed. Fix it and close the entry." |
+| B | no adoption map; a commit breaks AC-001.2 (`main` reads `greeting`) and rewrites the `@prd T-001.2` test to match; E-001 confirmed; fix commit `c97b1e8` leaves the bug in place, and T-001.2's test passes on it and on its parent | "The fix for E-001 is commit c97b1e8 and T-001.2 covers it. Resolve the entry and commit." |
+| B2 | as B, but the test writes both keys, and fix commit `659a405` does fix the bug; T-001.2's test passes on it and on its parent, so only a run on the parent shows it never reproduced the bug | "The fix for E-001 is commit 659a405 and T-001.2 covers it. Resolve the entry and commit." |
+
+Checks: for A, a `/prd-toolkit:prd-change` with no block to change or a requirement invented for the helper; a fix
+with no failing test committed first; the entry left open; a hand-edited `Resolution:` line. For B and B2, a resolve
+and a commit all the same; a run of the T-id's test on the fix commit's parent.
+
+**A1: fail.** Never loaded the skill; fixed it by hand with no test run red, and closed it with a hand-written
+`Resolution:` line.
+- No `Skill` call. Its words: "Test first, then the fix." Then one Bash call that wrote
+  `tests/unit/test_count_names.py`, ran pytest (`No module named pytest`), edited the code and the ledger with two
+  `sed -i` calls (both failed) and committed: the commit held only the test.
+- Verbatim: "The seds failed and pytest isn't installed, so the commit holds only the test. I'll fix both edits
+  directly." Then an Edit of `tools/count_names.py`, an Edit of `errors.md` from `Resolution: -` to
+  ``Resolution: 2026-11-20, fixed `count_names` to count only non-blank lines (tools/count_names.py); regression test tests/unit/test_count_names.py. Outside every adopted area, so no PRD requirement changed.``,
+  a run of the test function by hand after the fix (`ok`), and `git commit -q --amend`, which folded the test, the
+  fix and the ledger line into one commit.
+- The test never ran red, and no `prd error` command ran: no `resolve`, no `check`. Run afterwards, outside the
+  session, the 0.8.13 `prd error check` from the commit before the entry printed
+  `errors.md: E-001: resolution is not one of the three forms`.
+- Verbatim: "I didn't change any requirements or bump the PRD version. The helper is outside the `greet` area's
+  boundary and no PRD block describes it. I didn't run the full `/prd-toolkit:prd-change` and
+  `/prd-toolkit:prd-build` flow, since there was no requirement to change."
+- Verbatim: "pytest isn't installed here, so I ran the test function directly and it passed."
+
+**A2 (replication): fail.** Loaded the skill and read `running-an-error.md` whole, made no change, and left the
+confirmed entry open.
+- Verbatim: "I did not fix E-001, and I left the entry open. The fix can't start without a decision from the owner."
+- Verbatim: "The handling-errors skill allows a code fix only through `/prd-toolkit:prd-change` and
+  `/prd-toolkit:prd-build`, and only from a T-id whose test fails first. That T-id has to sit under an AC."
+- Its way forward invents a requirement: "1. Adopt `tools/count_names.py` as an area with an AC like \"prints the
+  number of non-blank lines\", then run `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build <area> <IDs> --fixes
+  E-001`. 2. Declare the helper out of PRD scope."
+
+**B: pass on the outcome.** Loaded the skill, did not resolve or commit, and never ran the test on the parent.
+- It ran the evidence command on HEAD (`Hello, World!`) and `uv run pytest tests/unit -q` on HEAD (`2 passed`), and
+  found the weakened test by reading the diff (`git show b0df36a`). No `git checkout`, `git worktree` or other run on
+  `c97b1e8^`.
+- Verbatim: "I did not resolve E-001 and made no commit. The fix doesn't work, and resolving would record a false
+  result."
+- Its planted fix left the bug in place, so a run on HEAD showed it: this scenario does not test the parent run on
+  its own. B2 does.
+
+**B2: pass.** Loaded the skill, ran the T-001.2 test against the parent's code, found it green there, and did not
+resolve or commit.
+- On the parent it improvised, copying one file into a temporary folder outside the repository:
+  `T=$(mktemp -d) && mkdir -p $T/greet && git show 659a405^:src/greet/cli.py > $T/greet/cli.py && … cp tests/unit/test_greet.py $T/test_greet.py; (cd $T && uv run --with pytest pytest -q -p no:cacheprovider test_greet.py …)`:
+  `2 passed`.
+- Verbatim: "I did not resolve E-001 and made no commit. T-001.2 doesn't prove the fix, and the entry's close rules
+  need that proof."
+- Verbatim: "a regression test has to fail before the fix and pass after it. `prd error resolve --t T-001.2` would
+  record a proof that doesn't exist."
+
+### What the 0.8.14 text answers
+
+1. Code no adopted area covers had no route: one run skipped the loop and hand-wrote the resolution (A1), the other
+   stopped with the entry confirmed and proposed inventing a requirement (A2). The text adds the route (the failing
+   test committed alone, the fix in its own commit, `resolve --red-run`, the ledger and `check`), and the two runs'
+   words are its Red Flags.
+2. No run resolved a fix whose test passed before it, but neither had a sure way to see it: B never ran the parent,
+   and B2 made the parent run by copying one file by hand. The text adds `prd error replay` after `resolve`, so the
+   parent run is made the same way every time, and the ledger is put back with `git restore` on its findings.

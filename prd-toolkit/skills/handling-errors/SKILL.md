@@ -15,10 +15,10 @@ Run no command, read no code and edit no file before you have read it.
 **Record, diagnose, propose, then wait for the user.** Every error (a user's report, a failing test,
 a failed deploy, a stopped build) becomes an `errors.md` entry that `prd_error.py` writes. You
 reproduce it, find the root cause, propose its class with the PRD line quoted, commit the proposal
-and ask. Only a confirmed entry is fixed, only through `/prd-toolkit:prd-change` and
-`/prd-toolkit:prd-build`, and only from a T-id whose test fails first. The close is
-`prd_error.py resolve`, then `prd_error.py check` over the whole loop. This skill has no fix path of
-its own.
+and ask. Only a confirmed entry is fixed, only from a test that fails first, and only through
+`/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`, except code no adopted area covers
+(rule 5). The close is `prd_error.py resolve` and its replay, then `prd_error.py check` over the
+whole loop.
 
 **Violating the letter of these rules is violating the spirit.** "It's obviously a bug", "just
 fix it", "I'm in a hurry", "I'm away; handle it", "it's flaky" and "redeploy and close it" change
@@ -40,11 +40,21 @@ nothing below.
 3. **No fix before `Confirmed:`.** No edit of code, a test, the PRD or the runbook, kept or
    reverted, committed or not. Diagnosis reads and runs; it writes only through `prd_error.py`.
 4. **Every fix starts from a failing test.** A T-id whose test fails before the fix, at the lowest
-   level that reproduces the error. "Skip the regression test" is refused in one line.
+   level that reproduces the error; for code no adopted area covers, a test committed alone before
+   the fix and run red (rule 5). A fix is proven when `prd error replay` shows its test failing on
+   the commit before the fix and passing on the fix: never commit a resolution after its findings.
+   "Skip the regression test" is refused in one line.
 5. **Every fix goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`.** You never edit
    code or tests yourself. Behaviour no PRD line states, or what users want instead of what an AC
    says, is a change first. Every change and commit made for the entry cites it
    (`Refs: FR-001, E-001`).
+   **The one exception: code no adopted area covers.** When the diagnosis shows the faulty code
+   outside every adopted Boundary, the confirmed `code bug` takes step 5's **Code no area covers**:
+   you write the failing test and commit it alone, then the fix in its own commit, then
+   `resolve --red-run`, which replays. The builder and the tester work from requirement blocks, and
+   this code has none. It holds only for faulty code outside every adopted Boundary, only after
+   `Confirmed:`, and only with the test first; never invent a requirement or wait on an adoption
+   for it.
 6. **Diagnose; never retry or redeploy.** A test called flaky runs at most twice, each run its own
    Bash call, never in a loop. A failed deploy is never redeployed as its fix, the deploy script is
    never run by hand, and a killed step ends only through `prd_deploy.py recover`.
@@ -61,7 +71,7 @@ nothing below.
 
 ## Red Flags - STOP
 
-Quoted from runs without this skill (evals/baselines/handling-errors.md), except where marked.
+Quoted from baseline runs (evals/baselines/handling-errors.md), except where marked.
 
 - "T-001.2 wasn't flaky, so I didn't retry it. It failed every time (10 of 10 runs), and it now
   passes." (E1) `for i in $(seq 10); do uv run pytest tests/unit/test_greet.py -q ...; done`,
@@ -81,8 +91,14 @@ Quoted from runs without this skill (evals/baselines/handling-errors.md), except
 - `--class code-bug` (E6): refused with exit 2. The class is `"code bug"`.
 - "reply confirming the class, for example `prd_error.py confirm docs/prd/greet E-001 --reply
   "..."`." (E6) The command handed over instead of the proposal shown and a reply asked for.
+- "I didn't run the full `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build` flow, since there
+  was no requirement to change." (A1) Then the test, the fix and a hand-written `Resolution:` line
+  in one commit, the test never run red.
+- "The fix can't start without a decision from the owner." (A2) Said of a confirmed entry in code no
+  area covers, with "Adopt `tools/count_names.py` as an area with an AC like …" as the way forward.
 - A `confirm` whose reply you wrote, or took from the request. (Spec §5.)
 - A `resolve` before the fix's test passed, or `check` never run. (Spec §5.)
+- `errors.md` committed after `prd error replay` printed findings, or with no replay run. (Spec §6.)
 
 **All of these mean: stop, put back what you changed outside `errors.md`, and return to the step
 of `running-an-error.md` whose gate is open.**
@@ -99,6 +115,8 @@ of `running-an-error.md` whose gate is open.**
 | "The PRD already says `GREETING`, so the code just has to match it." | The class still needs the user's word, and the fix its failing test and `/prd-toolkit:prd-build`. |
 | "Redeploy and close the entry." | A redeploy of the same commit runs the same failure. The fix is a change, a build and a new `/prd-toolkit:prd-deploy` run; the entry closes on `check`. |
 | "I'll give them the confirm command to run." | That routes around the proposal. Show it and ask for the reply. |
+| "There's no requirement to change, so the PRD flow doesn't apply." | Code no adopted area covers has its own route: the failing test committed alone, the fix, `resolve --red-run`, `check`. A hand-written `Resolution:` line proves nothing, and `check` reports it. |
+| "It can't be fixed until the owner adopts the code or adds an AC." | The owner's decision is the `Confirmed:` line. Code outside every adopted Boundary needs no requirement: it closes with a red run. |
 
 ## Related skills
 

@@ -109,16 +109,18 @@ def test_procedure_opens_with_the_checklist_and_numbers_its_steps():
 
 def test_each_step_runs_its_ledger_command():
     t = RUN.read_text(encoding="utf-8")
-    for cmd in ("new", "list", "propose", "confirm", "resolve", "check"):
+    for cmd in ("new", "list", "propose", "confirm", "resolve", "replay", "check"):
         assert f"<scripts>/prd error {cmd} docs/prd/<slug>" in t, cmd
     assert "<scripts>/prd error new" in step(1)
     assert "<scripts>/prd error propose" in step(3) and "<scripts>/prd error list" in step(3)
     assert "<scripts>/prd error confirm" in step(4)
     six = step(6)
     assert "<scripts>/prd error resolve" in six and "<scripts>/prd error check" in six
-    assert six.index("<scripts>/prd error resolve") < six.index("<scripts>/prd error check")
+    assert six.index("<scripts>/prd error resolve") < six.index("<scripts>/prd error replay") < six.index(
+        "<scripts>/prd error check")
     for n in (1, 2, 4, 5):
         assert "prd_error.py resolve" not in step(n) and "prd error resolve" not in step(n), n
+        assert "prd error replay" not in step(n), n
 
 
 def test_gate_form_on_every_script_line():
@@ -609,3 +611,117 @@ def test_r21_deploy_gate_regression_resolves_only_after_a_passing_deploy_run():
               "Read the run's log",
               "form (T-id, level, version, fix commit)"):
         assert s in s6, s
+
+
+# --- 0.8.14 (design 2026-11-20 §6): code no adopted area covers, and the replay ---
+
+def test_0814_rule_4_a_fix_is_proven_by_the_replay():
+    s = flat(SKILL)
+    rule4 = s.split("4. **Every fix starts from a failing test.**", 1)[1].split(" 5. **", 1)[0]
+    assert "for code no adopted area covers, a test committed alone before the fix and run red" in rule4
+    assert "`prd error replay`" in rule4
+    assert "never commit a resolution after its findings" in rule4
+    assert "\"Skip the regression test\" is refused in one line." in rule4
+
+
+def test_0814_rule_5_names_the_one_exception_and_its_three_conditions():
+    s = flat(SKILL)
+    rule5 = s.split("5. **Every fix goes through", 1)[1].split(" 6. **", 1)[0]
+    assert "You never edit code or tests yourself" in rule5
+    exception = rule5.split("**The one exception: code no adopted area covers.**", 1)[1]
+    for cond in ("only for faulty code outside every adopted Boundary", "only after `Confirmed:`",
+                 "only with the test first"):
+        assert cond in exception, cond
+    assert "The builder and the tester work from requirement blocks, and this code has none." in exception
+    assert "`resolve --red-run`" in exception and "**Code no area covers**" in exception
+    assert "never invent a requirement or wait on an adoption for it" in exception
+    over = s.split("## Overview", 1)[1].split("## Non-negotiable rules", 1)[0]
+    assert "This skill has no fix path of its own." not in over
+    assert "except code no adopted area covers (rule 5)" in over
+
+
+def test_0814_red_flags_quote_a1_and_a2_and_mark_the_replay():
+    s = flat(SKILL)
+    assert ("\"I didn't run the full `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build` flow, since there was no "
+            "requirement to change.\" (A1)") in s
+    assert "a hand-written `Resolution:` line in one commit, the test never run red" in s
+    assert "\"The fix can't start without a decision from the owner.\" (A2)" in s
+    assert "\"Adopt `tools/count_names.py` as an area with an AC like …\"" in s
+    assert "`errors.md` committed after `prd error replay` printed findings, or with no replay run. (Spec §6.)" in s
+    assert "Quoted from baseline runs (evals/baselines/handling-errors.md), except where marked." in s
+
+
+def test_0814_rationalizations_for_code_no_area_covers():
+    s = flat(SKILL)
+    assert "| \"There's no requirement to change, so the PRD flow doesn't apply.\" |" in s
+    assert "| \"It can't be fixed until the owner adopts the code or adds an AC.\" |" in s
+
+
+def test_0814_step_5_routes_code_no_area_covers_in_four_steps():
+    five = step(5)
+    assert ("| code bug | as **A code bug** below; as **Code no area covers** below when the faulty code lies outside "
+            "every adopted Boundary |") in five
+    assert "Every fix starts from a T-id whose test fails first (for code no adopted area covers" in five
+    route = five.split("**Code no area covers.**", 1)[1]
+    at = 0
+    for s in ("1. **The failing test first.**", "2. **The fix,**", "3. **`resolve --red-run`,**",
+              "4. **The ledger committed, then `prd error check`,**"):
+        at = route.index(s, at)  # each after the one before
+    for cond in ("only for faulty code outside every adopted Boundary", "only after `Confirmed:`",
+                 "only with the test first", "everything else in the loop stands"):
+        assert cond in route, cond
+    assert "a new file where the level's tests live, citing no T-id and editing no existing file" in route
+    assert "never the fix first" in route
+    assert "the builder and the tester work from requirement blocks, and this code has none" in route
+    assert "A level with no `One test` command is a stop" in route
+    assert "through `/prd-toolkit:prd-change`" in route and "approves the command before anything runs it" in route
+    assert 'git commit -m "test: failing test for <E-nnn>" -m "Refs: <E-nnn>"' in route
+    assert 'git commit -m "fix: <what it fixes>" -m "Refs: <E-nnn>"' in route
+    assert "never the test" in route and "cannot tell a test that is missing from one that fails" in route
+    assert "A PRD with no adoption map covers every path" in route
+    you = flat(RUN).split("**You diagnose; you never fix.**", 1)[1].split("**Which script.**", 1)[0]
+    assert "The one exception is code no adopted area covers (step 5's **Code no area covers**)" in you
+
+
+def test_0814_step_6_resolves_a_red_run_and_reads_its_refusals():
+    six = step(6)
+    assert ('<scripts>/prd error resolve docs/prd/<slug> <E-nnn> --commit <sha> --red-run <test id> --level <level>; '
+            'echo "prd-error-exit=$?"') in six
+    assert "It replays before it writes" in six
+    assert "`refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id`" in six
+    assert "that part takes **A code bug** in step 5" in six
+    assert "Never resolve again with another test id, level or commit to make it hold." in six
+
+
+def test_0814_step_6_replays_a_t_id_before_errors_md_is_committed():
+    six = step(6)
+    replay = '<scripts>/prd error replay docs/prd/<slug> <E-nnn>; echo "prd-error-exit=$?"'
+    assert (six.index("--t <T-id> --version <X.Y.Z> --commit <sha>") < six.index(replay)
+            < six.index('git commit -m "docs(prd): resolve <E-nnn>"'))
+    for s in ("`<E-nnn>: <T-id> fails on <sha>^ and passes on <sha>`", "`skipped: <E-nnn>: <reason>`",
+              "name the skip and its reason in the report", "`<E-nnn>: <T-id> passes on <sha>^; <sha> did not turn it green`",
+              "git restore docs/prd/<slug>/errors.md", "never by an edit", "The entry stays `confirmed`",
+              "report each finding", "return to step 5's `--fixes` build"):
+        assert s in six, s
+    assert "the replay's result" in six.split("**Report:**", 1)[1]
+
+
+def test_0814_exits_and_the_old_copy_stop():
+    t = flat(RUN)
+    assert "`replay` printed `<E-nnn>: <T-id or test id> fails on <sha>^ and passes on <sha>` or a `skipped:` line" in t
+    assert "(`check` and `replay` print findings on stdout instead)" in t
+    assert ("When `.prd-toolkit/` exists but holds no `prdlint/errorreplay.py` (Glob it), the vendored copy predates "
+            "0.8.14") in t
+    assert "no `prd error replay` and no `resolve --red-run`" in t
+
+
+def test_0814_baselines_are_recorded_and_clean():
+    t = (EVALS / "baselines/handling-errors.md").read_text(encoding="utf-8")
+    part = t.split("## 0.8.14: code no area covers, and a fix whose test never failed", 1)[1]
+    for run in ("**A1:", "**A2", "**B:", "**B2:"):
+        assert run in part, run
+    for quote in ("since there was no requirement to change", "The fix can't start without a decision from the owner.",
+                  "I did not resolve E-001 and made no commit."):
+        assert quote in part, quote
+    for leak in ("/Users/", "/home/", "/private/", "claude-502", "scratchpad", "/tmp/"):
+        assert leak not in part, leak

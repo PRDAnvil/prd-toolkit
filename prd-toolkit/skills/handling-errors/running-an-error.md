@@ -13,10 +13,12 @@ open `errors.md` entry. The `handling-errors` Red Flags are yours.
 changes: no Edit or Write of code, tests, the PRD or the runbook, no file written through Bash, not
 even a revert kept uncommitted. After it, the fix goes through `/prd-toolkit:prd-change`
 (`prd-toolkit:changing-prds`) and `/prd-toolkit:prd-build` (`prd-toolkit:building-from-prds`): their
-agents write the code and the tests, never you. A deploy is `/prd-toolkit:prd-deploy`
-(`prd-toolkit:deploying-from-prds`), never a deploy script or a runbook command typed by hand. A
-request to skip a step ("just fix it", "skip the regression test", "redeploy and close it") gets one
-line naming the rule it breaks, and the procedure goes on without the skip.
+agents write the code and the tests, never you. The one exception is code no adopted area covers
+(step 5's **Code no area covers**): its test, then its fix, are yours. A deploy is
+`/prd-toolkit:prd-deploy` (`prd-toolkit:deploying-from-prds`), never a deploy script or a runbook
+command typed by hand. A request to skip a step ("just fix it", "skip the regression test",
+"redeploy and close it") gets one line naming the rule it breaks, and the procedure goes on without
+the skip.
 
 **Which script.** `${CLAUDE_PLUGIN_ROOT}` is empty inside a Bash call, so no command holds it.
 In every command below, `<scripts>` is `.prd-toolkit` when the repository has a `.prd-toolkit/`
@@ -38,6 +40,12 @@ When `.prd-toolkit/` exists but holds no `prd_pack.py`, the vendored copy predat
 no `--url` and no `prd error url`: record the entry without `--url`, name the address in the report,
 and tell the user to run `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form)
 and commit `.prd-toolkit/`; the URL is set with `prd error url` after that.
+When `.prd-toolkit/` exists but holds no `prdlint/errorreplay.py` (Glob it), the vendored copy
+predates 0.8.14, which has no `prd error replay` and no `resolve --red-run`, and whose `check` reads
+a red run as no form it knows: steps 1 to 4 run as written, then stop before step 5's **Code no area
+covers** and before step 6's resolve of a fix, and tell the user to run
+`prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form) and commit
+`.prd-toolkit/`.
 
 **One command per Bash call, with literal paths.** Each command below is its own Bash call, and
 every path, ID and SHA in it is typed out in full: paste what a command printed, never a variable
@@ -54,8 +62,8 @@ part in backticks; nothing was written. In a command, those backticks sit inside
 
 | Exit | Means | Next |
 |---|---|---|
-| 0 | done | `new` printed `E-<nnn>`; `propose`, `confirm` and `resolve` printed `E-<nnn> <state> <class>`; `url` printed `E-<nnn> <state>[ <class>]`, the class only when it is not the state; `check` printed nothing: go on |
-| 1 | refused | each reason is a `refused:` line on stderr (`check` prints findings on stdout instead): report them, and never work around one with another command or a hand edit |
+| 0 | done | `new` printed `E-<nnn>`; `propose`, `confirm` and `resolve` printed `E-<nnn> <state> <class>`; `url` printed `E-<nnn> <state>[ <class>]`, the class only when it is not the state; `replay` printed `<E-nnn>: <T-id or test id> fails on <sha>^ and passes on <sha>` or a `skipped:` line (step 6); `check` printed nothing: go on |
+| 1 | refused | each reason is a `refused:` line on stderr (`check` and `replay` print findings on stdout instead): report them, and never work around one with another command or a hand edit; on `replay` findings, step 6 puts `errors.md` back with `git restore` |
 | 2 | usage | a command you mistyped, such as `--class code-bug` (`prd_error: class must be one of …`): fix it and run it again |
 
 **Evidence.** What the report or the failure already holds when the error reaches you: the user's
@@ -234,14 +242,15 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    Step 3's commit holds the proposal. Report the entry, its class, the quote and the route, and
    end the turn. The entry stays `proposed`, and nothing may cite it from a code commit: the
    commit-msg hook refuses one.
-5. **Fix, by class.** Every fix starts from a T-id whose test fails first, and every change and
+5. **Fix, by class.** Every fix starts from a T-id whose test fails first (for code no adopted area
+   covers, from a test committed alone: **Code no area covers** below), and every change and
    commit made for the entry cites it in `Refs:` beside the requirement (`Refs: FR-001, E-001`):
    each `/prd-toolkit:prd-change`'s commits, its approval commit included, and the `--fixes` build's
    removal commits; the build's other commits cite its IDs, as every build commit does.
 
    | Class | Route |
    |---|---|
-   | code bug | as **A code bug** below |
+   | code bug | as **A code bug** below; as **Code no area covers** below when the faulty code lies outside every adopted Boundary |
    | spec gap | `/prd-toolkit:prd-change` adds the AC and its T-ids (minor; major if existing behaviour changes), then `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` |
    | invalid requirement | `/prd-toolkit:prd-change` revises the AC and its test cases (major when existing behaviour changes), or, when a test case or a contract contradicts its own AC, revises the test case or contract (a patch when no AC or behaviour changes: see the version rules in `prd-toolkit:changing-prds`), and the block returns to `approved`; then `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` |
    | environment | `/prd-toolkit:prd-change` on `operations.md` or `contracts/config.yaml` when the PRD holds what is wrong, then a new `/prd-toolkit:prd-deploy` run: never a deploy by hand |
@@ -284,7 +293,46 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    builder fixes the code, the build removes their `known-failing:` lines before its full run (a
    deploy-gate one's once the un-mark is committed, a build-gate one's once it passes), and the
    close takes the block to `verified`; a later `/prd-toolkit:prd-deploy` takes it to `live`.
-6. **Close.** For a fix (code bug, spec gap, invalid requirement, standard), the rule is this.
+
+   **Code no area covers.** When step 2's diagnosis shows the faulty code outside every adopted
+   Boundary (no Boundary glob of an `adopted` row of `adoption.md` matches it), the confirmed
+   `code bug` takes this route in place of `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`.
+   You write its test and its fix yourself, because the builder and the tester work from
+   requirement blocks, and this code has none. That holds only for faulty code outside every
+   adopted Boundary, only after `Confirmed:`, and only with the test first; everything else in the
+   loop stands. Invent no requirement and adopt no area for it. A PRD with no adoption map covers
+   every path, so its code bugs take **A code bug**. The route has four steps, in order:
+
+   1. **The failing test first.** Take the lowest build-gate level that reproduces the error, and
+      its `One test` command in `testing.md` Levels. A level with no `One test` command is a stop:
+      report it, and add the column through `/prd-toolkit:prd-change` (a patch), so the owner
+      approves the command before anything runs it; resume here once it is approved. Write the
+      test as a new file where the level's tests live, citing no T-id and editing no existing file
+      (an existing test that already fails on the error needs none), and run it once, as its own
+      call: the `One test` command with the test's path or id appended. It must fail on the error;
+      one that passes does not reproduce it, so write one that does, never the fix first. Then
+      commit it alone, each its own call:
+
+      ```bash
+      git add <test path>
+      git commit -m "test: failing test for <E-nnn>" -m "Refs: <E-nnn>"
+      ```
+   2. **The fix,** in its own commit. It changes only files outside every adopted Boundary, and
+      never the test: the replay cannot tell a test that is missing from one that fails. Run the
+      test once more, the same way: it must pass. Then, each its own call:
+
+      ```bash
+      git add <fixed paths>
+      git commit -m "fix: <what it fixes>" -m "Refs: <E-nnn>"
+      git rev-parse HEAD
+      ```
+
+      The SHA it prints is the fix commit.
+   3. **`resolve --red-run`,** in step 6, with that commit, the test's path or id and the level: it
+      replays, and refuses a fix whose test did not fail on the commit before it and pass on it.
+   4. **The ledger committed, then `prd error check`,** in step 6, as for every entry.
+6. **Close.** For a fix (code bug, spec gap, invalid requirement, standard) by a `--fixes` build,
+   the rule is this.
    Resolve only when the `--fixes` build closed with every regression T-id `pass` (its suite
    RESULTS, or the builder's unit result) and the block `verified`; otherwise run
    `/prd-toolkit:prd-build <area> <IDs> --fixes <E-nnn>` again. A build-gate and a unit regression
@@ -295,8 +343,10 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    (`<that dir>/prd-toolkit/deploys/<run id>.jsonl`, as in the deploy skill) and check that the
    `tests` step record for that level is `pass` before resolving; with no such run, deploy first.
    The resolution keeps the code-bug form (T-id, level, version, fix commit). A unit regression T-id
-   carries no marker to grep, so the build's close is its only proof. An environment fix resolves on
-   the new run that finished; not a defect resolves at once. Before the resolve, Grep
+   carries no marker to grep, so the build's close is its only proof. A code bug fixed by **Code no
+   area covers** (step 5) has no build: it resolves by the red run below once its fix commit is in.
+   An environment fix resolves on the new run that finished; not a defect resolves at once.
+   Before the resolve, Grep
    `known-failing: <E-nnn>` with the path `docs/prd/<slug>/test-cases/`, and `known-failing <E-nnn>`
    with each test root: a match means the `--fixes` build did not finish, so run it again (its
    un-mark is idempotent). Then resolve by the class's form, one of:
@@ -305,13 +355,48 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --t <T-id> --version <X.Y.Z> --commit <sha>; echo "prd-error-exit=$?"
    <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --run <run id> --t <T-id> --version <X.Y.Z>; echo "prd-error-exit=$?"
    <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --not-a-defect '<why>'; echo "prd-error-exit=$?"
+   <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --commit <sha> --red-run <test id> --level <level>; echo "prd-error-exit=$?"
    ```
 
    The first is a fix (code bug, spec gap, invalid requirement, standard): the regression T-id,
    the PRD `version:` after the change, and the commit of the `--fixes` build that fixed the code
    (its merge, or the builder's commit). The second is an environment fix: the new deploy run's id,
    with `--t` only when a deploy-gate T-id proves it. The third is not a defect, with the PRD line
-   quoted. Then commit `errors.md` alone, each its own call:
+   quoted. The fourth is a red run, for **Code no area covers**: step 5's fix commit, the path or
+   id its test ran with, and that level. It replays before it writes, and a refusal writes
+   nothing: report each `refused:` line; the entry stays `confirmed`. A replay finding, such as
+   `refused: <E-nnn>: <test id> passes on <sha>^; <sha> did not turn it green`, means the test did
+   not prove the fix: stop there. Never resolve again with another test id, level or commit to
+   make it hold.
+   `refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id` means
+   part of the fix is code an area covers: that part takes **A code bug** in step 5.
+   `refused: <level> has no One test command; …` is step 5's stop.
+
+   **The replay.** After a `resolve` that names a T-id (`--t`), and before `errors.md` is
+   committed, its own call:
+
+   ```bash
+   <scripts>/prd error replay docs/prd/<slug> <E-nnn>; echo "prd-error-exit=$?"
+   ```
+
+   It runs the test files that cite the T-id on the commit before `<sha>` and on `<sha>`, each in a
+   git worktree of its own, and writes nothing. Exit 0 with
+   `<E-nnn>: <T-id> fails on <sha>^ and passes on <sha>`: the proof holds; go on. Exit 0 with
+   `skipped: <E-nnn>: <reason>` (an environment run, a deploy-gate level, a level with no
+   `One test` command): nothing could be replayed; go on, and name the skip and its reason in the
+   report. Exit 1 prints one finding per line, such as
+   `<E-nnn>: <T-id> passes on <sha>^; <sha> did not turn it green` or
+   `<E-nnn>: <T-id> fails on <sha>: <file>`: the fix is not proven. Put the ledger back, its own
+   call, never by an edit:
+
+   ```bash
+   git restore docs/prd/<slug>/errors.md
+   ```
+
+   The entry stays `confirmed`: report each finding, and return to step 5's `--fixes` build. A red
+   run needs no replay here: its `resolve` made one.
+
+   Then commit `errors.md` alone, each its own call:
 
    ```bash
    git add docs/prd/<slug>/errors.md
@@ -333,7 +418,9 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    it with its commit. Exit 2 is a usage error: fix the command.
 
    **Report:** the entry and its class; the user's reply, quoted verbatim; each change, build and
-   deploy made for it, with their commits; the resolution; and the check's result.
+   deploy made for it, with their commits (for **Code no area covers**, the test commit and the fix
+   commit); the resolution; the replay's result (the proof, or the skip and its reason); and the
+   check's result.
 
 ## The decision inbox
 
