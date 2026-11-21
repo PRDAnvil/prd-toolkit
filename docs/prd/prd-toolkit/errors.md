@@ -400,7 +400,7 @@ Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a 
   within the timeout, so the RESULTS of both builds stand.
   Not reproduced outside those sessions, and the cause is not diagnosed yet.
 Diagnosis: Reproduced once against the guard alone: a hook input for the agent `prd-toolkit:prd-tester` with a Read of `<tmp>/<project>/<session>/tasks/<id>.output` and no `scratchpad_dir` exits 2 with `prd-tester may only read under:` followed by the PRD folder, `prd-toolkit/tests` and `.prd-toolkit/packs`, the message in the evidence; the same input with `scratchpad_dir` set to the sibling scratchpad folder exits 0. Root cause: `Context.__init__` in prd-toolkit/scripts/prd_tester_guard.py finds the `tasks` folder only as the sibling of the hook input's `scratchpad_dir` (`tasks = self.scratch.parent / "tasks" if self.scratch else None`), and `can_read_task_output` returns False when there is none. The refusals in the evidence list no scratch folder among the read roots, so the hook input of those headless sessions carried no `scratchpad_dir`, and the Read of the run's own output could not be allowed. The guard lies in the area tester-guard, which adoption.md lists as not started: no PRD block describes it, and its code is outside every adopted Boundary. The rule it breaks is the tester's rule 7 in skills/testing-from-prds/SKILL.md: "the guard lets you read only an `<id>.output` file there." The refused `ls` of the tasks folder is the guard working as that rule says.
-Resolution: -
+Resolution: fixed in 4514ecb, red run prd-toolkit/tests/test_guard_session_tasks.py [unit]
 Recurrence of: -
 
 ### E-033 prd error replay writes the index of the repository it is started in when GIT_INDEX_FILE is set
