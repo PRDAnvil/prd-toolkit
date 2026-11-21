@@ -500,6 +500,7 @@ Recurrence of: -
 ### E-037 The replay leaves its folder behind when a test leaves a folder it cannot remove
 Detected: 2026-11-21, final review of the 0.8.14 branch, a probe in a scratch repository
 Classification: code bug
+Confirmed: 2026-11-21, "yes to both classes, leave both open, push and open the PR"
 Touches: FR-079
 Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by the recording session, in a scratch repository
   whose entry E-001 is resolved `T-001.2 [unit], PRD 1.0.0, fixed in <fix>`.
