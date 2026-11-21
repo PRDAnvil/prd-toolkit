@@ -348,7 +348,7 @@ prd_error:
     0: "the proof holds, the entry is skipped, or --interface (FR-076 to FR-078)"
     1: "one or more findings, or no such entry (FR-076 to FR-078)"
     2: "a usage error, a --timeout that is not a whole number of at least 1, an unsupported --json=N, or an internal error (FR-078)"
-    130: "SIGINT during a run, once the run's process group is killed and its worktree removed (FR-079)"
+    130: "SIGINT during a run, once the run's process group is killed and the folder of its clone removed (FR-079)"
   resolve_red_run_invocation: "uv run --script prd-toolkit/scripts/prd_error.py resolve <prd_dir> <E-id> --commit <sha> --red-run <test id> --level <level>; through the launcher, prd error resolve (FR-080)"
   resolve_arguments:
     --red-run TEST_ID: "the argument the level's One test command takes, a path or a test id; with --commit and --level only (FR-080)"

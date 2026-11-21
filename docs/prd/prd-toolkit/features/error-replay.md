@@ -2,7 +2,7 @@
 
 An `errors.md` entry closes with a Resolution line that names the commit that fixed it, and nothing
 checked that claim. This area checks it: `prd error replay <prd_dir> <E-id>` runs the entry's test on the
-commit before the fix, where it must fail, and on the fix, where it must pass, each run in a git worktree
+commit before the fix, where it must fail, and on the fix, where it must pass, each run in a git clone
 of its own that it removes. It adds a fourth form of Resolution line, a fix with no T-id for code that no
 adopted area covers, which `prd error resolve --red-run` writes only when that replay holds and
 `prd error check` reads; and the optional `One test` column of the `testing.md` Levels table, the command
@@ -11,7 +11,7 @@ The same build makes the edits this area needs in `prd_error.py` and `prdlint/er
 they parse the new subcommand and flags and call the module), `prdlint/model.py` (area `lint-cli`: the
 Levels loader reads the column), `prdlint/rules/registries.py` (area `lint-registries`: the rule
 `runbook-tests` reports a malformed cell and its description names the column),
-`references/prd-format.md` (area `skills`: the column and the fourth form) and `references/help.yaml`
+`references/prd-format.md` (area `skills`: the column, the fourth form and the clone each run is made in) and `references/help.yaml`
 (area `help`: its entry `kind.E` names the fourth form); what each edit does is stated here. The three
 older forms of a Resolution line are written, read and checked as before.
 
@@ -45,15 +45,19 @@ Words used below.
   with the same Resolution line as `errors.md` in the working tree; when no commit does, it is `HEAD`.
   `<resolving commit>` in an output is the first 7 hex digits of its SHA.
 - A **run** starts the level's One test command with one more word appended, its argument, without a
-  shell, from the root of a worktree, with the environment the command itself has, in a process group of
+  shell, from the root of a clone, with the environment the command itself has, in a process group of
   its own. A run that exits 0 **passes**; one that exits with any other code **fails**. A run still going
   when the timeout ends is killed with its process group; it **times out**, and neither passes nor fails.
   A run whose program the operating system cannot start **cannot start**, and neither passes nor fails.
 - The **timeout** of a run is the `--timeout` value when one is given, else the level's `Timeout` cell when
   it holds a number, else 600 seconds. `<N>` in an output is that timeout in whole seconds.
-- A **worktree** is one that the command adds with `git worktree add --detach` under a new folder it makes
-  in the system temporary folder (the folder the `TMPDIR` variable names, when it is set), at the commit
-  under test. Every git command the replay runs has the environment the command itself has without the
+- A **clone** is a git checkout of its own that the command makes for one run, in a new folder under the
+  folder it makes in the system temporary folder (the folder the `TMPDIR` variable names, when it is set):
+  `git clone --shared --no-checkout` of the repository, then a checkout there of the commit under test,
+  `HEAD` detached at that commit, so a test that calls git in it works. A clone is not the repository: it
+  has the repository's commits, and none of its local configuration, its hooks, the checkouts of its other
+  refs or its worktrees. The command writes nothing in the repository's git folder and adds no worktree to
+  it; removing a clone is removing its folder. Every git command the replay runs has the environment the command itself has without the
   variables `git rev-parse --local-env-vars` lists, so none of them points it at the repository the
   command is started in. The command never writes the working tree or the index of the repository it is
   started in.
@@ -104,7 +108,7 @@ Tests: T-075.1 [integration], T-075.2 [integration], T-075.3 [integration], T-07
 Traces: UJ-07; cli:prd_lint; cli:prd_help; testing.md Levels
 
 ### FR-076 Replay an entry resolved with a T-id
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:167 @a070396
 Flow: 1. read the entry from `errors.md` in the working tree → 2. find its resolving commit and the
       files under the test roots there that cite its T-id → 3. run each file on the tree of `<sha>^`, its
@@ -116,7 +120,7 @@ Acceptance (EARS):
   `<sha>` names one commit that has a parent, the error command shall take as the cited files each file
   under a test root, in the resolving commit's tree, whose text cites the T-id, and shall make one run per
   cited file, in the sorted order of their paths, with the file's path from the repository root as its one
-  argument, on the tree of `<sha>^` and then on the tree of `<sha>`, each tree in a worktree with every
+  argument, on the tree of `<sha>^` and then on the tree of `<sha>`, each tree in a clone with every
   test root replaced, whole, by that root of the resolving commit's tree and every other path as the
   commit holds it.
 - AC-076.2 When at least one cited file fails on `<sha>^` and every cited file passes on `<sha>`, the error
@@ -136,16 +140,16 @@ Edge cases: a regression test committed after its fix proves the fix, since the 
 resolving commit → AC-076.1; only the test roots are replaced, so the run on `<sha>^` runs the old code →
 AC-076.1; a cited path that holds a space is passed as one argument → AC-076.1; the fix commit is a merge:
 `<sha>^` is its first parent → AC-076.1; a test file of the resolving commit that does not cite the T-id
-is not run, though it fails on older code → AC-076.1; a harness that starts in a fresh worktree and fails
+is not run, though it fails on older code → AC-076.1; a harness that starts in a fresh clone and fails
 there for want of what only the repository's own checkout holds fails on `<sha>` too, so the proof never
-holds → AC-076.3; a One test program that the operating system cannot start in a fresh worktree is no
+holds → AC-076.3; a One test program that the operating system cannot start in a fresh clone is no
 fail: the run cannot start, a finding of its own → AC-078.14; two entries whose tests share a file share
 one proof, since the proof is per file
 Tests: T-076.1 [integration], T-076.2 [integration], T-076.3 [integration], T-076.4 [integration], T-076.5 [integration], T-076.6 [integration], T-076.7 [integration], T-076.8 [integration], T-076.9 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-077 Replay an entry resolved with a red run
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:342 @68d53f9
 Flow: 1. read the entry from `errors.md` in the working tree → 2. run its test id on the tree of `<sha>^`
       as committed → 3. run it on the tree of `<sha>` as committed → 4. print what the runs show
@@ -153,8 +157,8 @@ Acceptance (EARS):
 - AC-077.1 When `prd_error.py replay <prd_dir> <E-id>` is run on an entry whose Resolution line is a red
   run, whose level is a row of the Levels table with Gate `build` and a One test command, and whose `<sha>`
   names one commit that has a parent, the error command shall make two runs, each with the test id as its
-  one argument, written as the line holds it: one in a worktree of `<sha>^` as committed, then one in a
-  worktree of `<sha>` as committed.
+  one argument, written as the line holds it: one in a clone of `<sha>^` as committed, then one in a
+  clone of `<sha>` as committed.
 - AC-077.2 When the run on `<sha>^` fails and the run on `<sha>` passes, the error command shall print the
   one stdout line `<E-id>: <test id> fails on <sha>^ and passes on <sha>` and exit 0.
 - AC-077.3 If the run on `<sha>^` passes, the error command shall print the finding
@@ -163,12 +167,12 @@ Acceptance (EARS):
 Errors: -
 Edge cases: a `$` or a `;` in the test id reaches the command as plain text → AC-077.1; a test committed
 after its fix is not in `<sha>^` or in `<sha>`, so both runs fail and the proof does not hold → AC-077.1,
-AC-077.3
-Tests: T-077.1 [integration], T-077.2 [integration], T-077.3 [integration], T-077.4 [integration], T-077.5 [integration]  (test-cases/error-replay.yaml)
+AC-077.3; a One test program that calls git finds a git checkout in its clone → AC-077.1
+Tests: T-077.1 [integration], T-077.2 [integration], T-077.3 [integration], T-077.4 [integration], T-077.5 [integration], T-077.6 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-078 What the replay prints and how it exits
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:391 @a070396
 Flow: 1. read the entry → 2. make the checks in order, the first that matches deciding → 3. make the runs
       → 4. print one line per finding, or the one line that the proof holds or that the entry is skipped
@@ -240,10 +244,10 @@ Tests: T-078.1 [integration], T-078.2 [integration], T-078.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-079 The replay leaves nothing behind and writes nothing
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:218 @a070396
-Flow: 1. add a worktree for each run → 2. remove it when the run ends → 3. remove the folder the
-      worktrees were made in when the command ends, however it ends
+Flow: 1. make a clone for each run → 2. remove its folder when the run ends → 3. remove the folder the
+      clones were made in when the command ends, however it ends
 Acceptance (EARS):
 - AC-079.1 When the replay ends with the proof holding, `git worktree list --porcelain` in the repository
   shall print what it printed before the command started, the folder the command made in the system
@@ -256,25 +260,32 @@ Acceptance (EARS):
   the system temporary folder shall no longer exist, and `git status --porcelain` shall print what it
   printed before.
 - AC-079.4 If the command receives SIGINT while a run is going, the error command shall kill the run's
-  process group, remove the run's worktree and its folder, and exit 130, after which
+  process group, remove the folder of the run's clone, and exit 130, after which
   `git worktree list --porcelain` in the repository shall print what it printed before the command
   started and `git status --porcelain` what it printed before.
 - AC-079.5 Where the command is started inside a linked worktree of the repository, the error command
   shall read `errors.md` and `testing.md` from that worktree's checkout, and when it ends
   `git worktree list --porcelain` shall print what it printed before it started, the linked worktree
   included.
+- AC-079.6 Where the repository's git folder cannot take a new worktree, the error command shall make the
+  same runs, print the same lines and exit with the same code as in a repository whose git folder can;
+  and wherever it runs, it shall write nothing in the repository's git folder and add no worktree to it,
+  so that `git worktree list --porcelain` in the repository prints the same text before, during and after
+  the command.
 Errors: -
 Edge cases: a test points `TMPDIR` at an empty folder and finds it empty again when the command ends →
-AC-079.1 to AC-079.5; `prd error resolve --red-run`, which replays, leaves nothing behind the same way →
+AC-079.1 to AC-079.6; a git folder whose `worktrees` entry is a regular file, or one the command may not
+write, cannot take a new worktree, and the replay holds there as it holds elsewhere, since it adds no
+worktree → AC-079.6; `prd error resolve --red-run`, which replays, leaves nothing behind the same way →
 AC-079.2, FR-080; an internal error ends the command the same way, with exit 2; a command started with
 `GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE` set, as git sets `GIT_INDEX_FILE` for its pre-commit and
 commit-msg hooks, leaves its repository's index and working tree as they were, since no git command the
 replay runs has those variables → AC-079.1 to AC-079.3
-Tests: T-079.1 [integration], T-079.2 [integration], T-079.3 [integration], T-079.4 [integration], T-079.5 [integration], T-079.6 [integration]  (test-cases/error-replay.yaml)
+Tests: T-079.1 [integration], T-079.2 [integration], T-079.3 [integration], T-079.4 [integration], T-079.5 [integration], T-079.6 [integration], T-079.7 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-080 Resolve a fix outside every adopted Boundary with a red run
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prd_error.py:170 @68d53f9
 Flow: 1. read the flags → 2. read the entry, its class and the level → 3. check the test id and the paths
       the fix commit changes → 4. replay the line it would write → 5. write the line, or refuse and leave
