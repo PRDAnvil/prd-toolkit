@@ -495,3 +495,22 @@ Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-037 The replay leaves its folder behind when a test leaves a folder it cannot remove
+Detected: 2026-11-21, final review of the 0.8.14 branch, a probe in a scratch repository
+Classification: unclassified
+Touches: FR-079
+Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by the recording session, in a scratch repository
+  whose entry E-001 is resolved `T-001.2 [unit], PRD 1.0.0, fixed in <fix>`.
+  Setup: the unit level's One test cell names a program kept outside the repository, `python3 <elsewhere>/t2.py`, which
+  makes the folders `ro/x` in its working directory, writes a file `ro/x/f` and sets the mode of `ro/x` to 0500.
+  The command, with TMPDIR naming an empty folder <tmp>:
+  prd error replay docs/prd/greet E-001
+  E-001: T-001.2 passes on <fix>^; <fix> did not turn it green
+  exit=1
+  Nothing on stderr. After the command, <tmp> still holds:
+  <tmp>/prd-error-replay-<x>/run-1/ro/x
+  <tmp>/prd-error-replay-<x>/run-2/ro/x
+Diagnosis: -
+Resolution: -
+Recurrence of: -
