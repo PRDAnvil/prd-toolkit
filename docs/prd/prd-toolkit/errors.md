@@ -563,6 +563,7 @@ Recurrence of: -
 ### E-042 vendor's pack refusal says "install refused"
 Detected: 2026-11-21, adoption extract of hooks-install (prd-toolkit/scripts/prd_hooks.py:95 @07f77b1)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-107, FR-099
 Evidence: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action.
 Diagnosis: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action. `vendor` is documented as a separate action that "writes `.prd-toolkit/` … and nothing else" (README.md:418, hooks.py:311 docstring), and the hooks command names every other refusal after its own action (`prd_hooks: vendor runs from the plugin, …`, `--ci belongs to check`). Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
