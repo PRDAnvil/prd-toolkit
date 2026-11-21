@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 9.1.0 · Approved · Owner: Ivan Histand · Updated 2026-11-21
+Version 9.2.0 · Approved · Owner: Ivan Histand · Updated 2026-11-21
 
 ## What this PRD covers
 
@@ -23,6 +23,7 @@ Version 9.1.0 · Approved · Owner: Ivan Histand · Updated 2026-11-21
 | eval-scaffolds | adopted | [features/eval-scaffolds.md](features/eval-scaffolds.md) |
 | help | adopted | [features/help.md](features/help.md) |
 | hook-shims | adopted | [features/hook-shims.md](features/hook-shims.md) |
+| hooks-install | adopted | [features/hooks-install.md](features/hooks-install.md) |
 | inbox-cards | adopted | [features/inbox-cards.md](features/inbox-cards.md) |
 | launcher | adopted | [features/launcher.md](features/launcher.md) |
 | lint-cli | adopted | [features/lint-cli.md](features/lint-cli.md) |

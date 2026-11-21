@@ -1,0 +1,2076 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root, and <tmp> is the test's own tmp_path. Each scratch repository is built by step N0E
+#   (testing.md, Setup steps) from fixture status-next/empty, whose PRD folder is docs/prd/orders. "N0E in <tmp>/a"
+#   builds it in that folder.
+#   "python" is the interpreter running the tests (sys.executable). Every run is a subprocess with the environment the
+#   Setup steps give, plus GIT_CONFIG_GLOBAL=<tmp>/gitconfig-empty (an empty file the test writes) and
+#   GIT_CONFIG_NOSYSTEM=1, so no core.hooksPath comes from outside the scratch repository.
+#   HOOKS    = <repo>/prd-toolkit/scripts/prd_hooks.py          (the plugin's)
+#   VHOOKS   = <tmp>/.prd-toolkit/prd_hooks.py                  (the vendored copy, after VENDOR)
+#   DISPATCH = <repo>/prd-toolkit/scripts/prd_dispatch.py
+#   VENDOR   = copy fixture repo/vendored to <tmp>/.prd-toolkit, as its Load column says
+#   V        = the "version" of <repo>/prd-toolkit/.claude-plugin/plugin.json
+#   SHIM(h, p) = the text of <repo>/prd-toolkit/templates/hooks/<h>, read as UTF-8 with LF line ends, with every {{hook}} replaced by <h> and every
+#                {{prd}} by <p>
+#   LINE(h)  = the hook line of FR-102 for hook <h> and docs/prd/orders, written out in T-102.1 for pre-commit
+#   DEPLOY   = after N0E: write docs/prd/orders/operations.md as DEPLOY_OPS below; in docs/prd/orders/testing.md,
+#              insert the line "| system | `pytest tests/system` | local | deploy |" directly after the line
+#              "| integration | `pytest tests/integration` | local | build |"
+#   DEPLOY_OPS = "# Operations\n\n## Environments\n\n| Environment | URL | Production |\n|---|---|---|\n
+#              | staging | https://staging.example.com | no |\n| production | https://example.com | yes |\n\n
+#              ## Runbook\n\n1. System tests on staging (actor: agent) (env: staging)\n   Run: tests system\n
+#              2. Approve production (actor: human) (env: production)\n   Do: reply \"deploy production\"\n
+#              Check: the reply says \"deploy production\"\n\n## Drift\n\n
+#              | Environment | Check | Introspection command |\n|---|---|---|\n
+#              | production | version | `./app --prd-version` |\n\n## Secrets\n\n- DEPLOY_TOKEN: the deploy key\n"
+#              (each wrapped line continues the string; the "Do:" and "Check:" lines are indented three spaces)
+#   GH(id, cmds) = the GitHub job lines "  <id>:", "    runs-on: ubuntu-latest", "    steps:",
+#              "      - uses: actions/checkout@v4", "        with:", "          fetch-depth: 0",
+#              "      - uses: astral-sh/setup-uv@v5", then "      - run: <json.dumps(cmd)>" per command, then ""
+#   GL(id, cmds) = the GitLab job lines "<id>:", "  image: python:3.12", "  rules:",
+#              "    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'", "  before_script:",
+#              "    - \"pip install uv\"", "  script:", then "    - <json.dumps(cmd)>" per command, then ""
+#   A file "lines" list is compared to str.splitlines() of the file's text, which must also end in exactly one "\n".
+
+T-097.1:
+  ac: AC-097.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --gitlab --github docs/prd/orders
+    - python HOOKS ci docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr: "prd_hooks: ci needs exactly one of --gitlab or --github\n"
+    effects:
+    - "after both runs, <tmp>/.github and <tmp>/.gitlab do not exist"
+    errors: []
+    leaks: none
+
+T-097.2:
+  ac: AC-097.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS install --force docs/prd/orders
+    - python HOOKS check --github docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr: "prd_hooks: --gitlab, --github and --force belong to ci\n"
+    effects:
+    - "after both runs, <tmp>/.prd-toolkit and <tmp>/.git/hooks/commit-msg do not exist"
+    errors: []
+    leaks: none
+
+T-097.3:
+  ac: AC-097.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS install --ci docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: --ci belongs to check\n"
+    effects:
+    - "<tmp>/.prd-toolkit does not exist"
+    errors: []
+    leaks: none
+
+T-097.4:
+  ac: AC-097.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS frobnicate docs/prd/orders
+    - python HOOKS install
+    - python HOOKS --help
+    env: {COLUMNS: "80", PYTHON_COLORS: "0"}
+    note: "the env makes the help wrap at 80 columns and print no colour on every runner"
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stderr_first_line_starts: "usage: prd_hooks.py "
+        stderr_contains: "prd_hooks.py: error: "
+      run_2:
+        exit: 2
+        stderr_first_line_starts: "usage: prd_hooks.py "
+        stderr_contains: "prd_hooks.py: error: "
+      run_3:
+        exit: 0
+        stderr: ""
+        stdout_first_line_starts: "usage: prd_hooks.py [-h] [--gitlab] [--github] [--force] [--ci]"
+    effects:
+    - "after the runs, <tmp>/.prd-toolkit does not exist"
+    errors: []
+    leaks: none
+
+T-097.5:
+  ac: AC-097.5
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS install nope
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: <tmp, resolved as os.path.realpath gives it>/nope: no prd.md\n"
+    effects:
+    - "<tmp>/.prd-toolkit and <tmp>/.git/hooks/commit-msg do not exist"
+    errors: []
+    leaks: none
+
+T-098.1:
+  ac: AC-098.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "for each file AC-098.1 lists, the plugin file under <repo>/prd-toolkit and its copy under <tmp>/.prd-toolkit at the path AC-098.1 gives are byte-identical, and stat.S_IMODE of the two st_mode values is equal"
+    - "<tmp>/.prd-toolkit holds no folder named __pycache__ and no file ending .pyc"
+    - "<tmp>/.prd-toolkit/prdlint holds exactly the files of <repo>/prd-toolkit/scripts/prdlint outside __pycache__ folders and not ending .pyc, at the same relative paths"
+    errors: []
+    leaks: none
+
+T-098.2:
+  ac: AC-098.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_first_line: "vendored the toolkit into .prd-toolkit/ (version V)"
+    effects:
+    - "<tmp>/.prd-toolkit/VERSION is V followed by \"\\n\""
+    - "<tmp>/.prd-toolkit/.gitignore is \"__pycache__/\\n\""
+    errors: []
+    leaks: none
+
+T-098.3:
+  ac: AC-098.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a; N0E in <tmp>/b"
+    - "copy <repo>/prd-toolkit to <tmp>/plugin with shutil.copytree(symlinks=True), leaving out, at any depth, every folder named __pycache__, .uv-test-cache, .venv or .pytest_cache, and the folder the session's UV_CACHE_DIR names when it lies inside <repo>/prd-toolkit (testing.md, Clean state); check that <repo>/prd-toolkit/.claude-plugin/plugin.json has a homepage with text, and otherwise end the test as an error; in <tmp>/plugin/.claude-plugin/plugin.json delete the key homepage (rewrite it with json.dump)"
+    - "write the file <tmp>/b/.prd-toolkit/HOMEPAGE with the text \"https://stale.example.com\\n\""
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS install docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python <tmp>/plugin/scripts/prd_hooks.py install docs/prd/orders}
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - "<tmp>/a/.prd-toolkit/HOMEPAGE is the homepage of <repo>/prd-toolkit/.claude-plugin/plugin.json, trimmed, followed by \"\\n\""
+    - "<tmp>/b/.prd-toolkit/HOMEPAGE does not exist"
+    errors: []
+    leaks: none
+
+T-098.4:
+  ac: AC-098.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/.prd-toolkit/prdlint/stale.py (\"x = 1\\n\"), <tmp>/.prd-toolkit/judge/old/old.txt (\"old\\n\") and <tmp>/.prd-toolkit/languages/xx.yaml (\"language: xx\\n\"); create the empty folder <tmp>/.prd-toolkit/hooks/empty"
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "<tmp>/.prd-toolkit/prdlint/stale.py, <tmp>/.prd-toolkit/judge/old/old.txt, <tmp>/.prd-toolkit/judge/old, <tmp>/.prd-toolkit/languages/xx.yaml and <tmp>/.prd-toolkit/hooks/empty do not exist"
+    - "<tmp>/.prd-toolkit/hooks/commit-msg and <tmp>/.prd-toolkit/hooks/pre-commit exist"
+    errors: []
+    leaks: none
+
+T-098.5:
+  ac: AC-098.5
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "<tmp>/.prd-toolkit/requirements.txt is \"openapi-spec-validator>=0.7\\npyyaml>=6.0\\nsqlglot>=25\\n\""
+    - "<tmp>/.prd-toolkit/prd_publish.py and <tmp>/.prd-toolkit/requirements-publish.txt do not exist"
+    errors: []
+    leaks: none
+
+T-098.6:
+  known-failing: E-043
+  symptom: "the exit code is 2, stderr starts `prd_hooks: internal error: CalledProcessError`, and the folder <tmp>/docs/prd/orders/.prd-toolkit exists"
+  ac: AC-098.6
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "write each entry of fixture status-next/empty to <tmp>/<key> and run no git init; check that git rev-parse --show-toplevel exits other than 0 in <tmp>, and otherwise end the test as an error"
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: <tmp, resolved as os.path.realpath gives it>/docs/prd/orders is not inside a git checkout\n"
+    effects:
+    - "none of <tmp>/.prd-toolkit, <tmp>/docs/prd/orders/.prd-toolkit and <tmp>/docs/prd/orders/.gitignore exists"
+    errors: []
+    leaks: none
+
+T-099.1:
+  ac: AC-099.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "in docs/prd/orders/prd.md, insert the line \"- Pack: document 1.0.0 (prd-toolkit)\" directly after the line \"- Language: Python 3.12\""
+    - "write <tmp>/.prd-toolkit/packs/old/pack.yaml with the text \"pack: old\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - "the entries of <tmp>/.prd-toolkit/packs are exactly the folders document and service"
+    - "for each of document and service, the files of <tmp>/.prd-toolkit/packs/<name> and of <repo>/prd-toolkit/packs/<name>, outside __pycache__ folders and not ending .pyc, have the same relative paths and the same bytes"
+    errors: []
+    leaks: none
+
+T-099.2:
+  ac: AC-099.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a; N0E in <tmp>/b"
+    - "in <tmp>/b/docs/prd/orders/prd.md, insert the line \"- Pack: document 1.0.0 (prd-toolkit)\" directly after the line \"- Language: Python 3.12\""
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS install docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS install docs/prd/orders}
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - "<tmp>/a/.prd-toolkit/pack-sources.json is \"{\\n  \\\"service\\\": \\\"prd-toolkit\\\"\\n}\\n\""
+    - "<tmp>/b/.prd-toolkit/pack-sources.json is \"{\\n  \\\"document\\\": \\\"prd-toolkit\\\",\\n  \\\"service\\\": \\\"prd-toolkit\\\"\\n}\\n\""
+    errors: []
+    leaks: none
+
+T-099.3:
+  ac: AC-099.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "in docs/prd/orders/prd.md, insert the line \"- Pack: nosuch 1.0.0 (prd-toolkit)\" directly after the line \"- Language: Python 3.12\""
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr_contains: "prd_hooks: install refused: pack nosuch 1.0.0 (prd-toolkit) not found; looked in: "
+    effects:
+    - "none of <tmp>/.prd-toolkit, <tmp>/.git/hooks/commit-msg, <tmp>/.git/hooks/pre-commit, <tmp>/.gitignore, <tmp>/CLAUDE.md, <tmp>/docs/prd/orders/README.md and <tmp>/docs/prd/README.md exists"
+    errors: []
+    leaks: none
+
+T-099.4:
+  ac: AC-099.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "in docs/prd/orders/prd.md, insert the line \"- Pack: service 9.9.9 (prd-toolkit)\" directly after the line \"- Language: Python 3.12\""
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+    note: "the toolkit's own packs/service/pack.yaml holds version 1.0.0, and the case assumes no plugin installed on the runner ships a pack named service at another version"
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr_contains:
+      - "prd_hooks: install refused: pack service 9.9.9 (prd-toolkit) not found; looked in: "
+      - "; to move the PRD to service 1.0.0, run prd_change.py pack docs/prd/orders service 1.0.0"
+    effects:
+    - "none of <tmp>/.prd-toolkit, <tmp>/.git/hooks/commit-msg, <tmp>/.git/hooks/pre-commit, <tmp>/.gitignore, <tmp>/CLAUDE.md, <tmp>/docs/prd/orders/README.md and <tmp>/docs/prd/README.md exists"
+    errors: []
+    leaks: none
+
+T-100.1:
+  ac: AC-100.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a; N0E in <tmp>/b"
+    - "write <tmp>/a/.gitignore with the text \"node_modules\\n  .prd-review.json  \\nbuild\" (no newline at the end); write no <tmp>/b/.gitignore"
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS install docs/prd/orders}
+    - {cwd: "<tmp>/a", command: python HOOKS install docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS install docs/prd/orders}
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - "after run_1, <tmp>/a/.gitignore is \"node_modules\\n  .prd-review.json  \\nbuild\\n.prd-judge/\\n\""
+    - "after run_2, <tmp>/a/.gitignore is unchanged from after run_1"
+    - "after run_3, <tmp>/b/.gitignore is \".prd-judge/\\n.prd-review.json\\n\""
+    errors: []
+    leaks: none
+
+T-101.1:
+  ac: AC-101.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS install docs/prd/orders
+    - python HOOKS install docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout_lines_in_this_relative_order:
+        - "installed .git/hooks/commit-msg"
+        - "installed .git/hooks/pre-commit"
+    effects:
+    - "after each run, <tmp>/.git/hooks/commit-msg is byte-identical to SHIM(commit-msg, docs/prd/orders), and <tmp>/.git/hooks/pre-commit to SHIM(pre-commit, docs/prd/orders)"
+    - "after each run, stat.S_IMODE(os.stat(<file>).st_mode) is 0o755 for each of those two files"
+    errors: []
+    leaks: none
+
+T-101.2:
+  ac: AC-101.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "rename the folder <tmp>/docs/prd/orders to <tmp>/docs/prd/or $ders (a space and a dollar sign in its name)"
+    cwd: "<tmp>"
+    command: ["python", "HOOKS", "install", "docs/prd/or $ders"]
+  expect:
+    output:
+      exit: 0
+      stdout_contains_line: "installed .git/hooks/commit-msg"
+    effects:
+    - "<tmp>/.git/hooks/commit-msg is byte-identical to SHIM(commit-msg, docs/prd/or \\$ders): the dollar sign is preceded by one backslash"
+    errors: []
+    leaks: none
+
+T-101.3:
+  ac: AC-101.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "delete the folder <tmp>/.git/hooks and all it holds"
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS install docs/prd/orders
+    - git config --get core.hooksPath
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout_lines_in_this_relative_order:
+        - "installed .git/hooks/commit-msg"
+        - "installed .git/hooks/pre-commit"
+      run_2:
+        exit: 1
+        stdout: ""
+    effects:
+    - "after run_1, <tmp>/.git/hooks/commit-msg and <tmp>/.git/hooks/pre-commit exist"
+    errors: []
+    leaks: none
+
+T-102.1:
+  ac: AC-102.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "write <tmp>/.git/hooks/pre-commit with the text \"#!/bin/sh\\necho mine\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stdout_lines_in_this_relative_order:
+      - "installed .git/hooks/commit-msg"
+      - '.git/hooks/pre-commit already exists and was left alone; add this line to .git/hooks/pre-commit (an sh hook; place it before any `exit 0` in it): prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f "$prd_top/.prd-toolkit/prd_git_hook.py" ] && [ ! -f "$prd_top/.prd-toolkit/prd" ]; then echo "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped" >&2; elif [ -f "$prd_top/.prd-toolkit/prd_git_hook.py" ] && [ -f "$prd_top/.prd-toolkit/prd" ] && [ -d "$prd_top/docs/prd/orders" ]; then command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }; sh "$prd_top/.prd-toolkit/prd" git-hook pre-commit "$prd_top/docs/prd/orders" "$@" || exit $?; else echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; fi'
+      stdout_not_contains: "installed .git/hooks/pre-commit"
+    effects:
+    - "<tmp>/.git/hooks/pre-commit is \"#!/bin/sh\\necho mine\\n\", unchanged"
+    errors: []
+    leaks: none
+
+T-102.2:
+  ac: AC-102.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "write <tmp>/.git/hooks/pre-commit with the text \"#!/bin/sh\\nuv run --script .prd-toolkit/prd_git_hook.py pre-commit docs/prd/orders\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stdout_contains_line: ".git/hooks/pre-commit already exists and was left alone; replace its uv run --script … prd_git_hook.py line in .git/hooks/pre-commit with this line: LINE(pre-commit)"
+    effects:
+    - "<tmp>/.git/hooks/pre-commit is unchanged"
+    errors: []
+    leaks: none
+
+T-103.1:
+  ac: AC-103.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/repo; VENDOR into <tmp>/repo/.prd-toolkit"
+    - "write <tmp>/repo/.prd-toolkit/prd with the text \"#!/bin/sh\\nprintf '%s\\\\n' \\\"$@\\\" > \\\"$STUB_LOG\\\"\\nexit \\\"${STUB_EXIT:-0}\\\"\\n\": a stub launcher that writes each argument on its own line to the file STUB_LOG names and exits STUB_EXIT, 0 when unset"
+    - "write <tmp>/hook.sh with the text \"#!/bin/sh\\n\" + LINE(pre-commit) + \"\\necho after\\n\""
+    cwd: "<tmp>/repo"
+    env: {STUB_LOG: "<tmp>/stub.log"}
+    command: sh <tmp>/hook.sh a b
+    note: "uv is on PATH (Tools on the runner); the stub stands in for the launcher, so uv is never run"
+  expect:
+    output:
+      exit: 0
+      stdout: "after\n"
+      stderr: ""
+    effects:
+    - "<tmp>/stub.log holds the lines git-hook, pre-commit, <top>/docs/prd/orders, a and b, in that order and nothing else, <top> being what git rev-parse --show-toplevel prints in <tmp>/repo"
+    errors: []
+    leaks: none
+
+T-103.2:
+  ac: AC-103.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["as T-103.1"]
+    cwd: "<tmp>/repo"
+    env: {STUB_LOG: "<tmp>/stub.log", STUB_EXIT: "3"}
+    command: sh <tmp>/hook.sh
+  expect:
+    output:
+      exit: 3
+      stdout: ""
+    effects:
+    - "<tmp>/stub.log exists"
+    errors: []
+    leaks: none
+
+T-103.3:
+  ac: AC-103.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "as T-103.1"
+    - "create <tmp>/bin holding only a symbolic link named git whose target is the real path of the runner's git (os.path.realpath(shutil.which(\"git\"))); check that <tmp>/bin/git --version exits 0 with PATH set to <tmp>/bin, and otherwise end the test as an error, since that git needs another program on PATH"
+    cwd: "<tmp>/repo"
+    env: {STUB_LOG: "<tmp>/stub.log", PATH: "<tmp>/bin"}
+    command: /bin/sh <tmp>/hook.sh
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "prd-toolkit: uv is not on PATH; install uv to run this hook\n"
+    effects:
+    - "<tmp>/stub.log does not exist"
+    errors: []
+    leaks: none
+
+T-103.4:
+  ac: AC-103.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "as T-103.1"
+    - "delete <tmp>/repo/.prd-toolkit/prd"
+    cwd: "<tmp>/repo"
+    env: {STUB_LOG: "<tmp>/stub.log"}
+    command: sh <tmp>/hook.sh
+  expect:
+    output:
+      exit: 0
+      stdout: "after\n"
+      stderr: "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped\n"
+    effects:
+    - "<tmp>/stub.log does not exist"
+    errors: []
+    leaks: none
+
+T-103.5:
+  ac: AC-103.5
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["as T-103.1"]
+    cwd: "<tmp>/repo"
+    env: {STUB_LOG: "<tmp>/stub.log"}
+    runs:
+    - "rename <tmp>/repo/docs/prd/orders to <tmp>/repo/docs/prd/gone, then: sh <tmp>/hook.sh"
+    - "rename it back, delete <tmp>/repo/.prd-toolkit/prd_git_hook.py, then: sh <tmp>/hook.sh"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "after\n"
+        stderr: "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped\n"
+    effects:
+    - "after both runs, <tmp>/stub.log does not exist"
+    errors: []
+    leaks: none
+
+T-103.6:
+  ac: AC-103.6
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "as T-103.1"
+    - "create the empty folder <tmp>/outside; check that git rev-parse --show-toplevel exits other than 0 there, and otherwise end the test as an error"
+    cwd: "<tmp>/outside"
+    env: {STUB_LOG: "<tmp>/stub.log"}
+    command: sh <tmp>/hook.sh
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+    effects:
+    - "<tmp>/stub.log does not exist"
+    errors: []
+    leaks: none
+
+T-104.1:
+  ac: AC-104.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS install docs/prd/orders
+    - python HOOKS install docs/prd/orders
+    note: "the fixture holds no CLAUDE.md and no README.md"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout_lines_in_this_relative_order:
+        - "installed .git/hooks/pre-commit"
+        - "refreshed CLAUDE.md"
+        - "refreshed docs/prd/orders/README.md"
+        - "refreshed docs/prd/README.md"
+      run_2:
+        exit: 0
+        stdout_not_contains: "refreshed "
+    effects:
+    - "after run_1, <tmp>/CLAUDE.md, <tmp>/docs/prd/orders/README.md and <tmp>/docs/prd/README.md exist"
+    - "after run_2, those three files are unchanged from after run_1"
+    errors: []
+    leaks: none
+
+T-104.2:
+  ac: AC-104.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "write <tmp>/CLAUDE.md with the text \"<!-- prd-toolkit:start -->\\n<!-- prd-toolkit:start -->\\n<!-- prd-toolkit:end -->\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr_contains_line: "prd_hooks: install refused: CLAUDE.md: more than one prd-toolkit block; fix the marker, then run prd_block.py docs/prd/orders"
+    effects:
+    - "<tmp>/.prd-toolkit, <tmp>/.gitignore, <tmp>/docs/prd/orders/README.md, <tmp>/.git/hooks/commit-msg and <tmp>/.git/hooks/pre-commit do not exist"
+    - "<tmp>/CLAUDE.md is unchanged"
+    errors: []
+    leaks: none
+
+T-105.1:
+  ac: AC-105.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a; N0E in <tmp>/b"
+    - "write <tmp>/a/.gitlab/prd-toolkit.yml and <tmp>/a/.github/workflows/prd-toolkit.yml, each with the text \"# old\\n\""
+    - "in <tmp>/b run python HOOKS ci --github docs/prd/orders and python HOOKS ci --gitlab docs/prd/orders"
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS install docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS install docs/prd/orders}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout_last_two_lines:
+        - "stale: .gitlab/prd-toolkit.yml: re-run prd_hooks.py ci --gitlab --force"
+        - "stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force"
+      run_2:
+        exit: 0
+        stdout_not_contains: "stale: "
+    effects:
+    - "after run_1, both CI files of <tmp>/a are \"# old\\n\", unchanged"
+    - "after run_2, both CI files of <tmp>/b are unchanged"
+    errors: []
+    leaks: none
+    # stdout_last_two_lines: the last two lines of str.splitlines() of stdout equal the list, in order
+
+T-106.1:
+  ac: AC-106.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input:
+    setup:
+    - N0E
+    - VENDOR
+    - "write <tmp>/.github/workflows/prd-toolkit.yml with the text \"# old\\n\""
+    cwd: "<tmp>"
+    command: python VHOOKS install docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines:
+      - "installed .git/hooks/commit-msg"
+      - "installed .git/hooks/pre-commit"
+      - "stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force"
+    effects:
+    - "<tmp>/.git/hooks/commit-msg is the text of <tmp>/.prd-toolkit/hooks/commit-msg with {{hook}} replaced by commit-msg and {{prd}} by docs/prd/orders"
+    - "every file under <tmp>/.prd-toolkit is unchanged"
+    - "<tmp>/.gitignore, <tmp>/CLAUDE.md and <tmp>/docs/prd/orders/README.md do not exist"
+    errors: []
+    leaks: none
+
+T-107.1:
+  ac: AC-107.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: ["N0E in <tmp>/a; N0E in <tmp>/b"]
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS install docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS vendor docs/prd/orders}
+  expect:
+    output:
+      run_1:
+        exit: 0
+      run_2:
+        exit: 0
+        stderr: ""
+        stdout: "vendored the toolkit into .prd-toolkit/ (version V)\n"
+    effects:
+    - "<tmp>/a/.prd-toolkit and <tmp>/b/.prd-toolkit hold the same relative file paths with the same bytes"
+    - "<tmp>/b/.git/hooks/commit-msg, <tmp>/b/.git/hooks/pre-commit, <tmp>/b/.gitignore, <tmp>/b/CLAUDE.md, <tmp>/b/docs/prd/orders/README.md, <tmp>/b/docs/prd/README.md, <tmp>/b/.github and <tmp>/b/.gitlab do not exist"
+    errors: []
+    leaks: none
+
+T-107.2:
+  ac: AC-107.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input:
+    setup: [N0E, VENDOR]
+    cwd: "<tmp>"
+    command: python VHOOKS vendor docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: vendor runs from the plugin, not from .prd-toolkit/\n"
+    effects:
+    - "every file under <tmp>/.prd-toolkit is unchanged"
+    errors: []
+    leaks: none
+
+T-107.3:
+  ac: AC-107.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "in docs/prd/orders/prd.md, insert the line \"- Pack: nosuch 1.0.0 (prd-toolkit)\" directly after the line \"- Language: Python 3.12\""
+    cwd: "<tmp>"
+    command: python HOOKS vendor docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+    effects:
+    - "<tmp>/.prd-toolkit does not exist"
+    errors: []
+    leaks: none
+
+T-107.4:
+  known-failing: E-042
+  symptom: "the exit code is 2 and stderr holds `prd_hooks: install refused: pack nosuch 1.0.0 (prd-toolkit) not found; looked in: ` and does not hold `vendor refused`"
+  ac: AC-107.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "in docs/prd/orders/prd.md, insert the line \"- Pack: nosuch 1.0.0 (prd-toolkit)\" directly after the line \"- Language: Python 3.12\""
+    cwd: "<tmp>"
+    command: python HOOKS vendor docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr_contains: "prd_hooks: vendor refused: pack nosuch 1.0.0 (prd-toolkit) not found; looked in: "
+    effects:
+    - "<tmp>/.prd-toolkit does not exist"
+    errors: []
+    leaks: none
+
+T-107.5:
+  known-failing: E-043
+  symptom: "the exit code is 0 and the folder <tmp>/docs/prd/orders/.prd-toolkit exists"
+  ac: AC-107.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "write each entry of fixture status-next/empty to <tmp>/<key> and run no git init; check that git rev-parse --show-toplevel exits other than 0 in <tmp>, and otherwise end the test as an error"
+    cwd: "<tmp>"
+    command: python HOOKS vendor docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: <tmp, resolved as os.path.realpath gives it>/docs/prd/orders is not inside a git checkout\n"
+    effects:
+    - "neither <tmp>/.prd-toolkit nor <tmp>/docs/prd/orders/.prd-toolkit exists"
+    errors: []
+    leaks: none
+
+T-108.1:
+  ac: AC-108.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout: ".prd-toolkit/ is missing; run prd_hooks.py install\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-108.2:
+  ac: AC-108.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/.prd-toolkit/VERSION as \"0.0.1\\n\"; append the line \"# changed\" to <tmp>/.prd-toolkit/prd_lint.py; delete <tmp>/.prd-toolkit/prd_trace.py; write <tmp>/.prd-toolkit/prdlint/stale.py as \"x = 1\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_exact_lines:
+      - ".prd-toolkit/VERSION 0.0.1 differs from the plugin version V"
+      - ".prd-toolkit/prd_lint.py differs from the plugin copy"
+      - ".prd-toolkit/prd_trace.py is missing"
+      - ".prd-toolkit/prdlint/stale.py is not in the plugin"
+    effects:
+    - "every file under <tmp>/.prd-toolkit is unchanged by the run"
+    errors: []
+    leaks: none
+
+T-108.3:
+  ac: AC-108.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-108.4:
+  ac: AC-108.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "delete <tmp>/.prd-toolkit/VERSION"
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - ".prd-toolkit/VERSION (none) differs from the plugin version V"
+    effects: []
+    errors: []
+    leaks: none
+
+T-108.5:
+  ac: AC-108.5
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input:
+    setup: [N0E, VENDOR]
+    cwd: "<tmp>"
+    command: python VHOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: run check from the plugin, not the vendored copy\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-108.6:
+  known-failing: E-045
+  symptom: "the exit code is 0 and stdout is empty: neither file gets a line"
+  ac: AC-108.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/.prd-toolkit/prd_retired.py with the line `x = 1` and <tmp>/.prd-toolkit/templates/old.md with the line `old`"
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_lines_any_order_exact:
+      - ".prd-toolkit/prd_retired.py is not in the plugin"
+      - ".prd-toolkit/templates/old.md is not in the plugin"
+    effects: []
+    errors: []
+    leaks: none
+
+T-109.1:
+  ac: AC-109.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "append the line \"echo extra\" to <tmp>/.git/hooks/pre-commit"
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "stale: .git/hooks/pre-commit; run prd_hooks.py install"
+    effects: []
+    errors: []
+    leaks: none
+
+T-109.2:
+  ac: AC-109.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/.git/hooks/pre-commit with the text \"#!/bin/sh\\nuv run --script .prd-toolkit/prd_git_hook.py pre-commit docs/prd/orders\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "stale: .git/hooks/pre-commit; replace its uv run --script … prd_git_hook.py line with the line prd_hooks.py install prints"
+    effects: []
+    errors: []
+    leaks: none
+
+T-109.3:
+  ac: AC-109.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/.git/hooks/commit-msg as SHIM(commit-msg, docs/prd/other); delete <tmp>/.git/hooks/pre-commit"
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS check docs/prd/orders
+    - "write <tmp>/.git/hooks/pre-commit as \"#!/bin/sh\\necho mine\\n\", then: python HOOKS check docs/prd/orders"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-110.1:
+  ac: AC-110.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "delete the folder <tmp>/.prd-toolkit/packs/service"
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "packs/service: missing; source prd-toolkit 1.0.0; run prd_hooks.py install"
+    effects: []
+    errors: []
+    leaks: none
+
+T-110.2:
+  ac: AC-110.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "append the line \"# edited\" to <tmp>/.prd-toolkit/packs/service/pack.yaml"
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "packs/service: differs from prd-toolkit 1.0.0; run prd_hooks.py install"
+    effects: []
+    errors: []
+    leaks: none
+
+T-110.3:
+  ac: AC-110.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    cwd: "<tmp>"
+    runs:
+    - "write <tmp>/.prd-toolkit/pack-sources.json as \"{}\\n\", then: python HOOKS check docs/prd/orders"
+    - "write <tmp>/.prd-toolkit/pack-sources.json as \"{\\\"service\\\": \\\"kit@example\\\"}\\n\", then: python HOOKS check docs/prd/orders"
+    - "write <tmp>/.prd-toolkit/pack-sources.json as \"not json\\n\", then: python HOOKS check docs/prd/orders"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout_exact_lines: ["packs/service: vendored from an unrecorded source, the PRD names prd-toolkit; run prd_hooks.py install"]
+      run_2:
+        exit: 1
+        stdout_exact_lines: ["packs/service: vendored from kit@example, the PRD names prd-toolkit; run prd_hooks.py install"]
+      run_3:
+        exit: 1
+        stdout_exact_lines: ["packs/service: vendored from an unrecorded source, the PRD names prd-toolkit; run prd_hooks.py install"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-111.1:
+  ac: AC-111.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/CLAUDE.md as \"# Notes\\n\""
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS check docs/prd/orders
+    - python HOOKS check --ci docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stderr: ""
+        stdout_exact_lines:
+        - "stale: CLAUDE.md; run prd_block.py docs/prd/orders"
+    effects:
+    - "after both runs, <tmp>/CLAUDE.md is \"# Notes\\n\", unchanged"
+    errors: []
+    leaks: none
+
+T-111.2:
+  ac: AC-111.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/CLAUDE.md with the text \"<!-- prd-toolkit:start -->\\n<!-- prd-toolkit:start -->\\n<!-- prd-toolkit:end -->\\n\""
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS check --ci docs/prd/orders
+    - python HOOKS check docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stderr: ""
+        stdout_exact_lines:
+        - "stale: CLAUDE.md: more than one prd-toolkit block; run prd_block.py docs/prd/orders"
+    effects: []
+    errors: []
+    leaks: none
+
+T-111.3:
+  ac: AC-111.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "append the line \"CLAUDE.md\" to <tmp>/.gitignore; write <tmp>/CLAUDE.md as \"# Notes\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS check --ci docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-111.4:
+  ac: AC-111.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "append the line \"# changed\" to <tmp>/.prd-toolkit/prd_lint.py; write <tmp>/.prd-toolkit/VERSION as \"0.0.1\\n\"; append the line \"echo extra\" to <tmp>/.git/hooks/pre-commit; append the line \"# edited\" to <tmp>/.prd-toolkit/packs/service/pack.yaml"
+    cwd: "<tmp>"
+    command: python HOOKS check --ci docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-111.5:
+  ac: AC-111.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input:
+    setup:
+    - N0E
+    - VENDOR
+    - "run python HOOKS ci --github docs/prd/orders in <tmp>"
+    cwd: "<tmp>"
+    command: python VHOOKS check --ci docs/prd/orders
+    note: "no managed block was written, so CLAUDE.md is absent and its block stale; the CI file is current"
+  expect:
+    output:
+      exit: 1
+      stderr: ""
+      stdout_contains_line: "stale: CLAUDE.md; run prd_block.py docs/prd/orders"
+      stdout_not_contains: "stale: .github"
+    effects: []
+    errors: []
+    leaks: none
+
+T-111.6:
+  ac: AC-111.5
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "write each entry of fixture status-next/empty to <tmp>/<key> and run no git init; check that git rev-parse --show-toplevel exits other than 0 in <tmp>, and otherwise end the test as an error"
+    cwd: "<tmp>"
+    command: python HOOKS check --ci docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: <tmp, resolved as os.path.realpath gives it>/docs/prd/orders is not inside a git checkout\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-111.7:
+  ac: AC-111.6
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/.github/workflows/prd-toolkit.yml as \"# old\\n\""
+    cwd: "<tmp>"
+    command: python HOOKS check docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force"
+    effects: []
+    errors: []
+    leaks: none
+
+T-112.1:
+  ac: AC-112.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "write <tmp>/.git/hooks/pre-commit as \"#!/bin/sh\\necho mine\\n\""
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS uninstall docs/prd/orders
+    - python HOOKS uninstall docs/prd/orders
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout_exact_lines: ["removed .git/hooks/commit-msg"]
+      run_2:
+        exit: 0
+        stdout: ""
+    effects:
+    - "after run_1, <tmp>/.git/hooks/commit-msg does not exist, <tmp>/.git/hooks/pre-commit is \"#!/bin/sh\\necho mine\\n\", and every file under <tmp>/.prd-toolkit is unchanged"
+    errors: []
+    leaks: none
+
+T-112.2:
+  known-failing: E-044
+  symptom: "the lines of stdout (str.splitlines()) are exactly the one line `core.hooksPath is set to .git/hooks; removed nothing`, and both hook files are still there"
+  ac: AC-112.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "run python HOOKS install docs/prd/orders in <tmp>"
+    - "run git config core.hooksPath .git/hooks in <tmp>"
+    cwd: "<tmp>"
+    command: python HOOKS uninstall docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines: ["removed .git/hooks/commit-msg", "removed .git/hooks/pre-commit"]
+    effects:
+    - "neither <tmp>/.git/hooks/commit-msg nor <tmp>/.git/hooks/pre-commit exists"
+    errors: []
+    leaks: none
+
+T-113.1:
+  ac: AC-113.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --github docs/prd/orders
+    - python HOOKS ci --gitlab docs/prd/orders
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        stdout: "wrote .github/workflows/prd-toolkit.yml\n"
+      run_2:
+        exit: 0
+        stderr: ""
+        stdout: "wrote .gitlab/prd-toolkit.yml\ninclude: '.gitlab/prd-toolkit.yml'\n"
+    effects:
+    - "<tmp>/.github/workflows/prd-toolkit.yml and <tmp>/.gitlab/prd-toolkit.yml exist and hold no \\r byte"
+    errors: []
+    leaks: none
+
+T-113.2:
+  ac: AC-113.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a; N0E in <tmp>/b; run python HOOKS ci --github docs/prd/orders in <tmp>/b"
+    - "write <tmp>/a/.github/workflows/prd-toolkit.yml as \"# old\\n\""
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS ci --github docs/prd/orders}
+    - {cwd: "<tmp>/a", command: python HOOKS ci --github --force docs/prd/orders}
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout_first_line: "--- .github/workflows/prd-toolkit.yml (existing)"
+        stdout_lines_in_this_relative_order:
+        - "+++ .github/workflows/prd-toolkit.yml (generated)"
+        - "-# old"
+        - ".github/workflows/prd-toolkit.yml exists and differs; rerun with --force to overwrite it"
+      run_2:
+        exit: 0
+        stdout: "wrote .github/workflows/prd-toolkit.yml\n"
+    effects:
+    - "after run_1, <tmp>/a/.github/workflows/prd-toolkit.yml is \"# old\\n\", unchanged"
+    - "after run_2, it is byte-identical to <tmp>/b/.github/workflows/prd-toolkit.yml"
+    errors: []
+    leaks: none
+
+T-113.3:
+  ac: AC-113.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --gitlab docs/prd/orders
+    - python HOOKS ci --gitlab docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "wrote .gitlab/prd-toolkit.yml\ninclude: '.gitlab/prd-toolkit.yml'\n"
+    effects:
+    - "after run_2, <tmp>/.gitlab/prd-toolkit.yml is byte-identical to its text after run_1"
+    errors: []
+    leaks: none
+
+T-113.4:
+  ac: AC-113.4
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input:
+    setup:
+    - N0E
+    - VENDOR
+    - "delete <tmp>/.prd-toolkit/prd"
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: .prd-toolkit/ predates 0.8.8 (no .prd-toolkit/prd); run prd_hooks.py install docs/prd/orders first\n"
+    effects:
+    - "<tmp>/.github does not exist"
+    errors: []
+    leaks: none
+
+T-113.5:
+  known-failing: E-043
+  symptom: "the exit code is 0 and the file <tmp>/docs/prd/orders/.github/workflows/prd-toolkit.yml exists"
+  ac: AC-113.5
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "write each entry of fixture status-next/empty to <tmp>/<key> and run no git init; check that git rev-parse --show-toplevel exits other than 0 in <tmp>, and otherwise end the test as an error"
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd_hooks: <tmp, resolved as os.path.realpath gives it>/docs/prd/orders is not inside a git checkout\n"
+    effects:
+    - "neither <tmp>/.github nor <tmp>/docs/prd/orders/.github exists"
+    errors: []
+    leaks: none
+
+T-114.1:
+  ac: AC-114.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a; N0E in <tmp>/b"
+    - "write <tmp>/b/docs/prd/orders/links.md as \"# Links\\n\\n## Upstreams\\n\\n| Upstream | Location | Version | Commit | Needs |\\n|---|---|---|---|---|\\n\""
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS ci --github docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS ci --github docs/prd/orders}
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - file: "<tmp>/a/.github/workflows/prd-toolkit.yml"
+      read_as_yaml:
+        "jobs keys, in order": [prd-lint, prd-trace, test-unit, test-integration]
+        "jobs.prd-lint.steps.2.run": "sh .prd-toolkit/prd lint --ci docs/prd/orders"
+        "jobs.prd-lint.steps.3.run": "sh .prd-toolkit/prd hooks check --ci docs/prd/orders"
+        "jobs.prd-lint.steps length": 4
+        "jobs.prd-trace.steps.2.run": "sh .prd-toolkit/prd trace docs/prd/orders --range ${{ github.event.pull_request.base.sha }}..HEAD"
+        "jobs.test-unit.steps.2.run": "pytest tests/unit"
+        "jobs.test-integration.steps.2.run": "pytest tests/integration"
+    - file: "<tmp>/b/.github/workflows/prd-toolkit.yml"
+      read_as_yaml:
+        "jobs.prd-lint.steps.4.run": "sh .prd-toolkit/prd links check --ci docs/prd/orders"
+        "jobs.prd-lint.steps length": 5
+    errors: []
+    leaks: none
+
+T-114.2:
+  ac: AC-114.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "in docs/prd/orders/testing.md, replace the two Levels rows with \"| a.b | `pytest tests/ab` | local | build |\" and \"| a b | `pytest tests/a_b` | local | build |\""
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - file: "<tmp>/.github/workflows/prd-toolkit.yml"
+      read_as_yaml:
+        "jobs keys, in order": [prd-lint, prd-trace, test-a-b, test-a-b-2]
+        "jobs.test-a-b.steps.2.run": "pytest tests/ab"
+        "jobs.test-a-b-2.steps.2.run": "pytest tests/a_b"
+    errors: []
+    leaks: none
+
+T-115.1:
+  ac: AC-115.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, DEPLOY]
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - file: "<tmp>/.github/workflows/prd-toolkit.yml"
+      read_as_yaml:
+        "jobs keys, in order": [prd-lint, prd-trace, test-unit, test-integration, drift-production, test-deploy-staging]
+        "jobs.drift-production.steps.2.run": "sh .prd-toolkit/prd drift docs/prd/orders --env production"
+        "jobs.drift-production.steps length": 3
+        "jobs.test-deploy-staging.steps.2.run": "export PRD_ENV=staging TEST_ENV=staging; pytest tests/system"
+        "jobs.test-deploy-staging.steps length": 3
+    errors: []
+    leaks: none
+
+T-116.1:
+  ac: AC-116.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS ci --gitlab docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - file: "<tmp>/.gitlab/prd-toolkit.yml"
+      lines: >-
+        ["# Generated by prd_hooks.py ci --gitlab; regenerate rather than edit.", ""]
+        + GL(prd-lint, ["sh .prd-toolkit/prd lint --ci docs/prd/orders", "sh .prd-toolkit/prd hooks check --ci docs/prd/orders"])
+        + GL(prd-trace, ["sh .prd-toolkit/prd trace docs/prd/orders --range $CI_MERGE_REQUEST_DIFF_BASE_SHA..HEAD"]) with
+          the two lines "  variables:" and "    GIT_DEPTH: \"0\"" inserted directly before "  before_script:"
+        + GL(test-unit, ["pytest tests/unit"])
+        + GL(test-integration, ["pytest tests/integration"]) without its last empty line
+    errors: []
+    leaks: none
+
+T-116.2:
+  ac: AC-116.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, DEPLOY]
+    cwd: "<tmp>"
+    command: python HOOKS ci --gitlab docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - file: "<tmp>/.gitlab/prd-toolkit.yml"
+      contains_lines_in_this_order:
+      - "drift-production:"
+      - "  image: python:3.12"
+      - "  rules:"
+      - "    - when: manual"
+      - "  allow_failure: true"
+      - "  before_script:"
+      - '    - "pip install uv"'
+      - "  script:"
+      - '    - "sh .prd-toolkit/prd drift docs/prd/orders --env production"'
+      - ""
+      - "test-deploy-staging:"
+      - "  image: python:3.12"
+      - "  rules:"
+      - "    - when: manual"
+      - "  allow_failure: true"
+      - "  before_script:"
+      - '    - "pip install uv"'
+      - "  script:"
+      - '    - "export PRD_ENV=staging TEST_ENV=staging; pytest tests/system"'
+      note: "the lines are consecutive, and they are the last lines of the file"
+    errors: []
+    leaks: none
+
+T-117.1:
+  ac: AC-117.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E]
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - file: "<tmp>/.github/workflows/prd-toolkit.yml"
+      lines: >-
+        ["# Generated by prd_hooks.py ci --github; regenerate rather than edit.", "name: prd-toolkit", "on:",
+         "  pull_request:", "", "permissions:", "  contents: read", "", "jobs:"]
+        + GH(prd-lint, ["sh .prd-toolkit/prd lint --ci docs/prd/orders", "sh .prd-toolkit/prd hooks check --ci docs/prd/orders"])
+        + GH(prd-trace, ["sh .prd-toolkit/prd trace docs/prd/orders --range ${{ github.event.pull_request.base.sha }}..HEAD"])
+        + GH(test-unit, ["pytest tests/unit"])
+        + GH(test-integration, ["pytest tests/integration"]) without its last empty line
+    errors: []
+    leaks: none
+
+T-117.2:
+  ac: AC-117.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, DEPLOY]
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - file: "<tmp>/.github/workflows/prd-toolkit.yml"
+      first_lines:
+      - "# Generated by prd_hooks.py ci --github; regenerate rather than edit."
+      - "# Manual jobs may need these secrets (operations.md Secrets): DEPLOY_TOKEN"
+      - "name: prd-toolkit"
+      - "on:"
+      - "  pull_request:"
+      - "  workflow_dispatch:"
+      - ""
+    - file: "<tmp>/.github/workflows/prd-toolkit.yml"
+      line_after:
+        "  prd-lint:": "    if: \"github.event_name == 'pull_request'\""
+        "  test-integration:": "    if: \"github.event_name == 'pull_request'\""
+        "  drift-production:": "    if: \"github.event_name == 'workflow_dispatch'\""
+        "  test-deploy-staging:": "    if: \"github.event_name == 'workflow_dispatch'\""
+    errors: []
+    leaks: none
+
+T-118.1:
+  ac: AC-118.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - DEPLOY
+    - "in docs/prd/orders/operations.md, replace the line \"- DEPLOY_TOKEN: the deploy key\" with the two lines \"- DEPLOY_TOKEN: the deploy key\" and \"- DB_URL, DB_PASSWORD: the database\""
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --gitlab docs/prd/orders
+    - python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - "line 2 of <tmp>/.gitlab/prd-toolkit.yml and line 2 of <tmp>/.github/workflows/prd-toolkit.yml are each \"# Manual jobs may need these secrets (operations.md Secrets): DEPLOY_TOKEN, DB_URL, DB_PASSWORD\""
+    errors: []
+    leaks: none
+
+T-118.2:
+  ac: AC-118.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a, then append to <tmp>/a/docs/prd/orders/operations.md the text \"\\n## Secrets\\n\\n- DEPLOY_TOKEN: the deploy key\\n\" (a secret, no manual job)"
+    - "N0E in <tmp>/b, then DEPLOY in <tmp>/b, then delete from <tmp>/b/docs/prd/orders/operations.md the line \"## Secrets\" and every line after it (manual jobs, no secret)"
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS ci --gitlab docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS ci --gitlab docs/prd/orders}
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - "neither <tmp>/a/.gitlab/prd-toolkit.yml nor <tmp>/b/.gitlab/prd-toolkit.yml holds a line starting \"# Manual jobs may need these secrets\"; line 2 of each is empty"
+    errors: []
+    leaks: none
+
+T-119.1:
+  ac: AC-119.1
+  level: integration
+  target: "cli:prd_dispatch"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    runs:
+    - python DISPATCH trace --interface
+    - python <repo>/prd-toolkit/scripts/prd_trace.py --interface
+    - python DISPATCH lint <tmp>/nope
+    - python <repo>/prd-toolkit/scripts/prd_lint.py <tmp>/nope
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "1\n"
+      relations:
+      - "run_1's exit code, stdout and stderr equal run_2's"
+      - "run_3's exit code, stdout and stderr equal run_4's, and run_3's exit code is 2"
+    effects: []
+    errors: []
+    leaks: none
+
+T-119.2:
+  ac: AC-119.2
+  level: integration
+  target: "cli:prd_dispatch"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    command: python DISPATCH nope
+  expect:
+    output:
+      exit: 2
+      stdout: ""
+      stderr: "prd: unknown command 'nope'\ncommands: block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-119.3:
+  ac: AC-119.3
+  level: integration
+  target: "cli:prd_dispatch"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+    - "copy <repo>/prd-toolkit/scripts/prd_dispatch.py to <tmp>/d/prd_dispatch.py, alone in that folder"
+    cwd: "<tmp>"
+    runs:
+    - python <tmp>/d/prd_dispatch.py lint
+    - python <tmp>/d/prd_dispatch.py publish
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout: ""
+        stderr: "prd: prd_lint.py is not in <tmp/d, resolved as os.path.realpath gives it>; run prd_hooks.py install\n"
+      run_2:
+        exit: 2
+        stdout: ""
+        stderr: "prd: prd_publish.py is not in <tmp/d, resolved as os.path.realpath gives it>; run prd_hooks.py install\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-119.4:
+  ac: AC-119.4
+  level: integration
+  target: "cli:prd_dispatch"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+    - "copy <repo>/prd-toolkit/scripts/prd_dispatch.py to <tmp>/d/prd_dispatch.py, and write <tmp>/d/VERSION as \"0.0.0-test\\n\""
+    cwd: "<tmp>"
+    runs:
+    - python <tmp>/d/prd_dispatch.py publish docs/prd/x
+    - python <tmp>/d/prd_dispatch.py lint
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout: ""
+        stderr: "prd: publish runs from the plugin, not from a vendored copy\n"
+      run_2:
+        exit: 2
+        stderr: "prd: prd_lint.py is not in <tmp/d, resolved as os.path.realpath gives it>; run prd_hooks.py install\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-120.1:
+  ac: AC-120.1
+  level: integration
+  target: "cli:prd_dispatch"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    runs:
+    - python DISPATCH
+    - python DISPATCH -h
+    - python DISPATCH --help
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout_first_line: "usage: prd <command> [arguments]"
+        stdout_contains_line: "hooks        Vendor the toolkit into a repo and manage its git hooks: install | check | uninstall | vendor <prd-folder> (vendor refreshes .prd-toolkit/ alone, from the plugin); ci --gitlab|--github [--force] <prd-folder> writes the merge-gate CI include file. Exit 0 clean, 1 findings, 2 usage, dependency or internal error."
+      relations:
+      - "in each run, stdout holds 21 lines, and the first word of lines 2 to 21 is, in order: block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace"
+      - "in each run, each of lines 2 to 21 has its first non-space character after its command name at index 13 (11, the length of build-check, plus two spaces)"
+      - "the three runs' stdout are equal"
+    effects: []
+    errors: []
+    leaks: none
+
+T-120.2:
+  ac: AC-120.1
+  level: integration
+  target: "cli:prd_dispatch"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+    - "copy <repo>/prd-toolkit/scripts/prd_dispatch.py, prd_lint.py and prd_status.py to <tmp>/d, and write <tmp>/d/VERSION as \"0.0.0-test\\n\""
+    - "copy <repo>/prd-toolkit/scripts/prd_dispatch.py to <tmp>/e, alone in that folder"
+    cwd: "<tmp>"
+    runs:
+    - python <tmp>/d/prd_dispatch.py --help
+    - python <tmp>/e/prd_dispatch.py --help
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "usage: prd <command> [arguments]\nlint    Lint a PRD folder. Exit 0 clean, 1 violations, 2 usage, dependency or internal error.\nstatus  Print where every requirement of a PRD stands. Exit 0 printed, 2 usage or tool error.\n"
+      run_2:
+        exit: 0
+        stdout: "usage: prd <command> [arguments]\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-120.3:
+  ac: AC-120.2
+  level: integration
+  target: "cli:prd_dispatch"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+    - "copy <repo>/prd-toolkit/scripts/prd_dispatch.py to <tmp>/d, and write <tmp>/d/VERSION as \"  0.0.0-test \\n\""
+    cwd: "<tmp>"
+    runs:
+    - python DISPATCH --version
+    - python <tmp>/d/prd_dispatch.py --version
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "V\n"
+      run_2:
+        exit: 0
+        stdout: "0.0.0-test\n"
+    effects: []
+    errors: []
+    leaks: none
