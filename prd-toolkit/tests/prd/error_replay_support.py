@@ -543,6 +543,13 @@ class Case:
     def _step_RWT(self, root: Path, resolution) -> None:
         self._sgit(root, "worktree", "add", "-q", "--detach", str(self.tmp / "wt"), "HEAD")
 
+    def _step_RNW(self, root: Path, resolution) -> None:
+        """An empty regular file at `.git/worktrees`, where the git folder holds no entry of that name; no commit."""
+        entry = root / ".git" / "worktrees"
+        if os.path.lexists(entry):
+            raise SetupError(f"{entry} already exists")
+        entry.write_bytes(b"")
+
     def _step_RMANY(self, root: Path, resolution) -> None:
         for k in range(1, RMANY_LIMIT + 1):
             chunks = []
