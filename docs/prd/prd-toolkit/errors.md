@@ -553,6 +553,7 @@ Recurrence of: -
 ### E-041 The 0.8.13 upgrade note says hooks check runs from the vendored copy; it refuses
 Detected: 2026-11-21, adoption extract of hooks-install (prd-toolkit/scripts/prd_hooks.py:56 @07f77b1)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-108, FR-109
 Evidence: `prd_hooks.py check <prd_dir>` without `--ci`, run from `.prd-toolkit/`, prints `prd_hooks: run check from the plugin, not the vendored copy` and exits 2 (prd_hooks.py:56-58). The 0.8.13 changelog in `prd-toolkit/README.md:1336` says "the launcher, `hooks check`, the context pack, … run from the vendored copy, so a repository gets those fixes only then".
 Diagnosis: `prd_hooks.py check <prd_dir>` without `--ci`, run from `.prd-toolkit/`, prints `prd_hooks: run check from the plugin, not the vendored copy` and exits 2 (prd_hooks.py:56-58). The 0.8.13 changelog in `prd-toolkit/README.md:1336` says "the launcher, `hooks check`, the context pack, … run from the vendored copy, so a repository gets those fixes only then". The code contradicts that doc. The unit tests `test_vendored_check_exits_2` and `test_check_without_ci_from_vendored_copy_still_refused` agree with the code, so the defect may be in the README rather than the code. The owner decides which one is wrong. Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
