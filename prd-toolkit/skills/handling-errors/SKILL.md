@@ -123,7 +123,7 @@ of `running-an-error.md` whose gate is open.**
 | "The PRD already says `GREETING`, so the code just has to match it." | The class still needs the user's word, and the fix its failing test and `/prd-toolkit:prd-build`. |
 | "Redeploy and close the entry." | A redeploy of the same commit runs the same failure. The fix is a change, a build and a new `/prd-toolkit:prd-deploy` run; the entry closes on `check`. |
 | "I'll give them the confirm command to run." | That routes around the proposal. Show it and ask for the reply. |
-| "There's no requirement to change, so the PRD flow doesn't apply." | Code no adopted area covers has its own route: the failing test committed alone, the fix, `resolve --red-run`, `check`. A hand-written `Resolution:` line proves nothing, and `check` reports it. |
+| "There's no requirement to change, so the PRD flow doesn't apply." | Code no adopted area covers has its own route: the failing test committed alone, the fix, `resolve --red-run`, `check`. A hand-written `Resolution:` line proves nothing: only `resolve --red-run` replays, and `check` runs no test, so it accepts a red run typed by hand. |
 | "It can't be fixed until the owner adopts the code or adds an AC." | The owner's decision is the `Confirmed:` line. Code outside every adopted Boundary needs no requirement: it closes with a red run. |
 
 ## Related skills

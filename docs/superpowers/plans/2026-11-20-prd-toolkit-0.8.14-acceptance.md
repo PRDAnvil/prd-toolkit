@@ -68,3 +68,25 @@ Four entries were recorded while 0.8.14 was built. Each was classed by the owner
   without `-n auto`, which would let the replay prove E-003, E-004, E-006 and E-007.
 - **The repositories that use the toolkit:** each re-runs `prd hooks install` from the 0.8.14 plugin
   and commits `.prd-toolkit/` before its ledger holds a fourth-form line.
+
+## What the final review found
+
+A review of the whole branch before the push found no wrong result in the replay's proofs, and these:
+
+- **Two defects, recorded and left open** (both `proposed`, the owner's to class): **E-036**, a test the
+  replay runs has the command's environment, so with `GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE`
+  set a test that calls git can write the repository the command was started in, which two sentences
+  of the area say cannot happen; and **E-037**, a test that leaves a folder without write permission
+  makes the replay leave its folder behind, with no message, against AC-079.1 and AC-079.2.
+- **Two claims that were wrong, corrected:** the skill said `check` reports a hand-written Resolution
+  line, and the README implied every red run was replayed. `check` runs no test, so a red run typed
+  by hand passes it. Both texts now say so.
+- **Limits added to the README, with no entry:** a Bash call that times out may end the replay as
+  SIGTERM does; a malformed `One test` cell reads as no `One test` command; a `Test roots:` entry with
+  a leading `./` makes a T-id replay find no citing test; a timeout or cannot-start finding does not
+  name its file when several files are run.
+- **Graders:** three ways of writing a correct session failed a rewritten grader of
+  `error-uncovered-code-red-run`, and an amended commit passed two; they were corrected.
+- **E-035's form:** the entry is classed `environment`, and it is resolved in the form of a fix with a
+  T-id, because its fix was a PRD change and a build, not a deploy run. `resolve` does not tie the form
+  to the class.

@@ -70,7 +70,7 @@ def test_readme_the_replay():
                    '{"interface": 1, "kind": "error-replay", "entry": "E-001", "outcome": "findings"',
                    '"when": "before"', "`holds`, `skipped` or `findings`",
                    "git restore --staged --worktree docs/prd/<slug>/errors.md",
-                   "never writes the working tree, the index or the git folder", "`git clone --shared --no-checkout`"):
+                   "own git commands never write the working tree, the index or the git folder", "`git clone --shared --no-checkout`"):
         assert needle in s, needle
 
 
