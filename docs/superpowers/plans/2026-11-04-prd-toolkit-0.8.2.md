@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **Starts only after 0.8.1 is on `main`** with the three interface changes of spec section 6. Work in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.8.2`, branch `feat/prd-toolkit-0.8.2`, cut from that `main`; then `git merge docs/prd-toolkit-0.8.2-inbox-spec` once (`Refs: none (no behaviour change)`) to bring the spec, the umbrella and this plan. Never push, open a PR, or touch another repo without Ivan's request in his own words.
+- **Starts only after 0.8.1 is on `main`** with the three interface changes of spec section 6. Work in `<repo>/.worktrees/prd-toolkit-0.8.2`, branch `feat/prd-toolkit-0.8.2`, cut from that `main`; then `git merge docs/prd-toolkit-0.8.2-inbox-spec` once (`Refs: none (no behaviour change)`) to bring the spec, the umbrella and this plan. Never push, open a PR, or touch another repo without Ivan's request in his own words.
 - Commit as Ivan Histand <ihistand@rotoplas.com>; every message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Stage by path; never `git add -A`. One implementer at a time in this worktree.
 - **The toolkit's own PRD binds this branch.** No task touches a lint-cli Boundary file (`prd_lint.py`, `prdlint/{__init__,model,markdown,yamlload,findings,registry,deps}.py`, `prdlint/rules/__init__.py`). If a task finds it must, it stops: that is a `/prd-change` first. Every commit carries `Refs: none (no behaviour change)`. Never `--no-verify`.
 - The repo is public and the toolkit names no client: no app, editor or organization name in code, docs, tests or evals. Example slugs `greet`, `orders`, `notes`.

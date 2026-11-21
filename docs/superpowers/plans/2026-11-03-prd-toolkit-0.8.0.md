@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.8`, branch `feat/prd-toolkit-0.8`. **Before Task 1**, `main` must hold 0.7.1 (`git -C … log main --oneline | head` shows the 0.7.1 merge); then `git merge main` into the branch once. If 0.7.1 has not merged, stop and say so. Never push, open a PR, or touch another repo without Ivan's request in his own words.
+- Work in `<repo>/.worktrees/prd-toolkit-0.8`, branch `feat/prd-toolkit-0.8`. **Before Task 1**, `main` must hold 0.7.1 (`git -C … log main --oneline | head` shows the 0.7.1 merge); then `git merge main` into the branch once. If 0.7.1 has not merged, stop and say so. Never push, open a PR, or touch another repo without Ivan's request in his own words.
 - Commit as Ivan Histand <ihistand@rotoplas.com>; every message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Stage by path; never `git add -A`. One implementer at a time in this worktree.
 - The repo is public and the toolkit platform-neutral: no organization hosts, users, platform object names or people in code, docs, tests or evals. Example slugs are `greet`, `orders`, `guide`, `dashboards`; the example external pack is `demo`.
 - Test-first: every rule, behaviour and skill-text pin fails before its change. Run it once to see it fail.

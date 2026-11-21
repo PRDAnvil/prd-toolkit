@@ -39,7 +39,7 @@ It is proven by adopting one Looker dashboard area.
   - WRONG vs CORRECT.
 - **Looker.** Claude never deploys Looker. The Looker acceptance task pushes a branch and opens a merge request, and nothing more. Looker API work runs as a dedicated automation user, never through a person's own credentials.
 - **Working rules.**
-  - Work from `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.2`, on branch `feat/prd-toolkit-0.2`.
+  - Work from `<repo>/.worktrees/prd-toolkit-0.2`, on branch `feat/prd-toolkit-0.2`.
   - Never use bare `git stash`. Don't push until Task 10.
   - Commit as Ivan Histand, ending each message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
   - Run tests with `uv run --directory prd-toolkit pytest -q`.

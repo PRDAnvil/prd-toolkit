@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-confirm`, branch `feat/prd-toolkit-confirm-form`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
+- Work in `<repo>/.worktrees/prd-toolkit-confirm`, branch `feat/prd-toolkit-confirm-form`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
 - Commit as Ivan Histand <ihistand@rotoplas.com>; every message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` and carries `Refs: none`. Stage by path; never `git add -A`. One implementer at a time in this worktree.
 - The repo is public and the toolkit platform-neutral: no organization names, hosts, users or people in code, tests, evals or docs, in any form.
 - Test-first: every behaviour and skill-text pin fails before its change. Run it once to see it fail.
