@@ -651,3 +651,14 @@ Evidence: `index_consistent` reports only the literal `Classification: unclassif
 Diagnosis: `index_consistent` reports only the literal `Classification: unclassified` on a resolved entry (`e.classification == "unclassified"`). A resolved entry with no `Classification:` line passes. prd-format.md's state table counts "no `Classification:`" as `unclassified`, and it says `unclassified` is allowed only on an open entry. The sibling code treats the two forms alike: `ErrorEntry.state` (model.py) and error-entries (errors.py:60, `e.classification in ("", "unclassified")`). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
 Resolution: -
 Recurrence of: -
+
+### E-051 index-consistent accepts any text as the Source line of an as-built block
+Detected: 2026-11-21, confirmation of FR-126 (the answer of the owner to Q-20)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-126
+Evidence: prd-toolkit/scripts/prdlint/rules/ids.py:191: `if b.status == "as-built" and not b.source:` is the whole check, so any text after `Source:` satisfies it.
+  The finding's own message names the form the line is to have: `<ID> is as-built but has no 'Source: <file>:<line> @<commit>' line`.
+Diagnosis: For an `as-built` block, `index_consistent` only asks whether the block has a `Source:` line with text (ids.py:191). A line such as `Source: somewhere in the code` passes, though the message of the rule names the form `<file>:<line> @<commit>`, and the context pack and the adoption checks read a path, a line and a commit from that line. The owner answered Q-20 on 2026-11-21 that lint is to check the form, and AC-126.3 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-ids.
+Resolution: -
+Recurrence of: -
