@@ -442,3 +442,28 @@ Evidence: Whole unit suite, uv run --directory prd-toolkit pytest -q -n auto tes
 Diagnosis: Not reproduced on demand: the test failed once in a whole parallel unit run and passed in the second run, the file alone (22 passed); two runs made, as the rule allows. Root cause by reading: the test's driver calls `openAdoption(entry)`, waits a fixed 300 ms (`await new Promise((r) => setTimeout(r, 300))`) and then calls `save(S.order.find((it) => it.id === 'E-003'), …)`. `S.order` is filled only when the panel's `load()` gets its `GET /items` answer from the test's inbox server (templates/confirm/panel.html). When that answer takes longer than 300 ms, as on a machine busy with the parallel run, `find` returns undefined and `save` fails with `TypeError: Cannot read properties of undefined (reading 'id')`, the error in the evidence. The faulty code is the test itself, prd-toolkit/tests/test_inbox_page.py, which no adopted area covers: it acts on the panel before the load it started has finished. The page and the server are not shown wrong. The rule the test breaks is the Harness line of testing.md: "**Waits.** Not applicable: every command runs to completion before the test asserts."
 Resolution: -
 Recurrence of: -
+
+### E-035 prd error replay cannot add its worktree inside the Bash sandbox of a Claude Code session
+Detected: 2026-11-20, eval runs of the two new handling-errors cases
+Classification: unclassified
+Touches: FR-079
+Evidence: Eval runs of the two new handling-errors cases (claude plugin eval, one run each, the runner's sandbox on).
+  error-uncovered-code-red-run, with the plugin: the session committed the failing test alone, then the fix, then ran
+  .prd-toolkit/prd error resolve docs/prd/greet E-001 --commit <sha> --red-run tests/unit/test_count_names.py --level unit
+  prd_error: internal error: RuntimeError: git worktree add --detach <tmp>/prd-error-replay-<x>/run-1 <sha> failed: Preparing worktree (detached HEAD bcd2623)
+  prd-error-exit=2
+  error-replay-finding-not-committed, with the plugin: resolve exited 0, then
+  .prd-toolkit/prd error replay docs/prd/greet E-001
+  prd_error: internal error: RuntimeError: git worktree add --detach <tmp>/prd-error-replay-<x>/run-1 <sha> failed: Preparing worktree (detached HEAD 6069f6f)
+  prd-error-exit=2
+  Both sessions then left the entry confirmed and reported the failure; the second put errors.md back with git restore.
+  The same command in a headless session with the Bash sandbox enabled, in a scratch repository:
+  git worktree add --detach <tmp>/wt HEAD
+  Preparing worktree (detached HEAD dd29d3d)
+  fatal: could not create directory of '.git/worktrees/wt': Operation not permitted
+  exit=128
+  In that session git archive HEAD | tar -x -C <tmp>/plain exited 0, and a file appended under .git/ was written.
+  Outside the sandbox the same replays hold or print their findings (the cases' by-hand walk, and the toolkit's own ledger).
+Diagnosis: -
+Resolution: -
+Recurrence of: -
