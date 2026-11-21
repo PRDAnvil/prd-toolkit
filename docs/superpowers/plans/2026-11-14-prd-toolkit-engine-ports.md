@@ -68,7 +68,7 @@ new Python dependency in any phase.
 | 4 | **0.8.10** | **Next part in the status report**, delivered: an ordered list of what a PRD needs next, first in `prd status` and in its `--json` | owner, 2026-11-14 | done | 0.8.8 |
 | 5 | **0.8.11** | **Best-practice sources**, delivered, and finding, installing or writing a skill a PRD needs | umbrella row, backlog item 1 | done | 0.8.0 |
 | 6 | **0.8.12** | **Pack authoring**, delivered, from an example repository: a pack proposed and written from two repositories that declare the same custom contract types; and, added by the owner on 2026-11-15, cards in the decision inbox that show the area an issue is for and a URL when it has one | backlog item 1; owner | done | best practices |
-| 7 | **0.8.13** | **Fixes**, delivered: the open entries of the toolkit's own error ledger, E-019 to E-024, E-028, E-030 and E-031 fixed, each from a failing test through a PRD change and a build, and E-029 closed as not a defect; E-017 waits for row 9 | owner, 2026-11-17 | done | 0.8.12 |
+| 7 | **0.8.13** | **Fixes**, delivered: the open entries of the toolkit's own error ledger, E-019 to E-024, E-028, E-030 and E-031 fixed, each from a failing test through a PRD change and a build, and E-029 closed as not a defect; E-017 waits for row 8 | owner, 2026-11-17 | done | 0.8.12 |
 | 8 | **0.8.14** | **Errors**, delivered: a replay that proves a fix turned its test green (phase 1), `prd error replay`, and a close for an error outside every adopted Boundary, the red run `prd error resolve --red-run`, which closed E-017 and E-032 | prototype; backlog item 5 | done | none |
 | 9 | after conversion | **Surface check** (phase 3) | prototype | medium | conversion, so the extractor key is designed once for retargeted packs |
 | 10 | after | **Antigravity wrapper** (phase 4), if its spike passes | prototype | large, uncertain | the `prd` command |
@@ -127,7 +127,7 @@ listed.
 | R2 | After 0.8.7 merges: install it, remove `.worktrees/release-0.8.7`, update the site's two pages | priority 1 |
 | B1 | Best-practice sources (backlog item 1) | priority 5 |
 | B3 | One uv environment per script path, per clone (backlog item 3, issue #2). Likely fix: `uv run --with … python <script>`; the vendored copies, hooks and generated CI must keep working or be rewritten by `install`, `vendor` and `ci` | addressed in 0.8.8: one `prd` launcher and one uv environment per requirements list; what remains is in its changelog entry's Known limits (the `document` pack's validator, judged tests written before 0.8.8) |
-| B5 | An error in code no adopted area covers has no close; E-017 is open because of it (backlog item 5) | priority 8 (0.8.14) |
+| B5 | An error in code no adopted area covers has no close; E-017 was open because of it (backlog item 5) | done in priority 8 (0.8.14): the red run closed E-017 and E-032 |
 | U9 | Conversion (umbrella row) | backlog (owner, 2026-11-19) |
 | A1 | Adopt the next area: `lint-ids`, then `lint-testcases` | every release |
 | C1 | `prd.md` line 60, "Out of scope: the repository's other plugins and the `web/` docs site", is stale since the move; a PRD patch | done in 0.8.8 |

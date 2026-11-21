@@ -2,6 +2,51 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.14: the red-run route, the replay step, and the handling-errors cases
+
+Recorded 2026-11-21 on `feat/prd-toolkit-0.8.14`, model `sonnet`, Claude Code 2.1.330, one run each,
+8 cases. The command, per group, is the 0.8.12 section's, run from a clean copy of the plugin (`git archive`). Cost
+of every run below: $3.5.
+
+**The two new cases**, on the release's text (plugin 0.8.14):
+
+| Case | with | without | Δ | Note |
+|---|---|---|---|---|
+| `error-uncovered-code-red-run` | 1.00 | 0.33 | +0.67 | second run; first run 0.33 / 0.33, see below |
+| `error-replay-finding-not-committed` | 1.00 | 0.50 | +0.50 | second run; first run 0.88 / 0.50, see below |
+
+- **The first run of both found a defect of the release, not of the session.** With the plugin, each session
+  followed the new text step by step until the replay ended with an internal error, exit 2: the runner's sandbox
+  keeps the scratch repository's `.git/worktrees` read-only, and the replay made each run's tree with
+  `git worktree add`. Both sessions kept the entry `confirmed` and said why. It is E-035 in the toolkit's own
+  ledger, fixed before the release (PRD 9.0.0: each run's tree is a clone); the second run is on that fix.
+- **Three graders of `error-uncovered-code-red-run` were rewritten after the first run's trace**, and the case
+  was rerun once: `test-committed-before-fix`, `fix-commit-cites-entry` and `resolution-committed` read a log
+  that a post-commit hook of the scaffold was to write, and in the runner the hook wrote none, though the
+  session made its commits. They now read the session's trace (each `git commit` call and its own result, the
+  resolve call, and the `git add` and commit after it), and the hook is gone.
+- Without the plugin, the first case's session failed the three history graders and resolved nothing with a
+  red run; the second committed the resolution and never ran the replay.
+
+**The existing cases of the skill whose text changed** (handling-errors: the route for code no area covers, and
+the replay step), 6 cases, on `03f78bf` of the same branch (plugin 0.8.13 in the manifest; one word of one line of
+the skill changed after it, a worktree now called a clone):
+
+| Case | with | without | Δ |
+|---|---|---|---|
+| `error-confirm-before-fix` | 1.00 | 1.00 | 0.00 |
+| `error-flaky-not-retried` | 1.00 | 0.50 | +0.50 |
+| `error-records-the-url` | 1.00 | 0.25 | +0.75 |
+| `handling-errors-not-without-prd` | 1.00 | 1.00 | 0.00 |
+| `handling-errors-trigger` | 1.00 | 0.00 | +1.00 |
+| `inbox-uses-outcome-reply` | 1.00 | 0.57 | +0.43 |
+
+**Not run:** every case of a skill whose text did not change. No case exercises `prd error replay --json`, a
+timeout, or a One test program that cannot start; the PRD's own integration tests cover those.
+
+**Result:** all 8 cases score 1.00 with the plugin. No case has a Δ at or below zero except the two that score
+1.00 either way.
+
 ## 0.8.13: the cases E-019 stopped, and the changing-prds cases
 
 Recorded 2026-11-18 on `release/prd-toolkit-0.8.13`, model `sonnet`, Claude Code 2.1.327, plugin 0.8.12 (the manifest
