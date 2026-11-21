@@ -294,7 +294,7 @@ def _structure(prev: dict[str, ErrorEntry], cur: dict[str, ErrorEntry]) -> list[
 
 
 def _resolution(prd: Prd, repo_root: Path, head: str, e: ErrorEntry, cited: dict, tagged: dict, versions: set[str],
-                prefix: str | None = None) -> list[str]:
+                prefix: str) -> list[str]:
     """Findings on a resolution added in the range, judged against the PRD at head."""
     from . import errorreplay  # FR-081: the red run is the error-replay area's
 

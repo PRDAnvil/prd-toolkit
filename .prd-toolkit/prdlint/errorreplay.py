@@ -30,17 +30,18 @@ class Run:
     commit: str  # the full SHA of the commit whose tree ran
     when: str  # "before" (on <sha>^) or "after" (on <sha>)
     argument: str
-    exit: int | None  # None when it timed out
+    exit: int | None  # None when it timed out or cannot start
     seconds: float
     timed_out: bool
+    cannot_start: bool = False  # the operating system could not start its program (AC-078.14)
 
     @property
     def passed(self) -> bool:
-        return not self.timed_out and self.exit == 0
+        return not self.timed_out and not self.cannot_start and self.exit == 0
 
     @property
     def failed(self) -> bool:
-        return not self.timed_out and self.exit != 0
+        return not self.timed_out and not self.cannot_start and self.exit != 0
 
 
 @dataclass
@@ -272,11 +273,14 @@ def _kill(proc: subprocess.Popen) -> None:
         pass
 
 
-def _execute(argv: list[str], cwd: Path, timeout: int) -> tuple[int | None, float, bool]:
-    """One run, without a shell, in a process group of its own: (exit or None, seconds, timed out)."""
+def _execute(argv: list[str], cwd: Path, timeout: int) -> tuple[int | None, float, bool, bool]:
+    """One run, without a shell, in a process group of its own: (exit or None, seconds, timed out, cannot start)."""
     start = time.monotonic()
-    proc = subprocess.Popen(argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL, start_new_session=True)
+    try:
+        proc = subprocess.Popen(argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError:  # AC-078.14: the operating system cannot start the program
+        return None, round(time.monotonic() - start, 3), False, True
     try:
         code: int | None = proc.wait(timeout=timeout)
         timed_out = False
@@ -289,7 +293,7 @@ def _execute(argv: list[str], cwd: Path, timeout: int) -> tuple[int | None, floa
     _kill(proc)  # what the run left behind in its group goes with it
     if timed_out:
         proc.wait()
-    return code, round(time.monotonic() - start, 3), timed_out
+    return code, round(time.monotonic() - start, 3), timed_out, False
 
 
 def _quiet_cleanup(fn) -> None:
@@ -317,20 +321,27 @@ def _runs(repo_root: Path, rep: Replay, sha: str, commit: str, command: list[str
                 try:
                     if resolving is not None:
                         _replace_roots(wt, resolving, roots)
-                    code, seconds, timed_out = _execute(command + [arg], wt, timeout)
+                    code, seconds, timed_out, cannot_start = _execute(command + [arg], wt, timeout)
                 finally:
                     _quiet_cleanup(lambda: trees.drop(wt))
-                rep.runs.append(Run(rev, when, arg, code, seconds, timed_out))
+                rep.runs.append(Run(rev, when, arg, code, seconds, timed_out, cannot_start))
     finally:
         _quiet_cleanup(trees.close)
     first = [r for r in rep.runs if r.when == "before"]
     then = [r for r in rep.runs if r.when == "after"]
-    out = [f"{rep.entry}: timed out after {timeout} s on {sha}^" for r in first if r.timed_out]
+    out = []
+    for r in first:
+        if r.timed_out:
+            out.append(f"{rep.entry}: timed out after {timeout} s on {sha}^")
+        elif r.cannot_start:
+            out.append(f"{rep.entry}: {command[0]} cannot start on {sha}^")
     if all(r.passed for r in first):
         out.append(f"{rep.entry}: {rep.subject} passes on {sha}^; {sha} did not turn it green")
     for r in then:
         if r.timed_out:
             out.append(f"{rep.entry}: timed out after {timeout} s on {sha}")
+        elif r.cannot_start:
+            out.append(f"{rep.entry}: {command[0]} cannot start on {sha}")
         elif r.failed:
             out.append(f"{rep.entry}: {rep.subject} fails on {sha}: {r.argument}")
     rep.findings = out
