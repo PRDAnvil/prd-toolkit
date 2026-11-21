@@ -420,7 +420,7 @@ Evidence: Code review of the error-replay build (9b17b5a..22218e9), verified by 
   env={**os.environ, "GIT_LITERAL_PATHSPECS": "1"}
   git sets GIT_INDEX_FILE for the hooks it runs (pre-commit, commit-msg).
 Diagnosis: Reproduced once in a scratch repository: with `GIT_INDEX_FILE` set to the repository's own index, `prd error replay` printed the proof and exited 0, and `git status --porcelain` went from empty to `MM docs/prd/orders/errors.md`. Root cause: `_git` in prdlint/errorreplay.py runs every git command with the caller's environment (`{**os.environ, "GIT_LITERAL_PATHSPECS": "1"}`), so the checkout of `git worktree add` and the `git rm` and `git checkout` that replace the test roots write the index `GIT_INDEX_FILE` names instead of the temporary worktree's own; `GIT_DIR` and `GIT_WORK_TREE` are inherited the same way, and `resolve --red-run` replays through the same code. AC-079.1: "When the replay ends with the proof holding, `git worktree list --porcelain` in the repository shall print what it printed before the command started, the folder the command made in the system temporary folder shall no longer exist, and `git status --porcelain` shall print what it printed before." The area's definition of a worktree: "The command never writes the working tree or the index of the repository it is started in." No test case sets these variables.
-Resolution: -
+Resolution: T-079.6 [integration], PRD 8.5.0, fixed in 005cbd8
 Recurrence of: -
 
 ### E-034 test_done_right_after_the_last_answer_is_accepted fails once in a whole unit run and passes alone
