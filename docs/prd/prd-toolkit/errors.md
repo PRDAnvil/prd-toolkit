@@ -425,7 +425,7 @@ Recurrence of: -
 
 ### E-034 test_done_right_after_the_last_answer_is_accepted fails once in a whole unit run and passes alone
 Detected: 2026-11-20, failing test, the whole unit suite
-Classification: unclassified
+Classification: code bug
 Evidence: Whole unit suite, uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd, on 006b698 with an uncommitted PRD change in the tree:
   FAILED tests/test_inbox_page.py::test_done_right_after_the_last_answer_is_accepted
   2 failed, 3925 passed, 1 skipped in 518.60s
@@ -439,6 +439,6 @@ Evidence: Whole unit suite, uv run --directory prd-toolkit pytest -q -n auto tes
   uv run --directory prd-toolkit pytest -q -p no:cacheprovider tests/test_inbox_page.py
   22 passed in 25.26s
   The same test passed in three whole-suite runs earlier the same day (on e491e37, 22218e9 and 6e9cae9).
-Diagnosis: -
+Diagnosis: Not reproduced on demand: the test failed once in a whole parallel unit run and passed in the second run, the file alone (22 passed); two runs made, as the rule allows. Root cause by reading: the test's driver calls `openAdoption(entry)`, waits a fixed 300 ms (`await new Promise((r) => setTimeout(r, 300))`) and then calls `save(S.order.find((it) => it.id === 'E-003'), …)`. `S.order` is filled only when the panel's `load()` gets its `GET /items` answer from the test's inbox server (templates/confirm/panel.html). When that answer takes longer than 300 ms, as on a machine busy with the parallel run, `find` returns undefined and `save` fails with `TypeError: Cannot read properties of undefined (reading 'id')`, the error in the evidence. The faulty code is the test itself, prd-toolkit/tests/test_inbox_page.py, which no adopted area covers: it acts on the panel before the load it started has finished. The page and the server are not shown wrong. The rule the test breaks is the Harness line of testing.md: "**Waits.** Not applicable: every command runs to completion before the test asserts."
 Resolution: -
 Recurrence of: -
