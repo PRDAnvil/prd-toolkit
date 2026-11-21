@@ -557,7 +557,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-108, FR-109
 Evidence: `prd_hooks.py check <prd_dir>` without `--ci`, run from `.prd-toolkit/`, prints `prd_hooks: run check from the plugin, not the vendored copy` and exits 2 (prd_hooks.py:56-58). The 0.8.13 changelog in `prd-toolkit/README.md:1336` says "the launcher, `hooks check`, the context pack, … run from the vendored copy, so a repository gets those fixes only then".
 Diagnosis: `prd_hooks.py check <prd_dir>` without `--ci`, run from `.prd-toolkit/`, prints `prd_hooks: run check from the plugin, not the vendored copy` and exits 2 (prd_hooks.py:56-58). The 0.8.13 changelog in `prd-toolkit/README.md:1336` says "the launcher, `hooks check`, the context pack, … run from the vendored copy, so a repository gets those fixes only then". The code contradicts that doc. The unit tests `test_vendored_check_exits_2` and `test_check_without_ci_from_vendored_copy_still_refused` agree with the code, so the defect may be in the README rather than the code. The owner decides which one is wrong. Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
-Resolution: -
+Resolution: not a defect: the code is as intended, and AC-108.5 now says so: `check` without `--ci`, run from the vendored copy, prints `prd_hooks: run check from the plugin, not the vendored copy` and exits 2, since the copy compared with itself would show nothing. Only `check --ci` runs from the vendored copy. The sentence of the 0.8.13 changelog is the loose one. The owner, 2026-11-21, asked which he meant after the class was confirmed in the form: "Intended (Recommended)"
 Recurrence of: -
 
 ### E-042 vendor's pack refusal says "install refused"
@@ -577,5 +577,26 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-098, FR-101, FR-107, FR-113
 Evidence: `model.repo_root` returns the PRD folder itself when git finds no checkout (model.py:1022). Install then takes the PRD folder as the top.
 Diagnosis: `model.repo_root` returns the PRD folder itself when git finds no checkout (model.py:1022). Install then takes the PRD folder as the top. It writes `<prd>/.prd-toolkit/` and `<prd>/.gitignore`, and only then fails at `git rev-parse --git-path hooks` (hooks.py:164, `check=True`). It prints `prd_hooks: internal error: CalledProcessError: …` and exits 2, leaving those files behind. `vendor` and `ci` take the same root, so they write `.prd-toolkit/` or `.github/…` inside the PRD folder and exit 0. The sibling code says this case should be refused cleanly. `check --ci` refuses outside a checkout with `prd_hooks: <path> is not inside a git checkout` and exit 2, a fix made deliberately (commit f03ca0f: "instead of passing with no CI file found"). The `InstallRefused` docstring says a refused install "vendors nothing". Commit 7fd23dc made check's hook loop tolerate a missing checkout "instead of raising". An internal error after partial writes matches none of these. Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
+Resolution: -
+Recurrence of: -
+
+### E-044 uninstall removes nothing where core.hooksPath is set, though install writes the hooks of the toolkit there
+Detected: 2026-11-21, confirmation of FR-112 (the answer of the owner to Q-15)
+Classification: code bug
+Touches: FR-112
+Evidence: prd-toolkit/scripts/prdlint/hooks.py:492-495: `uninstall` returns the one line `core.hooksPath is set to <value>; removed nothing` whenever `core.hooksPath` is set, before it looks at any hook file.
+  Since FR-070 install writes the toolkit's own hooks into that folder, and line 2 of each shim reads `# prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall`.
+Diagnosis: Where `core.hooksPath` is set, `uninstall` prints `core.hooksPath is set to <value>; removed nothing` and deletes no file (hooks.py:492-495). Since FR-070 (prd-toolkit 0.8.13) install replaces the hooks of the toolkit in that folder, and each shim says on its line 2 that `prd_hooks.py uninstall` removes it, so a repository that sets `core.hooksPath` cannot remove them with the command. The owner answered Q-15 on 2026-11-21 that uninstall is to remove the toolkit's own hooks there too, and AC-112.2 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area hooks-install.
+Resolution: -
+Recurrence of: -
+
+### E-045 check does not report a file of .prd-toolkit/ that the plugin no longer ships
+Detected: 2026-11-21, confirmation of FR-108 (the answer of the owner to Q-16)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-108
+Evidence: prd-toolkit/scripts/prdlint/hooks.py:454-458: `check` looks for a file the plugin does not ship only under the folders `prdlint`, `hooks`, `confirm`, `gates`, `judge` and `languages` of `.prd-toolkit/`.
+  A file at the top of `.prd-toolkit/` (a script the plugin has retired) or under `.prd-toolkit/templates/` is never reported, and install and vendor do not delete it.
+Diagnosis: `check` reports a file the plugin does not ship only under six folders of `.prd-toolkit/` (hooks.py:454-458). A file at the top of `.prd-toolkit/`, such as a script the plugin has retired, or a file under `.prd-toolkit/templates/`, gets no line, and install and vendor leave it in place; the dispatcher can still run such a script by its command name. The owner answered Q-16 on 2026-11-21 that check is to report such a file, and AC-108.2 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area hooks-install.
 Resolution: -
 Recurrence of: -
