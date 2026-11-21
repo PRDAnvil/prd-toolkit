@@ -469,3 +469,29 @@ Evidence: Eval runs of the two new handling-errors cases (claude plugin eval, on
 Diagnosis: Reproduced once: in a headless session with the Bash sandbox enabled, `git worktree add --detach <tmp>/wt HEAD` in a scratch repository printed `fatal: could not create directory of '.git/worktrees/wt': Operation not permitted` and exited 128; `git archive HEAD` piped into `tar -x` wrote the same tree there, exit 0. Root cause: the Bash sandbox of a Claude Code session keeps `.git/worktrees` of the repository read-only, and the replay makes each run's tree with `git worktree add --detach`, as the area's definition of a worktree says: "A **worktree** is one that the command adds with `git worktree add --detach` under a new folder it makes in the system temporary folder". The code does what the PRD says, and it ends as FR-079 says of an internal error ("an internal error ends the command the same way, with exit 2"): nothing was written or left behind, and both sessions kept the entry `confirmed`. So the replay and `resolve --red-run` cannot run in a sandboxed session, which is every `claude plugin eval` run: the two new eval cases cannot pass there. Outside the sandbox the same commands hold or print their findings. One thing the code adds to the trouble: the internal error quotes only the first line git printed (`Preparing worktree (detached HEAD …)`) and drops the `fatal:` line that names the cause.
 Resolution: T-079.7 [integration], PRD 9.0.0, fixed in efcbe2e
 Recurrence of: -
+
+### E-036 A test the replay runs can write the index of the repository the command is started in
+Detected: 2026-11-21, final review of the 0.8.14 branch, a probe in a scratch repository
+Classification: unclassified
+Touches: FR-079
+Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by the recording session, in a scratch repository
+  whose entry E-001 is resolved `T-001.2 [unit], PRD 1.0.0, fixed in <fix>`.
+  Setup: the unit level's One test cell names a program kept outside the repository, `python3 <elsewhere>/t1.py`, which
+  writes a file `junk` in its working directory and then runs `git add -A`.
+  `git status --porcelain` before:
+   M docs/prd/greet/testing.md
+  The command, started in the repository with GIT_INDEX_FILE set to the absolute path of the repository's own .git/index:
+  prd error replay docs/prd/greet E-001
+  E-001: T-001.2 passes on <fix>^; <fix> did not turn it green
+  exit=1
+  `git status --porcelain` after:
+  MM docs/prd/greet/errors.md
+   M docs/prd/greet/testing.md
+  AD junk
+  The bytes of .git/index differ from before; the temporary folder is gone.
+  The reviewer's note on where the variable comes from: in the pre-commit hook of a partial commit (`git commit <paths>`)
+  git sets GIT_INDEX_FILE to the absolute path of <repo>/.git/next-index-<pid>.lock; in a plain `git commit` it is the
+  relative `.git/index`, which in a clone names the clone's own index.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
