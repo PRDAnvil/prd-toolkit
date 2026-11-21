@@ -26,20 +26,20 @@ def entry(version: str, before: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.13"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     d = plugin["description"]
     assert "a pack written from two adopted PRDs" in d and "/prd-toolkit:prd-pack" in d and "a 41-rule linter" in d
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.13", d)]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.13"
-    assert "Version 0.8.13." in README
+        (plugin["version"], d)]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in README
 
 
 def test_the_plugin_holds_what_it_held():
     skills = sorted(p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md"))
     commands = sorted(p.stem for p in (ROOT / "commands").glob("*.md"))
-    assert len(skills) == 11 and len(commands) == 12
+    assert len(skills) >= 11 and len(commands) >= 12  # the current counts are pinned in the newest test_release_*.py
     table = section("Commands and skills")
     for name in commands:
         assert f"`/prd-toolkit:{name}" in table, name
@@ -93,7 +93,8 @@ def test_earlier_entries_say_what_0_8_13_fixed():
 def test_the_baseline_has_the_0_8_13_section():
     base = (ROOT / "evals/BASELINE.md").read_text(encoding="utf-8")
     heads = re.findall(r"(?m)^## (.+)$", base)
-    assert heads[0].startswith("0.8.13:") and heads[1].startswith("0.8.12:")
+    at = next(i for i, h in enumerate(heads) if h.startswith("0.8.13:"))  # a later release's section comes first
+    assert heads[at + 1].startswith("0.8.12:")
     s = flat(base[base.index("\n## 0.8.13:"):base.index("\n## 0.8.12:")])
     for case in ("deploy-by-hand-records", "deploy-close-live", "deploy-close-staging-only",
                  "deploy-failure-no-improvise", "deploy-stops-at-human", "deploying-trigger", "review-edits-nothing",

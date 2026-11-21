@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. `/prd-toolkit:prd-pack` writes a pack from what two adopted PRDs share, and every card in the decision inbox names its area and links to where the trouble is. Version 0.8.13.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. `/prd-toolkit:prd-pack` writes a pack from what two adopted PRDs share, and every card in the decision inbox names its area and links to where the trouble is. `prd error replay` shows whether the commit an error entry names turned its test from failing to passing, and an error in code no adopted area covers closes with that proof. Version 0.8.14.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -55,7 +55,7 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 | `/prd-toolkit:prd-build <area> <IDs>` | `prd-toolkit:building-from-prds` | Take approved requirements to verified code: `prd-builder` works on a round branch the build cuts and merges `--ff-only`, then `prd-tester` writes the tests in its `write` mode; the build reconciles by quote and moves statuses `approved`, `built`, `verified` with no version bump |
 | `/prd-toolkit:prd-status` | `prd_status.py` | Show what the PRD needs next, where each requirement stands, and the version each environment runs |
 | `/prd-toolkit:prd-deploy [--until <env>] [<run id>]` | `prd-toolkit:deploying-from-prds` | Deploy a verified PRD through its runbook with `prd_deploy.py`, stopping at every human step and failure, then record the run (see Deploying) |
-| `/prd-toolkit:prd-error [<E-nnn> \| <run id> \| <text>]` | `prd-toolkit:handling-errors` | Record an error in `errors.md` with `prd_error.py`, diagnose it, propose its class and wait for the user's confirmation; the fix starts from a failing test and goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build --fixes E-nnn`, and the close is checked with `prd_error.py check` |
+| `/prd-toolkit:prd-error [<E-nnn> \| <run id> \| <text>]` | `prd-toolkit:handling-errors` | Record an error in `errors.md` with `prd_error.py`, diagnose it, propose its class and wait for the user's confirmation; the fix starts from a failing test and goes through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build --fixes E-nnn`, or, for code no adopted area covers, from a test committed alone, then a fix commit and `prd error resolve --red-run`; `prd error replay` shows that the fix turned its test green, and the close is checked with `prd_error.py check` |
 | `/prd-toolkit:prd-publish [<out file>] [<request>]` | `prd-toolkit:publishing-prds` | Render the PRD with `prd_publish.py` as one self-contained HTML page (an Overview, a Business and a Technical tab), with per-area summaries by Claude that cite their IDs; the page goes outside the PRD folder, is never committed, and is offered as a private Artifact when the session has the Artifact tool |
 | `/prd-toolkit:prd-change-set [<CS-nnn> \| <text>]` | `prd-toolkit:coordinating-prds` | Coordinate one change across linked PRDs in several repositories: one record, one approval for every member's PRD diff, then a build (and where a link needs it, a deploy) per repository in dependency order (see Change sets) |
 | `/prd-toolkit:prd-practices [<PRD folder>] [<what to source>]` | `prd-toolkit:sourcing-practices` | Propose best-practice sources, the practices taken from them, standards rows and the skills the PRD needs, each read and quoted, as one PRD change the owner approves; install or write an approved skill only after it (see Practices) |
@@ -315,6 +315,35 @@ and a tree of the working files), as in `skills/testing-from-prds/dispatching.md
 `python3` on the PATH the hook exits 127, which Claude Code treats as non-blocking, so the guard
 fails open.
 
+**One test (0.8.14).** The Levels table of `testing.md` may hold one more optional column, `One test`,
+found by its header name as `Timeout` is: the command that runs one test of the level. `prd error replay`
+and `prd error resolve --red-run` run it (see Handling errors); nothing else reads it. The level's
+`Harness command` still runs the level at a build and at a deploy, and the tester guard allows what it
+allowed.
+
+```
+| Level | Harness command | Environment | Gate | One test |
+|---|---|---|---|---|
+| unit | `uv run pytest tests/unit` | local | build | `uv run pytest -q` |
+| system | `uv run pytest tests/system` | staging | deploy | |
+```
+
+- The cell is empty or one simple command in backticks, under the rules a `Harness command` follows:
+  its first word is none of `cd`, `env`, `sh`, `bash`, `zsh`, `eval` and `exec` and holds no `=`, and it
+  holds none of `$`, `{`, `~`, `;`, `|` and `&&`. Quotes group words; nothing is expanded. A blank cell,
+  or no column, means the level has no One test command.
+- The replay appends exactly one word, a test file's path or a test id, and runs the result from the
+  repository root (of a fresh worktree) without a shell. So the command must take a path relative to the
+  repository root: for a project in a subfolder, `uv run --project <folder> pytest -q`, not
+  `uv run --directory <folder> pytest -q`.
+- Lint reports a malformed cell through `runbook-tests`, so the rule count stays 41:
+  `` docs/prd/greet/testing.md:7: runbook-tests: level 'unit': One test '`cd tests && uv run pytest -q`' is not one simple command in backticks ``.
+  `prd help --rule runbook-tests` names the column, and `references/prd-format.md` describes it.
+- The command is PRD text, so it changes only through a change the owner approves; that is why the
+  replay may run it. A PRD adds the column as a patch, with the section 14 row
+  `format: One test column (prd-toolkit 0.8.14)`. A PRD that never adds it needs no change; the replay
+  skips its entries.
+
 ## Trace CLI
 
 `prd_trace.py` checks the PRD against the repo's tests and commits. It reads the test roots from
@@ -565,16 +594,22 @@ entry for each; `prd_error.py` is the only writer.
    settle on. Only a confirmed entry can be cited by code (`Refs: E-nnn`); the commit-msg hook and
    `prd_error.py check` refuse a code commit that cites an unconfirmed one.
 5. **Fix.** A change goes through `/prd-toolkit:prd-change` (citing the entry), and `/prd-toolkit:prd-build --fixes E-nnn`
-   builds it from the entry's failing test.
+   builds it from the entry's failing test. The skill never edits code or tests itself, except code no
+   adopted area covers: a confirmed `code bug` whose faulty code lies outside every adopted Boundary
+   takes the route of **Code no area covers** below, a test committed alone, then the fix.
 6. **Resolve and check.** `resolve` writes the resolution (`<T-id> [<level>], PRD <X.Y.Z>, fixed in
-   <commit>`; `<T-id or ->, PRD <X.Y.Z>, run <run id>`; or `not a defect: <why>`), then
-   `prd_error.py check <base>..<head>` validates every change to the ledger in the range.
+   <commit>`; `<T-id or ->, PRD <X.Y.Z>, run <run id>`; `not a defect: <why>`; or, since 0.8.14, a red
+   run, `fixed in <commit>, red run <test id> [<level>]`). The skill replays a fix that names a T-id
+   before it commits the ledger (**Replay a fix** below), then `prd_error.py check <base>..<head>`
+   validates every change to the ledger in the range.
 
 ```
 .prd-toolkit/prd error new docs/prd/<slug> --title "<title>" --source "<where seen>" [--url <address>]
 .prd-toolkit/prd error url docs/prd/<slug> E-nnn <address>
 .prd-toolkit/prd error propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--touches FR-001,FR-002] [--recurrence E-mmm]
 .prd-toolkit/prd error list docs/prd/<slug> --open
+.prd-toolkit/prd error replay docs/prd/<slug> E-nnn [--timeout <seconds>] [--json]
+.prd-toolkit/prd error resolve docs/prd/<slug> E-nnn --commit <sha> --red-run <test id> --level <level>
 .prd-toolkit/prd error check docs/prd/<slug> <base>..<head>
 ```
 
@@ -589,6 +624,142 @@ entry's card in the decision inbox names the entry's areas and links to its URL,
 its first area that has one (see Decision inbox). The handling-errors skill passes an address the
 report gives to `--url`. A copy vendored before 0.8.12 has neither option nor the `url` part: its
 lint refuses the part, so run `install` from the 0.8.12 plugin first (see the changelog).
+
+**Replay a fix (0.8.14).** A resolution names the commit that fixed the error, and `check` verifies
+only that the commit is in history. `prd error replay` checks the claim itself: it runs the entry's
+test, through its level's `One test` command (see Testing from the PRD), on `<sha>^`, the fix commit's
+first parent, where it must fail, and on `<sha>`, where it must pass. Each run happens in a git worktree
+of its own under the system temporary folder, removed when the run ends, so the command never writes the
+working tree or the index of the repository it starts in. It reads the entry from `errors.md` in the
+working tree, so it replays a resolution that is written and not yet committed.
+
+- **A fix with a T-id** (`<T-id> [<level>], PRD <X.Y.Z>, fixed in <sha>`): it runs, one by one, each file
+  under a test root that cites the T-id (`@prd <T-id>`) in the resolving commit, the first commit whose
+  `errors.md` holds the entry's Resolution line (`HEAD` while the line is not committed). Each tree's
+  test roots are replaced, whole, by the resolving commit's, so a regression test committed after its
+  fix still proves it, and the run on `<sha>^` runs the old code. At least one cited file must fail on
+  `<sha>^`, and every one must pass on `<sha>`.
+- **A red run** (`fixed in <sha>, red run <test id> [<level>]`, below): it runs the test id on each tree
+  as committed.
+- **A run** is the command with its one argument, started from the worktree's root with the command's
+  environment, in a process group of its own. Exit 0 passes; any other exit fails. The level's `Timeout`
+  applies (600 s without one), and `--timeout` overrides it; a run that times out is killed, and is a
+  finding, never a proof.
+- **Exit 0** prints the proof, `<E-nnn>: <T-id or test id> fails on <sha>^ and passes on <sha>`, as in
+  `E-001: tests/unit/test_count_names.py fails on 6c1f39f^ and passes on 6c1f39f`, or a skip and its
+  reason: `skipped: <E-nnn>: resolved by an environment run`, `skipped: E-001: resolved as not a defect`,
+  `skipped: <E-nnn>: <level> is a deploy-gate level` (the deploy run is its proof) or
+  `skipped: E-001: unit has no One test command`. A skip proves nothing.
+- **Exit 1** prints one finding per line: `<E-nnn> is not resolved`;
+  `<E-nnn>: resolution is not one of the four forms`; `<E-nnn>: <level> is not a level of testing.md`;
+  `<E-nnn>: <sha> names no commit`, `<E-nnn>: <sha> names more than one commit` or
+  `<E-nnn>: <sha> has no parent`; `<E-nnn>: <T-id> is cited by no test in <resolving commit>`;
+  `<E-nnn>: <T-id or test id> passes on <sha>^; <sha> did not turn it green`, as in
+  `E-001: T-001.2 passes on 6c3a03e^; 6c3a03e did not turn it green` for a test that passed before its
+  fix; `<E-nnn>: <T-id or test id> fails on <sha>: <file or test id>`;
+  `<E-nnn>: timed out after <N> s on <commit>`; and `<E-nnn>: <program> cannot start on <commit>`. An
+  ID that names no entry is `refused: <E-nnn> is not an entry` on stderr, exit 1. Exit 2 is a usage or
+  tool error, such as `prd_error: --timeout must be a whole number of seconds of at least 1`.
+- **The skill** runs it after every `resolve` that names a T-id, before `errors.md` is committed. On
+  findings it puts the ledger back with `git restore --staged --worktree docs/prd/<slug>/errors.md`,
+  leaves the entry `confirmed`, reports each finding and returns to the build; it names a skip and its
+  reason in its report. Nothing runs it in CI: the generated CI file is unchanged.
+
+`--json` prints one document on one line, with the exit code it has without it. `outcome` is `holds`,
+`skipped` or `findings`; `subject` is the T-id or the test id; `reason` is the skip's reason, else null;
+and `runs` holds one record per run, in the order made: the full SHA of the tree that ran, `before` or
+`after`, the argument, the exit code (null for a run that timed out or could not start), the seconds it
+took and `timed_out`. `prd error replay --interface` prints `1`. The finding above, as JSON:
+
+```
+{"interface": 1, "kind": "error-replay", "entry": "E-001", "outcome": "findings", "subject": "T-001.2", "reason": null, "findings": ["E-001: T-001.2 passes on 6c3a03e^; 6c3a03e did not turn it green"], "runs": [{"commit": "6069f6f49c700c3263677b068585aef75bd6471d", "when": "before", "argument": "tests/unit/test_greet.py", "exit": 0, "seconds": 0.676, "timed_out": false}, {"commit": "6c3a03e9620666fcad1af4d1ce697c68cbcc6f66", "when": "after", "argument": "tests/unit/test_greet.py", "exit": 0, "seconds": 0.534, "timed_out": false}]}
+```
+
+**Code no area covers: a red run (0.8.14).** A fix with a T-id needs a requirement, and code outside
+every adopted Boundary of `adoption.md` has none, so an error there could not close. It now closes with
+a fourth resolution form, a fix with no T-id and no PRD version, since no requirement changed:
+
+```
+Resolution: fixed in <sha>, red run <test id> [<level>]
+```
+
+`<test id>` is what the level's `One test` command takes, a path or a test id, and `<level>` is a
+build-gate level. When the owner has confirmed the class `code bug` and the diagnosis puts the faulty
+code outside every adopted Boundary, the skill takes this route in place of `/prd-toolkit:prd-change`
+and `/prd-toolkit:prd-build`, and writes the test and the fix itself: the builder and the tester work
+from requirement blocks, and this code has none. The rest of the loop stands: record first, no fix
+before `Confirmed:`, no retry in place of a diagnosis.
+
+1. **The failing test first,** committed alone (`Refs: E-nnn`) and run with the level's `One test`
+   command to show it failing. Always commit the failing test alone, before the fix: a test committed
+   with its fix fails on the parent for lack of its file, and the replay would call that fix proven.
+2. **The fix,** in its own commit citing the entry.
+3. **`resolve --red-run`,** which replays before it writes, and refuses a fix whose test did not fail
+   on the commit before it and pass on it.
+4. **The ledger committed, then `prd error check`,** as for every entry.
+
+In a repository whose adopted area `greet` covers `src/greet/**` and `tests/**`, with the bug in
+`tools/count_names.py`, the fix commit `6c1f39f` resolved as
+`Resolution: fixed in 6c1f39f, red run tests/unit/test_count_names.py [unit]`, and `resolve` printed
+`E-001 resolved code bug`. It refuses this form, and writes nothing (exit 1), when:
+
+- a path the fix commit changes is covered by an adopted area, as with the test's own commit named in
+  place of the fix:
+  `refused: 3845582 changes tests/unit/test_count_names.py, which area greet covers; resolve with a regression T-id`.
+  That code has requirements, so its fix takes a regression T-id and `/prd-toolkit:prd-build --fixes`.
+  A PRD with no adoption map covers every path outside the PRD folder and `.prd-toolkit/`, so it never
+  takes this form:
+  `refused: the PRD has no adoption map, so every path is covered; resolve with a regression T-id`;
+- the entry's class is not `code bug`: `refused: <E-nnn> is classed <class>; a red run resolves a code bug only`;
+- the level is not in Levels, is a deploy-gate level or has no One test command:
+  `refused: <level> is not a level of testing.md`, `refused: system is a deploy-gate level` or
+  `refused: <level> has no One test command; add the One test column to testing.md Levels through /prd-toolkit:prd-change`;
+- the test id holds white space or starts with `-`, since it becomes a command argument:
+  `refused: the test id must hold no white space and must not start with -`;
+- the replay does not hold: each finding as `refused: <finding>`, such as
+  `refused: E-001: tests/unit/test_count_names.py fails on 86287b0: tests/unit/test_count_names.py`
+  for a commit made before the test existed;
+- or, as for every form, the entry is not `confirmed`.
+
+`--red-run` with `--t`, `--version`, `--run` or `--not-a-defect`, or without `--commit` and `--level`,
+is a usage error, exit 2:
+`prd_error: --red-run takes --commit and --level, and no --t, --version, --run or --not-a-defect`.
+
+`prd error check` accepts a red run added in its range and runs no test. It reports, each as
+`errors.md: <E-nnn>: <finding>`, `commit <sha> is not an ancestor of HEAD`,
+`the PRD has no adoption map, so every path is covered`,
+`commit <sha> changes <path>, which area <area> covers` and `<level> is not a level of testing.md`; a
+line of no form is now `resolution is not one of the four forms`. The three older forms are written,
+read and checked as before, and `resolve` runs no replay for them. A copy vendored before 0.8.14
+reports a red run as none of the three forms it knows: re-vendor before a ledger holds one (see the
+changelog).
+
+**Limits of the replay (0.8.14).**
+
+- An exit code cannot tell a test that failed from one that could not run. The second run catches a
+  harness that cannot run in a fresh checkout, because it fails there too and the proof does not hold.
+  A test committed in the same commit as its fix fails on the parent for lack of its file, so the replay
+  would call that fix proven: commit the failing test alone, before the fix.
+- The proof is per file. Two entries fixed together whose tests share a file share one proof.
+- For an entry with a T-id, a test added to the same file between the fix and the resolve can fail the
+  second run.
+- A One test program that cannot start in a fresh worktree (a path into a virtual environment, for
+  example) is a finding, `<E-nnn>: <program> cannot start on <commit>`: give the column a command that
+  builds what it needs, such as `uv run --project <folder> pytest -q`.
+- The replay removes its worktrees on SIGINT (exit 130). SIGTERM is not handled: a replay killed that
+  way leaves its worktree and its running test behind; remove the folder under the system temporary
+  folder, then run `git worktree prune`.
+- A Ctrl-C that arrives while the replay removes one run's worktree is lost; press it again in the next
+  run.
+- The test a replay runs has the environment the command was started with. Git's own commands in the
+  replay ignore `GIT_INDEX_FILE`, `GIT_DIR` and `GIT_WORK_TREE`, but a test that calls git itself sees
+  them: do not start a replay from inside a git hook.
+- `resolve --red-run=` with an empty test id is refused as `resolution is not one of the four forms`, not
+  with the test id's own refusal.
+- Inside the Bash sandbox of a Claude Code session, `git worktree add` cannot write under `.git/`, so the
+  replay, and `resolve --red-run` with it, exits 2 with
+  `prd_error: internal error: RuntimeError: git worktree add --detach … failed` (E-035, open). Outside the
+  sandbox both run as above.
 
 **Known-failing tests.** A case marked `known-failing` on an open entry is a strict expected failure
 that tags its citation `@prd T-nnn.n known-failing E-nnn`; it fails the day the bug is fixed, so the
@@ -606,6 +777,7 @@ does, and the failure close records the entry.
   `Recurrence of:` that is not an entry, or a `--touches` ID the PRD does not define;
 - `confirm`: an `unclassified`, already `confirmed` or `resolved` entry;
 - `resolve`: an entry that is not `confirmed`, or is already resolved, or a `--t` with no test case or level;
+  with `--red-run`, also each refusal of **Code no area covers** above;
 - `new`, `propose`, `confirm` and `resolve`: a value that would open a code fence (an `Evidence:` line,
   or a title, diagnosis, reply or reason, whose first non-space characters are ```` ``` ```` or `~~~`),
   which would end the ledger's parse (`refused: Evidence: line <n> would open a code fence; drop it or
@@ -616,12 +788,14 @@ does, and the failure close records the entry.
   rules skip `Evidence:` and `Confirmed:` lines, and `schema-refs` skips `errors.md`, so quoted output
   belongs in `Evidence:` bare and in backticks elsewhere;
 - any command naming an `E-nnn` that is not an entry; and `check`, whose exit 1 prints findings, one
-  per line, as `errors.md: E-nnn: <finding>`.
+  per line, as `errors.md: E-nnn: <finding>`, and `replay`, whose exit 1 prints its findings on stdout
+  (see **Replay a fix**).
 
 Exit 2 (usage error, nothing written): an empty reply, class, diagnosis, title or source; `unclassified` as a
 class; a malformed version, T-id, run id or commit (7 to 40 lowercase hex digits); a fix without its
 T-id, level or commit (`a fix needs a T-id, its level and a commit`); `--not-a-defect` combined with
-another resolution; an unreadable range or PRD folder.
+another resolution; `--red-run` combined with another resolution's flags, or without `--commit`
+and `--level`; an unreadable range or PRD folder.
 
 ## Publishing
 
@@ -1124,11 +1298,25 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
+- **0.8.14:** a replay that proves a fix, and a close for an error no area covers. An entry closed with a line such as `T-005.3 [integration], PRD 1.0.1, fixed in 0dd4037`, and `prd error check` verified that its T-id, version and commit exist, never that the commit turned the test green. And an error in code outside every adopted Boundary could not close at all: `resolve` needs a T-id, that code has no requirement, and E-017 had stayed `confirmed` since 0.8.7 though its fix was in. Now `prd error replay` (see Handling errors) runs the entry's test through the new optional `One test` column of `testing.md` Levels (see Testing from the PRD) on the commit before the fix, where it must fail, and on the fix, where it must pass, each run in a temporary git worktree it removes; it prints the proof, a skip and its reason, or each finding, and with `--json` one document (`kind` `error-replay`, `interface` 1). A fourth resolution form, `fixed in <commit>, red run <test id> [<level>]`, closes a `code bug` whose fix commit changes no path an adopted area covers: `prd error resolve --red-run <test id> --level <level>` writes it only when its replay holds, and `prd error check` reads it. The `handling-errors` skill and `/prd-toolkit:prd-error` take that route (the failing test committed alone, the fix, `resolve --red-run`, `check`), the one case where the session writes a test and a fix itself, and replay every `resolve` that names a T-id before the ledger is committed. The three older forms are written, read and checked as before. Lint reports a malformed `One test` cell through `runbook-tests`. The lint rule count stays 41. The toolkit's own ledger closes E-017 and E-032 by the fourth form (E-032 was the first use of the route: the tester guard now finds a headless session's tasks folder by its session id when the hook input names no scratchpad, so the tester may read its own background run's output), and E-033 with T-079.6 (the replay wrote the caller's git index when `GIT_INDEX_FILE` was set; found by review before release). The toolkit's own PRD is 8.5.0: 8.4.0 added the area `error-replay` (UJ-07, FR-075 to FR-081), written before its code, with `format: One test column (prd-toolkit 0.8.14)` and the column on its two levels; 8.5.0 holds the fix route of E-033, a finding of its own for a One test program that cannot start, and the help catalogue's red-run form; the area is verified. Conversion, which once held this number, stays in the backlog with no release (owner, 2026-11-19).
+  - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.14 plugin and commit `.prd-toolkit/` before a ledger holds a fourth-form line: `replay`, `resolve --red-run` and `check` run from the vendored copy, and a copy vendored before 0.8.14 reports a red run as none of the three forms it knows (on such a copy the 0.8.14 skill stops before the route and before it resolves a fix that names a T-id, and says so). The generated CI file is unchanged, and no repository regenerates it. A PRD needs no change: it takes the `One test` column as a patch, with the section 14 row `format: One test column (prd-toolkit 0.8.14)`, only if it wants the replay, which skips the entries of a level without the column. What a client may notice: `prd error check` calls a line of no form `resolution is not one of the four forms`, where it said `three`.
+  - **Known limits:**
+    - An exit code cannot tell a test that failed from one that could not run. The second run catches a harness that cannot run in a fresh checkout. A test committed in the same commit as its fix fails on the parent for lack of its file, so the replay would call that fix proven: commit the failing test alone, before the fix.
+    - The proof is per file: two entries fixed together whose tests share a file share one proof. For an entry with a T-id, a test added to the same file between the fix and the resolve can fail the second run.
+    - A One test program that cannot start in a fresh worktree (a path into a virtual environment, for example) is a finding, `<E-nnn>: <program> cannot start on <commit>`; give the column a command that builds what it needs, such as `uv run --project <folder> pytest -q`.
+    - The replay removes its worktrees on SIGINT (exit 130), but SIGTERM is not handled: a replay killed that way leaves its worktree and its running test behind (remove the folder under the system temporary folder, then `git worktree prune`). A Ctrl-C that arrives while the replay removes one run's worktree is lost; press it again in the next run.
+    - The test a replay runs has the environment the command was started with: git's own commands in the replay ignore `GIT_INDEX_FILE`, `GIT_DIR` and `GIT_WORK_TREE`, but a test that calls git sees them. Do not start a replay from inside a git hook.
+    - `resolve --red-run=` with an empty test id is refused as `resolution is not one of the four forms`, not with the test id's own refusal.
+    - Inside the Bash sandbox of a Claude Code session, `git worktree add` cannot write under `.git/`, so the replay and `resolve --red-run` exit 2 (E-035, open, not yet classed).
+    - E-034 is open, not yet classed: the unit test `test_done_right_after_the_last_answer_is_accepted` failed once in a whole parallel run and passed alone.
+    - No replay runs in CI, and an agent that skips the skill's replay step is not caught for an entry with a T-id; for the fourth form `resolve` itself replays.
+  - **Evals:**
+    - `claude plugin eval ./prd-toolkit --model sonnet --scaffold`, one run each (see `evals/BASELINE.md`): the two new cases, `error-uncovered-code-red-run` (an error in code no adopted area covers is fixed test first and resolved with `--red-run`, never through `/prd-toolkit:prd-build`) and `error-replay-finding-not-committed` (replay findings after `resolve` leave the ledger uncommitted and the entry `confirmed`), and every existing case of `handling-errors`, the one skill whose text changed.
 - **0.8.13:** fixes for the open entries of the toolkit's own error ledger; no new command, skill or lint rule. Nine entries are fixed, each recorded in `errors.md`, classed by the owner and built from a test that failed first, and one is closed as not a defect. The `prd` launcher asks uv for a system Python first (`uv python find --system ">=3.11"`) and runs on the path it prints, so a `.venv` in the working directory whose interpreter cannot be read no longer stops every `prd` command, as it did in a sandboxed session (E-022); when uv finds none it runs on `>=3.11` as before. Where `core.hooksPath` is set, `prd hooks install` rewrites a hook that is the toolkit's own, so `prd hooks check` no longer calls it stale after install's own instruction was followed (E-024); a hook of your own is left as it is, with the line to add. The decision inbox shows an error entry's `error-class` card once, in the first worktree whose PRD folder holds the entry, so one answer is one commit and the other branches get it when they merge (E-023). `prd context --area` prints the text a features file gives before its first block as a part `Area notes`, directly before `Requirements`, in the text pack and in `--json`, so the builder is given the definitions its criteria use (E-028); a features file with no such text gives the pack it gave before, byte for byte. `prd change pack … --lift` refuses a pack that declares no contract type, and the PRD and the `changing-prds` skill now say what a lift adds to lint's output: a `platform-word` finding for each requirement that names a word of the pack's `vocabulary` (E-030). `prd help` refuses a catalogue file that is there and cannot be read with the line `prd_help: <path>: cannot read: <message>` and exit 2, where it printed a traceback (E-020). `prd status`'s Next part takes a section 13 question without the white space at its ends, so a line that ends in spaces no longer gets a second full stop (E-021). The build check (`prd build-check --diff`) calls a changed file a tester's test only when it lies under a test root of `testing.md` (`tests` when it names none), so a build can change a file outside the roots that holds `@prd T-` text for another PRD (E-031). The six deploy eval scaffolds and the scaffold of `review-edits-nothing` build their start states, so those seven cases run again (E-019). E-029 is closed as not a defect: `prd pack check` already reports a validator that cannot be found or run from the pack folder, on its sample's path. The toolkit's own PRD is 8.3.1: 8.0.0, a major version because the Next part's line for such a question changed, holds the fixes for E-020, E-021 and E-030; 8.1.0 added the areas `launcher`, `hook-shims`, `inbox-cards` and `context-notes` (FR-069 to FR-072), 8.2.0 `eval-scaffolds` (FR-073) and 8.3.0 `tester-paths` (FR-074), each a small area of one module whose requirement was written before its code, beside older code that is not adopted yet; all six are verified. The lint rule count stays 41. Conversion, planned for this number, moves to 0.8.14 (owner, 2026-11-17).
   - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.13 plugin and commit `.prd-toolkit/`: the launcher, `hooks check`, the context pack, the inbox, the build check, help and status run from the vendored copy, so a repository gets those fixes only then; the lift and `hooks install` run from the plugin. The generated CI file is unchanged, and a PRD needs no change. What a client or a person may notice: `prd context --area … --json` holds one more entry in `parts`, titled `Area notes`, before the first `Requirements` entry, for an area whose features file has text before its first block (`interface` stays 1); `prd status` prints an open question without the white space at its ends; and where `core.hooksPath` is set, `install` now writes the toolkit's own hooks in that folder (a file whose second line starts `# prd-toolkit hook`), where it printed a line to replace by hand.
   - **Known limits:**
-    - E-017 stays open: its test was fixed in 0.8.7, and the entry waits for a close for an error outside every adopted Boundary, which a later release brings.
-    - E-032 is open and not yet classed: in two builds the tester guard refused the tester's Read of its own background run's output file, which the tester's rule 7 allows. The tester ran the harness in the foreground instead, and the results stand. It is not reproduced outside those sessions.
+    - E-017 stays open: its test was fixed in 0.8.7, and the entry waits for a close for an error outside every adopted Boundary, which a later release brings (resolved in 0.8.14, by a red run).
+    - E-032 is open and not yet classed: in two builds the tester guard refused the tester's Read of its own background run's output file, which the tester's rule 7 allows. The tester ran the harness in the foreground instead, and the results stand. It is not reproduced outside those sessions (fixed in 0.8.14).
     - Only the inbox shows an entry's card once: `prd gates list --worktrees` still lists its `error-class` gate in every worktree that holds the entry, and `prd status` prints what it printed before.
     - The build check no longer guards a tester's test kept outside the test roots `testing.md` names; keep every tester's test under a root, where trace reads its citations.
     - Each new area adopts one module. The code around them (the areas `trace-and-hooks`, `gates`, `context`, `build-check` and `change`) is still not adopted.
