@@ -1630,8 +1630,6 @@ T-079.7:
   target: "cli:prd_error"
   environment: local
   identity: none
-  known-failing: E-035
-  symptom: "run_1 exits 2, and its stderr is exactly one line, which starts `prd_error: internal error: RuntimeError: git worktree add --detach ` and ends ` failed: Preparing worktree (detached HEAD <h>)`, `<h>` being 7 or more hex digits that start FULL(fix^) or FULL(fix); its stdout is not compared while the symptom shows; everything else the case expects (LEFT_AS_IT_WAS, <tmp>/repo/.git/worktrees still a regular file of 0 bytes, the worktree list naming <tmp>/repo alone) holds while the symptom shows, and the exit, the stdout line and the empty stderr do not"
   preconditions:
   - status-next/base
   - error-replay/files
