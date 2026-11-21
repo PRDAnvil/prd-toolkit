@@ -472,7 +472,7 @@ Recurrence of: -
 
 ### E-036 A test the replay runs can write the index of the repository the command is started in
 Detected: 2026-11-21, final review of the 0.8.14 branch, a probe in a scratch repository
-Classification: unclassified
+Classification: invalid requirement
 Touches: FR-079
 Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by the recording session, in a scratch repository
   whose entry E-001 is resolved `T-001.2 [unit], PRD 1.0.0, fixed in <fix>`.
@@ -492,7 +492,7 @@ Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by
   The reviewer's note on where the variable comes from: in the pre-commit hook of a partial commit (`git commit <paths>`)
   git sets GIT_INDEX_FILE to the absolute path of <repo>/.git/next-index-<pid>.lock; in a plain `git commit` it is the
   relative `.git/index`, which in a clone names the clone's own index.
-Diagnosis: -
+Diagnosis: Reproduced once, as the evidence shows. Two sentences of the area contradict each other, and the code follows the first. The definition of a run says it starts "with the environment the command itself has", and `_execute` in prdlint/errorreplay.py starts the test with no `env`, so the test has the variables that point git at a repository. The definitions also say "The command never writes the working tree or the index of the repository it is started in", and FR-079's edge case says a command started with `GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE` set "leaves its repository's index and working tree as they were, since no git command the replay runs has those variables". That holds for the git commands the replay itself runs (E-033) and not for a test that calls git: with `GIT_INDEX_FILE` naming the repository's index, the test's `git add -A` in its clone staged the clone's files into that index, so `git status --porcelain` no longer printed what it printed before, against AC-079.1 and AC-079.2. The edge case "a One test program that calls git finds a git checkout in its clone" fails the same way when `GIT_DIR` is set. One of the two sentences has to change: a run's environment drops the variables `git rev-parse --local-env-vars` lists, or the area says a test can reach the repository through them. The README's limits already tell the user not to start a replay from inside a git hook.
 Resolution: -
 Recurrence of: -
 
