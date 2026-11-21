@@ -446,6 +446,7 @@ Recurrence of: -
 ### E-035 prd error replay cannot add its worktree inside the Bash sandbox of a Claude Code session
 Detected: 2026-11-20, eval runs of the two new handling-errors cases
 Classification: environment
+Confirmed: 2026-11-21, "option 1, yes to both classes"
 Touches: FR-079
 Evidence: Eval runs of the two new handling-errors cases (claude plugin eval, one run each, the runner's sandbox on).
   error-uncovered-code-red-run, with the plugin: the session committed the failing test alone, then the fix, then ran
