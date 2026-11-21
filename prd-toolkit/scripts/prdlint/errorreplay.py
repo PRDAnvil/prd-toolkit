@@ -1,5 +1,5 @@
 """prd error replay: run an errors.md entry's test on the commit before its fix, where it must fail, and on the fix,
-where it must pass, each run in a git worktree of its own that is removed after it (FR-075 to FR-081)."""
+where it must pass, each run in a git clone of its own that is removed after it (FR-075 to FR-081)."""
 import functools
 import os
 import re
@@ -215,13 +215,14 @@ def _cited_files(repo_root: Path, commit: str, roots: list[str], tid: str) -> li
     return sorted(p for p, b in files.items() if tid in trace.cited_tids(texts.get(b, b"").decode("utf-8", "replace")))
 
 
-class _Worktrees:
-    """Worktrees under one new folder in the system temporary folder; each is removed after its run, the folder at the end."""
+class _Clones:
+    """Clones under one new folder in the system temporary folder; each is removed after its run, the folder at the end.
+    A clone is `git clone --shared --no-checkout` of the repository, then a checkout of the commit with HEAD detached:
+    nothing is written in the repository's git folder and no worktree is added to it (FR-079, E-035)."""
 
     def __init__(self, repo_root: Path):
-        self.repo_root = repo_root
         common = _git(repo_root, "rev-parse", "--git-common-dir").stdout.decode().strip()
-        self.common = (repo_root / common).resolve()
+        self.source = str((repo_root / common).resolve())
         self.folder = Path(tempfile.mkdtemp(prefix="prd-error-replay-", dir=os.environ.get("TMPDIR") or None))
         self.n = 0
 
@@ -229,32 +230,23 @@ class _Worktrees:
         self.n += 1
         path = self.folder / f"run-{self.n}"
         try:
-            _git(self.repo_root, "worktree", "add", "--detach", str(path), commit)
+            _git(self.folder, "clone", "--shared", "--no-checkout", "--quiet", "--", self.source, str(path))
+            _git(path, "checkout", "--quiet", "--detach", commit)
         except BaseException:
             self.drop(path)
             raise
         return path
 
     def drop(self, path: Path) -> None:
-        """Remove the worktree and its administrative folder, and nothing else in the worktree list."""
-        _git(self.repo_root, "worktree", "remove", "--force", "--force", str(path), check=False)
+        """Removing a clone is removing its folder."""
         shutil.rmtree(path, ignore_errors=True)
-        admin = self.common / "worktrees"
-        target = (path / ".git").resolve()
-        for d in admin.iterdir() if admin.is_dir() else []:
-            try:
-                points = Path((d / "gitdir").read_text(encoding="utf-8").strip()).resolve()
-            except OSError:
-                continue
-            if points == target:
-                shutil.rmtree(d, ignore_errors=True)
 
     def close(self) -> None:
         shutil.rmtree(self.folder, ignore_errors=True)
 
 
 def _replace_roots(wt: Path, resolving: str, roots: list[str]) -> None:
-    """Every test root of the worktree replaced, whole, by that root of the resolving commit's tree."""
+    """Every test root of the clone replaced, whole, by that root of the resolving commit's tree."""
     for root in roots:
         _git(wt, "rm", "-r", "-q", "--ignore-unmatch", "--", root)
         p = wt / root
@@ -297,7 +289,7 @@ def _execute(argv: list[str], cwd: Path, timeout: int) -> tuple[int | None, floa
 
 
 def _quiet_cleanup(fn) -> None:
-    """Clean up with SIGINT held off, so a second interrupt cannot leave a worktree behind."""
+    """Clean up with SIGINT held off, so a second interrupt cannot leave a clone behind."""
     try:
         old = signal.signal(signal.SIGINT, signal.SIG_IGN)
     except ValueError:  # not the main thread
@@ -311,9 +303,9 @@ def _quiet_cleanup(fn) -> None:
 
 def _runs(repo_root: Path, rep: Replay, sha: str, commit: str, command: list[str], arguments: list[str],
           timeout: int, resolving: str | None, roots: list[str]) -> None:
-    """Every run on <sha>^, then every run on <sha>, each in its own worktree; then the findings (AC-078.8)."""
+    """Every run on <sha>^, then every run on <sha>, each in its own clone; then the findings (AC-078.8)."""
     before = _parent(repo_root, commit)
-    trees = _Worktrees(repo_root)
+    trees = _Clones(repo_root)
     try:
         for when, rev in (("before", before), ("after", commit)):
             for arg in arguments:

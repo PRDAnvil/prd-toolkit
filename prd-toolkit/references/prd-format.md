@@ -780,8 +780,10 @@ area and that its level is a row of Levels.
 red run on a `confirmed` `code bug` entry, for a build-gate level with a One test command, only
 when the replay of that line holds. `prd_error.py replay <prd_dir> <E-id> [--timeout SECONDS]
 [--json]` runs the entry's test, through its level's One test command, on `<sha>^`, where it must
-fail, and on `<sha>`, where it must pass, each run in a git worktree of its own under the system
-temporary folder, which it removes. For a fix with a T-id it runs each file under a test root
+fail, and on `<sha>`, where it must pass, each run in a git clone of its own under the system
+temporary folder (`git clone --shared --no-checkout`, then a checkout of the commit, `HEAD`
+detached), which it removes; it writes nothing in the repository's git folder and adds no
+worktree to it. For a fix with a T-id it runs each file under a test root
 that cites the T-id in the resolving commit (the first commit whose `errors.md` holds the entry's
 Resolution line, else `HEAD`), each tree's test roots replaced by that commit's; for a
 red run it runs the test id on each tree as committed. It prints

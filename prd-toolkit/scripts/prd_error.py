@@ -243,7 +243,7 @@ def main(argv: list[str], today: date | None = None) -> int:
                 raise deploy.Refused(refusals)
         out = _run(args, prd, today) if args.cmd in ("check", "list") else _guarded_write(args, prd, today)
     except KeyboardInterrupt:
-        if args.cmd == "resolve" and args.red_run is not None:  # FR-079: its replay's worktrees are gone
+        if args.cmd == "resolve" and args.red_run is not None:  # FR-079: its replay's clones are gone
             return 130
         raise
     except (model.NotAPrd, ValueError, trace.BadRange) as e:
