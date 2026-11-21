@@ -1,5 +1,6 @@
 """prd error replay: run an errors.md entry's test on the commit before its fix, where it must fail, and on the fix,
 where it must pass, each run in a git worktree of its own that is removed after it (FR-075 to FR-081)."""
+import functools
 import os
 import re
 import shlex
@@ -103,9 +104,22 @@ def _timeout(prd: Prd, level: str, given: int | None) -> int:
     return int(cell) if _WHOLE.fullmatch(cell) and int(cell) >= 1 else DEFAULT_TIMEOUT
 
 
+@functools.cache
+def _local_env_vars() -> frozenset[str]:
+    """The variables `git rev-parse --local-env-vars` lists: those that point git at one repository."""
+    out = subprocess.run(["git", "rev-parse", "--local-env-vars"], capture_output=True, timeout=600, check=True).stdout
+    return frozenset(out.decode().split())
+
+
+def _git_env() -> dict[str, str]:
+    """The command's environment less the variables that point git at a repository (FR-079)."""
+    local = _local_env_vars()
+    return {**{k: v for k, v in os.environ.items() if k not in local}, "GIT_LITERAL_PATHSPECS": "1"}
+
+
 def _git(repo_root: Path, *args: str, check: bool = True, stdin: bytes | None = None) -> subprocess.CompletedProcess:
     proc = subprocess.run(["git", *args], cwd=repo_root, input=stdin, capture_output=True, timeout=600,
-                          env={**os.environ, "GIT_LITERAL_PATHSPECS": "1"})
+                          env=_git_env())
     if check and proc.returncode != 0:
         err = proc.stderr.decode("utf-8", "replace").strip().splitlines() or ["no output"]
         raise RuntimeError(f"git {' '.join(args)} failed: {err[0]}")
@@ -149,14 +163,10 @@ def _blobs(repo_root: Path, shas: list[str]) -> dict[str, bytes]:
     return got
 
 
-def _prd_prefix(prd: Prd, repo_root: Path) -> str:
-    return deploy.prd_rel(prd, repo_root)
-
-
 def _resolving_commit(prd: Prd, repo_root: Path, eid: str, resolution: str) -> str:
     """The first commit, in `git rev-list --topo-order --reverse HEAD` order, whose errors.md holds the entry with this
     Resolution line; HEAD when none does."""
-    prefix = _prd_prefix(prd, repo_root)
+    prefix = deploy.prd_rel(prd, repo_root)
     rel = "errors.md" if prefix == "." else f"{prefix}/errors.md"
     revs = _git(repo_root, "rev-list", "--topo-order", "--reverse", "HEAD").stdout.decode().split()
     checks = _git(repo_root, "cat-file", "--batch-check", stdin="".join(f"{r}:{rel}\n" for r in revs).encode(),
@@ -295,7 +305,7 @@ def _quiet_cleanup(fn) -> None:
             signal.signal(signal.SIGINT, old)
 
 
-def _runs(prd: Prd, repo_root: Path, rep: Replay, sha: str, commit: str, command: list[str], arguments: list[str],
+def _runs(repo_root: Path, rep: Replay, sha: str, commit: str, command: list[str], arguments: list[str],
           timeout: int, resolving: str | None, roots: list[str]) -> None:
     """Every run on <sha>^, then every run on <sha>, each in its own worktree; then the findings (AC-078.8)."""
     before = _parent(repo_root, commit)
@@ -363,7 +373,7 @@ def _replay_line(prd: Prd, repo_root: Path, eid: str, line: str, timeout: int | 
         if not arguments:
             rep.findings = [f"{eid}: {subject} is cited by no test in {resolving[:7]}"]
             return rep
-    _runs(prd, repo_root, rep, sha, commit, command, arguments, _timeout(prd, level, timeout), resolving, roots)
+    _runs(repo_root, rep, sha, commit, command, arguments, _timeout(prd, level, timeout), resolving, roots)
     return rep
 
 
@@ -437,7 +447,7 @@ def red_run_refusals(prd: Prd, repo_root: Path, entry: str, commit: str, test_id
         return ["the test id must hold no white space and must not start with -"]
     if prd.adoption is None:
         return ["the PRD has no adoption map, so every path is covered; resolve with a regression T-id"]
-    covered = _first_covered(prd, repo_root, _prd_prefix(prd, repo_root), commit)
+    covered = _first_covered(prd, repo_root, deploy.prd_rel(prd, repo_root), commit)
     if covered:
         return [f"{commit} changes {covered[0]}, which area {covered[1]} covers; resolve with a regression T-id"]
     rep = replay_red_run(prd, repo_root, entry, commit, test_id, level)
@@ -450,11 +460,10 @@ def write_red_run(prd: Prd, eid: str, commit: str, test_id: str, level: str) -> 
     errors._write(prd, errors._set(text, eid, "Resolution", red_run_line(commit, test_id, level)))
 
 
-def check_red_run(prd: Prd, repo_root: Path, head: str, entry: ErrorEntry, prefix: str | None = None) -> list[str]:
+def check_red_run(prd: Prd, repo_root: Path, head: str, entry: ErrorEntry, prefix: str) -> list[str]:
     """`prd error check` on a red run added in its range, against the PRD at head, with no run (AC-081.1)."""
     m = RED_RUN.fullmatch(entry.resolution)
     sha, level = m.group(1), m.group(3)
-    prefix = _prd_prefix(prd, repo_root) if prefix is None else prefix
     out = []
     if _git(repo_root, "merge-base", "--is-ancestor", sha + "^{commit}", head, check=False).returncode != 0:
         out.append(f"commit {sha} is not an ancestor of HEAD")
