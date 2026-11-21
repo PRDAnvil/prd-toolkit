@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?:^|\n)commit [0-9a-f]{40}\nrefs: [^\n]*\n(?:path: (?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n)+helper: bug\n(?:[^\n]*\n)*?commit [0-9a-f]{40}\nrefs: [^\n]*\n(?:path: (?!(?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n)[^\n]*\n)*?path: tools/count_names\.py\n(?:path: (?!(?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n)[^\n]*\n)*helper: no bug\n'
+pattern: '(?:^|\n)commit [0-9a-f]{40}\nrefs: [^\n]*\n(?:path: (?:[^\n]*/)?(?:__init__|conftest)\.py\n)*path: (?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n(?:path: (?:(?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py|(?:[^\n]*/)?(?:__init__|conftest)\.py)\n)*helper: bug\n(?:[^\n]*\n)*?commit [0-9a-f]{40}\nrefs: [^\n]*\n(?:path: (?!(?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n)[^\n]*\n)*?path: tools/count_names\.py\n(?:path: (?!(?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n)[^\n]*\n)*helper: no bug\n'
 match: contains
 target: { source: file, path: .git/eval-commits.log }
 ---

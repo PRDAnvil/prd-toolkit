@@ -1,7 +1,7 @@
 ---
 type: tool_used
 tool: Bash
-input_match: '"command"\s*:\s*"(?:[^"\\]|\\.)*?(?:/prd(?:\\")?\s+error|prd_error\.py(?:\\")?)\s+resolve\s(?:[^"\\]|\\.)*?--t(?:\s+|=)T-001\.2(?![\w.])'
+input_match: '"command"\s*:\s*"(?:[^"\\]|\\.)*?(?:/prd(?:\\")?\s+error|prd_error\.py(?:\\")?)\s+resolve\s(?:[^"\\]|\\.)*?--t(?:\s+|=)(?:\\\"|'')?T-001\.2(?![\w.])'
 min: 1
 ---
 

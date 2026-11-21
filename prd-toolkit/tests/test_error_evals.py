@@ -172,8 +172,11 @@ JSON_FINDING = json.dumps({"interface": 1, "kind": "error-replay", "entry": "E-0
 REGEX_SAMPLES = {
     (RED, "test-committed-before-fix"): (
         [GOOD_LOG, record(["tools/test_count_names.py"], True) + record([TOOL], False),
-         record([TEST], True) + record([LEDGER], True) + record(["src/x.py", TOOL], False)],
-        ["", ONE_COMMIT, FIX_FIRST, FIX_EDITS_TEST, TEST_WITH_OTHER, record([TEST], True) + record([TOOL], True)]),
+         record([TEST], True) + record([LEDGER], True) + record(["src/x.py", TOOL], False),
+         record(["tools/__init__.py", "tools/test_count_names.py"], True) + record([TOOL], False),
+         record([TEST, "tests/unit/conftest.py"], True) + record([TOOL], False)],
+        ["", ONE_COMMIT, record(["tools/__init__.py"], True) + record([TOOL], False),
+         record(["conftest.py", "tools/__init__.py"], True) + record([TOOL], False), FIX_FIRST, FIX_EDITS_TEST, TEST_WITH_OTHER, record([TEST], True) + record([TOOL], True)]),
     (RED, "fix-commit-cites-entry"): (
         [GOOD_LOG, NOT_COMMITTED, record([TOOL], False, refs="FR-001, E-001")],
         ["", FIX_NO_REFS, FIX_EDITS_TEST, ONE_COMMIT, record([TOOL], True), record([TOOL], False, refs="E-0011")]),
@@ -198,14 +201,24 @@ REGEX_SAMPLES = {
         [trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"), ("git add docs/prd/greet/errors.md", ""),
                (COMMIT, "[main 2f3df44] docs(prd): resolve E-001"), (CHECK, "prd-error-exit=0")),
          trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"),
-               ("git -C /w add docs/prd/greet/errors.md && git -C /w commit -m x", ""), (CHECK, "prd-error-exit=0"))],
+               ("git -C /w add docs/prd/greet/errors.md && git -C /w commit -m x", ""), (CHECK, "prd-error-exit=0")),
+         trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"), (COMMIT, ""),
+               (CHECK.replace("bcfddd2..HEAD", "HEAD~4..HEAD"), "prd-error-exit=0")),
+         trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"), (COMMIT, ""),
+               (CHECK.replace("bcfddd2..HEAD", "origin/main..HEAD"), "prd-error-exit=0")),
+         trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"),
+               (COMMIT + " && " + CHECK.replace("bcfddd2..HEAD", "HEAD~4..HEAD"), "prd-error-exit=0"))],
         [trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"), (CHECK, "prd-error-exit=0"), (COMMIT, "")),
          trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"), (COMMIT, ""),
                (CHECK, "errors.md: E-001: resolution is not one of the four forms\nprd-error-exit=1")),
          trace((COMMIT, ""), (CHECK, "prd-error-exit=0")),
          READ_SKILL + "\n" + trace((COMMIT, ""), (CHECK, "prd-error-exit=0")),
          trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"), (COMMIT, ""),
-               (".prd-toolkit/prd error list docs/prd/greet" + GATE, "prd-error-exit=0"))]),
+               (".prd-toolkit/prd error list docs/prd/greet" + GATE, "prd-error-exit=0")),
+         trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"), (COMMIT, ""),
+               (CHECK.replace("bcfddd2..HEAD", "bcfddd2..HEAD~1"), "prd-error-exit=0")),
+         trace((RESOLVE, "E-001 resolved code bug\nprd-error-exit=0"),
+               (CHECK.removesuffix(GATE) + " && " + COMMIT + GATE, "prd-error-exit=0"))]),
     (REPLAY, "replay-reports-the-finding"): (
         [trace((RESOLVE_T, "E-001 resolved code bug\nprd-error-exit=0"), (REPLAY_CMD, FINDING + "\nprd-error-exit=1")),
          trace(("uv run --script /p/scripts/prd_error.py replay docs/prd/greet E-001 --json", JSON_FINDING))],
@@ -257,10 +270,26 @@ TOOL_SAMPLES = {
     (REPLAY, "resolve-ran"): (
         [{"command": RESOLVE_T}, {"command": f"uv run --script /p/scripts/prd_error.py resolve docs/prd/greet E-001 "
                                              f"--t=T-001.2 --version 1.0.0 --commit {FIX}"},
-         {"command": f'"/p q/scripts/prd" error resolve docs/prd/greet E-001 --commit {FIX} --t T-001.2 --version 1.0.0'}],
+         {"command": f'"/p q/scripts/prd" error resolve docs/prd/greet E-001 --commit {FIX} --t T-001.2 --version 1.0.0'},
+         {"command": RESOLVE_T.replace("--t T-001.2", '--t "T-001.2"')},
+         {"command": RESOLVE_T.replace("--t T-001.2", "--t='T-001.2'")}],
         [{"command": REPLAY_CMD}, {"command": RESOLVE_T.replace("T-001.2", "T-001.21")},
          {"command": RESOLVE.replace("c002593", FIX)}, {"command": ".prd-toolkit/prd error list docs/prd/greet --open"},
          {"command": "grep -rn T-001.2 tests"}]),
+    (REPLAY, "ledger-restored-with-git"): (
+        [{"command": RESTORE}, {"command": RESTORE.replace("--staged --worktree", "--worktree --staged")},
+         {"command": "git restore -S -W docs/prd/greet/errors.md"},
+         {"command": "git restore -W -S docs/prd/greet/errors.md"},
+         {"command": "git -C /w restore --staged --worktree docs/prd/greet/errors.md"},
+         {"command": "cd docs/prd/greet && git restore errors.md"},
+         {"command": RESTORE + GATE}],
+        [{"command": "sed -i 's/^Resolution: .*/Resolution: -/' docs/prd/greet/errors.md"},
+         {"command": "git checkout -- docs/prd/greet/errors.md"},
+         {"command": "git checkout HEAD -- docs/prd/greet/errors.md"},
+         {"command": "cp /w/orig.md docs/prd/greet/errors.md"},
+         {"command": "git restore tests && echo docs/prd/greet/errors.md"},
+         {"command": "git restore src/greet/cli.py; cat docs/prd/greet/errors.md"},
+         {"command": "git diff docs/prd/greet/errors.md"}]),
 }
 
 
@@ -424,6 +453,7 @@ def test_the_replay_walk_passes_every_grader_and_a_commit_after_findings_fails(t
     for n in ("ledger-put-back", "nothing-committed"):
         assert regex_passes(REPLAY, n, file_text(ws, REPLAY, n)), n
     assert counted(REPLAY, "resolve-ran", {"command": resolve + GATE})
+    assert counted(REPLAY, "ledger-restored-with-git", {"command": RESTORE})
     # a ledger staged before the replay is put back the same way
     assert sh(ws, resolve).returncode == 0 and sh(ws, f"git add {LEDGER}").returncode == 0
     assert sh(ws, f".prd-toolkit/prd error replay {PRD} E-001").returncode == 1
@@ -440,7 +470,7 @@ def test_the_replay_walk_passes_every_grader_and_a_commit_after_findings_fails(t
 
 def test_the_old_refusal_fails_only_the_resolve_and_the_replay(tmp_path):
     # the 0.8.13 baseline's B2 run: it ran the test on the parent by hand, then neither resolved nor committed. Its
-    # end state is the start state; only the two graders that need the resolve and the replay tell it apart.
+    # end state is the start state; only the graders that need the resolve, the replay and the restore tell it apart.
     ws = run_scaffold(tmp_path, REPLAY)
     t = trace(("uv run --with pytest pytest -q -p no:cacheprovider test_greet.py", "2 passed"))
     session = [{"command": "uv run --with pytest pytest -q -p no:cacheprovider test_greet.py"}]
@@ -454,4 +484,4 @@ def test_the_old_refusal_fails_only_the_resolve_and_the_replay(tmp_path):
             ok = regex_passes(REPLAY, n, t if g["target"] == "trace" else file_text(ws, REPLAY, n))
         if not ok:
             failing.add(n)
-    assert failing == {"resolve-ran", "replay-reports-the-finding"}
+    assert failing == {"resolve-ran", "replay-reports-the-finding", "ledger-restored-with-git"}

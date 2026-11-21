@@ -34,6 +34,7 @@ uncovered-bug  `ready` with a One test command on the unit level (`uv run pytest
                appends one record per later commit to `.git/eval-commits.log`: its SHA, its Refs, the
                paths it changes, whether its tree still holds the bug, and whether its errors.md holds a
                red run, so a grader reads the order of the session's commits and what each holds.
+               An amended commit adds a second record and keeps the first (the log is history, not end state).
 green-before-fix  `ready` with the same One test command, then a commit that makes `main` read the key
                `greeting` (breaking AC-001.2) and rewrites the T-001.2 test to write both keys, so it
                passes whichever key the code reads; E-001 for the bug, recorded, proposed as `code bug`
@@ -209,7 +210,7 @@ RECORDER = """#!/bin/sh
 log="$(git rev-parse --git-common-dir)/eval-commits.log"
 {
   echo "commit $(git rev-parse HEAD)"
-  echo "refs: $(git log -1 --format='%(trailers:key=Refs,valueonly,separator=%x2C )' HEAD)"
+  echo "refs: $(git log -1 --format=%B HEAD | sed -n 's/^[Rr][Ee][Ff][Ss]:[[:space:]]*//p' | awk 'NR>1{printf ", "}{printf "%s",$0}END{print ""}')"
   git diff-tree --no-commit-id --name-only -r --root HEAD | sed 's/^/path: /'
   if git show HEAD:tools/count_names.py 2>/dev/null | grep -qF 'BUG'; then echo "helper: bug"; else echo "helper: no bug"; fi
   if git show HEAD:docs/prd/greet/errors.md 2>/dev/null | grep -qE '^Resolution: fixed in [0-9a-f]{7,40}, red run [^ ]+ [[]'; then
