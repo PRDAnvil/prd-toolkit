@@ -445,7 +445,7 @@ Recurrence of: -
 
 ### E-035 prd error replay cannot add its worktree inside the Bash sandbox of a Claude Code session
 Detected: 2026-11-20, eval runs of the two new handling-errors cases
-Classification: unclassified
+Classification: environment
 Touches: FR-079
 Evidence: Eval runs of the two new handling-errors cases (claude plugin eval, one run each, the runner's sandbox on).
   error-uncovered-code-red-run, with the plugin: the session committed the failing test alone, then the fix, then ran
@@ -464,6 +464,6 @@ Evidence: Eval runs of the two new handling-errors cases (claude plugin eval, on
   exit=128
   In that session git archive HEAD | tar -x -C <tmp>/plain exited 0, and a file appended under .git/ was written.
   Outside the sandbox the same replays hold or print their findings (the cases' by-hand walk, and the toolkit's own ledger).
-Diagnosis: -
+Diagnosis: Reproduced once: in a headless session with the Bash sandbox enabled, `git worktree add --detach <tmp>/wt HEAD` in a scratch repository printed `fatal: could not create directory of '.git/worktrees/wt': Operation not permitted` and exited 128; `git archive HEAD` piped into `tar -x` wrote the same tree there, exit 0. Root cause: the Bash sandbox of a Claude Code session keeps `.git/worktrees` of the repository read-only, and the replay makes each run's tree with `git worktree add --detach`, as the area's definition of a worktree says: "A **worktree** is one that the command adds with `git worktree add --detach` under a new folder it makes in the system temporary folder". The code does what the PRD says, and it ends as FR-079 says of an internal error ("an internal error ends the command the same way, with exit 2"): nothing was written or left behind, and both sessions kept the entry `confirmed`. So the replay and `resolve --red-run` cannot run in a sandboxed session, which is every `claude plugin eval` run: the two new eval cases cannot pass there. Outside the sandbox the same commands hold or print their findings. One thing the code adds to the trouble: the internal error quotes only the first line git printed (`Preparing worktree (detached HEAD …)`) and drops the `fatal:` line that names the cause.
 Resolution: -
 Recurrence of: -
