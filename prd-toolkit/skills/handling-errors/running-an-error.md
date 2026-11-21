@@ -424,7 +424,7 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    ```
 
    It runs the test files that cite the T-id on the commit before `<sha>` and on `<sha>`, each in a
-   git worktree of its own, and writes nothing. Exit 0 with
+   git clone of its own, and writes nothing. Exit 0 with
    `<E-nnn>: <T-id> fails on <sha>^ and passes on <sha>`: the proof holds; go on. Exit 0 with
    `skipped: <E-nnn>: <reason>` (an environment run, a deploy-gate level, a level with no
    `One test` command): nothing could be replayed; go on, and name the skip and its reason in the

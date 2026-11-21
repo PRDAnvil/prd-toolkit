@@ -70,7 +70,7 @@ def test_readme_the_replay():
                    '{"interface": 1, "kind": "error-replay", "entry": "E-001", "outcome": "findings"',
                    '"when": "before"', "`holds`, `skipped` or `findings`",
                    "git restore --staged --worktree docs/prd/<slug>/errors.md",
-                   "never writes the working tree or the index"):
+                   "never writes the working tree, the index or the git folder", "`git clone --shared --no-checkout`"):
         assert needle in s, needle
 
 
@@ -94,7 +94,7 @@ def test_readme_the_known_limits():
     for needle in ("An exit code cannot tell a test that failed from one that could not run",
                    "The proof is per file", "a test added to the same file between the fix and the resolve",
                    "`uv run --project <folder> pytest -q`", "SIGINT (exit 130)", "SIGTERM is not handled",
-                   "`git worktree prune`", "press it again", "do not start a replay from inside a git hook",
+                   "leaves its folder under the system temporary folder", "press it again", "do not start a replay from inside a git hook",
                    "`GIT_INDEX_FILE`, `GIT_DIR` and `GIT_WORK_TREE`", "`resolve --red-run=`"):
         assert needle in s, needle
 
@@ -113,7 +113,7 @@ def test_readme_the_one_test_column():
 def test_changelog_entry():
     e = entry("0.8.14", "0.8.13")
     for needle in ("`prd error replay`", "`--red-run`", "`One test`", "fixed in <commit>, red run <test id> [<level>]",
-                   "8.5.0", "8.4.0", "`error-replay`", "UJ-07", "FR-075", "FR-081", "E-017", "E-032", "E-033",
+                   "9.0.0", "8.5.0", "8.4.0", "`error-replay`", "UJ-07", "FR-075", "FR-081", "E-017", "E-032", "E-033", "E-035",
                    "The lint rule count stays 41",
                    "**Upgrade:**", "hooks install docs/prd/<slug>", "from the 0.8.14 plugin", "commit `.prd-toolkit/`",
                    "before a ledger holds a fourth-form line", "The generated CI file is unchanged",

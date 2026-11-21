@@ -333,7 +333,7 @@ allowed.
   holds none of `$`, `{`, `~`, `;`, `|` and `&&`. Quotes group words; nothing is expanded. A blank cell,
   or no column, means the level has no One test command.
 - The replay appends exactly one word, a test file's path or a test id, and runs the result from the
-  repository root (of a fresh worktree) without a shell. So the command must take a path relative to the
+  repository root (of a fresh clone) without a shell. So the command must take a path relative to the
   repository root: for a project in a subfolder, `uv run --project <folder> pytest -q`, not
   `uv run --directory <folder> pytest -q`.
 - Lint reports a malformed cell through `runbook-tests`, so the rule count stays 41:
@@ -628,9 +628,11 @@ lint refuses the part, so run `install` from the 0.8.12 plugin first (see the ch
 **Replay a fix (0.8.14).** A resolution names the commit that fixed the error, and `check` verifies
 only that the commit is in history. `prd error replay` checks the claim itself: it runs the entry's
 test, through its level's `One test` command (see Testing from the PRD), on `<sha>^`, the fix commit's
-first parent, where it must fail, and on `<sha>`, where it must pass. Each run happens in a git worktree
-of its own under the system temporary folder, removed when the run ends, so the command never writes the
-working tree or the index of the repository it starts in. It reads the entry from `errors.md` in the
+first parent, where it must fail, and on `<sha>`, where it must pass. Each run happens in a git clone
+of its own under the system temporary folder (`git clone --shared --no-checkout`, then a detached checkout
+of the commit), removed when the run ends. The command never writes the working tree, the index or the git
+folder of the repository it starts in, so it also runs where that folder cannot take a new worktree, as
+in a sandboxed session. It reads the entry from `errors.md` in the
 working tree, so it replays a resolution that is written and not yet committed.
 
 - **A fix with a T-id** (`<T-id> [<level>], PRD <X.Y.Z>, fixed in <sha>`): it runs, one by one, each file
@@ -641,7 +643,7 @@ working tree, so it replays a resolution that is written and not yet committed.
   `<sha>^`, and every one must pass on `<sha>`.
 - **A red run** (`fixed in <sha>, red run <test id> [<level>]`, below): it runs the test id on each tree
   as committed.
-- **A run** is the command with its one argument, started from the worktree's root with the command's
+- **A run** is the command with its one argument, started from the clone's root with the command's
   environment, in a process group of its own. Exit 0 passes; any other exit fails. The level's `Timeout`
   applies (600 s without one), and `--timeout` overrides it; a run that times out is killed, and is a
   finding, never a proof.
@@ -743,23 +745,25 @@ changelog).
 - The proof is per file. Two entries fixed together whose tests share a file share one proof.
 - For an entry with a T-id, a test added to the same file between the fix and the resolve can fail the
   second run.
-- A One test program that cannot start in a fresh worktree (a path into a virtual environment, for
+- A One test program that cannot start in a fresh clone (a path into a virtual environment, for
   example) is a finding, `<E-nnn>: <program> cannot start on <commit>`: give the column a command that
   builds what it needs, such as `uv run --project <folder> pytest -q`.
-- The replay removes its worktrees on SIGINT (exit 130). SIGTERM is not handled: a replay killed that
-  way leaves its worktree and its running test behind; remove the folder under the system temporary
-  folder, then run `git worktree prune`.
-- A Ctrl-C that arrives while the replay removes one run's worktree is lost; press it again in the next
+- The replay removes its clones on SIGINT (exit 130). SIGTERM is not handled: a replay killed that way
+  leaves its folder under the system temporary folder and its running test behind; remove the folder.
+- A Ctrl-C that arrives while the replay removes one run's clone is lost; press it again in the next
   run.
 - The test a replay runs has the environment the command was started with. Git's own commands in the
   replay ignore `GIT_INDEX_FILE`, `GIT_DIR` and `GIT_WORK_TREE`, but a test that calls git itself sees
   them: do not start a replay from inside a git hook.
 - `resolve --red-run=` with an empty test id is refused as `resolution is not one of the four forms`, not
   with the test id's own refusal.
-- Inside the Bash sandbox of a Claude Code session, `git worktree add` cannot write under `.git/`, so the
-  replay, and `resolve --red-run` with it, exits 2 with
-  `prd_error: internal error: RuntimeError: git worktree add --detach … failed` (E-035, open). Outside the
-  sandbox both run as above.
+- A fix that lies inside a test root cannot be proven by a T-id replay: both trees get the resolving
+  commit's test roots, so they are the same tree and the first run passes.
+- A tree older than something the `One test` command needs (a test plugin, an option of the runner) fails
+  both runs for that reason, and the proof does not hold.
+- A clone has the repository's commits and none of its local configuration, its hooks or the checkouts of
+  its other refs: a test that relied on its tree being a linked worktree of the repository does not find
+  them.
 
 **Known-failing tests.** A case marked `known-failing` on an open entry is a strict expected failure
 that tags its citation `@prd T-nnn.n known-failing E-nnn`; it fails the day the bug is fixed, so the
@@ -1298,17 +1302,18 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
-- **0.8.14:** a replay that proves a fix, and a close for an error no area covers. An entry closed with a line such as `T-005.3 [integration], PRD 1.0.1, fixed in 0dd4037`, and `prd error check` verified that its T-id, version and commit exist, never that the commit turned the test green. And an error in code outside every adopted Boundary could not close at all: `resolve` needs a T-id, that code has no requirement, and E-017 had stayed `confirmed` since 0.8.7 though its fix was in. Now `prd error replay` (see Handling errors) runs the entry's test through the new optional `One test` column of `testing.md` Levels (see Testing from the PRD) on the commit before the fix, where it must fail, and on the fix, where it must pass, each run in a temporary git worktree it removes; it prints the proof, a skip and its reason, or each finding, and with `--json` one document (`kind` `error-replay`, `interface` 1). A fourth resolution form, `fixed in <commit>, red run <test id> [<level>]`, closes a `code bug` whose fix commit changes no path an adopted area covers: `prd error resolve --red-run <test id> --level <level>` writes it only when its replay holds, and `prd error check` reads it. The `handling-errors` skill and `/prd-toolkit:prd-error` take that route (the failing test committed alone, the fix, `resolve --red-run`, `check`), the one case where the session writes a test and a fix itself, and replay every `resolve` that names a T-id before the ledger is committed. The three older forms are written, read and checked as before. Lint reports a malformed `One test` cell through `runbook-tests`. The lint rule count stays 41. The toolkit's own ledger closes E-017 and E-032 by the fourth form (E-032 was the first use of the route: the tester guard now finds a headless session's tasks folder by its session id when the hook input names no scratchpad, so the tester may read its own background run's output), and E-033 with T-079.6 (the replay wrote the caller's git index when `GIT_INDEX_FILE` was set; found by review before release). The toolkit's own PRD is 8.5.0: 8.4.0 added the area `error-replay` (UJ-07, FR-075 to FR-081), written before its code, with `format: One test column (prd-toolkit 0.8.14)` and the column on its two levels; 8.5.0 holds the fix route of E-033, a finding of its own for a One test program that cannot start, and the help catalogue's red-run form; the area is verified. Conversion, which once held this number, stays in the backlog with no release (owner, 2026-11-19).
+- **0.8.14:** a replay that proves a fix, and a close for an error no area covers. An entry closed with a line such as `T-005.3 [integration], PRD 1.0.1, fixed in 0dd4037`, and `prd error check` verified that its T-id, version and commit exist, never that the commit turned the test green. And an error in code outside every adopted Boundary could not close at all: `resolve` needs a T-id, that code has no requirement, and E-017 had stayed `confirmed` since 0.8.7 though its fix was in. Now `prd error replay` (see Handling errors) runs the entry's test through the new optional `One test` column of `testing.md` Levels (see Testing from the PRD) on the commit before the fix, where it must fail, and on the fix, where it must pass, each run in a temporary git clone it removes, so it writes nothing in the repository's git folder and also runs where that folder cannot take a new worktree, as in a sandboxed session; it prints the proof, a skip and its reason, or each finding, and with `--json` one document (`kind` `error-replay`, `interface` 1). A fourth resolution form, `fixed in <commit>, red run <test id> [<level>]`, closes a `code bug` whose fix commit changes no path an adopted area covers: `prd error resolve --red-run <test id> --level <level>` writes it only when its replay holds, and `prd error check` reads it. The `handling-errors` skill and `/prd-toolkit:prd-error` take that route (the failing test committed alone, the fix, `resolve --red-run`, `check`), the one case where the session writes a test and a fix itself, and replay every `resolve` that names a T-id before the ledger is committed. The three older forms are written, read and checked as before. Lint reports a malformed `One test` cell through `runbook-tests`. The lint rule count stays 41. The toolkit's own ledger closes E-017 and E-032 by the fourth form (E-032 was the first use of the route: the tester guard now finds a headless session's tasks folder by its session id when the hook input names no scratchpad, so the tester may read its own background run's output), E-033 with T-079.6 (the replay wrote the caller's git index when `GIT_INDEX_FILE` was set; found by review before release) and E-035 with T-079.7 (the replay made each run's tree with `git worktree add`, which a sandboxed session refuses; found by the eval runs before release). The toolkit's own PRD is 9.0.0: 8.4.0 added the area `error-replay` (UJ-07, FR-075 to FR-081), written before its code, with `format: One test column (prd-toolkit 0.8.14)` and the column on its two levels; 8.5.0 holds the fix route of E-033, a finding of its own for a One test program that cannot start, and the help catalogue's red-run form; 9.0.0, a major version because a test that relied on its tree being a linked worktree can now fail, makes each run's tree a clone (E-035); the area is verified. Conversion, which once held this number, stays in the backlog with no release (owner, 2026-11-19).
   - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.14 plugin and commit `.prd-toolkit/` before a ledger holds a fourth-form line: `replay`, `resolve --red-run` and `check` run from the vendored copy, and a copy vendored before 0.8.14 reports a red run as none of the three forms it knows (on such a copy the 0.8.14 skill stops before the route and before it resolves a fix that names a T-id, and says so). The generated CI file is unchanged, and no repository regenerates it. A PRD needs no change: it takes the `One test` column as a patch, with the section 14 row `format: One test column (prd-toolkit 0.8.14)`, only if it wants the replay, which skips the entries of a level without the column. What a client may notice: `prd error check` calls a line of no form `resolution is not one of the four forms`, where it said `three`.
   - **Known limits:**
     - An exit code cannot tell a test that failed from one that could not run. The second run catches a harness that cannot run in a fresh checkout. A test committed in the same commit as its fix fails on the parent for lack of its file, so the replay would call that fix proven: commit the failing test alone, before the fix.
     - The proof is per file: two entries fixed together whose tests share a file share one proof. For an entry with a T-id, a test added to the same file between the fix and the resolve can fail the second run.
-    - A One test program that cannot start in a fresh worktree (a path into a virtual environment, for example) is a finding, `<E-nnn>: <program> cannot start on <commit>`; give the column a command that builds what it needs, such as `uv run --project <folder> pytest -q`.
-    - The replay removes its worktrees on SIGINT (exit 130), but SIGTERM is not handled: a replay killed that way leaves its worktree and its running test behind (remove the folder under the system temporary folder, then `git worktree prune`). A Ctrl-C that arrives while the replay removes one run's worktree is lost; press it again in the next run.
+    - A One test program that cannot start in a fresh clone (a path into a virtual environment, for example) is a finding, `<E-nnn>: <program> cannot start on <commit>`; give the column a command that builds what it needs, such as `uv run --project <folder> pytest -q`.
+    - The replay removes its clones on SIGINT (exit 130), but SIGTERM is not handled: a replay killed that way leaves its folder under the system temporary folder and its running test behind (remove the folder). A Ctrl-C that arrives while the replay removes one run's clone is lost; press it again in the next run.
     - The test a replay runs has the environment the command was started with: git's own commands in the replay ignore `GIT_INDEX_FILE`, `GIT_DIR` and `GIT_WORK_TREE`, but a test that calls git sees them. Do not start a replay from inside a git hook.
     - `resolve --red-run=` with an empty test id is refused as `resolution is not one of the four forms`, not with the test id's own refusal.
-    - Inside the Bash sandbox of a Claude Code session, `git worktree add` cannot write under `.git/`, so the replay and `resolve --red-run` exit 2 (E-035, open, not yet classed).
-    - E-034 is open, not yet classed: the unit test `test_done_right_after_the_last_answer_is_accepted` failed once in a whole parallel run and passed alone.
+    - A fix that lies inside a test root cannot be proven by a T-id replay (both trees get the resolving commit's test roots), and a tree older than something the `One test` command needs fails both runs: of the toolkit's own 34 resolved entries, the replay proves 23, skips 2 that are not defects and cannot prove 9 old ones for those two reasons and the per-file proof.
+    - A clone has the repository's commits and none of its local configuration, its hooks or the checkouts of its other refs: a test that relied on its tree being a linked worktree of the repository does not find them.
+    - E-034 is open (a confirmed `code bug`, left open for this release by the owner): the unit test `test_done_right_after_the_last_answer_is_accepted` fails now and then in a whole parallel run and passes alone, because it acts on the panel a fixed 300 ms after opening it; run its file again alone. The red-run route cannot close it as written: the faulty test passes when run alone, so it has no red run to give.
     - No replay runs in CI, and an agent that skips the skill's replay step is not caught for an entry with a T-id; for the fourth form `resolve` itself replays.
   - **Evals:**
     - `claude plugin eval ./prd-toolkit --model sonnet --scaffold`, one run each (see `evals/BASELINE.md`): the two new cases, `error-uncovered-code-red-run` (an error in code no adopted area covers is fixed test first and resolved with `--red-run`, never through `/prd-toolkit:prd-build`) and `error-replay-finding-not-committed` (replay findings after `resolve` leave the ledger uncommitted and the entry `confirmed`), and every existing case of `handling-errors`, the one skill whose text changed.
