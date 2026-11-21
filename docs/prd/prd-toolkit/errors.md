@@ -583,6 +583,7 @@ Recurrence of: -
 ### E-044 uninstall removes nothing where core.hooksPath is set, though install writes the hooks of the toolkit there
 Detected: 2026-11-21, confirmation of FR-112 (the answer of the owner to Q-15)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-112
 Evidence: prd-toolkit/scripts/prdlint/hooks.py:492-495: `uninstall` returns the one line `core.hooksPath is set to <value>; removed nothing` whenever `core.hooksPath` is set, before it looks at any hook file.
   Since FR-070 install writes the toolkit's own hooks into that folder, and line 2 of each shim reads `# prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall`.
