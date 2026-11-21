@@ -19,7 +19,7 @@
 - Lint output is one line per violation, `<file>:<line>: <rule>: <message>`. Exit 0 when clean, 1 on violations, 2 on usage, dependency or internal error.
 - Every lint rule has a pytest case that makes it fire (spec section 8.1).
 - Skills follow the superpowers style (non-negotiable language, Red Flags, a Rationalizations table) and get a baseline run *before* they are written (spec section 8.2, `superpowers:writing-skills`).
-- Run every command from the worktree root, `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit`. Never use bare `git stash`.
+- Run every command from the worktree root, `<repo>/.worktrees/prd-toolkit`. Never use bare `git stash`.
 - Commit as Ivan Histand <ihistand@rotoplas.com>, ending each message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Do not push.
 - Text adapted from MIT or Apache sources is credited in `prd-toolkit/NOTICE`. Nothing is copied from Taskmaster or spec-workflow-mcp.
 
@@ -784,7 +784,7 @@ Format reference: https://code.claude.com/docs/en/plugin-evals.md. Frontmatter s
 
 This is the "proven by" check for 0.1 in spec section 9. It is interactive, with Ivan answering the clarify rounds.
 
-- [ ] **Step 1: Create the sample repo.** Create a scratch git repo at `/private/tmp/claude-502/-Users-ihistand-projects/60dd65b1-db0f-46ec-8ba7-73ba40a65c1c/scratchpad/prd-sample`. Ivan picks the project; the default is the internal link shortener from A1.
+- [ ] **Step 1: Create the sample repo.** Create a scratch git repo at `<scratchpad>/prd-sample`. Ivan picks the project; the default is the internal link shortener from A1.
 - [ ] **Step 2: Author it.** In a session started with `--plugin-dir <worktree>/prd-toolkit`, run `/prd-new` and go through all seven phases with Ivan.
 - [ ] **Step 3: Verify.**
   - Lint exits 0.

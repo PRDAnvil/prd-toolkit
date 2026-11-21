@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work only in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.8.3`, branch `feat/prd-toolkit-0.8.3` (cut from `main` at `f7462ef`; the spec is its first commit). Never push, open a PR, merge or touch another repository.
+- Work only in `<repo>/.worktrees/prd-toolkit-0.8.3`, branch `feat/prd-toolkit-0.8.3` (cut from `main` at `f7462ef`; the spec is its first commit). Never push, open a PR, merge or touch another repository.
 - Commit as `Ivan Histand <ihistand@rotoplas.com>`. Every message ends with the trailers `Refs: none (no behaviour change)` and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Never `--no-verify`; never bare `git stash`.
 - **The vendored copy moves with the code.** Any commit that changes a file `.prd-toolkit/` vendors (`prd-toolkit/scripts/**`, `prd-toolkit/templates/**`, `prd-toolkit/references/languages/**`, `prd-toolkit/packs/**`) runs, before the commit, `uv run --script prd-toolkit/scripts/prd_hooks.py vendor docs/prd/prd-toolkit` (Task 1 adds it; Task 1 itself uses it once its code passes) and stages `.prd-toolkit/` in the same commit. Never `prd_hooks.py install` on this repository; never edit `.prd-toolkit/` by hand.
 - **Never edit the `lint-cli` Boundary:** `prd-toolkit/scripts/prd_lint.py`, `prd-toolkit/scripts/prdlint/{__init__,model,markdown,yamlload,findings,registry,deps,interface}.py`, `prd-toolkit/scripts/prdlint/rules/__init__.py`. Importing from them is fine. Never edit `docs/prd/prd-toolkit/`.

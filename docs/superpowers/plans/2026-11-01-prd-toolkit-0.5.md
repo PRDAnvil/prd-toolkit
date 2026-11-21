@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.5`, branch `feat/prd-toolkit-0.5`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
+- Work in `<repo>/.worktrees/prd-toolkit-0.5`, branch `feat/prd-toolkit-0.5`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
 - Commit as Ivan Histand <ihistand@rotoplas.com>; every message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Stage by path; never `git add -A`. One implementer at a time in this worktree.
 - The repo is public and the toolkit platform-neutral: no organization hosts, users, platform object names or people in code, docs, tests or evals.
 - Test-first: every rule, behaviour and skill-text pin fails before its change. Run it once to see it fail.
@@ -445,7 +445,7 @@ The controller runs steps 1, 2 and 5; steps 3 and 4 are headless sessions whose 
 - Outside this repo: `<scratchpad>/proof-0.5/hello`
 
 - [ ] **Step 1: Grow the ticket** and its test. Commit: `test(prd-toolkit): hello-world ticket, slice 2`.
-- [ ] **Step 2: Load the branch.** Disable the installed prd-toolkit for these runs (`--settings '{"enabledPlugins":{"prd-toolkit@ihistand":false}}'`) and pass `--plugin-dir /Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.5/prd-toolkit`.
+- [ ] **Step 2: Load the branch.** Disable the installed prd-toolkit for these runs (`--settings '{"enabledPlugins":{"prd-toolkit@ihistand":false}}'`) and pass `--plugin-dir <repo>/.worktrees/prd-toolkit-0.5/prd-toolkit`.
 - [ ] **Step 3: P1–P4** (spec §11): `/prd-new`, `prd_hooks.py install` and `ci`, `/prd-build`, `/prd-deploy --until staging`, `/prd-deploy` stopping at the gate, then a session carrying Ivan's reply resumes it to the close.
 - [ ] **Step 4: P5–P8:** drift clean, then tampered config and an older build; the planted failing Check; `/prd-change --shout`, `/prd-build`, `/prd-deploy` to 2.0.0; the generated manual jobs run locally.
 - [ ] **Step 5: Record.** Each pass line with its output, every command the session ran outside `prd_deploy.py` (each one is a finding), every human reply and where it came from, and the close checks. Write the acceptance note, grep it for the organization's name, commit: `docs(prd-toolkit): 0.5 acceptance`.

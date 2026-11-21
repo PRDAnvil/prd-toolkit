@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.3`, branch `feat/prd-toolkit-0.3`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
+- Work in `<repo>/.worktrees/prd-toolkit-0.3`, branch `feat/prd-toolkit-0.3`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
 - Commit as Ivan Histand <ihistand@rotoplas.com>; every message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - The repo is public and the toolkit platform-neutral: no organization hosts, users, platform object names or people in code, docs, tests or evals.
 - Test-first: every rule, behaviour and skill-text pin fails before its change. Run it once to see it fail.
@@ -522,9 +522,9 @@ Runs now. The original target, the Looker PRD adopted in 0.2, was a process test
   - **Pass:** the single-FR `decide` pack is under 20,000 bytes and smaller than `prd.md` plus the features file. Record the ratio.
   - Then edit a cited source line without committing it. The `implement` pack must exit 1 with `STALE: uncommitted changes`. Commit the edit; the pack must then exit 1 with `STALE: changed since <sha>`. Revert both.
 - [x] **Step 5: One real change.**
-  - **The change:** fix `E-001` through changing-prds with 0.3 loaded. Run `claude --plugin-dir /Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.3/prd-toolkit` in the scratch repo, then `/prd-change fix E-001`.
+  - **The change:** fix `E-001` through changing-prds with 0.3 loaded. Run `claude --plugin-dir <repo>/.worktrees/prd-toolkit-0.3/prd-toolkit` in the scratch repo, then `/prd-change fix E-001`.
   - **Headless form**, when Ivan authorizes it. The prompt goes first: after the variadic `--allowedTools`, `claude -p` reads no prompt and exits 1. No permission-bypass flag, no settings edits:
-    `claude -p "/prd-change fix E-001: search_notes must find notes containing the term regardless of letter case, so \"milk\" finds \"Buy Milk\". I approve the PRD change and the version bump you propose, and the code fix once the PRD is approved. Do not ask me questions." --plugin-dir /Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.3/prd-toolkit --model sonnet --output-format stream-json --verbose --allowedTools Read Glob Grep Write Edit Bash Agent Skill "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)" > <scratchpad>/proof-0.3/fix-e001.jsonl`
+    `claude -p "/prd-change fix E-001: search_notes must find notes containing the term regardless of letter case, so \"milk\" finds \"Buy Milk\". I approve the PRD change and the version bump you propose, and the code fix once the PRD is approved. Do not ask me questions." --plugin-dir <repo>/.worktrees/prd-toolkit-0.3/prd-toolkit --model sonnet --output-format stream-json --verbose --allowedTools Read Glob Grep Write Edit Bash Agent Skill "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)" > <scratchpad>/proof-0.3/fix-e001.jsonl`
   - **From the session transcript, check:**
     - the pack ran before the first PRD edit;
     - list every read of a PRD file (Read, or Bash `cat`, `head`, `sed`, `grep`) that was neither the pack, one of the pack's closing-line pointers, a file the change edited, nor step 0's check of §14;
