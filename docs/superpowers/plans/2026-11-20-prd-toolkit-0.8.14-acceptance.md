@@ -73,7 +73,8 @@ Four entries were recorded while 0.8.14 was built. Each was classed by the owner
 
 A review of the whole branch before the push found no wrong result in the replay's proofs, and these:
 
-- **Two defects, recorded and left open** (both `proposed`, the owner's to class): **E-036**, a test the
+- **Two defects, recorded and left open** (the owner confirmed E-036 as `invalid requirement` and
+  E-037 as `code bug`, and left both open for this release): **E-036**, a test the
   replay runs has the command's environment, so with `GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE`
   set a test that calls git can write the repository the command was started in, which two sentences
   of the area say cannot happen; and **E-037**, a test that leaves a folder without write permission
