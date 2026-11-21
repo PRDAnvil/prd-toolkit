@@ -512,6 +512,12 @@ class Case:
         _set_line(root / ORDERS / "testing.md", 8,
                   "| integration | `pytest tests/integration` | local | build | `python3 tools/needs.py` |  |")
 
+    def _step_RA(self, root: Path, resolution) -> None:
+        """Line 8 names `tools/absent`, which no step writes, so the operating system cannot start it."""
+        _set_line(root / ORDERS / "testing.md", 8,
+                  "| integration | `pytest tests/integration` | local | build | `tools/absent` |  |")
+        self._commit(root, "absent")
+
     def _step_RQ(self, root: Path, resolution) -> None:
         testing = root / ORDERS / "testing.md"
         _set_line(testing, 5, "| Level | Harness command | Environment | Gate | ONE TEST | Timeout |")

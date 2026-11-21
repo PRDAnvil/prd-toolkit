@@ -31,10 +31,9 @@ def _is_the_symptom(case, res) -> bool:
     )
 
 
-@pytest.mark.xfail(strict=True, raises=E033Symptom, reason="E-033")
 @given("R0", "RT", "RF", "RE", resolution=FIX)
 def test_replay_with_git_index_file_set_writes_nothing(case):
-    """@prd T-079.6 known-failing E-033"""
+    """@prd T-079.6"""
     res = case.run(REPLAY, env={"GIT_INDEX_FILE": "<tmp>/repo/.git/index"})
     if _is_the_symptom(case, res):
         raise E033Symptom(f"git status went from empty to {res.after['status']!r}")
