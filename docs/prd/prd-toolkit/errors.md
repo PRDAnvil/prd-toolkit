@@ -498,7 +498,7 @@ Recurrence of: -
 
 ### E-037 The replay leaves its folder behind when a test leaves a folder it cannot remove
 Detected: 2026-11-21, final review of the 0.8.14 branch, a probe in a scratch repository
-Classification: unclassified
+Classification: code bug
 Touches: FR-079
 Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by the recording session, in a scratch repository
   whose entry E-001 is resolved `T-001.2 [unit], PRD 1.0.0, fixed in <fix>`.
@@ -511,6 +511,6 @@ Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by
   Nothing on stderr. After the command, <tmp> still holds:
   <tmp>/prd-error-replay-<x>/run-1/ro/x
   <tmp>/prd-error-replay-<x>/run-2/ro/x
-Diagnosis: -
+Diagnosis: Reproduced once, as the evidence shows. AC-079.2 says that when the replay ends with findings "the folder the command made in the system temporary folder shall no longer exist", and AC-079.1 says the same of a proof that holds. prdlint/errorreplay.py removes each run's clone and then its own folder with `shutil.rmtree(..., ignore_errors=True)`, so a folder a test left without write permission stops the removal, nothing is printed, and the command exits as if it had cleaned up. The fault is in the code: it neither makes such a folder removable before it removes it nor reports a folder it could not remove.
 Resolution: -
 Recurrence of: -
