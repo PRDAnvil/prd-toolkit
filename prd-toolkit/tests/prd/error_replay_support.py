@@ -518,6 +518,15 @@ class Case:
                   "| integration | `pytest tests/integration` | local | build | `tools/absent` |  |")
         self._commit(root, "absent")
 
+    def _step_RIW(self, root: Path, resolution) -> None:
+        """Line 8's One test is a program that exits 0 only inside a git checkout (`git rev-parse` prints true)."""
+        program = ("python3 -c \"raise SystemExit(0 if __import__('subprocess').run(['git', 'rev-parse', "
+                   "'--is-inside-work-tree'], capture_output=True, text=True).stdout.split() == ['true'] "
+                   "else 1)\"")
+        _set_line(root / ORDERS / "testing.md", 8,
+                  f"| integration | `pytest tests/integration` | local | build | `{program}` |  |")
+        self._commit(root, "git check")
+
     def _step_RQ(self, root: Path, resolution) -> None:
         testing = root / ORDERS / "testing.md"
         _set_line(testing, 5, "| Level | Harness command | Environment | Gate | ONE TEST | Timeout |")

@@ -34,10 +34,9 @@ def _symptom(res, full_fix_parent: str, full_fix: str) -> bool:
     return full_fix_parent.startswith(h) or full_fix.startswith(h)
 
 
-@pytest.mark.xfail(strict=True, raises=E035Symptom)
 @given("R0", "RT", "RF", "RL", "RE", "RNW", resolution="T-006.1 [integration], PRD 1.0.0, fixed in <fix>")
 def test_replay_where_the_git_folder_cannot_take_a_worktree(case):
-    """@prd T-079.7 known-failing E-035"""
+    """@prd T-079.7"""
     res = case.run(REPLAY)
 
     # The effects hold whether or not the symptom shows.
