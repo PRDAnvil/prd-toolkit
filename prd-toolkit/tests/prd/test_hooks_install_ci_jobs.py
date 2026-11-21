@@ -1,0 +1,312 @@
+"""hooks-install: the jobs and the text of the CI files `prd_hooks.py ci` writes (FR-114 to FR-118).
+
+Every input and expected value comes from docs/prd/prd-toolkit/test-cases/hooks-install.yaml (T-114.1 to T-118.2)
+and the names its header defines (DEPLOY, GH, GL); the effects forms (`lines`, `first_lines`,
+`contains_lines_in_this_order`, `line_after`, `read_as_yaml`) are those of testing.md's hooks-install paragraph.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+import yaml
+
+from hooks_install_support import (  # noqa: F401  (hi_tmp, built: fixtures)
+    DEPLOY, GH, GL, N0E, ORDERS_REL, SetupError, built, file_lines, given, hi_tmp, in_relative_order, replace_line,
+    run, write, yaml_at,
+)
+
+GH_FILE = ".github/workflows/prd-toolkit.yml"
+GL_FILE = ".gitlab/prd-toolkit.yml"
+SECRETS_PREFIX = "# Manual jobs may need these secrets"
+TRACE_GH = "sh .prd-toolkit/prd trace docs/prd/orders --range ${{ github.event.pull_request.base.sha }}..HEAD"
+TRACE_GL = "sh .prd-toolkit/prd trace docs/prd/orders --range $CI_MERGE_REQUEST_DIFF_BASE_SHA..HEAD"
+LINT = "sh .prd-toolkit/prd lint --ci docs/prd/orders"
+HOOKS_CHECK = "sh .prd-toolkit/prd hooks check --ci docs/prd/orders"
+
+
+# -- effects forms (testing.md, the hooks-install paragraph) --
+
+def read_as_yaml(path: Path):
+    return yaml.safe_load(path.read_bytes().decode("utf-8"))
+
+
+def keys_at(doc, path: str) -> list:
+    """`<path> keys, in order`: the keys of the mapping at that path."""
+    return list(yaml_at(doc, path).keys())
+
+
+def length_at(doc, path: str) -> int:
+    """`<path> length`: the length of the list at that path."""
+    return len(yaml_at(doc, path))
+
+
+def assert_lines(path: Path, expected: list[str]) -> None:
+    """`lines`: str.splitlines() of the text equals the list, and the text ends in exactly one newline."""
+    text = path.read_bytes().decode("utf-8")
+    assert text.endswith("\n") and not text.endswith("\n\n"), f"the text does not end in exactly one newline: {text[-40:]!r}"
+    assert text.splitlines() == expected
+
+
+# -- setups (the cases' `setup:` lists) --
+
+def setup_n0e(tmp: Path) -> None:
+    """setup: [N0E]"""
+    N0E(tmp)
+
+
+def setup_deploy(tmp: Path) -> None:
+    """setup: [N0E, DEPLOY]"""
+    N0E(tmp)
+    DEPLOY(tmp)
+
+
+def setup_114_1(tmp: Path) -> None:
+    """N0E in <tmp>/a; N0E in <tmp>/b; write <tmp>/b/docs/prd/orders/links.md."""
+    N0E(tmp / "a")
+    N0E(tmp / "b")
+    write(tmp / "b" / ORDERS_REL / "links.md",
+          "# Links\n\n## Upstreams\n\n| Upstream | Location | Version | Commit | Needs |\n|---|---|---|---|---|\n")
+
+
+def setup_114_2(tmp: Path) -> None:
+    """N0E; in docs/prd/orders/testing.md, replace the two Levels rows with the rows `a.b` and `a b`."""
+    N0E(tmp)
+    testing = tmp / ORDERS_REL / "testing.md"
+    lines = testing.read_bytes().decode("utf-8").split("\n")
+    if lines.count("## Levels") != 1:
+        raise SetupError(f"{testing}: expected one line '## Levels'")
+    at = lines.index("## Levels") + 1
+    while at < len(lines) and not lines[at].startswith("|"):
+        at += 1
+    if at + 1 >= len(lines) or not lines[at + 1].startswith("|---"):
+        raise SetupError(f"{testing}: no Levels table under '## Levels'")
+    first_row = at + 2
+    end = first_row
+    while end < len(lines) and lines[end].startswith("|"):
+        end += 1
+    if end - first_row != 2:
+        raise SetupError(f"{testing}: expected two Levels rows, found {end - first_row}")
+    lines[first_row:end] = ["| a.b | `pytest tests/ab` | local | build |", "| a b | `pytest tests/a_b` | local | build |"]
+    testing.write_bytes("\n".join(lines).encode("utf-8"))
+
+
+def setup_118_1(tmp: Path) -> None:
+    """N0E; DEPLOY; in operations.md, the line "- DEPLOY_TOKEN: the deploy key" becomes two lines."""
+    N0E(tmp)
+    DEPLOY(tmp)
+    replace_line(tmp / ORDERS_REL / "operations.md", "- DEPLOY_TOKEN: the deploy key",
+                 ["- DEPLOY_TOKEN: the deploy key", "- DB_URL, DB_PASSWORD: the database"])
+
+
+def setup_118_2(tmp: Path) -> None:
+    """a: N0E, then append a Secrets section (a secret, no manual job).
+    b: N0E, DEPLOY, then delete "## Secrets" and every line after it (manual jobs, no secret)."""
+    a, b = tmp / "a", tmp / "b"
+    N0E(a)
+    ops_a = a / ORDERS_REL / "operations.md"
+    text = ops_a.read_bytes().decode("utf-8")
+    if not text.endswith("\n"):
+        text += "\n"  # a step that appends to a file whose last line has no newline ends that line first
+    ops_a.write_bytes((text + "\n## Secrets\n\n- DEPLOY_TOKEN: the deploy key\n").encode("utf-8"))
+
+    N0E(b)
+    DEPLOY(b)
+    ops_b = b / ORDERS_REL / "operations.md"
+    lines = ops_b.read_bytes().decode("utf-8").splitlines()
+    if lines.count("## Secrets") != 1:
+        raise SetupError(f"{ops_b}: expected one line '## Secrets'")
+    kept = lines[:lines.index("## Secrets")]
+    ops_b.write_bytes(("\n".join(kept) + "\n").encode("utf-8"))
+
+
+# -- FR-114 --
+
+@given(setup_114_1)
+def test_merge_gate_jobs(built):
+    """@prd T-114.1"""
+    tmp = built
+    r1 = run(tmp, tmp / "a", "python HOOKS ci --github docs/prd/orders")
+    r2 = run(tmp, tmp / "b", "python HOOKS ci --github docs/prd/orders")
+    assert r1.exit == 0, r1.stdout + r1.stderr
+    assert r2.exit == 0, r2.stdout + r2.stderr
+
+    a = read_as_yaml(tmp / "a" / GH_FILE)
+    assert keys_at(a, "jobs") == ["prd-lint", "prd-trace", "test-unit", "test-integration"]
+    assert yaml_at(a, "jobs.prd-lint.steps.2.run") == LINT
+    assert yaml_at(a, "jobs.prd-lint.steps.3.run") == HOOKS_CHECK
+    assert length_at(a, "jobs.prd-lint.steps") == 4
+    assert yaml_at(a, "jobs.prd-trace.steps.2.run") == TRACE_GH
+    assert yaml_at(a, "jobs.test-unit.steps.2.run") == "pytest tests/unit"
+    assert yaml_at(a, "jobs.test-integration.steps.2.run") == "pytest tests/integration"
+
+    b = read_as_yaml(tmp / "b" / GH_FILE)
+    assert yaml_at(b, "jobs.prd-lint.steps.4.run") == "sh .prd-toolkit/prd links check --ci docs/prd/orders"
+    assert length_at(b, "jobs.prd-lint.steps") == 5
+
+
+@given(setup_114_2)
+def test_job_names_are_sanitised_and_numbered(built):
+    """@prd T-114.2"""
+    tmp = built
+    r = run(tmp, tmp, "python HOOKS ci --github docs/prd/orders")
+    assert r.exit == 0, r.stdout + r.stderr
+    doc = read_as_yaml(tmp / GH_FILE)
+    assert keys_at(doc, "jobs") == ["prd-lint", "prd-trace", "test-a-b", "test-a-b-2"]
+    assert yaml_at(doc, "jobs.test-a-b.steps.2.run") == "pytest tests/ab"
+    assert yaml_at(doc, "jobs.test-a-b-2.steps.2.run") == "pytest tests/a_b"
+
+
+# -- FR-115 --
+
+@given(setup_deploy)
+def test_manual_drift_and_deploy_test_jobs(built):
+    """@prd T-115.1"""
+    tmp = built
+    r = run(tmp, tmp, "python HOOKS ci --github docs/prd/orders")
+    assert r.exit == 0, r.stdout + r.stderr
+    doc = read_as_yaml(tmp / GH_FILE)
+    assert keys_at(doc, "jobs") == [
+        "prd-lint", "prd-trace", "test-unit", "test-integration", "drift-production", "test-deploy-staging"]
+    assert yaml_at(doc, "jobs.drift-production.steps.2.run") == "sh .prd-toolkit/prd drift docs/prd/orders --env production"
+    assert length_at(doc, "jobs.drift-production.steps") == 3
+    assert yaml_at(doc, "jobs.test-deploy-staging.steps.2.run") == "export PRD_ENV=staging TEST_ENV=staging; pytest tests/system"
+    assert length_at(doc, "jobs.test-deploy-staging.steps") == 3
+
+
+# -- FR-116 --
+
+@given(setup_n0e)
+def test_gitlab_include_file_text(built):
+    """@prd T-116.1"""
+    tmp = built
+    r = run(tmp, tmp, "python HOOKS ci --gitlab docs/prd/orders")
+    assert r.exit == 0, r.stdout + r.stderr
+
+    trace = GL("prd-trace", [TRACE_GL])
+    before = trace.index("  before_script:")
+    trace[before:before] = ["  variables:", '    GIT_DEPTH: "0"']
+    integration = GL("test-integration", ["pytest tests/integration"])
+    assert integration[-1] == ""
+    expected = (
+        ["# Generated by prd_hooks.py ci --gitlab; regenerate rather than edit.", ""]
+        + GL("prd-lint", [LINT, HOOKS_CHECK])
+        + trace
+        + GL("test-unit", ["pytest tests/unit"])
+        + integration[:-1]
+    )
+    assert_lines(tmp / GL_FILE, expected)
+
+
+@given(setup_deploy)
+def test_gitlab_manual_jobs(built):
+    """@prd T-116.2"""
+    tmp = built
+    r = run(tmp, tmp, "python HOOKS ci --gitlab docs/prd/orders")
+    assert r.exit == 0, r.stdout + r.stderr
+    expected = [
+        "drift-production:",
+        "  image: python:3.12",
+        "  rules:",
+        "    - when: manual",
+        "  allow_failure: true",
+        "  before_script:",
+        '    - "pip install uv"',
+        "  script:",
+        '    - "sh .prd-toolkit/prd drift docs/prd/orders --env production"',
+        "",
+        "test-deploy-staging:",
+        "  image: python:3.12",
+        "  rules:",
+        "    - when: manual",
+        "  allow_failure: true",
+        "  before_script:",
+        '    - "pip install uv"',
+        "  script:",
+        '    - "export PRD_ENV=staging TEST_ENV=staging; pytest tests/system"',
+    ]
+    lines = file_lines(tmp / GL_FILE)
+    assert in_relative_order(lines, expected), "\n".join(lines)
+    # the case's note: the lines are consecutive, and they are the last lines of the file
+    assert lines[-len(expected):] == expected, "\n".join(lines)
+
+
+# -- FR-117 --
+
+@given(setup_n0e)
+def test_github_workflow_text(built):
+    """@prd T-117.1"""
+    tmp = built
+    r = run(tmp, tmp, "python HOOKS ci --github docs/prd/orders")
+    assert r.exit == 0, r.stdout + r.stderr
+    integration = GH("test-integration", ["pytest tests/integration"])
+    assert integration[-1] == ""
+    expected = (
+        ["# Generated by prd_hooks.py ci --github; regenerate rather than edit.", "name: prd-toolkit", "on:",
+         "  pull_request:", "", "permissions:", "  contents: read", "", "jobs:"]
+        + GH("prd-lint", [LINT, HOOKS_CHECK])
+        + GH("prd-trace", [TRACE_GH])
+        + GH("test-unit", ["pytest tests/unit"])
+        + integration[:-1]
+    )
+    assert_lines(tmp / GH_FILE, expected)
+
+
+@given(setup_deploy)
+def test_github_workflow_with_manual_jobs(built):
+    """@prd T-117.2"""
+    tmp = built
+    r = run(tmp, tmp, "python HOOKS ci --github docs/prd/orders")
+    assert r.exit == 0, r.stdout + r.stderr
+    lines = file_lines(tmp / GH_FILE)
+
+    first_lines = [
+        "# Generated by prd_hooks.py ci --github; regenerate rather than edit.",
+        "# Manual jobs may need these secrets (operations.md Secrets): DEPLOY_TOKEN",
+        "name: prd-toolkit",
+        "on:",
+        "  pull_request:",
+        "  workflow_dispatch:",
+        "",
+    ]
+    assert lines[:len(first_lines)] == first_lines, "\n".join(lines[:len(first_lines)])
+
+    line_after = {
+        "  prd-lint:": "    if: \"github.event_name == 'pull_request'\"",
+        "  test-integration:": "    if: \"github.event_name == 'pull_request'\"",
+        "  drift-production:": "    if: \"github.event_name == 'workflow_dispatch'\"",
+        "  test-deploy-staging:": "    if: \"github.event_name == 'workflow_dispatch'\"",
+    }
+    for anchor, follower in line_after.items():
+        assert anchor in lines, f"no line {anchor!r}"
+        i = lines.index(anchor)
+        assert lines[i + 1:i + 2] == [follower], (anchor, lines[i + 1:i + 2])
+
+
+# -- FR-118 --
+
+@given(setup_118_1)
+def test_ci_file_names_the_secrets(built):
+    """@prd T-118.1"""
+    tmp = built
+    r1 = run(tmp, tmp, "python HOOKS ci --gitlab docs/prd/orders")
+    r2 = run(tmp, tmp, "python HOOKS ci --github docs/prd/orders")
+    assert r1.exit == 0, r1.stdout + r1.stderr
+    assert r2.exit == 0, r2.stdout + r2.stderr
+    expected = "# Manual jobs may need these secrets (operations.md Secrets): DEPLOY_TOKEN, DB_URL, DB_PASSWORD"
+    for rel in (GL_FILE, GH_FILE):
+        lines = file_lines(tmp / rel)
+        assert lines[1:2] == [expected], (rel, lines[:3])
+
+
+@given(setup_118_2)
+def test_no_secrets_line_without_manual_job_or_secret(built):
+    """@prd T-118.2"""
+    tmp = built
+    r1 = run(tmp, tmp / "a", "python HOOKS ci --gitlab docs/prd/orders")
+    r2 = run(tmp, tmp / "b", "python HOOKS ci --gitlab docs/prd/orders")
+    assert r1.exit == 0, r1.stdout + r1.stderr
+    assert r2.exit == 0, r2.stdout + r2.stderr
+    for repo in ("a", "b"):
+        lines = file_lines(tmp / repo / GL_FILE)
+        assert [line for line in lines if line.startswith(SECRETS_PREFIX)] == [], (repo, lines[:3])
+        assert lines[1:2] == [""], (repo, lines[:3])
