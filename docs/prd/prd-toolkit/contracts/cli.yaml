@@ -324,9 +324,56 @@ prd_error:
     url: "errors.md: <E-id>: URL: must start with http:// or https:// and hold no white space, rule error-entries (FR-063)"
     target_url: "features/<area>.md: Target: url must start with http:// or https:// and hold no white space, rule pack-resolves (FR-065)"
     target_grammar: "features/<area>.md: Target: must be one or more of pack <name> <X.Y.Z> (<source>), output language <code> and url <address>, comma-separated, in that order, rule pack-resolves (FR-065)"
+    one_test: "testing.md, at the level's row: level '<level>': One test '<cell>' is not one simple command in backticks, rule runbook-tests (FR-075)"
   exit_codes:
     0: "the entry written or listed"
     1: "a write refused (FR-064)"
+  # What the error-replay area needs: the replay, resolve --red-run and the red run in check (FR-075 to FR-081).
+  replay_invocation: "uv run --script prd-toolkit/scripts/prd_error.py replay <prd_dir> <E-id> [--timeout SECONDS] [--json] | replay --interface; through the launcher, prd error replay (FR-076 to FR-078)"
+  replay_arguments:
+    --timeout SECONDS: "a whole number of at least 1, the timeout of every run, in place of the level's Timeout cell and the default 600 (FR-078)"
+    --json: "print one JSON document instead of the lines; --json=1 is the same, any other --json=N is refused (FR-078)"
+    --interface: "print the interface number 1; no folder is read and a --json=N is not checked (FR-078)"
+  replay_output:
+    holds: "stdout, one line: <E-id>: <T-id or test id> fails on <sha>^ and passes on <sha> (FR-076, FR-077)"
+    skipped: "stdout, one line: skipped: <E-id>: resolved by an environment run | skipped: <E-id>: resolved as not a defect | skipped: <E-id>: <level> is a deploy-gate level | skipped: <E-id>: <level> has no One test command (FR-078)"
+    findings: "stdout, one line each: <E-id> is not resolved | <E-id>: resolution is not one of the four forms | <E-id>: <level> is not a level of testing.md | <E-id>: <sha> names no commit | <E-id>: <sha> names more than one commit | <E-id>: <sha> has no parent | <E-id>: <T-id> is cited by no test in <resolving commit> | <E-id>: <T-id or test id> passes on <sha>^; <sha> did not turn it green | <E-id>: <T-id or test id> fails on <sha>: <file or test id> | <E-id>: timed out after <N> s on <sha>^ or <sha> | <E-id>: <program> cannot start on <sha>^ or <sha>, <program> the first word of the One test command (FR-076 to FR-078)"
+    no_entry: "stderr: refused: <E-id> is not an entry; nothing on stdout, with or without --json (FR-078)"
+    bad_timeout: "stderr: prd_error: --timeout must be a whole number of seconds of at least 1 (FR-078)"
+    json_document: 'stdout, --json: one line, {"interface": 1, "kind": "error-replay", "entry", "outcome": "holds" | "skipped" | "findings", "subject", "reason", "findings": [<line>], "runs": [{"commit", "when": "before" | "after", "argument", "exit", "seconds", "timed_out"}]}; subject, reason and exit may be null, exit null for a run that timed out or cannot start, and timed_out false for one that cannot start (FR-078)'
+    json_error: 'stdout, --json on exit 2: one line, {"interface": 1, "kind": "error-replay", "error": <message>} (FR-078)'
+    interface: "stdout, --interface: 1 (FR-078)"
+    unsupported_interface: "stderr, --json=N with N other than 1 and no --interface: prd_error: unsupported interface <N>; this toolkit speaks 1 (FR-078)"
+  replay_exit_codes:
+    0: "the proof holds, the entry is skipped, or --interface (FR-076 to FR-078)"
+    1: "one or more findings, or no such entry (FR-076 to FR-078)"
+    2: "a usage error, a --timeout that is not a whole number of at least 1, an unsupported --json=N, or an internal error (FR-078)"
+    130: "SIGINT during a run, once the run's process group is killed and the folder of its clone removed (FR-079)"
+  resolve_red_run_invocation: "uv run --script prd-toolkit/scripts/prd_error.py resolve <prd_dir> <E-id> --commit <sha> --red-run <test id> --level <level>; through the launcher, prd error resolve (FR-080)"
+  resolve_arguments:
+    --red-run TEST_ID: "the argument the level's One test command takes, a path or a test id; with --commit and --level only (FR-080)"
+    --level LEVEL: "a build-gate level of testing.md Levels with a One test command; with --red-run only (FR-080)"
+  resolve_output:
+    resolved: "stdout, every form: <E-id> resolved <class>, the entry's Classification, which is code bug for a red run (FR-080, FR-081)"
+    red_run_line: "errors.md: Resolution: fixed in <sha>, red run <test id> [<level>], in place of the entry's Resolution: line (FR-080)"
+    fix_line: "errors.md, --t <T-id> --version <X.Y.Z> --commit <sha>: Resolution: <T-id> [<level>], PRD <X.Y.Z>, fixed in <sha>, <level> the level: of the T-id's test case, in place of the entry's Resolution: line; no run made (FR-081)"
+    run_line: "errors.md, --t <T-id> --version <X.Y.Z> --run <run id>: Resolution: <T-id>, PRD <X.Y.Z>, run <run id>, in place of the entry's Resolution: line; no run made (FR-081)"
+    not_a_defect_line: "errors.md, --not-a-defect <why>: Resolution: not a defect: <why>, in place of the entry's Resolution: line; no run made (FR-081)"
+    flag_mix: "stderr: prd_error: --red-run takes --commit and --level, and no --t, --version, --run or --not-a-defect (FR-080)"
+    bad_commit: "stderr: prd_error: commit must be 7 to 40 lowercase hex digits; got '<value>' (FR-080)"
+    refused: "stderr, errors.md unchanged: refused: <E-id> is not an entry | refused: <E-id> is already resolved | refused: <E-id> is not confirmed | refused: <E-id> is classed <class>; a red run resolves a code bug only | refused: <level> is not a level of testing.md | refused: <level> is a deploy-gate level | refused: <level> has no One test command; add the One test column to testing.md Levels through /prd-toolkit:prd-change | refused: the test id must hold no white space and must not start with - | refused: the PRD has no adoption map, so every path is covered; resolve with a regression T-id | refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id | refused: <a replay finding>, one line per finding (FR-080)"
+  resolve_exit_codes:
+    0: "the line written (FR-080, FR-081)"
+    1: "refused (FR-080)"
+    2: "a mix of flags --red-run does not take, or a --commit that is not 7 to 40 lowercase hex digits (FR-080)"
+  check_invocation: "uv run --script prd-toolkit/scripts/prd_error.py check <prd_dir> <base>..<head>; through the launcher, prd error check (FR-081)"
+  check_findings:
+    red_run: "stdout, for a red run added in the range, no run made: errors.md: <E-id>: commit <sha> is not an ancestor of HEAD | errors.md: <E-id>: the PRD has no adoption map, so every path is covered | errors.md: <E-id>: commit <sha> changes <path>, which area <area> covers | errors.md: <E-id>: <level> is not a level of testing.md (FR-081)"
+    no_form: "stdout: errors.md: <E-id>: resolution is not one of the four forms (FR-081)"
+    older_forms: "stdout, no run made: errors.md: <E-id>: <T-id> has no test case, for a fix with a T-id whose T-id has no test case | errors.md: <E-id>: run <run id> has no log in <folder>, for an environment run with no deploy run log, <folder> the absolute path of prd-toolkit/deploys in the git common folder | nothing for not a defect, or for a fix with a T-id that passes every check AC-081.3 names (FR-081)"
+  check_exit_codes:
+    0: "no finding (FR-081)"
+    1: "at least one finding line on stdout (FR-081)"
 prd_git_hook:
   # Only what the standards-run area needs so far; the trace-and-hooks area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_git_hook.py pre-commit <prd_dir>; the installed pre-commit hook runs it through the vendored launcher"

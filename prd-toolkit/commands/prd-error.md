@@ -1,5 +1,5 @@
 ---
-description: Record an error in the PRD's errors.md, diagnose it, propose its class for the user to confirm, and fix it from a failing test through /prd-toolkit:prd-change and /prd-toolkit:prd-build (prd-toolkit)
+description: Record an error in the PRD's errors.md, diagnose it, propose its class for the user to confirm, and fix it from a failing test through /prd-toolkit:prd-change and /prd-toolkit:prd-build, or with a red run for code no adopted area covers (prd-toolkit)
 ---
 
 Handle an error through the PRD's ledger. Arguments, `[<E-nnn> | <run id> | <text>]`: $ARGUMENTS
@@ -15,5 +15,6 @@ Handle an error through the PRD's ledger. Arguments, `[<E-nnn> | <run id> | <tex
    user's report of a new error: step 1, with it as the evidence. With no arguments, list the open
    entries and ask which one, or what went wrong.
 4. Follow `${CLAUDE_PLUGIN_ROOT}/skills/handling-errors/running-an-error.md` exactly, steps 1 to 6,
-   and report as its step 6 says. You never fix code yourself, and the request is never the
-   confirmation: only the user's reply to the proposal is.
+   and report as its step 6 says. You never fix code yourself, except code no adopted area covers
+   (its step 5's **Code no area covers**), and the request is never the confirmation: only the
+   user's reply to the proposal is.

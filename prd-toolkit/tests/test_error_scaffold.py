@@ -1,4 +1,5 @@
-"""The error_repo eval scaffold: three start states (a planted bug, a failed deploy, a killed step) of the greet repo."""
+"""The error_repo eval scaffold: five start states of the greet repo (a planted bug, a failed deploy, a killed step, a
+confirmed bug in code no adopted area covers, and a confirmed bug whose fix commit its T-id's test never saw fail)."""
 import json
 import subprocess
 import sys
@@ -9,7 +10,7 @@ import pytest
 ROOT = Path(__file__).parent.parent
 SCRIPT = ROOT / "evals/scaffolds/error_repo.py"
 PRD = "docs/prd/greet"
-STATES = ["bug", "failed-deploy", "killed-step"]
+STATES = ["bug", "failed-deploy", "killed-step", "uncovered-bug", "green-before-fix"]
 
 
 def build(tmp_path: Path, state: str) -> tuple[Path, str]:
@@ -97,3 +98,55 @@ def test_refuses_a_non_empty_destination_and_an_unknown_state(tmp_path):
     r = subprocess.run([sys.executable, "-B", str(SCRIPT), str(tmp_path / "y"), "nope"], capture_output=True, text=True)
     assert r.returncode != 0 and "usage: error_repo.py" in r.stderr and "Traceback" not in r.stderr, r.stderr
     assert not (tmp_path / "y").exists()
+
+
+def prd(repo: Path, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["sh", ".prd-toolkit/prd", *args], cwd=repo, capture_output=True, text=True)
+
+
+ONE_TEST = "| unit | `uv run pytest tests/unit` | local | build | `uv run pytest -q` |"
+
+
+def test_uncovered_bug_confirms_a_bug_outside_every_boundary(tmp_path):
+    repo, last = build(tmp_path, "uncovered-bug")
+    assert last == ""
+    assert ONE_TEST in (repo / PRD / "testing.md").read_text(encoding="utf-8")
+    assert "## 8. Adoption map\n\nSee adoption.md." in (repo / PRD / "prd.md").read_text(encoding="utf-8")
+    assert "| greet | adopted | `src/greet/**`, `tests/**`, `scripts/**` |" in (repo / PRD / "adoption.md").read_text(encoding="utf-8")
+    names = tmp_path / "names.txt"
+    names.write_text("Ada\nGrace\n", encoding="utf-8")
+    out = subprocess.run([sys.executable, "tools/count_names.py", str(names)], cwd=repo, capture_output=True, text=True)
+    assert out.stdout == "3\n"  # the bug: two names print 3
+    assert not list((repo / "tests").rglob("*count_names*"))
+    r = prd(repo, "error", "list", PRD, "--open")
+    assert r.returncode == 0 and r.stdout.startswith("E-001 confirmed code bug - tools/count_names.py counts"), r.stdout + r.stderr
+    assert git(repo, "log", "--format=%s", "-3").splitlines() == [
+        "docs(prd): confirm E-001", "docs(prd): propose E-001", "docs(prd): record E-001"]
+    assert not (repo / ".git/hooks/post-commit").exists()  # no hook: the graders read the trace
+
+
+def test_green_before_fix_hides_a_test_that_never_failed(tmp_path):
+    repo, last = build(tmp_path, "green-before-fix")
+    assert last == "fix=" + git(repo, "rev-parse", "--short", "HEAD").strip()
+    assert git(repo, "log", "-1", "--format=%s%n%b", "HEAD").split("\n")[:3] == [
+        "fix(greet): read GREETING from the settings file", "Refs: FR-001, E-001", ""]
+    assert git(repo, "diff", "--name-only", "HEAD~1", "HEAD").split() == ["src/greet/cli.py"]
+    assert ONE_TEST in (repo / PRD / "testing.md").read_text(encoding="utf-8")
+    r = prd(repo, "error", "list", PRD, "--open")
+    assert r.returncode == 0 and r.stdout.startswith("E-001 confirmed code bug FR-001 "), r.stdout + r.stderr
+    feats = (repo / PRD / "features/greet.md").read_text(encoding="utf-8")
+    assert feats.count("Status: verified (since 1.0.0)") == 2
+    assert subprocess.run(["git", "grep", "-q", "known-failing", "--", f"{PRD}/test-cases", "tests"], cwd=repo).returncode == 1
+    for rev in ("HEAD", "HEAD~1"):  # the T-001.2 test passes on the fix and on its parent
+        wt = tmp_path / f"wt-{rev.replace('~', '-')}"
+        git(repo, "worktree", "add", "-q", "--detach", str(wt), rev)
+        r = subprocess.run(["uv", "run", "pytest", "-q", "tests/unit/test_greet.py"], cwd=wt, capture_output=True, text=True)
+        assert r.returncode == 0 and "2 passed" in r.stdout, rev + r.stdout + r.stderr
+        git(repo, "worktree", "remove", "--force", str(wt))
+
+
+@pytest.mark.parametrize("state", ["uncovered-bug", "green-before-fix"])
+def test_the_red_run_states_build_the_same_commits(tmp_path, state):
+    a, _ = build(tmp_path / "a", state)
+    b, _ = build(tmp_path / "b", state)
+    assert git(a, "rev-parse", "HEAD") == git(b, "rev-parse", "HEAD")

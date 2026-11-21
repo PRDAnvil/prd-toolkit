@@ -596,6 +596,16 @@ refer to (levels, environments, fixtures).
   `--timeout` given to `prd_deploy.py` overrides every one of them, 600 included. The timeout
   message names the value that applied: `timed out after <N> s (the <level> level's Timeout)`,
   `(--timeout)` or `(the default)`. A pack level's `timeout:` is copied into this cell.
+- Levels: an optional `One test` column, found by its header name as `Timeout` is (backticks and
+  letter case aside), gives the command that runs one test of the level: `prd_error.py replay`
+  runs it with one more word appended, a test file's path or a test id, without a shell. A cell is
+  empty or **one simple command in backticks**: one backticked span, split into words as a POSIX
+  shell splits them (quotes group words, a backslash escapes the next character, nothing is
+  expanded), whose first word is none of `cd`, `env`, `sh`, `bash`, `zsh`, `eval` and `exec` and
+  holds no `=`, and with none of `$`, `{`, `~`, `;`, `|` and `&&` in it; `runbook-tests` reports
+  any other cell, `level '<level>': One test '<cell>' is not one simple command in backticks`. A
+  blank cell or no column means the level has no One test command. Nothing else reads the
+  column: the Harness command still runs the level at a build and at a deploy.
 - Levels: each `Harness command` is **one simple command** in backticks, such as
   `` `uv run pytest tests` ``; the `prd-tester` guard runs nothing else. It blocks a command whose
   first word is `cd`, `env`, `sh`, `bash`, `zsh`, `eval` or `exec`; one containing `$`, `{` or
@@ -732,7 +742,7 @@ URL: <address>
 Evidence: <a command and its output, a failing test line or a log excerpt>
   <continuation lines, indented two spaces>
 Diagnosis: <why>
-Resolution: <T-id> [<level>], PRD <X.Y.Z>, fixed in <commit> | not a defect: <why>
+Resolution: <T-id> [<level>], PRD <X.Y.Z>, fixed in <commit> | fixed in <commit>, red run <test id> [<level>] | not a defect: <why>
 Recurrence of: <E-nnn or ->
 ```
 
@@ -755,11 +765,31 @@ The **state** of an entry is derived from its lines and never written:
 | `confirmed` | `Confirmed:`, no resolution |
 | `resolved` | a resolution (the open/resolved rule below) |
 
-A resolution has one of three forms: `<T-id> [<level>], PRD <X.Y.Z>, fixed in <7-40 hex>` (code
+A resolution has one of four forms: `<T-id> [<level>], PRD <X.Y.Z>, fixed in <7-40 hex>` (code
 bug, spec gap, invalid requirement, standard); `<T-id or ->, PRD <X.Y.Z>, run <run id>`
-(environment); `not a defect: <why>` (any class). Lint does not check a resolution's form, since
-entries resolved before 0.6 hold free text; `prd_error.py check` checks the form of each resolution
-added inside its range.
+(environment); `not a defect: <why>` (any class); and a **red run**,
+`fixed in <7-40 hex>, red run <test id> [<level>]` (code bug), for a fix whose commit changes no
+path an adopted area covers. In a red run, `<test id>` holds no white space and does not start
+with `-`, and `<level>` holds no white space and no `]`. Lint does not check a resolution's form,
+since entries resolved before 0.6 hold free text; `prd_error.py check` checks the form of each
+resolution added inside its range, and for a red run that its commit is an ancestor of the
+range's head, that the PRD has an adoption map, that no path the commit changes is covered by an
+area and that its level is a row of Levels.
+
+`prd_error.py resolve <prd_dir> <E-id> --commit <sha> --red-run <test id> --level <level>` writes a
+red run on a `confirmed` `code bug` entry, for a build-gate level with a One test command, only
+when the replay of that line holds. `prd_error.py replay <prd_dir> <E-id> [--timeout SECONDS]
+[--json]` runs the entry's test, through its level's One test command, on `<sha>^`, where it must
+fail, and on `<sha>`, where it must pass, each run in a git clone of its own under the system
+temporary folder (`git clone --shared --no-checkout`, then a checkout of the commit, `HEAD`
+detached), which it removes; it writes nothing in the repository's git folder and adds no
+worktree to it. For a fix with a T-id it runs each file under a test root
+that cites the T-id in the resolving commit (the first commit whose `errors.md` holds the entry's
+Resolution line, else `HEAD`), each tree's test roots replaced by that commit's; for a
+red run it runs the test id on each tree as committed. It prints
+`<E-id>: <T-id or test id> fails on <sha>^ and passes on <sha>` and exits 0 when the proof holds,
+a `skipped: <E-id>: <reason>` line and exit 0 for an environment run, not a defect, a deploy-gate
+level or a level with no One test command, and one finding per line and exit 1 otherwise.
 
 `Touches:` is optional. It lists the requirement IDs (`UJ-nn`, `FR-nnn`, `NFR-nnn`) the error
 concerns, comma-separated, and `-` means none. `index-consistent` reports a `Touches:` ID that no

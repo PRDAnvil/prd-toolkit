@@ -293,12 +293,17 @@ def _structure(prev: dict[str, ErrorEntry], cur: dict[str, ErrorEntry]) -> list[
     return out
 
 
-def _resolution(prd: Prd, repo_root: Path, head: str, e: ErrorEntry, cited: dict, tagged: dict, versions: set[str]) -> list[str]:
+def _resolution(prd: Prd, repo_root: Path, head: str, e: ErrorEntry, cited: dict, tagged: dict, versions: set[str],
+                prefix: str) -> list[str]:
     """Findings on a resolution added in the range, judged against the PRD at head."""
+    from . import errorreplay  # FR-081: the red run is the error-replay area's
+
     text = e.resolution
     fix, env, nad = _FIX.fullmatch(text), _ENV.fullmatch(text), _NOT_A_DEFECT.fullmatch(text)
+    if errorreplay.RED_RUN.fullmatch(text):
+        return errorreplay.check_red_run(prd, repo_root, head, e, prefix)
     if not (fix or env or nad):
-        return ["resolution is not one of the three forms"]
+        return ["resolution is not one of the four forms"]
     out: list[str] = []
     if nad:
         return out
@@ -431,5 +436,5 @@ def check_findings(prd: Prd, repo_root: Path, rng: str) -> list[str]:
             for e in new:
                 if e.confirmed_raw is None:
                     out.append((e.id, "resolved without Confirmed:"))
-                out += [(e.id, f) for f in _resolution(h_prd, repo_root, head, e, cited, tagged, versions)]
+                out += [(e.id, f) for f in _resolution(h_prd, repo_root, head, e, cited, tagged, versions, prefix)]
     return list(dict.fromkeys(f"errors.md: {eid}: {f}" for eid, f in out))

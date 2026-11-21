@@ -1,0 +1,2548 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path. The scratch repository is <tmp>/repo, which
+#   the error-replay steps build from fixture status-next/base (testing.md, Setup steps); its PRD folder is
+#   docs/prd/orders. "python" is the interpreter running the tests (sys.executable); every run is a subprocess
+#   with the environment the error-replay steps give (TMPDIR=<tmp>/scratch, the runner's git config shut out),
+#   and the case's cwd as its working directory.
+#   ERROR = <repo>/prd-toolkit/scripts/prd_error.py, LINT = <repo>/prd-toolkit/scripts/prd_lint.py,
+#   HELP = <repo>/prd-toolkit/scripts/prd_help.py.
+#   input.resolution is the Resolution line steps RE and REU write. <bug>, <test>, <fix>, <merge>, <many>,
+#   FULL(<rev>) and HEAD7 are as the error-replay steps define them, taken after the case's last step, and are
+#   replaced the same way in the commands and in every expected value.
+#   LEFT_AS_IT_WAS for a run is the effect: `git worktree list --porcelain` and `git status --porcelain`, each
+#   run by the test in <tmp>/repo just before and just after that run, print the same text both times, and
+#   <tmp>/scratch holds no entry after it.
+#   The scratch PRD's level integration runs one test with `python3 tools/one.py`, slow with
+#   `python3 tools/slow.py` and a Timeout of 2 seconds; system is a deploy-gate level; unit has an empty cell.
+
+T-075.1:
+  ac: AC-075.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RQ, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "RQ writes the column's header ONE TEST and the cell `python3 \"tools/one.py\"`: the header is found in any letter case, and the quotes group a word and are removed"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: tests/test_total.py fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-075.2:
+  ac: AC-075.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RC, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "RC takes the One test column out of the Levels table: no level has a One test command"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "skipped: E-001: integration has no One test command\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-075.3:
+  ac: AC-075.2
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RB]
+    cwd: "<tmp>/repo"
+    runs:
+    - python LINT docs/prd/orders
+    note: "RB writes files.testing_bad: lines 7 to 17 hold eleven malformed One test cells, line 18 a well-formed one with quotes"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stderr: ""
+        stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/testing.md:7: runbook-tests: level 'unit': One test '`cd tests`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:8: runbook-tests: level 'integration': One test 'python3 tools/one.py' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:9: runbook-tests: level 'judged': One test '`TEST_ENV=ci python3 tools/one.py`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:10: runbook-tests: level 'slow': One test '`python3 tools/one.py ~/x`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:11: runbook-tests: level 'system': One test '`python3 tools/one.py; true`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:12: runbook-tests: level 'quote': One test '`python3 'tools/one.py`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:13: runbook-tests: level 'spans': One test '`python3` `tools/one.py`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:14: runbook-tests: level 'pipe': One test '`python3 tools/one.py | cat`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:15: runbook-tests: level 'dollar': One test '`python3 tools/one.py $X`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:16: runbook-tests: level 'brace': One test '`python3 tools/one.py {a}`' is not one simple command in backticks"
+        - "docs/prd/orders/testing.md:17: runbook-tests: level 'and': One test '`python3 tools/one.py && true`' is not one simple command in backticks"
+      relations:
+      - "run_1's stdout holds no line that contains `: runbook-tests: ` other than the eleven lines listed above; the well-formed cell on line 18 gives none"
+    effects: []
+    errors: []
+    leaks: none
+
+T-075.4:
+  ac: AC-075.3
+  level: integration
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, "R0 in <tmp>/b", "RC in <tmp>/b"]
+    runs:
+    - {cwd: "<tmp>/repo", command: python LINT docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python LINT docs/prd/orders}
+    note: "the two PRD folders differ only in the One test column of Levels, which <tmp>/repo holds and <tmp>/b does not"
+  expect:
+    output:
+      relations:
+      - "run_1 and run_2 exit with the same code, and their stdout is byte for byte the same, and so is their stderr"
+    effects: []
+    errors: []
+    leaks: none
+
+T-075.5:
+  ac: AC-075.4
+  level: integration
+  target: "cli:prd_help"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    runs:
+    - python HELP --rule runbook-tests
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout_first_line: "runbook-tests (error)"
+        stderr: ""
+      relations:
+      - "the second stdout line of run_1 (str.splitlines()) is exactly `Checks that each level a runbook tests step names is in testing.md Levels with Gate deploy and a Harness command, that each Timeout cell is a whole number of seconds of at least 1, and that each One test cell is one simple command in backticks. Add or fix the level's row, or name a deploy-gate level.`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-076.1:
+  ac: AC-076.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the one cited file is tests/test_total.py; tests/test_later.py, which the resolving commit holds and which fails on every tree, cites nothing and is not run; the run on <fix>^ fails because only the test roots are replaced and src/calc.py there still holds the bug"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-076.2:
+  ac: AC-076.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RF, RT, RL, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the regression test is committed after its fix: neither <fix>^ nor <fix> holds tests/test_total.py, and the resolving commit (the commit resolve) supplies it"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-076.3:
+  ac: AC-076.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTS, RF, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "the one cited file's path, tests/test total.py, holds a space and reaches tools/one.py as one argument"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+      run_2:
+        exit: 0
+        stdout_json_at:
+          outcome: holds
+          runs.0.argument: "tests/test total.py"
+          runs.1.argument: "tests/test total.py"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-076.4:
+  ac: AC-076.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RM, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <merge>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "the fix commit is the merge: its first parent, the commit unrelated, holds the bug, and its second, the commit fix on side, holds the fix"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <merge>^ and passes on <merge>\n"
+        stderr: ""
+      run_2:
+        exit: 0
+        stdout_json_at:
+          runs.0.commit: "FULL(merge^)"
+          runs.0.when: before
+          runs.1.commit: "FULL(merge)"
+          runs.1.when: after
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-076.5:
+  ac: AC-076.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTP, RF, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the cited test passes on the bug and on the fix"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: T-006.1 passes on <fix>^; <fix> did not turn it green\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-076.6:
+  ac: AC-076.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RS, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the commit tagged fix holds files.calc_still, which is still wrong: the cited test fails before it and after it"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: T-006.1 fails on <fix>: tests/test_total.py\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-076.7:
+  ac: AC-076.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RE, RN]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python3 tools/needs.py tests/test_total.py
+    - python ERROR replay docs/prd/orders E-001
+    note: "RN makes integration's One test command `python3 tools/needs.py`, which needs the file .ready that only the repository's own checkout holds: run_1 shows the command passes there; in a fresh clone it exits 3 on both trees, so the proof does not hold"
+  expect:
+    output:
+      run_1:
+        exit: 0
+      run_2:
+        exit: 1
+        stdout: "E-001: T-006.1 fails on <fix>: tests/test_total.py\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_2"
+    errors: []
+    leaks: none
+
+T-076.8:
+  ac: AC-076.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-007.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "R0 deleted the line that cited T-007.1 from tests/test_orders.py, and no other file under tests/ cites it; the resolving commit is HEAD, the commit resolve"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout: "E-001: T-007.1 is cited by no test in HEAD7\n"
+        stderr: ""
+      run_2:
+        exit: 1
+        stdout_json:
+          interface: 1
+          kind: error-replay
+          entry: E-001
+          outcome: findings
+          subject: T-007.1
+          reason: null
+          findings: ["E-001: T-007.1 is cited by no test in HEAD7"]
+          runs: []
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-076.9:
+  ac: AC-076.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, REU, RW]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the Resolution line is in the working tree only, so the resolving commit is HEAD, the commit later; RW leaves in the working tree a tests/test_total.py that passes on the bug, which a replay taking the working tree's tests would report as passing on <fix>^"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-077.1:
+  ac: AC-077.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTD, RF, RE]
+    resolution: "fixed in <fix>, red run tests/a$b;c.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the test id holds a $ and a ;, and names the file RTD wrote: it reaches tools/one.py as plain text, never through a shell"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: tests/a$b;c.py fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-077.2:
+  ac: AC-077.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RF, RT, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the test is committed after the fix, and a red run takes both trees as committed: neither <fix>^ nor <fix> holds tests/test_total.py, so both runs fail"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: tests/test_total.py fails on <fix>: tests/test_total.py\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-077.3:
+  ac: AC-077.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: tests/test_total.py fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-077.4:
+  ac: AC-077.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTP, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the test passes on the bug and on the fix"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: tests/test_total.py passes on <fix>^; <fix> did not turn it green\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-077.5:
+  ac: AC-077.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RS, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the commit tagged fix does not fix: the test fails before it and after it"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: tests/test_total.py fails on <fix>: tests/test_total.py\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-077.6:
+  ac: AC-077.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RIW, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "RIW makes integration's One test command a program that passes only when `git rev-parse --is-inside-work-tree` prints `true` in the folder the run starts in: each clone is a git checkout, so both runs pass and the proof does not hold"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_json_at:
+          outcome: findings
+          findings: ["E-001: tests/test_total.py passes on <fix>^; <fix> did not turn it green"]
+          runs.0.commit: "FULL(fix^)"
+          runs.0.when: before
+          runs.0.exit: 0
+          runs.1.commit: "FULL(fix)"
+          runs.1.when: after
+          runs.1.exit: 0
+        stderr: ""
+      relations:
+      - "the list at the key `runs` of run_1's document holds exactly two entries"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.1:
+  ac: AC-078.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-009
+    - python ERROR replay docs/prd/orders E-009 --json
+    note: "errors.md holds E-001 only"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-009 is not an entry\n"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-078.2:
+  ac: AC-078.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "E-001 is confirmed and its Resolution line is -"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001 is not resolved\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.3:
+  ac: AC-078.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed it in the end"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "free text, as an entry resolved before prd-toolkit 0.6 may hold"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: resolution is not one of the four forms\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.4:
+  ac: AC-078.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "-, PRD 1.0.0, run 20261110T090000Z-all"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "skipped: E-001: resolved by an environment run\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.5:
+  ac: AC-078.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "not a defect: the total was read from the wrong report"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "skipped: E-001: resolved as not a defect\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.6:
+  ac: AC-078.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [nosuch]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: nosuch is not a level of testing.md\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.7:
+  ac: AC-078.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-006.1 [system], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "system has Gate deploy and a One test command"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "skipped: E-001: system is a deploy-gate level\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.8:
+  ac: AC-078.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-006.1 [unit], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "unit's One test cell is empty"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "skipped: E-001: unit has no One test command\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.9:
+  ac: AC-078.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in 0000000, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    - python ERROR replay docs/prd/orders E-001 --json
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout: "E-001: 0000000 names no commit\n"
+        stderr: ""
+      run_2:
+        exit: 1
+        stdout_json:
+          interface: 1
+          kind: error-replay
+          entry: E-001
+          outcome: findings
+          subject: tests/test_total.py
+          reason: null
+          findings: ["E-001: 0000000 names no commit"]
+          runs: []
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-078.10:
+  ac: AC-078.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <bug>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "<bug> is the repository's first commit"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: <bug> has no parent\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.11:
+  ac: AC-078.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RMANY, RE]
+    resolution: "fixed in <many>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "<many> is the first 7 hex digits of two commits on the many- refs"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: <many> names more than one commit\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.12:
+  ac: AC-078.7
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in 0000000, red run tests/test_total.py [nosuch]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the level is not a row of Levels and the commit names nothing: the level is checked first"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: nosuch is not a level of testing.md\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.13:
+  ac: AC-078.7
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-007.1 [system], PRD 1.0.0, fixed in 0000000"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "a deploy-gate level, a commit that names nothing and a T-id no test cites: the deploy gate is checked first"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "skipped: E-001: system is a deploy-gate level\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.14:
+  ac: AC-078.7
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-007.1 [integration], PRD 1.0.0, fixed in 0000000"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "a commit that names nothing and a T-id no test cites: the commit is checked first"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: 0000000 names no commit\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.15:
+  ac: AC-078.8
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTI, RF, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "two cited files, tests/test_a.py and tests/test_b.py, each passing on the bug and failing on the fix: every run on <fix>^ passes, both runs on <fix> fail"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout_exact_lines:
+        - "E-001: T-006.1 passes on <fix>^; <fix> did not turn it green"
+        - "E-001: T-006.1 fails on <fix>: tests/test_a.py"
+        - "E-001: T-006.1 fails on <fix>: tests/test_b.py"
+        stderr: ""
+      run_2:
+        exit: 1
+        stdout_json_at:
+          outcome: findings
+          findings: ["E-001: T-006.1 passes on <fix>^; <fix> did not turn it green", "E-001: T-006.1 fails on <fix>: tests/test_a.py", "E-001: T-006.1 fails on <fix>: tests/test_b.py"]
+          runs.0.when: before
+          runs.0.argument: tests/test_a.py
+          runs.0.exit: 0
+          runs.1.when: before
+          runs.1.argument: tests/test_b.py
+          runs.1.exit: 0
+          runs.2.when: after
+          runs.2.argument: tests/test_a.py
+          runs.2.exit: 1
+          runs.3.when: after
+          runs.3.argument: tests/test_b.py
+          runs.3.exit: 1
+        stderr: ""
+      relations:
+      - "the list at the key `runs` of run_2's document holds exactly four entries"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-078.16:
+  ac: AC-078.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [slow]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    - python ERROR replay docs/prd/orders E-001 --timeout 1
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "slow's One test command sleeps 30 seconds; its Timeout cell is 2, and --timeout 1 overrides it"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout_exact_lines:
+        - "E-001: timed out after 2 s on <fix>^"
+        - "E-001: timed out after 2 s on <fix>"
+        stderr: ""
+      run_2:
+        exit: 1
+        stdout_exact_lines:
+        - "E-001: timed out after 1 s on <fix>^"
+        - "E-001: timed out after 1 s on <fix>"
+        stderr: ""
+      run_3:
+        exit: 1
+        stdout_json_at:
+          outcome: findings
+          findings: ["E-001: timed out after 2 s on <fix>^", "E-001: timed out after 2 s on <fix>"]
+          runs.0.when: before
+          runs.0.exit: null
+          runs.0.timed_out: true
+          runs.1.when: after
+          runs.1.exit: null
+          runs.1.timed_out: true
+        stderr: ""
+      relations:
+      - "each of run_1, run_2 and run_3 ends in less than 30 seconds"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, for run_2 and for run_3"
+    errors: []
+    leaks: none
+
+T-078.17:
+  ac: AC-078.10
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --timeout 0
+    - python ERROR replay docs/prd/orders E-001 --timeout abc
+    - python ERROR replay docs/prd/orders E-001 --timeout 1.5
+    - python ERROR replay docs/prd/orders E-001 --timeout=-3
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr: "prd_error: --timeout must be a whole number of seconds of at least 1\n"
+    effects:
+    - "LEFT_AS_IT_WAS for each run"
+    errors: []
+    leaks: none
+
+T-078.18:
+  ac: AC-078.11
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --json
+    - python ERROR replay docs/prd/orders E-001 --json=1
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout_json_keys_at:
+          "": [interface, kind, entry, outcome, subject, reason, findings, runs]
+          runs.0: [commit, when, argument, exit, seconds, timed_out]
+          runs.1: [commit, when, argument, exit, seconds, timed_out]
+        stdout_json_at:
+          interface: 1
+          kind: error-replay
+          entry: E-001
+          outcome: holds
+          subject: tests/test_total.py
+          reason: null
+          findings: []
+          runs.0.commit: "FULL(fix^)"
+          runs.0.when: before
+          runs.0.argument: tests/test_total.py
+          runs.0.exit: 1
+          runs.0.timed_out: false
+          runs.1.commit: "FULL(fix)"
+          runs.1.when: after
+          runs.1.argument: tests/test_total.py
+          runs.1.exit: 0
+          runs.1.timed_out: false
+        stderr: ""
+      relations:
+      - "in each run's document the list at the key `runs` holds exactly two entries, and the value at `seconds` of each is a JSON number (an integer or a fraction, never true or false)"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-078.19:
+  ac: AC-078.11
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "not a defect: the total was read from the wrong report"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --json
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout_json:
+          interface: 1
+          kind: error-replay
+          entry: E-001
+          outcome: skipped
+          subject: null
+          reason: resolved as not a defect
+          findings: []
+          runs: []
+        stdout_json_first_keys: [interface, kind, entry, outcome, subject, reason, findings, runs]
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.20:
+  ac: AC-078.11
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-006.1 [nosuch], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --json
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_json:
+          interface: 1
+          kind: error-replay
+          entry: E-001
+          outcome: findings
+          subject: T-006.1
+          reason: null
+          findings: ["E-001: nosuch is not a level of testing.md"]
+          runs: []
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.21:
+  ac: AC-078.12
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --timeout 0 --json
+    - python ERROR replay nowhere E-001 --json=2
+    note: "the folder nowhere does not exist; run_2 reads no folder"
+  expect:
+    output:
+      each_run:
+        exit: 2
+      run_1:
+        stdout_json: {interface: 1, kind: error-replay, error: "--timeout must be a whole number of seconds of at least 1"}
+        stderr: "prd_error: --timeout must be a whole number of seconds of at least 1\n"
+      run_2:
+        stdout_json: {interface: 1, kind: error-replay, error: "unsupported interface 2; this toolkit speaks 1"}
+        stderr: "prd_error: unsupported interface 2; this toolkit speaks 1\n"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1, and for run_2"
+    errors: []
+    leaks: none
+
+T-078.22:
+  ac: AC-078.13
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    runs:
+    - python ERROR replay --interface
+    - python ERROR replay nowhere E-001 --json=2 --interface
+    note: "no repository and no PRD folder: the folder nowhere does not exist"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "1\n"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-078.23:
+  ac: AC-078.14
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RA, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "RA makes integration's One test command `tools/absent`, a path no commit and no step writes: the operating system cannot start it in either clone"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines:
+        - "E-001: tools/absent cannot start on <fix>^"
+        - "E-001: tools/absent cannot start on <fix>"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.24:
+  ac: AC-078.14
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RA, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "as in T-078.23, the operating system cannot start `tools/absent` in either clone; the entry is resolved with a red run"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_json_at:
+          outcome: findings
+          subject: tests/test_total.py
+          findings: ["E-001: tools/absent cannot start on <fix>^", "E-001: tools/absent cannot start on <fix>"]
+          runs.0.commit: "FULL(fix^)"
+          runs.0.when: before
+          runs.0.argument: tests/test_total.py
+          runs.0.exit: null
+          runs.0.timed_out: false
+          runs.1.commit: "FULL(fix)"
+          runs.1.when: after
+          runs.1.argument: tests/test_total.py
+          runs.1.exit: null
+          runs.1.timed_out: false
+        stderr: ""
+      relations:
+      - "the list at the key `runs` of run_1's document holds exactly two entries"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-079.1:
+  ac: AC-079.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "`git worktree list --porcelain` in <tmp>/repo after run_1 names exactly one worktree, <tmp>/repo itself"
+    errors: []
+    leaks: none
+
+T-079.2:
+  ac: AC-079.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTP, RF, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: T-006.1 passes on <fix>^; <fix> did not turn it green\n"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "`git worktree list --porcelain` in <tmp>/repo after run_1 names exactly one worktree, <tmp>/repo itself"
+    errors: []
+    leaks: none
+
+T-079.3:
+  ac: AC-079.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [slow]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "both runs time out after 2 seconds"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines:
+        - "E-001: timed out after 2 s on <fix>^"
+        - "E-001: timed out after 2 s on <fix>"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "`git worktree list --porcelain` in <tmp>/repo after run_1 names exactly one worktree, <tmp>/repo itself"
+    errors: []
+    leaks: none
+
+T-079.4:
+  ac: AC-079.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  - "testing.md#Harness"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [slow]"
+    cwd: "<tmp>/repo"
+    runs:
+    - {env: {ONE_STARTED: "<tmp>/started"}, command: python ERROR replay docs/prd/orders E-001 --timeout 60}
+    note: "the test starts run_1 in the background, waits up to 30 seconds until <tmp>/started holds a number (the process ID tools/slow.py writes once the first run has started), sends run_1's own process SIGINT (os.kill with signal.SIGINT, never to a process group), and waits up to 30 seconds for run_1 to end (testing.md, Harness, Waits)"
+  expect:
+    output:
+      each_run:
+        exit: 130
+    effects:
+    - "LEFT_AS_IT_WAS for run_1: `git worktree list --porcelain` and `git status --porcelain` are taken just before run_1 starts and just after it ends"
+    - "within 5 seconds after run_1 ends, no process has the ID that <tmp>/started holds (os.kill with signal 0 raises ProcessLookupError)"
+    errors: []
+    leaks: none
+
+T-079.5:
+  ac: AC-079.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RE, RWT]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/wt"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "the command starts in <tmp>/wt, a linked worktree of <tmp>/repo at HEAD"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "`git worktree list --porcelain`, run by the test in <tmp>/repo just before and just after run_1, prints the same text both times, which names exactly two worktrees, <tmp>/repo and <tmp>/wt"
+    - "`git status --porcelain`, run by the test in <tmp>/wt just before and just after run_1, prints the same text both times, and <tmp>/scratch holds no entry after run_1"
+    errors: []
+    leaks: none
+
+T-079.6:
+  ac: AC-079.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - {env: {GIT_INDEX_FILE: "<tmp>/repo/.git/index"}, command: python ERROR replay docs/prd/orders E-001}
+    note: "run_1 starts with GIT_INDEX_FILE set to the absolute path of the scratch repository's own index, as git sets it for a pre-commit or commit-msg hook; the bytes of <tmp>/repo/.git/index are not compared, since git may refresh its stat cache"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "`git worktree list --porcelain` in <tmp>/repo after run_1 names exactly one worktree, <tmp>/repo itself"
+    errors: []
+    leaks: none
+
+T-079.7:
+  ac: AC-079.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RE, RNW]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "RNW runs after the entry is resolved and committed: <tmp>/repo/.git/worktrees is an empty regular file, so `git worktree add` in <tmp>/repo exits 128 and the repository's git folder cannot take a new worktree"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "after run_1, <tmp>/repo/.git/worktrees is a regular file of 0 bytes"
+    - "`git worktree list --porcelain` in <tmp>/repo after run_1 names exactly one worktree, <tmp>/repo itself"
+    errors: []
+    leaks: none
+
+T-080.1:
+  ac: AC-080.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    - python ERROR replay docs/prd/orders E-001
+    note: "the fix changes src/calc.py only, which no adopted area covers"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "E-001 resolved code bug\n"
+        stderr: ""
+      run_2:
+        exit: 0
+        stdout: "E-001: tests/test_total.py fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is the text files.ledger_open with its line `Resolution: -` replaced by the line `Resolution: fixed in <fix>, red run tests/test_total.py [integration]`, every other line as it was"
+    - "`git worktree list --porcelain` in <tmp>/repo prints the same text just before and just after run_1, and <tmp>/scratch holds no entry after run_1"
+    errors: []
+    leaks: none
+
+T-080.2:
+  ac: AC-080.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py
+    - python ERROR resolve docs/prd/orders E-001 --red-run tests/test_total.py --level integration
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration --t T-006.1
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration --version 1.0.0
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration --run 20261110T090000Z-all
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration --not-a-defect 'it was not'
+    - python ERROR resolve docs/prd/orders E-001 --t T-006.1 --version 1.0.0 --commit <fix> --level integration
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr: "prd_error: --red-run takes --commit and --level, and no --t, --version, --run or --not-a-defect\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for each run"
+    errors: []
+    leaks: none
+
+T-080.3:
+  ac: AC-080.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit XYZ1234 --red-run tests/test_total.py --level integration
+    - python ERROR resolve docs/prd/orders E-001 --commit ABCDEF1 --red-run tests/test_total.py --level integration
+    - python ERROR resolve docs/prd/orders E-001 --commit abc12 --red-run tests/test_total.py --level integration
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+      run_1:
+        stderr: "prd_error: commit must be 7 to 40 lowercase hex digits; got 'XYZ1234'\n"
+      run_2:
+        stderr: "prd_error: commit must be 7 to 40 lowercase hex digits; got 'ABCDEF1'\n"
+      run_3:
+        stderr: "prd_error: commit must be 7 to 40 lowercase hex digits; got 'abc12'\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for each run"
+    errors: []
+    leaks: none
+
+T-080.4:
+  ac: AC-080.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-009 --commit <fix> --red-run tests/test_total.py --level integration
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-009 is not an entry\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-080.5:
+  ac: AC-080.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "not a defect: the total was read from the wrong report"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001 is already resolved\n"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1: errors.md is the committed text, byte for byte"
+    errors: []
+    leaks: none
+
+T-080.6:
+  ac: AC-080.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RP]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    note: "E-001 is proposed, with no Confirmed: line"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001 is not confirmed\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_proposed"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-080.7:
+  ac: AC-080.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RG]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    note: "E-001 is confirmed with the class spec gap"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001 is classed spec gap; a red run resolves a code bug only\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_spec"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-080.8:
+  ac: AC-080.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level nosuch
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level system
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level unit
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+      run_1:
+        stderr: "refused: nosuch is not a level of testing.md\n"
+      run_2:
+        stderr: "refused: system is a deploy-gate level\n"
+      run_3:
+        stderr: "refused: unit has no One test command; add the One test column to testing.md Levels through /prd-toolkit:prd-change\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for each run"
+    errors: []
+    leaks: none
+
+T-080.9:
+  ac: AC-080.7
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run 'tests/a b.py' --level integration
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run=-x --level integration
+    note: "run_1's test id holds a space; run_2's starts with -, given as --red-run=-x since --red-run -x reads as an option"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: the test id must hold no white space and must not start with -\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for each run"
+    errors: []
+    leaks: none
+
+T-080.10:
+  ac: AC-080.8
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RFA, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    note: "the fix changes src/calc.py, which no adopted area covers, and src/importer.py, which the adopted area import covers"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: <fix> changes src/importer.py, which area import covers; resolve with a regression T-id\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-080.11:
+  ac: AC-080.8
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RX, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    note: "RX takes the adoption map out of the PRD; the fix changes src/calc.py alone"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: the PRD has no adoption map, so every path is covered; resolve with a regression T-id\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-080.12:
+  ac: AC-080.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTP, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    note: "the test passes on the bug and on the fix, so the replay of the line resolve would write does not hold"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001: tests/test_total.py passes on <fix>^; <fix> did not turn it green\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-080.13:
+  ac: AC-080.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level slow
+    - python ERROR resolve docs/prd/orders E-001 --commit 0000000 --red-run tests/test_total.py --level integration
+    note: "run_1's level slow has the Timeout 2 and a command that sleeps 30 seconds; run_2's commit names nothing, so it has no paths to check and the replay's finding is the refusal"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+      run_1:
+        stderr_exact_lines:
+        - "refused: E-001: timed out after 2 s on <fix>^"
+        - "refused: E-001: timed out after 2 s on <fix>"
+      run_2:
+        stderr: "refused: E-001: 0000000 names no commit\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for each run"
+    errors: []
+    leaks: none
+
+T-080.14:
+  ac: AC-080.10
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RG]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run 'a b' --level nosuch
+    note: "the class, the level and the test id would each be refused: the class is checked first"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001 is classed spec gap; a red run resolves a code bug only\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_spec"
+    errors: []
+    leaks: none
+
+T-080.15:
+  ac: AC-080.10
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RFA, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run 'tests/a b.py' --level integration
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run=-x --level system
+    note: "the fix changes a covered file: run_1's test id is refused before the paths are checked, and run_2's deploy-gate level before its test id"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+      run_1:
+        stderr: "refused: the test id must hold no white space and must not start with -\n"
+      run_2:
+        stderr: "refused: system is a deploy-gate level\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    errors: []
+    leaks: none
+
+T-080.16:
+  ac: AC-080.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RA, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    note: "RA makes integration's One test command `tools/absent`, which the operating system cannot start in either clone; the fix changes src/calc.py only, which no adopted area covers, so the replay decides"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr_exact_lines:
+        - "refused: E-001: tools/absent cannot start on <fix>^"
+        - "refused: E-001: tools/absent cannot start on <fix>"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.1:
+  ac: AC-081.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RK, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "the range holds the one commit resolve, which adds the red run"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.2:
+  ac: AC-081.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RK, RE]
+    resolution: "fixed in 0000000, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: commit 0000000 is not an ancestor of HEAD\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.3:
+  ac: AC-081.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RFA, RL, RK, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "the fix changes src/calc.py and src/importer.py, which the adopted area import covers"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: commit <fix> changes src/importer.py, which area import covers\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.4:
+  ac: AC-081.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RK, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [nosuch]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: nosuch is not a level of testing.md\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.5:
+  ac: AC-081.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RX, RK, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "RX takes the adoption map out of the PRD before the range starts, so the PRD at HEAD has none"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: the PRD has no adoption map, so every path is covered\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.6:
+  ac: AC-081.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RK, RE]
+    resolution: "fixed it in the end"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: resolution is not one of the four forms\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.7:
+  ac: AC-081.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RK, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "T-006.1 has a test case in the scratch PRD and tests/test_total.py cites it; 1.0.0 has a changelog row"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.8:
+  ac: AC-081.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RK, RE]
+    resolution: "T-099.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: T-099.1 has no test case\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.9:
+  ac: AC-081.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RK, RE]
+    resolution: "-, PRD 1.0.0, run 20261110T090000Z-all"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "the scratch repository holds no deploy run log"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_contains: "errors.md: E-001: run 20261110T090000Z-all has no log in "
+        stderr: ""
+      relations:
+      - "run_1's stdout is exactly one line (str.splitlines()), and that line starts with `errors.md: E-001: run 20261110T090000Z-all has no log in `"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.10:
+  ac: AC-081.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RL, RK, RE]
+    resolution: "not a defect: the total was read from the wrong report"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.11:
+  ac: AC-081.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTP, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --t T-006.1 --version 1.0.0 --commit <fix>
+    note: "the test passes on the bug, so a replay would not hold; resolve with a T-id runs none and writes the line"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001 resolved code bug\n"
+        stderr: ""
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is the text files.ledger_open with its line `Resolution: -` replaced by the line `Resolution: T-006.1 [integration], PRD 1.0.0, fixed in <fix>`, every other line as it was"
+    errors: []
+    leaks: none
+
+T-081.12:
+  ac: AC-081.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --not-a-defect 'the report was read wrong'
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001 resolved code bug\n"
+        stderr: ""
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is the text files.ledger_open with its line `Resolution: -` replaced by the line `Resolution: not a defect: the report was read wrong`, every other line as it was"
+    - "`git worktree list --porcelain` in <tmp>/repo prints the same text just before and just after run_1, and <tmp>/scratch holds no entry after run_1"
+    errors: []
+    leaks: none
+
+T-081.13:
+  ac: AC-081.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --t T-006.1 --version 1.0.0 --run 20261110T090000Z-all
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001 resolved code bug\n"
+        stderr: ""
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is the text files.ledger_open with its line `Resolution: -` replaced by the line `Resolution: T-006.1, PRD 1.0.0, run 20261110T090000Z-all`, every other line as it was"
+    - "`git worktree list --porcelain` in <tmp>/repo prints the same text just before and just after run_1, and <tmp>/scratch holds no entry after run_1"
+    errors: []
+    leaks: none
+
+T-081.14:
+  ac: AC-081.5
+  level: integration
+  target: "cli:prd_help"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    runs:
+    - python HELP --key kind.E
+    note: "no step and no repository; PRD_HELP_FILE unset: the shipped catalogue"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout_contains:
+        - "`fixed in <commit>, red run <test id> [<level>]` (code bug)"
+        - "`<T-id> [<level>], PRD <X.Y.Z>, fixed in <commit>`"
+        - "`<T-id or ->, PRD <X.Y.Z>, run <run id>`"
+        - "`not a defect: <why>`"
+    effects: []
+    errors: []
+    leaks: none

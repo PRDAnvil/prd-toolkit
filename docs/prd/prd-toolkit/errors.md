@@ -167,7 +167,7 @@ Evidence: User report (/prd-error), 2026-11-11: test_builtin_packs.py::test_vali
   It sometimes fails when uv prints "Installed 1 package" on stderr.
   First seen during the move to PRDAnvil/prd-toolkit (0.8.6, 2026-11-10).
 Diagnosis: Reproduced: the unit harness narrowed to `tests/test_builtin_packs.py` failed on both runs (run 1 `[no-purpose]`, run 2 `[not-md]`, 26 passed each), with `assert 'g: missing purpose' in 'Installed 1 package in 1ms'`. Root cause: the test's `_run` helper starts the document pack's validator as `uv run --script <validator>` without `--quiet`, and asserts on the first stderr line. The first validator run in each session builds the script's environment and uv prints `Installed 1 package` there; which parametrized case gets it depends on xdist scheduling, so a different case fails each time. Since NFR-019 (E-008) the session deletes `environments-v2` at the end of every run, so a narrowed run always rebuilds it; the full suite passes when another test builds the environment first. The test breaks testing.md Harness, Lifecycle: "A test runs a CLI script as a subprocess with the test's own interpreter, `python <repo>/prd-toolkit/scripts/<script>` (not `uv run --script`, whose own stderr lines would break the stderr assertions)". The validator itself is right, and the pack manifest the test checks already runs it as `uv run --quiet --script`. No AC covers the validator and the test cites no T-id: both sit outside every adopted area's Boundary.
-Resolution: -
+Resolution: fixed in 6d6711b, red run prd-toolkit/tests/test_builtin_packs.py [unit]
 Recurrence of: -
 
 ### E-018 `prd_error.py check` reports `Detected: changed` on entries whose only change is the move's SHA remap (c8f48cf)
@@ -384,7 +384,8 @@ Recurrence of: -
 
 ### E-032 The tester guard refuses the tester's Read of its own background run's output file
 Detected: 2026-11-18, tester report, the FR-073 builds for E-019
-Classification: unclassified
+Classification: code bug
+Confirmed: 2026-11-20, "yes, as you recommend"
 Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a worktree of this repository
   (claude -p, the prd-tester agent in suite mode, the FR-073 builds for E-019).
   The tester started the harness in the background, as its rule 7 says for a run longer than the Bash timeout,
@@ -398,6 +399,120 @@ Evidence: Seen twice on 2026-11-18, in two headless build sessions started in a 
   The tester did not retry by another path; it ran the same harness command in the foreground, which finished
   within the timeout, so the RESULTS of both builds stand.
   Not reproduced outside those sessions, and the cause is not diagnosed yet.
-Diagnosis: -
+Diagnosis: Reproduced once against the guard alone: a hook input for the agent `prd-toolkit:prd-tester` with a Read of `<tmp>/<project>/<session>/tasks/<id>.output` and no `scratchpad_dir` exits 2 with `prd-tester may only read under:` followed by the PRD folder, `prd-toolkit/tests` and `.prd-toolkit/packs`, the message in the evidence; the same input with `scratchpad_dir` set to the sibling scratchpad folder exits 0. Root cause: `Context.__init__` in prd-toolkit/scripts/prd_tester_guard.py finds the `tasks` folder only as the sibling of the hook input's `scratchpad_dir` (`tasks = self.scratch.parent / "tasks" if self.scratch else None`), and `can_read_task_output` returns False when there is none. The refusals in the evidence list no scratch folder among the read roots, so the hook input of those headless sessions carried no `scratchpad_dir`, and the Read of the run's own output could not be allowed. The guard lies in the area tester-guard, which adoption.md lists as not started: no PRD block describes it, and its code is outside every adopted Boundary. The rule it breaks is the tester's rule 7 in skills/testing-from-prds/SKILL.md: "the guard lets you read only an `<id>.output` file there." The refused `ls` of the tasks folder is the guard working as that rule says.
+Resolution: fixed in 4514ecb, red run prd-toolkit/tests/test_guard_session_tasks.py [unit]
+Recurrence of: -
+
+### E-033 prd error replay writes the index of the repository it is started in when GIT_INDEX_FILE is set
+Detected: 2026-11-20, code review of the error-replay build
+Classification: code bug
+Confirmed: 2026-11-20, "yes, as you recommend"
+Touches: FR-079
+Evidence: Code review of the error-replay build (9b17b5a..22218e9), verified by a probe in a scratch repository.
+  Setup: testing.md steps R0, RT, RF, RE; E-001 resolved `T-006.1 [integration], PRD 1.0.0, fixed in <fix>`.
+  Command: GIT_INDEX_FILE=<repo>/.git/index python prd_error.py replay docs/prd/orders E-001
+  Result: prints the proof line and exits 0.
+  Before the command: git status --porcelain prints nothing.
+  After the command: git status --porcelain prints
+  MM docs/prd/orders/errors.md
+  and the bytes of <repo>/.git/index differ from before.
+  prdlint/errorreplay.py _git passes the caller's environment to every git call:
+  env={**os.environ, "GIT_LITERAL_PATHSPECS": "1"}
+  git sets GIT_INDEX_FILE for the hooks it runs (pre-commit, commit-msg).
+Diagnosis: Reproduced once in a scratch repository: with `GIT_INDEX_FILE` set to the repository's own index, `prd error replay` printed the proof and exited 0, and `git status --porcelain` went from empty to `MM docs/prd/orders/errors.md`. Root cause: `_git` in prdlint/errorreplay.py runs every git command with the caller's environment (`{**os.environ, "GIT_LITERAL_PATHSPECS": "1"}`), so the checkout of `git worktree add` and the `git rm` and `git checkout` that replace the test roots write the index `GIT_INDEX_FILE` names instead of the temporary worktree's own; `GIT_DIR` and `GIT_WORK_TREE` are inherited the same way, and `resolve --red-run` replays through the same code. AC-079.1: "When the replay ends with the proof holding, `git worktree list --porcelain` in the repository shall print what it printed before the command started, the folder the command made in the system temporary folder shall no longer exist, and `git status --porcelain` shall print what it printed before." The area's definition of a worktree: "The command never writes the working tree or the index of the repository it is started in." No test case sets these variables.
+Resolution: T-079.6 [integration], PRD 8.5.0, fixed in 005cbd8
+Recurrence of: -
+
+### E-034 test_done_right_after_the_last_answer_is_accepted fails once in a whole unit run and passes alone
+Detected: 2026-11-20, failing test, the whole unit suite
+Classification: code bug
+Confirmed: 2026-11-21, "option 1, yes to both classes"
+Evidence: Whole unit suite, uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd, on 006b698 with an uncommitted PRD change in the tree:
+  FAILED tests/test_inbox_page.py::test_done_right_after_the_last_answer_is_accepted
+  2 failed, 3925 passed, 1 skipped in 518.60s
+  (the other failure, test_the_vendored_copy_matches_the_plugin, is the In review PRD's stale block, expected until approval)
+  The driver's error, from run_page:
+  AssertionError: TypeError: Cannot read properties of undefined (reading 'id')
+      at save (evalmachine.<anonymous>:174:22)
+      at evalmachine.<anonymous>:8:7
+  The driver line before it: const entry = [...I.seen.values()].find((e) => e.g.kind === 'adoption' && e.wt.path === <the test's worktree path>)
+  Second run, the file alone, same tree, a few minutes later:
+  uv run --directory prd-toolkit pytest -q -p no:cacheprovider tests/test_inbox_page.py
+  22 passed in 25.26s
+  The same test passed in three whole-suite runs earlier the same day (on e491e37, 22218e9 and 6e9cae9).
+Diagnosis: Not reproduced on demand: the test failed once in a whole parallel unit run and passed in the second run, the file alone (22 passed); two runs made, as the rule allows. Root cause by reading: the test's driver calls `openAdoption(entry)`, waits a fixed 300 ms (`await new Promise((r) => setTimeout(r, 300))`) and then calls `save(S.order.find((it) => it.id === 'E-003'), …)`. `S.order` is filled only when the panel's `load()` gets its `GET /items` answer from the test's inbox server (templates/confirm/panel.html). When that answer takes longer than 300 ms, as on a machine busy with the parallel run, `find` returns undefined and `save` fails with `TypeError: Cannot read properties of undefined (reading 'id')`, the error in the evidence. The faulty code is the test itself, prd-toolkit/tests/test_inbox_page.py, which no adopted area covers: it acts on the panel before the load it started has finished. The page and the server are not shown wrong. The rule the test breaks is the Harness line of testing.md: "**Waits.** Not applicable: every command runs to completion before the test asserts."
+Resolution: -
+Recurrence of: -
+
+### E-035 prd error replay cannot add its worktree inside the Bash sandbox of a Claude Code session
+Detected: 2026-11-20, eval runs of the two new handling-errors cases
+Classification: environment
+Confirmed: 2026-11-21, "option 1, yes to both classes"
+Touches: FR-079
+Evidence: Eval runs of the two new handling-errors cases (claude plugin eval, one run each, the runner's sandbox on).
+  error-uncovered-code-red-run, with the plugin: the session committed the failing test alone, then the fix, then ran
+  .prd-toolkit/prd error resolve docs/prd/greet E-001 --commit <sha> --red-run tests/unit/test_count_names.py --level unit
+  prd_error: internal error: RuntimeError: git worktree add --detach <tmp>/prd-error-replay-<x>/run-1 <sha> failed: Preparing worktree (detached HEAD bcd2623)
+  prd-error-exit=2
+  error-replay-finding-not-committed, with the plugin: resolve exited 0, then
+  .prd-toolkit/prd error replay docs/prd/greet E-001
+  prd_error: internal error: RuntimeError: git worktree add --detach <tmp>/prd-error-replay-<x>/run-1 <sha> failed: Preparing worktree (detached HEAD 6069f6f)
+  prd-error-exit=2
+  Both sessions then left the entry confirmed and reported the failure; the second put errors.md back with git restore.
+  The same command in a headless session with the Bash sandbox enabled, in a scratch repository:
+  git worktree add --detach <tmp>/wt HEAD
+  Preparing worktree (detached HEAD dd29d3d)
+  fatal: could not create directory of '.git/worktrees/wt': Operation not permitted
+  exit=128
+  In that session git archive HEAD | tar -x -C <tmp>/plain exited 0, and a file appended under .git/ was written.
+  Outside the sandbox the same replays hold or print their findings (the cases' by-hand walk, and the toolkit's own ledger).
+Diagnosis: Reproduced once: in a headless session with the Bash sandbox enabled, `git worktree add --detach <tmp>/wt HEAD` in a scratch repository printed `fatal: could not create directory of '.git/worktrees/wt': Operation not permitted` and exited 128; `git archive HEAD` piped into `tar -x` wrote the same tree there, exit 0. Root cause: the Bash sandbox of a Claude Code session keeps `.git/worktrees` of the repository read-only, and the replay makes each run's tree with `git worktree add --detach`, as the area's definition of a worktree says: "A **worktree** is one that the command adds with `git worktree add --detach` under a new folder it makes in the system temporary folder". The code does what the PRD says, and it ends as FR-079 says of an internal error ("an internal error ends the command the same way, with exit 2"): nothing was written or left behind, and both sessions kept the entry `confirmed`. So the replay and `resolve --red-run` cannot run in a sandboxed session, which is every `claude plugin eval` run: the two new eval cases cannot pass there. Outside the sandbox the same commands hold or print their findings. One thing the code adds to the trouble: the internal error quotes only the first line git printed (`Preparing worktree (detached HEAD …)`) and drops the `fatal:` line that names the cause.
+Resolution: T-079.7 [integration], PRD 9.0.0, fixed in efcbe2e
+Recurrence of: -
+
+### E-036 A test the replay runs can write the index of the repository the command is started in
+Detected: 2026-11-21, final review of the 0.8.14 branch, a probe in a scratch repository
+Classification: invalid requirement
+Confirmed: 2026-11-21, "yes to both classes, leave both open, push and open the PR"
+Touches: FR-079
+Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by the recording session, in a scratch repository
+  whose entry E-001 is resolved `T-001.2 [unit], PRD 1.0.0, fixed in <fix>`.
+  Setup: the unit level's One test cell names a program kept outside the repository, `python3 <elsewhere>/t1.py`, which
+  writes a file `junk` in its working directory and then runs `git add -A`.
+  `git status --porcelain` before:
+   M docs/prd/greet/testing.md
+  The command, started in the repository with GIT_INDEX_FILE set to the absolute path of the repository's own .git/index:
+  prd error replay docs/prd/greet E-001
+  E-001: T-001.2 passes on <fix>^; <fix> did not turn it green
+  exit=1
+  `git status --porcelain` after:
+  MM docs/prd/greet/errors.md
+   M docs/prd/greet/testing.md
+  AD junk
+  The bytes of .git/index differ from before; the temporary folder is gone.
+  The reviewer's note on where the variable comes from: in the pre-commit hook of a partial commit (`git commit <paths>`)
+  git sets GIT_INDEX_FILE to the absolute path of <repo>/.git/next-index-<pid>.lock; in a plain `git commit` it is the
+  relative `.git/index`, which in a clone names the clone's own index.
+Diagnosis: Reproduced once, as the evidence shows. Two sentences of the area contradict each other, and the code follows the first. The definition of a run says it starts "with the environment the command itself has", and `_execute` in prdlint/errorreplay.py starts the test with no `env`, so the test has the variables that point git at a repository. The definitions also say "The command never writes the working tree or the index of the repository it is started in", and FR-079's edge case says a command started with `GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE` set "leaves its repository's index and working tree as they were, since no git command the replay runs has those variables". That holds for the git commands the replay itself runs (E-033) and not for a test that calls git: with `GIT_INDEX_FILE` naming the repository's index, the test's `git add -A` in its clone staged the clone's files into that index, so `git status --porcelain` no longer printed what it printed before, against AC-079.1 and AC-079.2. The edge case "a One test program that calls git finds a git checkout in its clone" fails the same way when `GIT_DIR` is set. One of the two sentences has to change: a run's environment drops the variables `git rev-parse --local-env-vars` lists, or the area says a test can reach the repository through them. The README's limits already tell the user not to start a replay from inside a git hook.
+Resolution: -
+Recurrence of: -
+
+### E-037 The replay leaves its folder behind when a test leaves a folder it cannot remove
+Detected: 2026-11-21, final review of the 0.8.14 branch, a probe in a scratch repository
+Classification: code bug
+Confirmed: 2026-11-21, "yes to both classes, leave both open, push and open the PR"
+Touches: FR-079
+Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by the recording session, in a scratch repository
+  whose entry E-001 is resolved `T-001.2 [unit], PRD 1.0.0, fixed in <fix>`.
+  Setup: the unit level's One test cell names a program kept outside the repository, `python3 <elsewhere>/t2.py`, which
+  makes the folders `ro/x` in its working directory, writes a file `ro/x/f` and sets the mode of `ro/x` to 0500.
+  The command, with TMPDIR naming an empty folder <tmp>:
+  prd error replay docs/prd/greet E-001
+  E-001: T-001.2 passes on <fix>^; <fix> did not turn it green
+  exit=1
+  Nothing on stderr. After the command, <tmp> still holds:
+  <tmp>/prd-error-replay-<x>/run-1/ro/x
+  <tmp>/prd-error-replay-<x>/run-2/ro/x
+Diagnosis: Reproduced once, as the evidence shows. AC-079.2 says that when the replay ends with findings "the folder the command made in the system temporary folder shall no longer exist", and AC-079.1 says the same of a proof that holds. prdlint/errorreplay.py removes each run's clone and then its own folder with `shutil.rmtree(..., ignore_errors=True)`, so a folder a test left without write permission stops the removal, nothing is printed, and the command exits as if it had cleaned up. The fault is in the code: it neither makes such a folder removable before it removes it nor reports a folder it could not remove.
 Resolution: -
 Recurrence of: -

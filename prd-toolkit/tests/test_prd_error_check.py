@@ -148,7 +148,7 @@ def test_resolved_without_confirmed(repo):
 def test_resolution_not_a_form(repo):
     base = start(repo, entry())
     put(repo, ledger(entry(resolution="fixed it, T-001.1 passes")))
-    assert check(repo, base) == [pre() + "resolution is not one of the three forms"]
+    assert check(repo, base) == [pre() + "resolution is not one of the four forms"]
 
 
 def test_not_a_defect_and_run_without_t_are_forms(repo):
@@ -370,7 +370,7 @@ def test_refs_problems_gate_unit(repo):
 # --- fix round 1 ---
 
 @pytest.mark.parametrize("bad, finding", [
-    ("garbage ???", "resolution is not one of the three forms"),
+    ("garbage ???", "resolution is not one of the four forms"),
     ("T-001.1 [integration], PRD 1.0.0, fixed in 1234567", "commit 1234567 is not an ancestor of HEAD"),
     ("T-001.1 [integration], PRD 9.9.9, fixed in {fix}", "PRD 9.9.9 is above the PRD version 1.0.0"),
     ("T-001.9 [integration], PRD 1.0.0, fixed in {fix}", "T-001.9 has no test case"),
