@@ -625,6 +625,7 @@ Recurrence of: -
 ### E-048 id-format reads hidden Markdown and YAML files
 Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:72 @4465291)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-121
 Evidence: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`.
 Diagnosis: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`. The owner's confirmed rule in E-011 says that a file or folder whose name starts with `.` is not part of the PRD and that no rule reads it. The sibling rules in structure.py read `_visible_prose` and skip hidden YAML sources (structure.py:54-58, 283). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
