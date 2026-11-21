@@ -431,7 +431,7 @@ git_hook_shims:
     1: "git names no work tree, uv is not on PATH, or the launcher exited 1 (FR-096)"
     other: "the launcher's own exit code (FR-096)"
 prd_hooks:
-  # Only what the standards-run area needs so far; the hooks-install area adds the rest when it is adopted.
+  # What the standards-run area needs (FR-068) comes first, then the hook-shims area's items (FR-070), then the hooks-install area's.
   invocation: "uv run --script prd-toolkit/scripts/prd_hooks.py ci --github|--gitlab [--force] <prd_dir> | check --ci <prd_dir>"
   output:
     wrote: "stdout, ci: wrote <CI file>; for --gitlab also include: '<CI file>' (FR-068)"
@@ -445,6 +445,82 @@ prd_hooks:
   hook_written: "stdout, install: replaced <hooks>/<hook> (it used uv run --script) or installed <hooks>/<hook>, one line per hook written, commit-msg before pre-commit, <hooks> as git rev-parse --git-path hooks prints it; where core.hooksPath is set, for a hook file that is the toolkit's own (FR-070)"
   hook_left_alone: "stdout, install where core.hooksPath is set, for a hook that is absent or the user's own: core.hooksPath is set to <value>; no shim written; add this line to <hooks>/<hook> (an sh hook; place it before any `exit 0` in it): <line>, or ...; replace its uv run --script … prd_git_hook.py line in <hooks>/<hook> with this line: <line> (FR-070)"
   hook_stale: "stdout, check: stale: <hooks>/<hook>; run prd_hooks.py install, for a toolkit hook that is not the current shim; check exits 1 when it prints any line (FR-070)"
+  # What the hooks-install area adds: every action of the command, its output lines and its exit codes (FR-097 to FR-118).
+  full_invocation: "uv run --script prd-toolkit/scripts/prd_hooks.py [--gitlab|--github] [--force] [--ci] {install,check,uninstall,ci,vendor} <prd_dir>; through the launcher, prd hooks <action> <prd_dir> (FR-097)"
+  usage_errors:
+    no_forge: "stderr: prd_hooks: ci needs exactly one of --gitlab or --github (FR-097)"
+    forge_flag: "stderr: prd_hooks: --gitlab, --github and --force belong to ci (FR-097)"
+    ci_flag: "stderr: prd_hooks: --ci belongs to check (FR-097)"
+    argparse: "stderr: usage: prd_hooks.py [-h] [--gitlab] [--github] [--force] [--ci] {install,check,uninstall,ci,vendor} prd_dir, then prd_hooks.py: error: <argparse message> (FR-097)"
+    not_a_prd: "stderr: prd_hooks: <resolved folder>: no prd.md (FR-097)"
+    internal_error: "stderr: prd_hooks: internal error: <type>: <message> (FR-097)"
+    outside_repo: "stderr: prd_hooks: <prd folder> is not inside the repository at <top> (FR-098)"
+    not_a_checkout: "stderr, install, vendor and ci on a PRD folder outside a git checkout: prd_hooks: <prd folder> is not inside a git checkout (FR-098, FR-107, FR-113)"
+    check_from_copy: "stderr, check without --ci from the vendored copy: prd_hooks: run check from the plugin, not the vendored copy (FR-108)"
+  install_output:
+    vendored: "stdout, first line from the plugin: vendored the toolkit into .prd-toolkit/ (version <X.Y.Z>) (FR-098)"
+    hook_written: "stdout: installed <hooks>/<hook> | replaced <hooks>/<hook> (it used uv run --script), commit-msg before pre-commit (FR-101)"
+    hook_left_alone: "stdout: <hooks>/<hook> already exists and was left alone; add this line to <hooks>/<hook> (an sh hook; place it before any `exit 0` in it): <hook line> | …; replace its uv run --script … prd_git_hook.py line in <hooks>/<hook> with this line: <hook line> (FR-102)"
+    refreshed: "stdout, from the plugin, after the hook lines: refreshed <path>, one per managed-block file changed: CLAUDE.md, <prd>/README.md, then the parent README.md (FR-104)"
+    stale_ci: "stdout, last lines: stale: <CI file>: re-run prd_hooks.py ci --<forge> --force, the GitLab file first (FR-105)"
+    pack_refused: "stderr: prd_hooks: install refused: pack <name> <X.Y.Z> (<source>) not found; looked in: <places>[; to move the PRD to <name> <have>, run prd_change.py pack <prd> <name> <have>] (FR-099)"
+    blocks_refused: "stderr: prd_hooks: install refused: <file>: <problem>; fix the marker, then run prd_block.py <prd> (FR-104)"
+  hook_line: 'prd_top="$(git rev-parse --show-toplevel)" || exit 1; if [ -f "$prd_top/.prd-toolkit/prd_git_hook.py" ] && [ ! -f "$prd_top/.prd-toolkit/prd" ]; then echo "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped" >&2; elif [ -f "$prd_top/.prd-toolkit/prd_git_hook.py" ] && [ -f "$prd_top/.prd-toolkit/prd" ] && [ -d "$prd_top/<prd>" ]; then command -v uv >/dev/null 2>&1 || { echo "prd-toolkit: uv is not on PATH; install uv to run this hook" >&2; exit 1; }; sh "$prd_top/.prd-toolkit/prd" git-hook <hook> "$prd_top/<prd>" "$@" || exit $?; else echo "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped" >&2; fi (FR-102, FR-103)'
+  vendored_files: ".prd-toolkit/: the 22 files of AC-098.1's first list, prdlint/**, hooks/{commit-msg,pre-commit}, templates/{claude-block.md,readme-prd.md,readme-prds.md}, confirm/{form.html,panel.html}, gates/inbox.html, judge/**, languages/*.yaml, help.yaml, LICENSE, packs/<name>/, pack-sources.json, VERSION, HOMEPAGE (when the plugin has a homepage), .gitignore (FR-098, FR-099)"
+  gitignore_lines: ".gitignore at the top gains .prd-judge/ and .prd-review.json, each once (FR-100)"
+  vendor_output:
+    vendored: "stdout: vendored the toolkit into .prd-toolkit/ (version <X.Y.Z>) (FR-107)"
+    from_copy: "stderr: prd_hooks: vendor runs from the plugin, not from .prd-toolkit/ (FR-107)"
+    refused: "stderr: prd_hooks: vendor refused: <reason>, the reason as install_output.pack_refused gives it (FR-107)"
+  check_output:
+    no_copy: "stdout: .prd-toolkit/ is missing; run prd_hooks.py install (FR-108)"
+    version: "stdout: .prd-toolkit/VERSION <vendored or (none)> differs from the plugin version <X.Y.Z> (FR-108)"
+    file_missing: "stdout: .prd-toolkit/<path> is missing (FR-108)"
+    file_differs: "stdout: .prd-toolkit/<path> differs from the plugin copy (FR-108)"
+    file_extra: "stdout: .prd-toolkit/<path> is not in the plugin (FR-108)"
+    hook_user_old_line: "stdout: stale: <hooks>/<hook>; replace its uv run --script … prd_git_hook.py line with the line prd_hooks.py install prints (FR-109)"
+    pack_missing: "stdout: packs/<name>: missing; source <source> <version>; run prd_hooks.py install (FR-110)"
+    pack_differs: "stdout: packs/<name>: differs from <source> <version>; run prd_hooks.py install (FR-110)"
+    pack_source: "stdout: packs/<name>: vendored from <recorded or an unrecorded source>, the PRD names <source>; run prd_hooks.py install (FR-110)"
+    block_stale: "stdout, check and check --ci: stale: <file>; run prd_block.py <prd> (FR-111)"
+    block_broken: "stdout, check and check --ci: stale: <file>: <problem>; run prd_block.py <prd> (FR-111)"
+    not_a_checkout: "stderr, check --ci: prd_hooks: <prd folder> is not inside a git checkout (FR-111)"
+  uninstall_output:
+    removed: "stdout: removed <hooks>/<hook> (FR-112)"
+  ci_output:
+    include: "stdout, ci --gitlab, after wrote: include: '.gitlab/prd-toolkit.yml' (FR-113)"
+    differs: "stdout: the unified diff (--- <file> (existing), +++ <file> (generated)), then <file> exists and differs; rerun with --force to overwrite it (FR-113)"
+    predates: "stderr: prd_hooks: .prd-toolkit/ predates 0.8.8 (no .prd-toolkit/prd); run prd_hooks.py install <prd_dir> first (FR-113)"
+  ci_files:
+    github: ".github/workflows/prd-toolkit.yml (FR-113, FR-117)"
+    gitlab: ".gitlab/prd-toolkit.yml (FR-113, FR-116)"
+  ci_jobs:
+    prd-lint: "sh .prd-toolkit/prd lint --ci <q>; sh .prd-toolkit/prd hooks check --ci <q>; with links.md, sh .prd-toolkit/prd links check --ci <q> (FR-114)"
+    prd-trace: "sh .prd-toolkit/prd trace <q> --range <range>; range $CI_MERGE_REQUEST_DIFF_BASE_SHA..HEAD on GitLab, ${{ github.event.pull_request.base.sha }}..HEAD on GitHub (FR-114, FR-116, FR-117)"
+    test-<level>: "the build-gate level's Harness command (FR-114)"
+    drift-<env>: "manual: sh .prd-toolkit/prd drift <q> --env <env> (FR-115)"
+    test-deploy-<env>: "manual: export PRD_ENV=<env> TEST_ENV=<env>; <harness command>, one per level (FR-115)"
+    secrets_line: "line 2 with a manual job and named secrets: # Manual jobs may need these secrets (operations.md Secrets): <names> (FR-118)"
+  all_exit_codes:
+    0: "install, vendor and uninstall done; check found nothing; ci wrote or found an identical file; --help"
+    1: "check printed a line; ci found a different file without --force; install refused on a broken block marker (FR-104, FR-108 to FR-111, FR-113)"
+    2: "usage, not a PRD, a pack that cannot be resolved, vendor from the vendored copy, check --ci outside a git checkout, ci over a copy without .prd-toolkit/prd, missing dependency or internal error (FR-097, FR-099, FR-107, FR-111, FR-113)"
+prd_dispatch:
+  # The dispatcher the launcher runs (FR-069); hooks-install, FR-119 and FR-120.
+  invocation: "python prd-toolkit/scripts/prd_dispatch.py <command> [arguments] | -h | --help | --version; through the launcher, prd <command> [arguments]"
+  commands: [block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace]
+  script: "prd_<command with - written as _>.py beside the dispatcher (FR-119)"
+  plugin_only: [publish]
+  output:
+    help: "stdout: usage: prd <command> [arguments], then <name padded to the longest present name>  <first docstring line> per command whose script is present, in name order (FR-120)"
+    version: "stdout: VERSION beside the dispatcher, trimmed, else the plugin.json version of its parent folder (FR-120)"
+    unknown: "stderr: prd: unknown command '<command>' / commands: <names joined by , > (FR-119)"
+    missing_script: "stderr: prd: <script> is not in <folder>; run prd_hooks.py install (FR-119)"
+    plugin_only: "stderr: prd: publish runs from the plugin, not from a vendored copy (FR-119)"
+  exit_codes:
+    0: "help or version printed"
+    2: "unknown command, missing script, or publish in a vendored copy"
+    other: "the script's own exit code (FR-119)"
 eval_scaffolds:
   # The start states the deploy and review eval cases build (eval-scaffolds, FR-073); not shipped behaviour of a prd command.
   invocation: "python3 -B prd-toolkit/evals/scaffolds/deploy_repo.py <dst> <ready|staging-done|failing-check|at-gate|at-ui-steps>; bash prd-toolkit/evals/review-edits-nothing/scaffold.sh, run in an empty folder"

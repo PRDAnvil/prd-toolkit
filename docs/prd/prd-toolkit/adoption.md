@@ -9,7 +9,7 @@
 | lint-contracts | not started | `prd-toolkit/scripts/prdlint/rules/contracts.py` |
 | lint-registries | not started | `prd-toolkit/scripts/prdlint/rules/registries.py`, `prd-toolkit/scripts/prdlint/rules/errors.py` |
 | trace | adopted | `prd-toolkit/scripts/prd_trace.py`, `prd-toolkit/scripts/prdlint/trace.py`, `prd-toolkit/scripts/prd_git_hook.py`, `prd-toolkit/scripts/prdlint/githook.py`, `prd-toolkit/templates/hooks/**` |
-| hooks-install | not started | `prd-toolkit/scripts/prd_hooks.py`, `prd-toolkit/scripts/prdlint/hooks.py`, `prd-toolkit/scripts/prd_dispatch.py`, `prd-toolkit/scripts/requirements.txt` |
+| hooks-install | adopted | `prd-toolkit/scripts/prd_hooks.py`, `prd-toolkit/scripts/prdlint/hooks.py`, `prd-toolkit/scripts/prd_dispatch.py`, `prd-toolkit/scripts/requirements.txt` |
 | context | not started | `prd-toolkit/scripts/prd_context.py`, `prd-toolkit/scripts/prdlint/context.py` |
 | status | not started | `prd-toolkit/scripts/prd_status.py`, `prd-toolkit/scripts/prdlint/status.py`, `prd-toolkit/scripts/prd_block.py`, `prd-toolkit/templates/claude-block.md`, `prd-toolkit/scripts/prdlint/overview.py`, `prd-toolkit/templates/readme-prd.md`, `prd-toolkit/templates/readme-prds.md` |
 | build-check | not started | `prd-toolkit/scripts/prd_build_check.py`, `prd-toolkit/scripts/prdlint/buildcheck.py` |
