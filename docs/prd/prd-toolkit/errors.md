@@ -549,3 +549,31 @@ Evidence: prd-toolkit/scripts/prdlint/trace.py:21 holds `_SHA = re.compile(r"[0-
 Diagnosis: With `--range`, `_commits` reads `git log` and finds where one commit ends and the next begins by a line of exactly 40 hex digits (trace.py:21, :229). In a repository whose object format is SHA-256 that line has 64 digits, so only the newest commit of the range is judged: the older commits get no `commit-refs` finding whatever their messages say, and the next commit's name is taken for a path of the newest one. The command says nothing of the commits it skipped and exits as if the range held one commit. The owner answered Q-09 on 2026-11-21 that trace is to support such a repository, and AC-090.7 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area trace.
 Resolution: -
 Recurrence of: -
+
+### E-041 The 0.8.13 upgrade note says hooks check runs from the vendored copy; it refuses
+Detected: 2026-11-21, adoption extract of hooks-install (prd-toolkit/scripts/prd_hooks.py:56 @07f77b1)
+Classification: code bug
+Touches: FR-108, FR-109
+Evidence: `prd_hooks.py check <prd_dir>` without `--ci`, run from `.prd-toolkit/`, prints `prd_hooks: run check from the plugin, not the vendored copy` and exits 2 (prd_hooks.py:56-58). The 0.8.13 changelog in `prd-toolkit/README.md:1336` says "the launcher, `hooks check`, the context pack, … run from the vendored copy, so a repository gets those fixes only then".
+Diagnosis: `prd_hooks.py check <prd_dir>` without `--ci`, run from `.prd-toolkit/`, prints `prd_hooks: run check from the plugin, not the vendored copy` and exits 2 (prd_hooks.py:56-58). The 0.8.13 changelog in `prd-toolkit/README.md:1336` says "the launcher, `hooks check`, the context pack, … run from the vendored copy, so a repository gets those fixes only then". The code contradicts that doc. The unit tests `test_vendored_check_exits_2` and `test_check_without_ci_from_vendored_copy_still_refused` agree with the code, so the defect may be in the README rather than the code. The owner decides which one is wrong. Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
+Resolution: -
+Recurrence of: -
+
+### E-042 vendor's pack refusal says "install refused"
+Detected: 2026-11-21, adoption extract of hooks-install (prd-toolkit/scripts/prd_hooks.py:95 @07f77b1)
+Classification: code bug
+Touches: FR-107, FR-099
+Evidence: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action.
+Diagnosis: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action. `vendor` is documented as a separate action that "writes `.prd-toolkit/` … and nothing else" (README.md:418, hooks.py:311 docstring), and the hooks command names every other refusal after its own action (`prd_hooks: vendor runs from the plugin, …`, `--ci belongs to check`). Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
+Resolution: -
+Recurrence of: -
+
+### E-043 Outside a git checkout, install vendors into the PRD folder and then fails with an internal error
+Detected: 2026-11-21, adoption extract of hooks-install (prd-toolkit/scripts/prd_hooks.py:55 @07f77b1)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-098, FR-101, FR-107, FR-113
+Evidence: `model.repo_root` returns the PRD folder itself when git finds no checkout (model.py:1022). Install then takes the PRD folder as the top.
+Diagnosis: `model.repo_root` returns the PRD folder itself when git finds no checkout (model.py:1022). Install then takes the PRD folder as the top. It writes `<prd>/.prd-toolkit/` and `<prd>/.gitignore`, and only then fails at `git rev-parse --git-path hooks` (hooks.py:164, `check=True`). It prints `prd_hooks: internal error: CalledProcessError: …` and exits 2, leaving those files behind. `vendor` and `ci` take the same root, so they write `.prd-toolkit/` or `.github/…` inside the PRD folder and exit 0. The sibling code says this case should be refused cleanly. `check --ci` refuses outside a checkout with `prd_hooks: <path> is not inside a git checkout` and exit 2, a fix made deliberately (commit f03ca0f: "instead of passing with no CI file found"). The `InstallRefused` docstring says a refused install "vendors nothing". Commit 7fd23dc made check's hook loop tolerate a missing checkout "instead of raising". An internal error after partial writes matches none of these. Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
+Resolution: -
+Recurrence of: -
