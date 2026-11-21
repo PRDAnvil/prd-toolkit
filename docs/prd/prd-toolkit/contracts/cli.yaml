@@ -374,16 +374,64 @@ prd_error:
   check_exit_codes:
     0: "no finding (FR-081)"
     1: "at least one finding line on stdout (FR-081)"
+prd_trace:
+  invocation: "uv run --script prd-toolkit/scripts/prd_trace.py [--range BASE..HEAD] [--json] [--interface] [prd_dir]; through the launcher, prd trace"
+  arguments:
+    "prd_dir": "the PRD folder; required unless --interface or -h is given (FR-089)"
+    "--range BASE..HEAD": "a git revision range; each of its commits is also checked against the commit rule (FR-090)"
+    "--json": "print the trace result as one JSON document instead of the finding lines; --json=1 is the same, any other --json=N is refused (FR-088)"
+    "--interface": "print the interface number 1; the folder is not read (FR-088)"
+    "-h, --help": "print the help"
+  output:
+    finding: "stdout: <path>:<line>: <rule>: <message>, the rule one of t-implemented, test-cites-live, commit-refs, status-current and known-failing-tags (FR-082 to FR-087, FR-090)"
+    json_document: 'stdout, --json: one line, {"interface": 1, "kind": "trace", "prd", "version", "dir", "errors", "warnings", "findings": [{"file", "line", "rule", "severity", "message"}]} (FR-088)'
+    json_error: 'stdout, --json on exit 2: {"interface": 1, "kind": "trace", "error": <message>} (FR-088)'
+    interface: "stdout, --interface: 1 (FR-088)"
+    unsupported_interface: "stderr: prd_trace: unsupported interface <N>; this toolkit speaks 1 (FR-088)"
+    usage: "stderr: usage: prd_trace.py … (FR-089)"
+    not_a_prd: "stderr: prd_trace: <resolved folder>: no prd.md (FR-089)"
+    unmigrated: "stderr: prd_trace: <resolved folder>/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\" (FR-089)"
+    bad_range: "stderr: prd_trace: bad --range <value>: <git's first stderr line> (FR-089)"
+    internal_error: "stderr: prd_trace: internal error: <type>: <message> (FR-089)"
+  exit_codes:
+    0: "no finding (FR-087)"
+    1: "at least one finding (FR-087)"
+    2: "usage, dependency, not a PRD, unmigrated adoption map, bad range or internal error (FR-089)"
 prd_git_hook:
-  # Only what the standards-run area needs so far; the trace-and-hooks area adds the rest when it is adopted.
+  # What the standards-run area needs (FR-068) comes first; the trace area's items follow it.
   invocation: "uv run --script prd-toolkit/scripts/prd_git_hook.py pre-commit <prd_dir>; the installed pre-commit hook runs it through the vendored launcher"
   output:
     linter_failed: "stderr: prd-toolkit: `<command>` failed (exit <code>) on <paths joined by , >, then : and the linter's output on the next lines when it has any (FR-068)"
   exit_codes:
     0: "every enforced row passed, or had no staged path outside .prd-toolkit/ (FR-068)"
     1: "a linter failed (FR-068)"
+  # What the trace area adds: the commit-msg hook, and what both hooks print and refuse (FR-093 to FR-095).
+  hook_invocation: "uv run --script prd-toolkit/scripts/prd_git_hook.py commit-msg <prd_dir> <message_file> | pre-commit <prd_dir>; the installed shims run it through the vendored launcher as prd git-hook <hook> (FR-093, FR-094)"
+  environment: "reads GIT_DIR and GIT_WORK_TREE as git sets them for a hook (FR-095)"
+  problem: "stderr: prd-toolkit: <problem>, one line per FR-091, FR-092 or FR-093 problem (FR-093)"
+  accepted: "stderr, commit-msg after any problem: prd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change) (FR-093)"
+  could_not_run: "stderr: prd-toolkit: `<command>` could not run: <error> (FR-094)"
+  usage: "stderr: usage: prd_git_hook.py … (FR-095)"
+  not_a_prd: "stderr: prd-toolkit: <resolved folder>: no prd.md (FR-095)"
+  unmigrated: "stderr: prd-toolkit: <resolved folder>/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\" (FR-095)"
+  internal_error: "stderr: prd-toolkit: internal error: <type>: <message> (FR-095)"
+  hook_exit_codes:
+    0: "commit-msg: the message is allowed, a merge in progress included (FR-093); pre-commit: every enforced row given a path passed (FR-094)"
+    1: "commit-msg: the message has a problem (FR-093); pre-commit: a linter failed or could not run (FR-094)"
+    2: "usage, not a PRD, unmigrated adoption map or internal error; git stops the commit (FR-095)"
+git_hook_shims:
+  invocation: "the files prd-toolkit/templates/hooks/commit-msg and prd-toolkit/templates/hooks/pre-commit, which prd_hooks.py install writes into the hooks folder with {{hook}} and {{prd}} filled; git runs them (FR-096)"
+  output:
+    predates: "stderr: prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped (FR-096)"
+    skipped: "stderr: prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped (FR-096)"
+    no_uv: "stderr: prd-toolkit: uv is not on PATH; install uv to run this hook (FR-096)"
+    marker: "line 2 of each template: # prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall (FR-096)"
+  exit_codes:
+    0: "the hook was skipped, or the launcher exited 0 (FR-096)"
+    1: "git names no work tree, uv is not on PATH, or the launcher exited 1 (FR-096)"
+    other: "the launcher's own exit code (FR-096)"
 prd_hooks:
-  # Only what the standards-run area needs so far; the trace-and-hooks area adds the rest when it is adopted.
+  # Only what the standards-run area needs so far; the hooks-install area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_hooks.py ci --github|--gitlab [--force] <prd_dir> | check --ci <prd_dir>"
   output:
     wrote: "stdout, ci: wrote <CI file>; for --gitlab also include: '<CI file>' (FR-068)"
