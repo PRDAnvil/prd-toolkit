@@ -375,7 +375,7 @@ prd_error:
     0: "no finding (FR-081)"
     1: "at least one finding line on stdout (FR-081)"
 prd_git_hook:
-  # Only what the standards-run area needs so far; the trace-and-hooks area adds the rest when it is adopted.
+  # Only what the standards-run area needs so far; the trace area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_git_hook.py pre-commit <prd_dir>; the installed pre-commit hook runs it through the vendored launcher"
   output:
     linter_failed: "stderr: prd-toolkit: `<command>` failed (exit <code>) on <paths joined by , >, then : and the linter's output on the next lines when it has any (FR-068)"
@@ -383,7 +383,7 @@ prd_git_hook:
     0: "every enforced row passed, or had no staged path outside .prd-toolkit/ (FR-068)"
     1: "a linter failed (FR-068)"
 prd_hooks:
-  # Only what the standards-run area needs so far; the trace-and-hooks area adds the rest when it is adopted.
+  # Only what the standards-run area needs so far; the hooks-install area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_hooks.py ci --github|--gitlab [--force] <prd_dir> | check --ci <prd_dir>"
   output:
     wrote: "stdout, ci: wrote <CI file>; for --gitlab also include: '<CI file>' (FR-068)"

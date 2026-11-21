@@ -10,7 +10,7 @@ an instruction that changed nothing: a loop (E-024). This area makes install rew
 own wherever the hooks folder is. A hook file is the toolkit's own when its second line starts with
 `# prd-toolkit hook`, as check already reads it; any other file there is the user's own. One module says which
 hooks install writes where `core.hooksPath` is set, `prd-toolkit/scripts/prdlint/hookshims.py`; the same build
-makes `prdlint/hooks.py` (area `trace-and-hooks`, which is not adopted) call it, and what install and check do is
+makes `prdlint/hooks.py` (area `hooks-install`, which is not adopted) call it, and what install and check do is
 stated here. `<hooks>` below is the hooks folder as `git rev-parse --git-path hooks` prints it, and `<value>` the
 value of `core.hooksPath`.
 

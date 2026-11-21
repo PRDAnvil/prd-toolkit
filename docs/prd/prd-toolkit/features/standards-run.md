@@ -7,8 +7,8 @@ An enforced section 5 row is run twice: by the pre-commit hook on the staged fil
 the tracked files its glob matches (`prd_hooks.py ci --github` or `--gitlab`). Neither runs it on the
 vendored copy `.prd-toolkit/`, which must stay byte for byte what the plugin ships and so can never be
 changed to pass a repository's own linter. One module says which files a row is run on,
-`prd-toolkit/scripts/prdlint/standardsrun.py`; the same build makes `prdlint/githook.py` and
-`prdlint/hooks.py` (area `trace-and-hooks`, which is not adopted) call it, and what they do is stated
+`prd-toolkit/scripts/prdlint/standardsrun.py`; the same build makes `prdlint/githook.py` (area `trace`) and
+`prdlint/hooks.py` (area `hooks-install`), neither adopted, call it, and what they do is stated
 here. The vendored copy is the folder `.prd-toolkit` at the repository root: a folder of that name
 anywhere else, and a file whose name only starts with it, is an ordinary path.
 
