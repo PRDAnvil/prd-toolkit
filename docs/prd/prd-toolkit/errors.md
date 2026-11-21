@@ -632,6 +632,7 @@ Recurrence of: -
 ### E-049 index-consistent reports matching titles as different when a title starts or ends with a code span
 Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:200 @4465291)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-125
 Evidence: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text.
 Diagnosis: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text. `r.title != b.title` compares `prd help` prints the catalogue` (leading backtick gone) with the heading's text, so the rule reports `index title ... differs from block title ...`. The rule's own description says it checks that the index and the block have "the same title", and here the two titles are the same. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
