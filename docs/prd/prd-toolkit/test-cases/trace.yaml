@@ -1,0 +1,1638 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, written as its resolved absolute path wherever
+#   it appears in an expected value. Every scratch repository is built from fixture status-next/empty by step N0E
+#   (testing.md, Setup steps); its PRD folder is docs/prd/orders, and a relative path in a step is inside that folder
+#   unless it starts with <tmp> or says "in <tmp>". "python" is the interpreter running the tests (sys.executable);
+#   every run is a subprocess with the Subprocess environment minus GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE and
+#   GIT_COMMON_DIR, plus the case's own env.
+#   TRACE = <repo>/prd-toolkit/scripts/prd_trace.py      HOOK = <repo>/prd-toolkit/scripts/prd_git_hook.py
+#   A test file under prd-toolkit/tests/ builds each "@prd T-…" text below from parts (testing.md Layout).
+#   The steps a case names in its setup (N0E, TB, TU, TC9, TS, TL, TD, TA, TE, TEC, TK, TX, TM, TR, TV, SH) are
+#   testing.md's (Setup steps: the status-next step N0E and the trace steps); a step written `TS:x` takes the
+#   text after its colon as x.
+
+T-082.1:
+  ac: AC-082.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "append the line `# @prd T-009.1` to <tmp>/tests/test_orders.py (it becomes line 3)"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 1, stdout: "tests/test_orders.py:3: test-cites-live: cites T-009.1, which does not exist in the PRD\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-082.2:
+  ac: AC-082.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "TS:removed"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 1, stdout: "tests/test_orders.py:2: test-cites-live: cites T-001.1, which belongs to removed requirement FR-001\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-083.1:
+  ac: AC-083.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "in testing.md line 18 the text `Test roots: `tests/`` becomes `Test roots: `checks/``", "write <tmp>/checks/test_more.py with the line `# @prd T-001.1`", TC9]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+    note: "T-001.1 is cited under checks/; the T-009.1 citation under tests/ is outside every root"
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-083.2:
+  ac: AC-083.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "in testing.md line 18 the text ` Test roots: `tests/`` is deleted (the line ends `e.g. `@prd T-001.1`.`)"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-083.3:
+  ac: AC-083.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "in testing.md line 18 the text `Test roots: `tests/`` becomes `Test roots: none`"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-083.4:
+  ac: AC-083.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  input:
+    setup: ["write each entry of fixture status-next/empty to <tmp>/<key> and run no git init; run git rev-parse --show-toplevel in <tmp> and end the test as an error, not a failure, when it exits 0"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+    note: "the root tests/ resolves to <tmp>/docs/prd/orders/tests, which does not exist"
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-083.5:
+  ac: AC-083.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "in <tmp>/tests/test_orders.py line 2 becomes `# @prd T-001.10`"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "tests/test_orders.py:2: test-cites-live: cites T-001.10, which does not exist in the PRD"
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-083.6:
+  ac: AC-083.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "in <tmp>/tests/test_orders.py line 2 becomes the two lines `# @prd` and `# T-001.1`"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-083.7:
+  ac: AC-083.5
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "write <tmp>/tests/.prd-dry-run-x/test_dry.py and <tmp>/tests/__pycache__/cached.py, each with the line `# @prd T-001.1`", "write <tmp>/tests/latin.py with the bytes of `# @prd T-001.1 ` then e9 0a (hexadecimal): not UTF-8"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-084.1:
+  ac: AC-084.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TS:as-built"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-084.2:
+  ac: AC-084.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TS:as-built", "TL:smoke"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+    note: "testing.md Levels holds no smoke row: the level counts as build"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-084.3:
+  ac: AC-084.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, TD, "TS:live (since 1.0.0)", "TL:system"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is live but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-084.4:
+  ac: AC-084.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TS:approved"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-084.5:
+  ac: AC-084.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, TD, "TL:system"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+    note: "FR-001 stays verified; its one T-id is deploy-gate"
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-084.6:
+  ac: AC-084.5
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TA:extracted"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-084.7:
+  ac: AC-084.5
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TS:as-built", "TA:adopted"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-085.1:
+  ac: AC-085.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-085.2:
+  ac: AC-085.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TS:built", "TL:unit"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is built but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-085.3:
+  ac: AC-085.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TS:built"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+    note: "T-001.1 stays [integration], a build-gate level"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-085.4:
+  ac: AC-085.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TU, "TS:as-built", "TL:unit"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_not_contains: "status-current", stdout_count_of_line: {line: "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it", count: 1}, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-086.1:
+  ac: AC-086.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TE, "TK:E-001"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+    note: "the citation stays the untagged `# @prd T-001.1`"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/test-cases/import.yaml:1: known-failing-tags: T-001.1 is known-failing on E-001 but no citation is tagged `known-failing E-001`\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-086.2:
+  ac: AC-086.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TE, "TK:E-001", "in <tmp>/tests/test_orders.py line 2 becomes `# @prd T-001.1  known-failing: E-001`"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-086.3:
+  ac: AC-086.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TE, "in <tmp>/tests/test_orders.py line 2 becomes `# @prd T-001.1 known-failing E-001`"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 1, stdout: "tests/test_orders.py:2: known-failing-tags: tags T-001.1 known-failing E-001, but its test case is not known-failing on E-001\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-086.4:
+  ac: AC-086.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TE, "TK:E-002", "in <tmp>/tests/test_orders.py line 2 becomes `# @prd T-001.1 known-failing E-002`"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 1, stdout: "tests/test_orders.py:2: known-failing-tags: tags T-001.1 known-failing E-002, which is resolved\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-086.5:
+  ac: AC-086.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TE, "TK:E-009", "in <tmp>/tests/test_orders.py line 2 becomes `# @prd T-001.1 known-failing E-009`"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+    note: "errors.md holds E-001 and E-002 only, so the case and its tag both name an entry it does not hold"
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-087.1:
+  ac: AC-087.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E], cwd: "<tmp>", command: python TRACE docs/prd/orders}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-087.2:
+  ac: AC-087.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TC9], cwd: "<tmp>", command: python TRACE docs/prd/orders}
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "tests/test_orders.py:2: test-cites-live: cites T-009.1, which does not exist in the PRD"
+      - "docs/prd/orders/features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-087.3:
+  ac: AC-087.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TC9], cwd: "<tmp>/docs/prd/orders", command: python TRACE .}
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "../../../tests/test_orders.py:2: test-cites-live: cites T-009.1, which does not exist in the PRD"
+      - "features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-087.4:
+  ac: AC-087.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TC9, "create the empty folder <tmp>/elsewhere"]
+    cwd: "<tmp>/elsewhere"
+    command: python TRACE <tmp>/docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "<tmp>/tests/test_orders.py:2: test-cites-live: cites T-009.1, which does not exist in the PRD"
+      - "<tmp>/docs/prd/orders/features/import.md:8: status-current: FR-001 is verified but T-001.1 has no citing test"
+      - "<tmp>/docs/prd/orders/features/import.md:8: t-implemented: T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-088.1:
+  ac: AC-088.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TC9], cwd: "<tmp>", command: python TRACE docs/prd/orders --json}
+  expect:
+    output:
+      exit: 1
+      stdout_json_first_keys: [interface, kind, prd, version, dir, errors, warnings, findings]
+      stdout_json:
+        interface: 1
+        kind: trace
+        prd: orders
+        version: "1.0.0"
+        dir: docs/prd/orders
+        errors: 3
+        warnings: 0
+        findings:
+        - {file: "../../../tests/test_orders.py", line: 2, rule: test-cites-live, severity: error, message: "cites T-009.1, which does not exist in the PRD"}
+        - {file: features/import.md, line: 8, rule: status-current, severity: error, message: "FR-001 is verified but T-001.1 has no citing test"}
+        - {file: features/import.md, line: 8, rule: t-implemented, severity: error, message: "T-001.1 (FR-001) is cited by no test; add `@prd T-001.1` to the test that proves it"}
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-088.2:
+  ac: AC-088.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E], cwd: "<tmp>", command: python TRACE --json=1 docs/prd/orders}
+  expect:
+    output:
+      exit: 0
+      stdout_json: {interface: 1, kind: trace, prd: orders, version: "1.0.0", dir: docs/prd/orders, errors: 0, warnings: 0, findings: []}
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-088.3:
+  ac: AC-088.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {setup: ["create the empty folder <tmp>/nothing"], cwd: "<tmp>", command: python TRACE nothing --json}
+  expect:
+    output:
+      exit: 2
+      stdout_json: {interface: 1, kind: trace, error: "<tmp>/nothing: no prd.md"}
+      stderr: "prd_trace: <tmp>/nothing: no prd.md\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-088.4:
+  ac: AC-088.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {setup: ["create the empty folder <tmp>/nothing"], cwd: "<tmp>", command: python TRACE nothing --json=2}
+  expect:
+    output:
+      exit: 2
+      stdout_json: {interface: 1, kind: trace, error: "unsupported interface 2; this toolkit speaks 1"}
+      stderr: "prd_trace: unsupported interface 2; this toolkit speaks 1\n"
+    effects: ["the folder <tmp>/nothing is not read: the same run gives no `no prd.md` line"]
+    errors: []
+    leaks: none
+
+T-088.5:
+  ac: AC-088.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {setup: ["create the empty folder <tmp>/nothing"], cwd: "<tmp>", command: python TRACE nothing --interface}
+  expect:
+    output: {exit: 0, stdout: "1\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-089.1:
+  ac: AC-089.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: "<tmp>", command: python TRACE}
+  expect:
+    output: {exit: 2, stdout: "", stderr_first_line_starts: "usage: prd_trace.py"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-089.2:
+  ac: AC-089.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {setup: ["create the empty folder <tmp>/nothing"], cwd: "<tmp>", command: python TRACE nothing}
+  expect:
+    output: {exit: 2, stdout: "", stderr: "prd_trace: <tmp>/nothing: no prd.md\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-089.3:
+  ac: AC-089.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "in prd.md line 57, `Not applicable: new project.`, becomes the three lines `| Area | State | Boundary |`, `|---|---|---|` and `| import | adopted | `src/**` |`; no adoption.md is written"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 2, stdout: "", stderr: "prd_trace: <tmp>/docs/prd/orders/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\"\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-089.4:
+  ac: AC-089.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB], cwd: "<tmp>", command: "python TRACE docs/prd/orders --range nosuch..HEAD"}
+  expect:
+    output: {exit: 2, stdout: "", stderr_single_line_starts: "prd_trace: bad --range nosuch..HEAD: "}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.1:
+  ac: AC-090.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TB, "write <tmp>/src/app.py and <tmp>/src/zed.py, each with the line `x = 1`; in <tmp> run git add -A and git commit -q -m app; <sha8> is the first 8 characters of git rev-parse HEAD"]
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range HEAD~1..HEAD"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/prd.md:1: commit-refs: commit <sha8> touches src/app.py inside the Boundary: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.2:
+  ac: AC-090.1
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TB, "write <tmp>/src/app.py with the line `x = 1`; in <tmp> run git add -A and git commit -q -m app -m \"Refs: FR-009, JIRA-1\"; <sha8> as in T-090.1"]
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range HEAD~1..HEAD"
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+      - "docs/prd/orders/prd.md:1: commit-refs: commit <sha8> touches src/app.py inside the Boundary: FR-009 is not defined in the PRD"
+      - "docs/prd/orders/prd.md:1: commit-refs: commit <sha8> touches src/app.py inside the Boundary: `JIRA-1` is not a PRD ID; give other keys their own trailer"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.3:
+  ac: AC-090.2
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TB, "write <tmp>/docs/prd/orders/notes.md with the line `notes` and <tmp>/.prd-toolkit/x.txt with the line `x`; in <tmp> run git add -A and git commit -q -m notes"]
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range HEAD~1..HEAD"
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.4:
+  ac: AC-090.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - TB
+    - "<base> is git rev-parse HEAD"
+    - "write <tmp>/src/early.py with the line `x = 1`; git add -A; git commit -q -m early"
+    - "TA:adopted; git add -A; git commit -q -m map -m \"Refs: none (no behaviour change)\""
+    - "write <tmp>/src/app.py with the line `x = 1`; git add -A; git commit -q -m app; <sha8> is the first 8 characters of git rev-parse HEAD"
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range <base>..HEAD"
+    note: "early was made before adoption.md was committed"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/prd.md:1: commit-refs: commit <sha8> touches src/app.py inside the Boundary: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.5:
+  ac: AC-090.3
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "TA:extracted"
+    - TB
+    - "<base> is git rev-parse HEAD"
+    - "write <tmp>/src/early.py with the line `x = 1`; git add -A; git commit -q -m early"
+    - "in adoption.md line 5 `extracted` becomes `adopted`; git add -A; git commit -q -m adopt -m \"Refs: none (no behaviour change)\""
+    - "write <tmp>/src/app.py with the line `x = 1`; git add -A; git commit -q -m app; <sha8> is the first 8 characters of git rev-parse HEAD"
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range <base>..HEAD"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/prd.md:1: commit-refs: commit <sha8> touches src/app.py inside the Boundary: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.6:
+  ac: AC-090.4
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TB, "TA:adopted (not committed)", "write <tmp>/src/app.py with the line `x = 1`; git add src/app.py; git commit -q -m app; <sha8> as in T-090.1"]
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range HEAD~1..HEAD"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/prd.md:1: commit-refs: commit <sha8> touches src/app.py inside the Boundary: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.7:
+  ac: AC-090.5
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TB, "write <tmp>/src/app.py with the line `x = 1`; git add -A; git commit -q -m app"]
+    cwd: "<tmp>"
+    command: python TRACE docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.8:
+  ac: AC-090.6
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, TB, "write <tmp>/docs/prd/orders/notes.md with the line `notes`; git add -A; git commit -q -m notes -m \"Refs: none (no behaviour change)\" -m \"Change-set: orders/CS-001\"; <sha8> as in T-090.1"]
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range HEAD~1..HEAD"
+  expect:
+    output: {exit: 1, stdout: "docs/prd/orders/prd.md:1: commit-refs: commit <sha8>: Change-set: orders/CS-001 has no record in changes/\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-090.9:
+  known-failing: E-040
+  symptom: "the exit code is 1 and stderr is empty, and stdout is exactly one line, the expected line of the newest commit (<sha8_b>, src/b.py): no line holds <sha8_a>"
+  ac: AC-090.7
+  level: integration
+  target: "cli:prd_trace"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [T256, TB, "write <tmp>/src/a.py with the line `x = 1`; in <tmp> run git add -A and git commit -q -m a; <sha8_a> is the first 8 characters of git rev-parse HEAD", "write <tmp>/src/b.py with the line `x = 1`; in <tmp> run git add -A and git commit -q -m b; <sha8_b> is the first 8 characters of git rev-parse HEAD"]
+    cwd: "<tmp>"
+    command: "python TRACE docs/prd/orders --range HEAD~2..HEAD"
+    note: "git rev-parse HEAD prints 64 hex digits in this repository"
+  expect:
+    output:
+      exit: 1
+      stdout_lines_any_order_exact:
+      - "docs/prd/orders/prd.md:1: commit-refs: commit <sha8_a> touches src/a.py inside the Boundary: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)"
+      - "docs/prd/orders/prd.md:1: commit-refs: commit <sha8_b> touches src/b.py inside the Boundary: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+# FR-091 to FR-093: the commit-msg hook on a staged src/app.py (new project: inside the Boundary, outside the PRD folder).
+# ACCEPTED is the line "prd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)".
+
+T-091.1:
+  ac: AC-091.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:add app"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.2:
+  ac: AC-091.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the four lines `add app`, ``, `Refs:   ` and `refs: FR-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.3:
+  ac: AC-091.2
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, `` and `Refs:  none (no behaviour change)  `"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.4:
+  ac: AC-091.3
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, `` and `Refs: none`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: `none` alone is not accepted; write `Refs: none (no behaviour change)`\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.5:
+  ac: AC-091.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, `` and `Refs: FR-009, FR-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: FR-009 is not defined in the PRD\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.6:
+  ac: AC-091.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "TS:removed", TB, TX, "TM:the lines `add app`, `` and `Refs: FR-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: FR-001 is removed\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.7:
+  ac: AC-091.5
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TEC, TB, TX, "TM:the lines `add app`, `` and `Refs: E-007`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: E-007 is not defined in the PRD\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.8:
+  ac: AC-091.6
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, `` and `Refs: JIRA-12`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: `JIRA-12` is not a PRD ID; give other keys their own trailer\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-091.9:
+  ac: AC-091.7
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, ``, `Refs: FR-001` and `Refs: FR-009 , ,UJ-01`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: FR-009 is not defined in the PRD\nprd-toolkit: UJ-01 is not defined in the PRD\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-092.1:
+  ac: AC-092.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, ``, `Refs: FR-001` and `Change-set: orders/CS-1`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: `Change-set: orders/CS-1` must be orders/CS-nnn\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-092.2:
+  ac: AC-092.2
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, ``, `Refs: FR-001` and `Change-set: orders/CS-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: Change-set: orders/CS-001 has no record in changes/\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-092.3:
+  ac: AC-092.3
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, ``, `Refs: FR-001` and `Change-set: greet/CS-004`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-092.4:
+  ac: AC-092.3
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "write changes/CS-001.md with the line `# CS-001 A change`", TB, TX, "TM:the lines `add app`, ``, `Refs: FR-001` and `Change-set: orders/CS-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.1:
+  ac: AC-093.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, ``, `Change-set: orders/CS-1` and `Refs: JIRA-1`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: `JIRA-1` is not a PRD ID; give other keys their own trailer\nprd-toolkit: `Change-set: orders/CS-1` must be orders/CS-nnn\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.2:
+  ac: AC-093.2
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, `` and `Refs: FR-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.3:
+  ac: AC-093.3
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "TM:the lines `add app`, `` and `# Refs: FR-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.4:
+  ac: AC-093.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "write <tmp>/.git/MERGE_HEAD with the output of git rev-parse HEAD", "TM:add app"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.5:
+  ac: AC-093.5
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TE, TB, TX, "TM:the lines `add app`, `` and `Refs: E-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: E-001 is not confirmed; a commit that changes code may cite it only after prd_error.py confirm\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.6:
+  ac: AC-093.5
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TEC, TB, TX, "TM:the lines `add app`, `` and `Refs: E-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.7:
+  ac: AC-093.6
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "git commit -q -m app -m \"Refs: none (no behaviour change)\"", "in <tmp> run git rm -q src/app.py", "TM:remove app"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.8:
+  ac: AC-093.6
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, TX, "git commit -q -m app -m \"Refs: none (no behaviour change)\"", "in <tmp> run git mv src/app.py docs/prd/orders/app.md", "TM:move app"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.9:
+  ac: AC-093.7
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "TA:adopted", TB, "write <tmp>/lib/x.py with the line `x = 1`; git add lib/x.py", "TM:add lib"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.10:
+  ac: AC-093.7
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "TA:adopted", TB, TX, "TM:add app"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.11:
+  ac: AC-093.8
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, "write <tmp>/docs/prd/orders/notes.md with the line `notes` and <tmp>/.prd-toolkit/x.txt with the line `x`; git add -A", "TM:notes"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.12:
+  ac: AC-093.9
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TE, TB, "write <tmp>/.prd-toolkit/x.txt with the line `x`; in <tmp> run git add -A", "TM:the lines `add x`, `` and `Refs: E-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt, note: "the one staged path is outside the Boundary (AC-090.2) and outside the PRD folder"}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: E-001 is not confirmed; a commit that changes code may cite it only after prd_error.py confirm\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.13:
+  ac: AC-093.9
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TE, TB, "write <tmp>/docs/prd/orders/notes.md with the line `notes`; in <tmp> run git add -A", "TM:the lines `notes`, `` and `Refs: E-001`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt, note: "the one staged path is inside the PRD folder, so the commit changes no code"}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-093.14:
+  ac: AC-093.10
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, TB, "write <tmp>/docs/prd/orders/notes.md with the line `notes`; in <tmp> run git add -A", "TM:the lines `notes`, `` and `Change-set: orders/CS-1`"], cwd: "<tmp>", command: python HOOK commit-msg docs/prd/orders msg.txt, note: "the one staged path is inside the PRD folder, so no staged path is inside the Boundary"}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: `Change-set: orders/CS-1` must be orders/CS-nnn\nprd-toolkit: accepted forms: Refs: FR-001, E-002 | Refs: none (no behaviour change)\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+# FR-094: the pre-commit hook on a staged src/app.py. Each linter command below sits in backticks in its row's
+# Linter command cell, unless the case says the cell has none. For a linter L and a Decision D the row is exactly the
+# line:   | `**/*.py` | `L` | - | code | D |
+# The glob cell and the Linter command cell hold the backticks shown; the cells -, code and D hold none (D is the
+# bare word, such as enforced).
+
+T-094.1:
+  ac: AC-094.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "TR: three rows: Decision `declined` with linter `python3 -c \"open('declined.log','w').write('x')\"`; Decision `proposed` with linter `python3 -c \"open('proposed.log','w').write('x')\"`; Decision `enforced` whose Linter command cell is the text python3 -c \"open('bare.log','w').write('x')\" with no backticks around it"
+    - TB
+    - TX
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: ["none of <tmp>/declined.log, <tmp>/proposed.log and <tmp>/bare.log exists"]
+    errors: []
+    leaks: none
+
+T-094.2:
+  ac: AC-094.2
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "TR: one enforced row with linter `nosuch-linter-xyz --check` (no program of that name is on PATH; if one is, the test ends as an error)", TB, TX], cwd: "<tmp>", command: python HOOK pre-commit docs/prd/orders}
+  expect:
+    output: {exit: 1, stdout: "", stderr_single_line_starts: "prd-toolkit: `nosuch-linter-xyz --check` could not run: "}
+    effects: []
+    errors: []
+    leaks: none
+
+T-094.3:
+  ac: AC-094.2
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "TR: one enforced row with linter `python3 -c \"x` (an unclosed double quote)", TB, TX], cwd: "<tmp>", command: python HOOK pre-commit docs/prd/orders}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: `python3 -c \"x` could not run: No closing quotation\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-094.4:
+  ac: AC-094.3
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "TR: two enforced rows, the first with linter `python3 -c \"import sys; sys.exit(3)\"`, the second with `python3 -c \"import sys; sys.exit(4)\"`", TB, TX], cwd: "<tmp>", command: python HOOK pre-commit docs/prd/orders}
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: `python3 -c \"import sys; sys.exit(3)\"` failed (exit 3) on src/app.py\nprd-toolkit: `python3 -c \"import sys; sys.exit(4)\"` failed (exit 4) on src/app.py\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-094.5:
+  ac: AC-094.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "TR: one enforced row with linter `python3 -c \"import sys; open('ok.log','w').write(' '.join(sys.argv[1:]))\"`", TB, TX], cwd: "<tmp>", command: python HOOK pre-commit docs/prd/orders}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: ["<tmp>/ok.log holds exactly `src/app.py`"]
+    errors: []
+    leaks: none
+
+T-095.1:
+  ac: AC-095.1
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: "<tmp>", command: python HOOK}
+  expect:
+    output: {exit: 2, stdout: "", stderr_first_line_starts: "usage: prd_git_hook.py"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-095.2:
+  ac: AC-095.2
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {setup: ["create the empty folder <tmp>/nothing"], cwd: "<tmp>", command: python HOOK pre-commit nothing}
+  expect:
+    output: {exit: 2, stdout: "", stderr: "prd-toolkit: <tmp>/nothing: no prd.md\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-095.3:
+  ac: AC-095.3
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "in prd.md line 57, `Not applicable: new project.`, becomes the three lines `| Area | State | Boundary |`, `|---|---|---|` and `| import | adopted | `src/**` |`", "TM:add app"]
+    cwd: "<tmp>"
+    command: python HOOK commit-msg docs/prd/orders msg.txt
+  expect:
+    output: {exit: 2, stdout: "", stderr: "prd-toolkit: <tmp>/docs/prd/orders/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\"\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-095.4:
+  ac: AC-095.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "TR: one enforced row with linter `python3 -c \"import os; open('cwd.log','w').write(os.getcwd())\"`"
+    - TB
+    - "in <tmp> run git worktree add -q <tmp>/wt -b wt; write <tmp>/wt/src/app.py with the line `x = 1`; run git -C <tmp>/wt add src/app.py"
+    cwd: "<tmp>/wt"
+    env: {GIT_DIR: "<tmp>/.git/worktrees/wt"}
+    command: python HOOK pre-commit docs/prd/orders
+    note: "GIT_DIR absolute, GIT_WORK_TREE unset, as git starts a hook in a linked worktree"
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: ["<tmp>/wt/cwd.log holds exactly `<tmp>/wt`", "<tmp>/wt/docs/prd/orders/cwd.log does not exist"]
+    errors: []
+    leaks: none
+
+T-095.5:
+  ac: AC-095.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0E, "TR: the row of T-095.4", TB, TX]
+    cwd: "<tmp>"
+    env: {GIT_DIR: ".git"}
+    command: python HOOK pre-commit docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: ["<tmp>/cwd.log holds exactly `<tmp>`", "<tmp>/docs/prd/orders/cwd.log does not exist"]
+    errors: []
+    leaks: none
+
+T-096.1:
+  ac: AC-096.1
+  level: integration
+  target: "cli:git_hook_shims"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup: ["run git rev-parse --show-toplevel in <tmp> and end the test as an error, not a failure, when it exits 0", "write <repo>/prd-toolkit/templates/hooks/commit-msg to <tmp>/x/commit-msg, `{{hook}}` replaced by commit-msg and `{{prd}}` by docs/prd/orders", "write <tmp>/x/msg.txt with the line `add`"]
+    cwd: "<tmp>/x"
+    command: sh commit-msg msg.txt
+  expect:
+    output: {exit: 1, stdout: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-096.2:
+  ac: AC-096.2
+  level: integration
+  target: "cli:git_hook_shims"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "write the empty file <tmp>/.prd-toolkit/prd_git_hook.py", "SH:pre-commit,docs/prd/orders"], cwd: "<tmp>", command: sh .git/hooks/pre-commit}
+  expect:
+    output: {exit: 0, stdout: "", stderr: "prd-toolkit: .prd-toolkit/ on this branch predates 0.8.8 (no .prd-toolkit/prd); hook skipped\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-096.3:
+  ac: AC-096.3
+  level: integration
+  target: "cli:git_hook_shims"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0E, "SH:pre-commit,docs/prd/orders"], cwd: "<tmp>", command: sh .git/hooks/pre-commit}
+  expect:
+    output: {exit: 0, stdout: "", stderr: "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-096.4:
+  ac: AC-096.3
+  level: integration
+  target: "cli:git_hook_shims"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input: {setup: [N0E, TV, "SH:pre-commit,docs/prd/missing"], cwd: "<tmp>", command: sh .git/hooks/pre-commit}
+  expect:
+    output: {exit: 0, stdout: "", stderr: "prd-toolkit: no .prd-toolkit/ (or no PRD folder) on this branch; hook skipped\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-096.5:
+  ac: AC-096.4
+  level: integration
+  target: "cli:git_hook_shims"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input:
+    setup: [N0E, TV, "SH:pre-commit,docs/prd/orders", "create <tmp>/bin holding one symbolic link, git, whose target is the real path of the git on the runner's PATH"]
+    cwd: "<tmp>"
+    env: {PATH: "<tmp>/bin"}
+    command: /bin/sh .git/hooks/pre-commit
+  expect:
+    output: {exit: 1, stdout: "", stderr: "prd-toolkit: uv is not on PATH; install uv to run this hook\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-096.6:
+  ac: AC-096.5
+  level: integration
+  target: "cli:git_hook_shims"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input:
+    setup: [N0E, TV, TB, "in <tmp> run git config core.hooksPath .git/hooks", "SH:commit-msg,docs/prd/orders", TX]
+    cwd: "<tmp>"
+    runs:
+    - "git commit -q -m \"add app\""
+    - "git commit -q -m \"add app\" -m \"Refs: FR-001\""
+    note: "the commit-msg shim runs the vendored launcher, which needs uv (Tools on the runner)"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stderr_contains_line: "prd-toolkit: no `Refs:` trailer (`Refs: FR-001`, or `Refs: none (no behaviour change)`)"
+      run_2:
+        exit: 0
+    effects: ["after run_1, git rev-list --count HEAD prints 1 (no commit was made); after run_2 it prints 2"]
+    errors: []
+    leaks: none
+
+T-096.7:
+  ac: AC-096.6
+  level: integration
+  target: "cli:git_hook_shims"
+  environment: local
+  identity: none
+  preconditions: []
+  input: {files: ["<repo>/prd-toolkit/templates/hooks/commit-msg", "<repo>/prd-toolkit/templates/hooks/pre-commit"], note: "the test reads line 2 of each file"}
+  expect:
+    output: {each_file_line_2: "# prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall"}
+    effects: []
+    errors: []
+    leaks: none
