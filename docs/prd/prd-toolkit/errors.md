@@ -516,3 +516,24 @@ Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by
 Diagnosis: Reproduced once, as the evidence shows. AC-079.2 says that when the replay ends with findings "the folder the command made in the system temporary folder shall no longer exist", and AC-079.1 says the same of a proof that holds. prdlint/errorreplay.py removes each run's clone and then its own folder with `shutil.rmtree(..., ignore_errors=True)`, so a folder a test left without write permission stops the removal, nothing is printed, and the command exits as if it had cleaned up. The fault is in the code: it neither makes such a folder removable before it removes it nor reports a folder it could not remove.
 Resolution: -
 Recurrence of: -
+
+### E-038 known-failing-tags reports no tag that names an unknown errors.md entry
+Detected: 2026-11-21, adoption extract of trace (prd-toolkit/scripts/prdlint/trace.py:313 @a87f336)
+Classification: code bug
+Touches: FR-086
+Evidence: prd-toolkit/README.md, "Known-failing tests": "The trace's `known-failing-tags` rule reports a case with no tagged citation and a tag whose entry is resolved or unknown."
+  prd-toolkit/scripts/prdlint/trace.py:318-321 reports a tag only when its T-id's case is not known-failing on that E-id, or when the entry exists and is resolved (`entry is not None and not entry.open`).
+Diagnosis: The README (prd-toolkit/README.md, "Known-failing tests") says the rule reports "a tag whose entry is resolved or unknown". For each tag the code reports only when the T-id's case is not known-failing on that E-id (trace.py:318) or when the entry exists and is resolved (trace.py:320, `entry is not None and not entry.open`). A tag `@prd T-001.1 known-failing E-009` on a case `known-failing: E-009`, with no E-009 in errors.md, gives no trace finding; a tag on a T-id with no case and an unknown E-id gives none either (only test-cites-live, for the T-id). The lint rule `test-refs` reports the case's unknown entry, but not the tag. Not reproduced by a run: read from the code during the adoption extract of the area trace.
+Resolution: -
+Recurrence of: -
+
+### E-039 commit_msg's docstring says it allows any commit with nothing staged under the commit rule; the code refuses some
+Detected: 2026-11-21, adoption extract of trace (prd-toolkit/scripts/prdlint/githook.py:12 @a87f336)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-093, FR-092
+Evidence: prd-toolkit/scripts/prdlint/githook.py:12, the docstring of `commit_msg`: "Problems with the commit message; [] for a merge commit or when nothing staged is under the commit rule."
+  prd-toolkit/scripts/prdlint/githook.py:18-22: with no staged path inside the Boundary the function still returns `trace.unconfirmed_refs(...)` for a commit that stages a path outside the PRD folder, and `trace.changeset_problems(...)` for every commit.
+Diagnosis: The docstring of `githook.commit_msg` says the function returns no problem "when nothing staged is under the commit rule". When no staged path is inside the Boundary, the code still returns `trace.unconfirmed_refs(...)` for a commit that stages a path outside the PRD folder, and `trace.changeset_problems(...)` for every commit (githook.py:18-22), so the hook exits 1 on such a commit when it cites an unconfirmed entry or holds a malformed or unrecorded `Change-set:` value. The code's side has more behind it: the comments at githook.py:18 and :20-21, commit e3b6f63 (the commit-msg gate refuses a code commit citing an unconfirmed entry whenever a staged path is outside the PRD folder, not only inside the Boundary), commit 78c667c, and the README ("the commit-msg hook and `prd_error.py check` refuse a code commit that cites an unconfirmed one"). Either the docstring or the code is wrong, and the owner says which. Not reproduced by a run: read from the code during the adoption extract of the area trace.
+Resolution: -
+Recurrence of: -
