@@ -104,8 +104,8 @@ Tests: T-075.1 [integration], T-075.2 [integration], T-075.3 [integration], T-07
 Traces: UJ-07; cli:prd_lint; cli:prd_help; testing.md Levels
 
 ### FR-076 Replay an entry resolved with a T-id
-Status: approved
-Source: prd-toolkit/scripts/prdlint/errorreplay.py:156 @68d53f9
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errorreplay.py:167 @a070396
 Flow: 1. read the entry from `errors.md` in the working tree → 2. find its resolving commit and the
       files under the test roots there that cite its T-id → 3. run each file on the tree of `<sha>^`, its
       test roots replaced by the resolving commit's → 4. run each file on the tree of `<sha>`, the roots
@@ -168,8 +168,8 @@ Tests: T-077.1 [integration], T-077.2 [integration], T-077.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-078 What the replay prints and how it exits
-Status: approved
-Source: prd-toolkit/scripts/prdlint/errorreplay.py:370 @68d53f9
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errorreplay.py:391 @a070396
 Flow: 1. read the entry → 2. make the checks in order, the first that matches deciding → 3. make the runs
       → 4. print one line per finding, or the one line that the proof holds or that the entry is skipped
 Acceptance (EARS):
@@ -240,8 +240,8 @@ Tests: T-078.1 [integration], T-078.2 [integration], T-078.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-079 The replay leaves nothing behind and writes nothing
-Status: approved
-Source: prd-toolkit/scripts/prdlint/errorreplay.py:207 @68d53f9
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errorreplay.py:218 @a070396
 Flow: 1. add a worktree for each run → 2. remove it when the run ends → 3. remove the folder the
       worktrees were made in when the command ends, however it ends
 Acceptance (EARS):
@@ -274,7 +274,7 @@ Tests: T-079.1 [integration], T-079.2 [integration], T-079.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-080 Resolve a fix outside every adopted Boundary with a red run
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prd_error.py:170 @68d53f9
 Flow: 1. read the flags → 2. read the entry, its class and the level → 3. check the test id and the paths
       the fix commit changes → 4. replay the line it would write → 5. write the line, or refuse and leave
@@ -336,7 +336,7 @@ Tests: T-080.1 [integration], T-080.2 [integration], T-080.3 [integration], T-08
 Traces: UJ-07; cli:prd_error
 
 ### FR-081 Check a red run, and the older forms as before
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/errors.py:299 @68d53f9
 Flow: 1. `prd error check` finds the Resolution lines added in its range → 2. a red run is checked
       against the PRD at the range's head, with no run → 3. the three older forms are checked as before
