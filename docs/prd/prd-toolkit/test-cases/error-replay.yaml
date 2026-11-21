@@ -1561,8 +1561,6 @@ T-079.6:
   target: "cli:prd_error"
   environment: local
   identity: none
-  known-failing: E-033
-  symptom: "run_1 prints `E-001: T-006.1 fails on <fix>^ and passes on <fix>` and exits 0, but `git status --porcelain` in <tmp>/repo, which printed nothing just before run_1, prints exactly the one line `MM docs/prd/orders/errors.md` just after it; everything else the case expects (the stderr, the worktree list, the empty <tmp>/scratch) holds while the symptom shows"
   preconditions:
   - status-next/base
   - error-replay/files
