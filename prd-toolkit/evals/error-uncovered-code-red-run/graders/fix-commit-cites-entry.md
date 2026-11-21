@@ -1,9 +1,8 @@
 ---
 type: regex
-pattern: '(?:^|\n)commit [0-9a-f]{40}\nrefs: [^\n]*\bE-001\b[^\n]*\n(?:path: (?!(?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n)[^\n]*\n)*?path: tools/count_names\.py\n(?:path: (?!(?:[^\n]*/)?(?:test_[^\n/]*|[^\n/]*_test)\.py\n)[^\n]*\n)*helper: no bug\n'
-match: contains
-target: { source: file, path: .git/eval-commits.log }
+target: trace
+pattern: '"id":"(toolu_[A-Za-z0-9]+)","name":"Bash","input":\{"command":"(?:[^"\\]|\\.)*?\bgit\s+(?:-[Cc]\s+(?:\\"(?:[^"\\]|\\.)*?\\"|[^\s"\\]+)\s+)*commit(?![\w-])(?:[^"\\]|\\.)*"[\s\S]*?"tool_use_id":"\1","type":"tool_result","content":"(?:[^"\\]|\\.)*?\b1 file changed(?:[^"\\]|\\.)*?\bcreate mode \d+ (?:[^"\\\s]*/)?(?:test_[^"\\\s/]*|[^"\\\s/]*_test)\.py(?![\w.])[\s\S]*?"name":"Bash","input":\{"command":"(?:[^"\\]|\\.)*?\bgit\s+(?:-[Cc]\s+(?:\\"(?:[^"\\]|\\.)*?\\"|[^\s"\\]+)\s+)*commit(?![\w-])(?:[^"\\]|\\.)*?(?:\\n|\\\"|[\s\x27])[Rr]efs:(?:[^"\\]|\\[^n])*?\bE-001(?!\w)(?:[^"\\]|\\.)*"[\s\S]*?"name":"Bash","input":\{"command":"(?:[^"\\]|\\.)*?(?:/prd(?:\\")?\s+error|prd_error\.py(?:\\")?)\s+resolve\s(?:[^"\\]|\\.)*?--red-run[\s=]'
 ---
 
-The fix is its own commit and cites the entry: a commit whose `Refs:` holds E-001, which changes
-`tools/count_names.py` and no test file, and after which the planted line is gone.
+The fix is its own commit and cites the entry, read from the trace: after the test's commit (as above) and before
+the `prd error resolve ... --red-run` call, a `git commit` call whose command holds a `Refs:` line with E-001.

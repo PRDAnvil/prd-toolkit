@@ -81,6 +81,15 @@ def commit(repo: Path, subject: str, refs: str, *paths: str) -> str:
     return git(repo, "rev-parse", "--short", "HEAD")
 
 
+def committed(repo: Path, subject: str, refs: str, *paths: str) -> tuple[str, str]:
+    """`git add` and `git commit` chained in one call, as a session writes it: (the command, git's own output)."""
+    cmd = (f'git add {" ".join(paths)} && git -c user.name=Eval -c user.email=eval@example.com '
+           f'-c commit.gpgsign=false commit -m "{subject}" -m "Refs: {refs}"')
+    r = sh(repo, cmd)
+    assert r.returncode == 0, r.stdout + r.stderr
+    return cmd, r.stdout + r.stderr
+
+
 def sh(repo: Path, cmd: str) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, shell=True, cwd=repo, capture_output=True, text=True)
 
@@ -135,21 +144,20 @@ def test_the_scaffold_runs_clean_in_an_empty_directory(tmp_path, case):
 
 # --- the samples: (passing, failing) for each regex grader ---
 
-def record(paths: list[str], bug: bool, red_run: bool = False, refs: str = "E-001", sha: str = "a" * 40) -> str:
-    lines = [f"commit {sha}", f"refs: {refs}", *(f"path: {p}" for p in paths),
-             f"helper: {'bug' if bug else 'no bug'}", f"ledger: {'red run' if red_run else 'no red run'}", "end"]
-    return "\n".join(lines) + "\n"
-
-
+XCRUN = ("git: error: couldn't create cache file '/tmp/xcrun_db-AbCd' (errno=Operation not permitted)\n"
+         "git: error: couldn't create cache file '/tmp/xcrun_db-EfGh' (errno=Operation not permitted)\n")
 TEST = "tests/unit/test_count_names.py"
 TOOL = "tools/count_names.py"
-GOOD_LOG = record([TEST], True) + record([TOOL], False) + record([LEDGER], False, True)
-ONE_COMMIT = record([TEST, TOOL], False) + record([LEDGER], False, True)
-FIX_FIRST = record([TOOL], False) + record([TEST], False) + record([LEDGER], False, True)
-FIX_EDITS_TEST = record([TEST], True) + record([TEST, TOOL], False) + record([LEDGER], False, True)
-FIX_NO_REFS = record([TEST], True) + record([TOOL], False, refs="none (no behaviour change)") + record([LEDGER], False, True)
-TEST_WITH_OTHER = record([TEST, "README.md"], True) + record([TOOL], False)
-NOT_COMMITTED = record([TEST], True) + record([TOOL], False)
+TEST_OUT = (f"[main bcd2623] test: failing test for E-001\n 1 file changed, 23 insertions(+)\n"
+            f" create mode 100644 {TEST}")
+FIX_OUT = "[main 8206135] fix: count only non-blank lines\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+BOTH_OUT = (f"[main 9d1c0aa] fix with its test\n 2 files changed, 24 insertions(+), 1 deletion(-)\n"
+            f" create mode 100644 {TEST}")
+LEDGER_OUT = "[main 2f3df44] docs(prd): resolve E-001\n 1 file changed, 1 insertion(+), 1 deletion(-)"
+T_COMMIT = 'git commit -m "test: failing test for E-001" -m "Refs: E-001"'
+F_COMMIT = 'git commit -m "fix: count only non-blank lines" -m "Refs: E-001"'
+L_COMMIT = 'git commit -m "docs(prd): resolve E-001" -m "Refs: E-001"'
+ADD_LEDGER = f"git add {LEDGER}"
 
 RED_RUN = "Resolution: fixed in c002593, red run tests/unit/test_count_names.py [unit]\nRecurrence of: -\n"
 RESOLVE = (".prd-toolkit/prd error resolve docs/prd/greet E-001 --commit c002593 --red-run "
@@ -169,18 +177,72 @@ RESTORE = "git restore --staged --worktree docs/prd/greet/errors.md"
 JSON_FINDING = json.dumps({"interface": 1, "kind": "error-replay", "entry": "E-001", "outcome": "findings",
                            "subject": "T-001.2", "reason": None, "findings": [FINDING], "runs": []})
 
+HISTORY = trace((f"git add {TEST}", ""), (T_COMMIT, TEST_OUT), (f"git add {TOOL}", ""), (F_COMMIT, FIX_OUT),
+                (RESOLVE, "E-001 resolved code bug"), (ADD_LEDGER, ""), (L_COMMIT, LEDGER_OUT))
+
 REGEX_SAMPLES = {
     (RED, "test-committed-before-fix"): (
-        [GOOD_LOG, record(["tools/test_count_names.py"], True) + record([TOOL], False),
-         record([TEST], True) + record([LEDGER], True) + record(["src/x.py", TOOL], False),
-         record(["tools/__init__.py", "tools/test_count_names.py"], True) + record([TOOL], False),
-         record([TEST, "tests/unit/conftest.py"], True) + record([TOOL], False)],
-        ["", ONE_COMMIT, record(["tools/__init__.py"], True) + record([TOOL], False),
-         record(["conftest.py", "tools/__init__.py"], True) + record([TOOL], False), FIX_FIRST, FIX_EDITS_TEST, TEST_WITH_OTHER, record([TEST], True) + record([TOOL], True)]),
+        [HISTORY,  # the shape of a real run: git's stderr noise first, then the commit's own report
+         trace((f"git add {TEST}", XCRUN), (T_COMMIT, XCRUN + TEST_OUT), (F_COMMIT, XCRUN + FIX_OUT), (RESOLVE, "refused")),
+         trace((f"git add {TEST} && {T_COMMIT}", TEST_OUT), (f"git add {TOOL} && {F_COMMIT}", FIX_OUT), (RESOLVE, "")),
+         trace((f"git -C /w add {TEST}; git -C /w commit -q -m t", TEST_OUT), (f"git -C /w commit -m f", FIX_OUT),
+               (RESOLVE, "")),
+         trace((T_COMMIT.replace("git commit", "git -c user.name=E commit"), TEST_OUT), (F_COMMIT, FIX_OUT),
+               (RESOLVE.removesuffix(GATE) + f" --level=unit", "")),
+         trace((T_COMMIT, TEST_OUT.replace("test_count_names", "count_names_test")), (F_COMMIT, FIX_OUT),
+               (RESOLVE, ""))],
+        ["", trace((RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (RESOLVE, "")),  # no fix commit between the test and the resolve
+         trace((f"git add {TEST} {TOOL} && {F_COMMIT}", BOTH_OUT), (F_COMMIT, FIX_OUT), (RESOLVE, "")),  # one commit
+         trace((F_COMMIT, FIX_OUT), (T_COMMIT, TEST_OUT), (RESOLVE, "")),  # the test after the fix
+         trace((T_COMMIT, TEST_OUT), (F_COMMIT, FIX_OUT)),  # never resolved
+         trace((RESOLVE, ""), (T_COMMIT, TEST_OUT), (F_COMMIT, FIX_OUT)),  # resolved first
+         trace((T_COMMIT, TEST_OUT.replace(f"create mode 100644 {TEST}", f"create mode 100644 {TOOL}")),
+               (F_COMMIT, FIX_OUT), (RESOLVE, "")),  # the first commit adds no test file
+         trace((T_COMMIT, TEST_OUT.replace(" create mode 100644 " + TEST, "")), (F_COMMIT, FIX_OUT), (RESOLVE, "")),
+         trace((T_COMMIT, "nothing to commit, working tree clean"), (F_COMMIT, FIX_OUT), (RESOLVE, "")),
+         READ_SKILL + "\n" + trace((f"echo '{T_COMMIT}'", TEST_OUT))]),
     (RED, "fix-commit-cites-entry"): (
-        [GOOD_LOG, NOT_COMMITTED, record([TOOL], False, refs="FR-001, E-001")],
-        ["", FIX_NO_REFS, FIX_EDITS_TEST, ONE_COMMIT, record([TOOL], True), record([TOOL], False, refs="E-0011")]),
-    (RED, "resolution-committed"): ([GOOD_LOG, ONE_COMMIT], ["", NOT_COMMITTED]),
+        [HISTORY,
+         trace((T_COMMIT, TEST_OUT), (F_COMMIT.replace("Refs: E-001", "Refs: FR-001, E-001"), FIX_OUT), (RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (f"git add {TOOL} && git commit -F - <<'EOF'\nfix\n\nRefs: E-001\nEOF", FIX_OUT),
+               (RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (f"git add {TOOL} && git -C /w commit -m fix -m 'Refs: E-001'", FIX_OUT),
+               (RESOLVE, ""))],
+        ["", trace((T_COMMIT, TEST_OUT), (F_COMMIT.replace("Refs: E-001", "Refs: none (no behaviour change)"), FIX_OUT),
+                   (RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (F_COMMIT.replace("E-001", "E-0011"), FIX_OUT), (RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (F_COMMIT.replace("E-001", "E-002"), FIX_OUT), (RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (F_COMMIT.replace("Refs: E-001", "Closes E-001"), FIX_OUT), (RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (RESOLVE, ""), (F_COMMIT, FIX_OUT)),  # the fix after the resolve
+         trace((F_COMMIT, BOTH_OUT), (RESOLVE, "")),  # no separate test commit before it
+         trace((T_COMMIT, TEST_OUT), (RESOLVE, "")),
+         trace((F_COMMIT, FIX_OUT), (T_COMMIT, TEST_OUT), (RESOLVE, ""))]),
+    (RED, "resolution-committed"): (
+        [HISTORY,
+         trace((RESOLVE, "E-001 resolved code bug"), (ADD_LEDGER, ""), (L_COMMIT, LEDGER_OUT)),
+         trace((RESOLVE, ""), (f"{ADD_LEDGER} && {L_COMMIT}", LEDGER_OUT)),
+         trace((RESOLVE, ""), (f"git -C /w add {LEDGER} ; git -C /w commit -q -m x", "")),
+         trace((RESOLVE + f" && {ADD_LEDGER} && {L_COMMIT}", "")),  # all in the resolve's own call
+         trace((RESOLVE, ""), ("git add -A && git commit -m x", "")),
+         trace((RESOLVE, ""), ("git add -u", ""), (L_COMMIT, "")),
+         trace((RESOLVE, ""), ("git add .", ""), (L_COMMIT, "")),
+         trace((RESOLVE, ""), ("git add . && git commit -m x", "")),
+         trace((RESOLVE, ""), ("git add tests docs/prd/greet/errors.md", ""), (L_COMMIT, "")),
+         trace((RESOLVE, ""), (f"git commit -a -m x", "")),
+         trace((RESOLVE, ""), (f"git commit -am x", "")),
+         trace((RESOLVE, ""), (f"git commit -m x -- {LEDGER}", "")),
+         trace((RESOLVE, ""), (f"git commit -m x {LEDGER}", ""))],
+        ["", trace((RESOLVE, "E-001 resolved code bug")),  # left in the working tree
+         trace((RESOLVE, ""), (ADD_LEDGER, "")),  # staged, never committed
+         trace((ADD_LEDGER, ""), (L_COMMIT, ""), (RESOLVE, "")),  # committed before the resolve
+         trace((RESOLVE, ""), (f"git add {TOOL}", ""), (L_COMMIT, "")),  # another file added
+         trace((RESOLVE, ""), (L_COMMIT, "")),  # nothing named, nothing staged by name
+         trace((RESOLVE, ""), (L_COMMIT, ""), (ADD_LEDGER, "")),  # the add after the commit
+         trace((RESOLVE, ""), (f"git add {TOOL} && git commit -m 'update errors.md'", "")),  # the name only in a message
+         trace((RESOLVE, ""), (f"git add {LEDGER}.bak && git commit -m x", "")),
+         trace((RESOLVE, ""), ("git add .gitignore && git commit -m x", "")),
+         trace((RESOLVE, ""), ("git commit --amend -m x", ""))]),
     (RED, "red-run-in-ledger"): (
         [RED_RUN, "Resolution: fixed in c002593277edbc3c05156d6ac5f6c214f3c78045, red run tests/unit/test_c.py::t [unit]"],
         ["Resolution: -\n", "Resolution: T-001.2 [unit], PRD 1.0.0, fixed in c002593\n",
@@ -366,18 +428,22 @@ def test_the_red_run_walk_passes_every_grader_and_a_wrong_run_fails_the_history(
     (ws / TEST).write_text(COUNT_TEST, encoding="utf-8")
     red = sh(ws, f"uv run pytest -q {TEST}")
     assert red.returncode == 1 and "assert 3 == 2" in red.stdout, red.stdout + red.stderr
-    commit(ws, "test: failing test for E-001", "E-001", TEST)
+    calls = [committed(ws, "test: failing test for E-001", "E-001", TEST)]
     _fix_helper(ws)
-    sha = commit(ws, "fix: count only non-blank lines", "E-001", TOOL)
+    calls.append(committed(ws, "fix: count only non-blank lines", "E-001", TOOL))
+    sha = git(ws, "rev-parse", "--short", "HEAD")
     assert sh(ws, f"uv run pytest -q {TEST}").returncode == 0
     cmd, r = _resolve_red_run(ws, sha)
     assert (r.returncode, r.stdout) == (0, "E-001 resolved code bug\n"), r.stdout + r.stderr
-    commit(ws, "docs(prd): resolve E-001", "E-001", LEDGER)
+    calls.append((cmd + GATE, r.stdout + "prd-error-exit=0"))
+    calls.append(committed(ws, "docs(prd): resolve E-001", "E-001", LEDGER))
     check = sh(ws, f".prd-toolkit/prd error check {PRD} {start}..HEAD")
     assert (check.returncode, check.stdout) == (0, ""), check.stdout + check.stderr
-    for n in ("test-committed-before-fix", "fix-commit-cites-entry", "resolution-committed", "red-run-in-ledger",
-              "prd-version-unchanged"):
+    for n in ("red-run-in-ledger", "prd-version-unchanged"):
         assert regex_passes(RED, n, file_text(ws, RED, n)), n
+    # the history graders read the trace, whose commit reports are git's own words
+    for n in ("test-committed-before-fix", "fix-commit-cites-entry", "resolution-committed"):
+        assert regex_passes(RED, n, trace(*calls)), n
     t = trace((cmd + GATE, r.stdout + "prd-error-exit=0"), (COMMIT, ""),
               (f".prd-toolkit/prd error check {PRD} {start}..HEAD" + GATE, "prd-error-exit=0"))
     for n in ("resolved-with-red-run", "check-after-commit"):
@@ -397,15 +463,19 @@ def test_the_red_run_walk_passes_every_grader_and_a_wrong_run_fails_the_history(
     beside = "tools/test_count_names.py"
     (wrong2 / beside).write_text(COUNT_TEST.replace("parents[2]", "parents[1]"), encoding="utf-8")
     _fix_helper(wrong2)
-    sha = commit(wrong2, "fix: count only non-blank lines, with its test", "E-001", beside, TOOL)
+    calls = [committed(wrong2, "fix: count only non-blank lines, with its test", "E-001", beside, TOOL)]
+    sha = git(wrong2, "rev-parse", "--short", "HEAD")
+    assert "2 files changed" in calls[0][1]
     r = sh(wrong2, f".prd-toolkit/prd error resolve {PRD} E-001 --commit {sha} --red-run {beside} --level unit")
     assert (r.returncode, r.stdout) == (0, "E-001 resolved code bug\n"), r.stdout + r.stderr
-    commit(wrong2, "docs(prd): resolve E-001", "E-001", LEDGER)
+    calls.append((f".prd-toolkit/prd error resolve {PRD} E-001 --commit {sha} --red-run {beside} --level unit" + GATE,
+                  r.stdout + "prd-error-exit=0"))
+    calls.append(committed(wrong2, "docs(prd): resolve E-001", "E-001", LEDGER))
     assert sh(wrong2, f".prd-toolkit/prd error check {PRD} {start}..HEAD").returncode == 0
     for n in ("test-committed-before-fix", "fix-commit-cites-entry"):
-        assert not regex_passes(RED, n, file_text(wrong2, RED, n)), n
-    for n in ("resolution-committed", "red-run-in-ledger"):
-        assert regex_passes(RED, n, file_text(wrong2, RED, n)), n
+        assert not regex_passes(RED, n, trace(*calls)), n
+    assert regex_passes(RED, "resolution-committed", trace(*calls))
+    assert regex_passes(RED, "red-run-in-ledger", file_text(wrong2, RED, "red-run-in-ledger"))
 
 
 def test_a_hand_written_red_run_passes_check_and_fails_the_tool_graders(tmp_path):

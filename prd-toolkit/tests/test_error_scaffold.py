@@ -122,20 +122,7 @@ def test_uncovered_bug_confirms_a_bug_outside_every_boundary(tmp_path):
     assert r.returncode == 0 and r.stdout.startswith("E-001 confirmed code bug - tools/count_names.py counts"), r.stdout + r.stderr
     assert git(repo, "log", "--format=%s", "-3").splitlines() == [
         "docs(prd): confirm E-001", "docs(prd): propose E-001", "docs(prd): record E-001"]
-    hook = repo / ".git/hooks/post-commit"
-    assert hook.is_file() and hook.stat().st_mode & 0o111 and not (repo / ".git/eval-commits.log").exists()
-
-
-def test_the_recorder_writes_one_record_per_commit(tmp_path):
-    repo, _ = build(tmp_path, "uncovered-bug")
-    (repo / "notes.txt").write_text("x\n", encoding="utf-8")
-    git(repo, "add", "notes.txt")
-    git(repo, "-c", "user.name=Eval", "-c", "user.email=eval@example.com", "commit", "-q", "-m", "Add notes",
-        "-m", "Refs: none (no behaviour change)")
-    sha = git(repo, "rev-parse", "HEAD").strip()
-    log = (repo / ".git/eval-commits.log").read_text(encoding="utf-8")
-    assert log == (f"commit {sha}\nrefs: none (no behaviour change)\npath: notes.txt\nhelper: bug\n"
-                   "ledger: no red run\nend\n")
+    assert not (repo / ".git/hooks/post-commit").exists()  # no hook: the graders read the trace
 
 
 def test_green_before_fix_hides_a_test_that_never_failed(tmp_path):

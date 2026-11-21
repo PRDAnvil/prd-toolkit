@@ -30,11 +30,7 @@ uncovered-bug  `ready` with a One test command on the unit level (`uv run pytest
                and `tools/count_names.py`, outside it, with no test and no PRD block: it counts the empty
                piece after a file's final newline as a name, so two names print 3, while its docstring
                says it prints the number of non-blank lines. E-001 for that bug is recorded, proposed as
-               `code bug` and confirmed, each its own commit. Last, a post-commit hook (not tracked)
-               appends one record per later commit to `.git/eval-commits.log`: its SHA, its Refs, the
-               paths it changes, whether its tree still holds the bug, and whether its errors.md holds a
-               red run, so a grader reads the order of the session's commits and what each holds.
-               An amended commit adds a second record and keeps the first (the log is history, not end state).
+               `code bug` and confirmed, each its own commit. The graders read the session's commits from its trace.
 green-before-fix  `ready` with the same One test command, then a commit that makes `main` read the key
                `greeting` (breaking AC-001.2) and rewrites the T-001.2 test to write both keys, so it
                passes whichever key the code reads; E-001 for the bug, recorded, proposed as `code bug`
@@ -187,9 +183,6 @@ if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
 '''
 
-# The planted line of tools/count_names.py, as the file holds it; the recorder greps for it.
-COUNT_BUG = 'return len(text.split("\\n"))'
-
 COUNT_EVIDENCE = [
     "printf 'Ada\\nGrace\\n' > names.txt",
     "python3 tools/count_names.py names.txt",
@@ -203,24 +196,6 @@ COUNT_DIAGNOSIS = (
     "`Prints the number of non-blank lines`. tools/count_names.py lies outside the Boundary of the "
     "only adopted area, greet, and no PRD block describes it."
 )
-
-# The recorder: one record per commit the session makes, appended to .git/eval-commits.log.
-RECORDER = """#!/bin/sh
-# Eval recorder (scaffolds/error_repo.py uncovered-bug): one record per commit, for the graders.
-log="$(git rev-parse --git-common-dir)/eval-commits.log"
-{
-  echo "commit $(git rev-parse HEAD)"
-  echo "refs: $(git log -1 --format=%B HEAD | sed -n 's/^[Rr][Ee][Ff][Ss]:[[:space:]]*//p' | awk 'NR>1{printf ", "}{printf "%s",$0}END{print ""}')"
-  git diff-tree --no-commit-id --name-only -r --root HEAD | sed 's/^/path: /'
-  if git show HEAD:tools/count_names.py 2>/dev/null | grep -qF 'BUG'; then echo "helper: bug"; else echo "helper: no bug"; fi
-  if git show HEAD:docs/prd/greet/errors.md 2>/dev/null | grep -qE '^Resolution: fixed in [0-9a-f]{7,40}, red run [^ ]+ [[]'; then
-    echo "ledger: red run"
-  else
-    echo "ledger: no red run"
-  fi
-  echo "end"
-} >> "$log"
-""".replace("BUG", COUNT_BUG)
 
 GREET_EVIDENCE = [
     "settings.json holds {\"GREETING\": \"Hi\"}",
@@ -294,11 +269,6 @@ def _uncovered_bug(repo: Path) -> None:
     commit(repo, "Add a guest-list counter", "tools", date="2026-01-07T12:00:00+0000")
     _entry(repo, ("2026-01-08", "2026-01-08", "2026-01-09"), "tools/count_names.py counts one name too many",
            COUNT_EVIDENCE, "code bug", COUNT_DIAGNOSIS, "Yes, that is a code bug in the helper.")
-    hook = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir").strip()) / "hooks/post-commit"
-    if hook.exists():
-        sys.exit(f"error_repo: {hook} exists; the recorder would replace it")
-    hook.write_text(RECORDER, encoding="utf-8")
-    hook.chmod(0o755)
 
 
 def _green_before_fix(repo: Path) -> str:
