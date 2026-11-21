@@ -75,8 +75,10 @@ def test_fails_on_the_fix(case):
 @given("R0", "RT", "RF", "RL", "RE", "RN", resolution=FIX)
 def test_harness_that_needs_the_checkout(case):
     """@prd T-076.7"""
+    # run_1: the One test command RN names passes in the repository's own checkout, which holds .ready.
     run_1 = case.run("python3 tools/needs.py tests/test_total.py")
     case.expect(run_1, exit=0)
+    # run_2: in a fresh clone .ready is absent, so the command exits 3 on both trees and the proof does not hold.
     run_2 = case.run(REPLAY)
     case.expect(run_2, exit=1, stdout="E-001: T-006.1 fails on <fix>: tests/test_total.py\n", stderr="")
     assert_left_as_it_was(run_2)
