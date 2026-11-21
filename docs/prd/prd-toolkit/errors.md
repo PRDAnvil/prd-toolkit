@@ -167,7 +167,7 @@ Evidence: User report (/prd-error), 2026-11-11: test_builtin_packs.py::test_vali
   It sometimes fails when uv prints "Installed 1 package" on stderr.
   First seen during the move to PRDAnvil/prd-toolkit (0.8.6, 2026-11-10).
 Diagnosis: Reproduced: the unit harness narrowed to `tests/test_builtin_packs.py` failed on both runs (run 1 `[no-purpose]`, run 2 `[not-md]`, 26 passed each), with `assert 'g: missing purpose' in 'Installed 1 package in 1ms'`. Root cause: the test's `_run` helper starts the document pack's validator as `uv run --script <validator>` without `--quiet`, and asserts on the first stderr line. The first validator run in each session builds the script's environment and uv prints `Installed 1 package` there; which parametrized case gets it depends on xdist scheduling, so a different case fails each time. Since NFR-019 (E-008) the session deletes `environments-v2` at the end of every run, so a narrowed run always rebuilds it; the full suite passes when another test builds the environment first. The test breaks testing.md Harness, Lifecycle: "A test runs a CLI script as a subprocess with the test's own interpreter, `python <repo>/prd-toolkit/scripts/<script>` (not `uv run --script`, whose own stderr lines would break the stderr assertions)". The validator itself is right, and the pack manifest the test checks already runs it as `uv run --quiet --script`. No AC covers the validator and the test cites no T-id: both sit outside every adopted area's Boundary.
-Resolution: -
+Resolution: fixed in 6d6711b, red run prd-toolkit/tests/test_builtin_packs.py [unit]
 Recurrence of: -
 
 ### E-018 `prd_error.py check` reports `Detected: changed` on entries whose only change is the move's SHA remap (c8f48cf)
