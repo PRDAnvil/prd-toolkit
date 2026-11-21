@@ -426,6 +426,7 @@ Recurrence of: -
 ### E-034 test_done_right_after_the_last_answer_is_accepted fails once in a whole unit run and passes alone
 Detected: 2026-11-20, failing test, the whole unit suite
 Classification: code bug
+Confirmed: 2026-11-21, "option 1, yes to both classes"
 Evidence: Whole unit suite, uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd, on 006b698 with an uncommitted PRD change in the tree:
   FAILED tests/test_inbox_page.py::test_done_right_after_the_last_answer_is_accepted
   2 failed, 3925 passed, 1 skipped in 518.60s
