@@ -1334,6 +1334,81 @@ T-078.22:
     errors: []
     leaks: none
 
+T-078.23:
+  ac: AC-078.14
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RA, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "RA makes integration's One test command `tools/absent`, a path no commit and no step writes: the operating system cannot start it in either worktree"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines:
+        - "E-001: tools/absent cannot start on <fix>^"
+        - "E-001: tools/absent cannot start on <fix>"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-078.24:
+  ac: AC-078.14
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RA, RE]
+    resolution: "fixed in <fix>, red run tests/test_total.py [integration]"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001 --json
+    note: "as in T-078.23, the operating system cannot start `tools/absent` in either worktree; the entry is resolved with a red run"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_json_at:
+          outcome: findings
+          subject: tests/test_total.py
+          findings: ["E-001: tools/absent cannot start on <fix>^", "E-001: tools/absent cannot start on <fix>"]
+          runs.0.commit: "FULL(fix^)"
+          runs.0.when: before
+          runs.0.argument: tests/test_total.py
+          runs.0.exit: null
+          runs.0.timed_out: false
+          runs.1.commit: "FULL(fix)"
+          runs.1.when: after
+          runs.1.argument: tests/test_total.py
+          runs.1.exit: null
+          runs.1.timed_out: false
+        stderr: ""
+      relations:
+      - "the list at the key `runs` of run_1's document holds exactly two entries"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
 T-079.1:
   ac: AC-079.1
   level: integration
@@ -1477,6 +1552,38 @@ T-079.5:
     effects:
     - "`git worktree list --porcelain`, run by the test in <tmp>/repo just before and just after run_1, prints the same text both times, which names exactly two worktrees, <tmp>/repo and <tmp>/wt"
     - "`git status --porcelain`, run by the test in <tmp>/wt just before and just after run_1, prints the same text both times, and <tmp>/scratch holds no entry after run_1"
+    errors: []
+    leaks: none
+
+T-079.6:
+  ac: AC-079.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  known-failing: E-033
+  symptom: "run_1 prints `E-001: T-006.1 fails on <fix>^ and passes on <fix>` and exits 0, but `git status --porcelain` in <tmp>/repo, which printed nothing just before run_1, prints exactly the one line `MM docs/prd/orders/errors.md` just after it; everything else the case expects (the stderr, the worktree list, the empty <tmp>/scratch) holds while the symptom shows"
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - {env: {GIT_INDEX_FILE: "<tmp>/repo/.git/index"}, command: python ERROR replay docs/prd/orders E-001}
+    note: "run_1 starts with GIT_INDEX_FILE set to the absolute path of the scratch repository's own index, as git sets it for a pre-commit or commit-msg hook; the bytes of <tmp>/repo/.git/index are not compared, since git may refresh its stat cache"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001: T-006.1 fails on <fix>^ and passes on <fix>\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "`git worktree list --porcelain` in <tmp>/repo after run_1 names exactly one worktree, <tmp>/repo itself"
     errors: []
     leaks: none
 
@@ -1944,6 +2051,37 @@ T-080.15:
     errors: []
     leaks: none
 
+T-080.16:
+  ac: AC-080.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RA, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --commit <fix> --red-run tests/test_total.py --level integration
+    note: "RA makes integration's One test command `tools/absent`, which the operating system cannot start in either worktree; the fix changes src/calc.py only, which no adopted area covers, so the replay decides"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr_exact_lines:
+        - "refused: E-001: tools/absent cannot start on <fix>^"
+        - "refused: E-001: tools/absent cannot start on <fix>"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte the text files.ledger_open"
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
 T-081.1:
   ac: AC-081.1
   level: integration
@@ -2312,5 +2450,31 @@ T-081.13:
     effects:
     - "after run_1, docs/prd/orders/errors.md is the text files.ledger_open with its line `Resolution: -` replaced by the line `Resolution: T-006.1, PRD 1.0.0, run 20261110T090000Z-all`, every other line as it was"
     - "`git worktree list --porcelain` in <tmp>/repo prints the same text just before and just after run_1, and <tmp>/scratch holds no entry after run_1"
+    errors: []
+    leaks: none
+
+T-081.14:
+  ac: AC-081.5
+  level: integration
+  target: "cli:prd_help"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    runs:
+    - python HELP --key kind.E
+    note: "no step and no repository; PRD_HELP_FILE unset: the shipped catalogue"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout_contains:
+        - "`fixed in <commit>, red run <test id> [<level>]` (code bug)"
+        - "`<T-id> [<level>], PRD <X.Y.Z>, fixed in <commit>`"
+        - "`<T-id or ->, PRD <X.Y.Z>, run <run id>`"
+        - "`not a defect: <why>`"
+    effects: []
     errors: []
     leaks: none

@@ -10,9 +10,10 @@ that runs one test, which the replay runs. Its one module is `prd-toolkit/script
 The same build makes the edits this area needs in `prd_error.py` and `prdlint/errors.py` (area `errors`:
 they parse the new subcommand and flags and call the module), `prdlint/model.py` (area `lint-cli`: the
 Levels loader reads the column), `prdlint/rules/registries.py` (area `lint-registries`: the rule
-`runbook-tests` reports a malformed cell and its description names the column) and
-`references/prd-format.md` (area `skills`: the column and the fourth form); what each edit does is stated
-here. The three older forms of a Resolution line are written, read and checked as before.
+`runbook-tests` reports a malformed cell and its description names the column),
+`references/prd-format.md` (area `skills`: the column and the fourth form) and `references/help.yaml`
+(area `help`: its entry `kind.E` names the fourth form); what each edit does is stated here. The three
+older forms of a Resolution line are written, read and checked as before.
 
 Words used below.
 
@@ -47,11 +48,15 @@ Words used below.
   shell, from the root of a worktree, with the environment the command itself has, in a process group of
   its own. A run that exits 0 **passes**; one that exits with any other code **fails**. A run still going
   when the timeout ends is killed with its process group; it **times out**, and neither passes nor fails.
+  A run whose program the operating system cannot start **cannot start**, and neither passes nor fails.
 - The **timeout** of a run is the `--timeout` value when one is given, else the level's `Timeout` cell when
   it holds a number, else 600 seconds. `<N>` in an output is that timeout in whole seconds.
 - A **worktree** is one that the command adds with `git worktree add --detach` under a new folder it makes
   in the system temporary folder (the folder the `TMPDIR` variable names, when it is set), at the commit
-  under test. The command never writes the working tree or the index of the repository it is started in.
+  under test. Every git command the replay runs has the environment the command itself has without the
+  variables `git rev-parse --local-env-vars` lists, so none of them points it at the repository the
+  command is started in. The command never writes the working tree or the index of the repository it is
+  started in.
 - A path is **covered** by an area when a Boundary glob of that area's `adopted` row in `adoption.md`
   matches it, as the commit rule matches the globs; the area named is the first such row in the table's
   order. A path in the PRD folder or in `.prd-toolkit/` is covered by no area. The **paths a commit
@@ -99,7 +104,7 @@ Tests: T-075.1 [integration], T-075.2 [integration], T-075.3 [integration], T-07
 Traces: UJ-07; cli:prd_lint; cli:prd_help; testing.md Levels
 
 ### FR-076 Replay an entry resolved with a T-id
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:156 @68d53f9
 Flow: 1. read the entry from `errors.md` in the working tree → 2. find its resolving commit and the
       files under the test roots there that cite its T-id → 3. run each file on the tree of `<sha>^`, its
@@ -131,9 +136,11 @@ Edge cases: a regression test committed after its fix proves the fix, since the 
 resolving commit → AC-076.1; only the test roots are replaced, so the run on `<sha>^` runs the old code →
 AC-076.1; a cited path that holds a space is passed as one argument → AC-076.1; the fix commit is a merge:
 `<sha>^` is its first parent → AC-076.1; a test file of the resolving commit that does not cite the T-id
-is not run, though it fails on older code → AC-076.1; a harness that cannot run in a fresh worktree fails
-on `<sha>` too, so the proof never holds → AC-076.3; two entries whose tests share a file share one proof,
-since the proof is per file
+is not run, though it fails on older code → AC-076.1; a harness that starts in a fresh worktree and fails
+there for want of what only the repository's own checkout holds fails on `<sha>` too, so the proof never
+holds → AC-076.3; a One test program that the operating system cannot start in a fresh worktree is no
+fail: the run cannot start, a finding of its own → AC-078.14; two entries whose tests share a file share
+one proof, since the proof is per file
 Tests: T-076.1 [integration], T-076.2 [integration], T-076.3 [integration], T-076.4 [integration], T-076.5 [integration], T-076.6 [integration], T-076.7 [integration], T-076.8 [integration], T-076.9 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
@@ -161,7 +168,7 @@ Tests: T-077.1 [integration], T-077.2 [integration], T-077.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-078 What the replay prints and how it exits
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:370 @68d53f9
 Flow: 1. read the entry → 2. make the checks in order, the first that matches deciding → 3. make the runs
       → 4. print one line per finding, or the one line that the proof holds or that the entry is skipped
@@ -207,7 +214,7 @@ Acceptance (EARS):
   `skipped` or `findings`; `<subject>` is the entry's subject, or null for any other line; `<reason>` is
   the text of the skip line after `skipped: <E-id>: `, or null; each `<finding>` is a finding line as the
   text form prints it, in its order; and each `<run>` is
-  `{"commit": <the full SHA of the commit whose tree ran>, "when": "before" or "after", "argument": <the argument>, "exit": <its exit code, or null when it timed out>, "seconds": <a number>, "timed_out": <true or false>}`,
+  `{"commit": <the full SHA of the commit whose tree ran>, "when": "before" or "after", "argument": <the argument>, "exit": <its exit code, or null when it timed out or cannot start>, "seconds": <a number>, "timed_out": <true or false>}`,
   in the order the runs were made.
 - AC-078.12 If the error command, run with `--json`, exits 2, it shall print on stdout one JSON object on
   one line, ending in a newline, `{"interface": 1, "kind": "error-replay", "error": <message>}`, where
@@ -218,16 +225,22 @@ Acceptance (EARS):
   `prd_error: unsupported interface <N>; this toolkit speaks 1`, read no folder and exit 2.
 - AC-078.13 When run as `prd_error.py replay --interface`, the error command shall print `1` on one stdout
   line and exit 0, whatever other arguments are given, reading no folder.
+- AC-078.14 If a run cannot start, the error command shall print the finding
+  `<E-id>: <program> cannot start on <commit>`, where `<program>` is the first word of the level's One
+  test command, its quotes removed, and `<commit>` is `<sha>^` for a run on `<sha>^` and `<sha>` for a run
+  on `<sha>`, count that run as neither passing nor failing, make the runs that remain, and exit 1; with
+  `--json`, that run's record shall have `exit` null and `timed_out` false.
 Errors: -
 Edge cases: `--json=1` is the same as `--json` → AC-078.11; `seconds` is the run's time and is never
 compared to a value → AC-078.11; a line of no form, such as free text written before prd-toolkit 0.6, is a
 finding, so older entries need not hold → AC-078.2; a missing argument is argparse's usage error, exit 2;
-the stderr is empty whenever the exit is 0 or 1, but for AC-078.1's line
-Tests: T-078.1 [integration], T-078.2 [integration], T-078.3 [integration], T-078.4 [integration], T-078.5 [integration], T-078.6 [integration], T-078.7 [integration], T-078.8 [integration], T-078.9 [integration], T-078.10 [integration], T-078.11 [integration], T-078.12 [integration], T-078.13 [integration], T-078.14 [integration], T-078.15 [integration], T-078.16 [integration], T-078.17 [integration], T-078.18 [integration], T-078.19 [integration], T-078.20 [integration], T-078.21 [integration], T-078.22 [integration]  (test-cases/error-replay.yaml)
+the stderr is empty whenever the exit is 0 or 1, but for AC-078.1's line; a program that only `<sha>`
+holds cannot start on `<sha>^`, which is no fail, so the proof does not hold → AC-078.14
+Tests: T-078.1 [integration], T-078.2 [integration], T-078.3 [integration], T-078.4 [integration], T-078.5 [integration], T-078.6 [integration], T-078.7 [integration], T-078.8 [integration], T-078.9 [integration], T-078.10 [integration], T-078.11 [integration], T-078.12 [integration], T-078.13 [integration], T-078.14 [integration], T-078.15 [integration], T-078.16 [integration], T-078.17 [integration], T-078.18 [integration], T-078.19 [integration], T-078.20 [integration], T-078.21 [integration], T-078.22 [integration], T-078.23 [integration], T-078.24 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-079 The replay leaves nothing behind and writes nothing
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:207 @68d53f9
 Flow: 1. add a worktree for each run → 2. remove it when the run ends → 3. remove the folder the
       worktrees were made in when the command ends, however it ends
@@ -253,12 +266,15 @@ Acceptance (EARS):
 Errors: -
 Edge cases: a test points `TMPDIR` at an empty folder and finds it empty again when the command ends →
 AC-079.1 to AC-079.5; `prd error resolve --red-run`, which replays, leaves nothing behind the same way →
-AC-079.2, FR-080; an internal error ends the command the same way, with exit 2
-Tests: T-079.1 [integration], T-079.2 [integration], T-079.3 [integration], T-079.4 [integration], T-079.5 [integration]  (test-cases/error-replay.yaml)
+AC-079.2, FR-080; an internal error ends the command the same way, with exit 2; a command started with
+`GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE` set, as git sets `GIT_INDEX_FILE` for its pre-commit and
+commit-msg hooks, leaves its repository's index and working tree as they were, since no git command the
+replay runs has those variables → AC-079.1 to AC-079.3
+Tests: T-079.1 [integration], T-079.2 [integration], T-079.3 [integration], T-079.4 [integration], T-079.5 [integration], T-079.6 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-080 Resolve a fix outside every adopted Boundary with a red run
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prd_error.py:170 @68d53f9
 Flow: 1. read the flags → 2. read the entry, its class and the level → 3. check the test id and the paths
       the fix commit changes → 4. replay the line it would write → 5. write the line, or refuse and leave
@@ -311,15 +327,16 @@ Acceptance (EARS):
   (AC-080.9), with the level's timeout.
 Errors: -
 Edge cases: `--red-run=-x` gives a test id that starts with `-`, since `--red-run -x` reads as an option →
-AC-080.7; a `<sha>` that names no commit, or one with no parent, has no paths to check, so the replay's
+AC-080.7; a One test program that cannot start gives the replay's finding, so the refusal → AC-080.9,
+AC-078.14; a `<sha>` that names no commit, or one with no parent, has no paths to check, so the replay's
 finding is the refusal → AC-080.8, AC-080.9; a path in the PRD folder or in `.prd-toolkit/` is covered by
 no area → AC-080.8; a refused write never leaves a half-written line → AC-080.2 to AC-080.9; the write
 goes through the lint guard every `resolve` passes, as before → AC-080.1
-Tests: T-080.1 [integration], T-080.2 [integration], T-080.3 [integration], T-080.4 [integration], T-080.5 [integration], T-080.6 [integration], T-080.7 [integration], T-080.8 [integration], T-080.9 [integration], T-080.10 [integration], T-080.11 [integration], T-080.12 [integration], T-080.13 [integration], T-080.14 [integration], T-080.15 [integration]  (test-cases/error-replay.yaml)
+Tests: T-080.1 [integration], T-080.2 [integration], T-080.3 [integration], T-080.4 [integration], T-080.5 [integration], T-080.6 [integration], T-080.7 [integration], T-080.8 [integration], T-080.9 [integration], T-080.10 [integration], T-080.11 [integration], T-080.12 [integration], T-080.13 [integration], T-080.14 [integration], T-080.15 [integration], T-080.16 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-081 Check a red run, and the older forms as before
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/errors.py:299 @68d53f9
 Flow: 1. `prd error check` finds the Resolution lines added in its range → 2. a red run is checked
       against the PRD at the range's head, with no run → 3. the three older forms are checked as before
@@ -355,10 +372,13 @@ Acceptance (EARS):
   `Resolution: not a defect: <why>`; each in place of the entry's `Resolution:` line when it has one,
   leaving every other line of `errors.md` as it was; and in each case it shall print the one stdout line
   `<E-id> resolved <class>`, `<class>` being the entry's Classification, make no run and exit 0.
+- AC-081.5 The help catalogue the toolkit ships shall name, in the `rules` of its entry `kind.E`, the red
+  run `fixed in <commit>, red run <test id> [<level>]` (code bug) as a form of resolution, beside the other
+  three.
 Errors: -
 Edge cases: a red run whose `<sha>` names no commit gets the ancestor line alone, since it has no paths →
 AC-081.1; a deploy-gate level or a level with no One test command is not a check finding: `resolve`
 refuses it → AC-081.1; an older vendored copy reports a red run as none of the three forms it knows, so a
 repository re-vendors before its ledger holds one
-Tests: T-081.1 [integration], T-081.2 [integration], T-081.3 [integration], T-081.4 [integration], T-081.5 [integration], T-081.6 [integration], T-081.7 [integration], T-081.8 [integration], T-081.9 [integration], T-081.10 [integration], T-081.11 [integration], T-081.12 [integration], T-081.13 [integration]  (test-cases/error-replay.yaml)
+Tests: T-081.1 [integration], T-081.2 [integration], T-081.3 [integration], T-081.4 [integration], T-081.5 [integration], T-081.6 [integration], T-081.7 [integration], T-081.8 [integration], T-081.9 [integration], T-081.10 [integration], T-081.11 [integration], T-081.12 [integration], T-081.13 [integration], T-081.14 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
