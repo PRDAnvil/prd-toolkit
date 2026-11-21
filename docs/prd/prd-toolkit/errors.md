@@ -615,6 +615,7 @@ Recurrence of: -
 ### E-047 id-format reports a malformed test-case key at line 1
 Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:74 @4465291)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-121
 Evidence: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54).
 Diagnosis: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54). A key such as `T-12.1:` on line 40 is therefore reported at `test-cases/<area>.yaml:1`. Every other place in this file reports a test-case key at its real line (`tc.line`, ids.py:38, 157), and every other key and value in this rule is reported at its own line. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
