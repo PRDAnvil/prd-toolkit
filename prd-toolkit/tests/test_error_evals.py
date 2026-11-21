@@ -144,8 +144,8 @@ def test_the_scaffold_runs_clean_in_an_empty_directory(tmp_path, case):
 
 # --- the samples: (passing, failing) for each regex grader ---
 
-XCRUN = ("git: error: couldn't create cache file '/tmp/xcrun_db-AbCd' (errno=Operation not permitted)\n"
-         "git: error: couldn't create cache file '/tmp/xcrun_db-EfGh' (errno=Operation not permitted)\n")
+XCRUN = ("git: error: couldn't create cache file '<tmp>/xcrun_db-AbCd' (errno=Operation not permitted)\n"
+         "git: error: couldn't create cache file '<tmp>/xcrun_db-EfGh' (errno=Operation not permitted)\n")
 TEST = "tests/unit/test_count_names.py"
 TOOL = "tools/count_names.py"
 TEST_OUT = (f"[main bcd2623] test: failing test for E-001\n 1 file changed, 23 insertions(+)\n"
@@ -158,6 +158,7 @@ T_COMMIT = 'git commit -m "test: failing test for E-001" -m "Refs: E-001"'
 F_COMMIT = 'git commit -m "fix: count only non-blank lines" -m "Refs: E-001"'
 L_COMMIT = 'git commit -m "docs(prd): resolve E-001" -m "Refs: E-001"'
 ADD_LEDGER = f"git add {LEDGER}"
+AMEND = f'git add {TOOL} && git commit --amend -m "fix: count only non-blank lines" -m "Refs: E-001"'
 
 RED_RUN = "Resolution: fixed in c002593, red run tests/unit/test_count_names.py [unit]\nRecurrence of: -\n"
 RESOLVE = (".prd-toolkit/prd error resolve docs/prd/greet E-001 --commit c002593 --red-run "
@@ -193,6 +194,9 @@ REGEX_SAMPLES = {
                (RESOLVE, ""))],
         ["", trace((RESOLVE, "")),
          trace((T_COMMIT, TEST_OUT), (RESOLVE, "")),  # no fix commit between the test and the resolve
+         trace((T_COMMIT, TEST_OUT), (AMEND, BOTH_OUT), (RESOLVE, "")),  # the fix amended into the test's commit
+         trace((T_COMMIT, TEST_OUT), (AMEND.replace("--amend -m", "-m") + " --amend", BOTH_OUT),
+               (RESOLVE, "")),  # --amend after the messages
          trace((f"git add {TEST} {TOOL} && {F_COMMIT}", BOTH_OUT), (F_COMMIT, FIX_OUT), (RESOLVE, "")),  # one commit
          trace((F_COMMIT, FIX_OUT), (T_COMMIT, TEST_OUT), (RESOLVE, "")),  # the test after the fix
          trace((T_COMMIT, TEST_OUT), (F_COMMIT, FIX_OUT)),  # never resolved
@@ -217,7 +221,8 @@ REGEX_SAMPLES = {
          trace((T_COMMIT, TEST_OUT), (RESOLVE, ""), (F_COMMIT, FIX_OUT)),  # the fix after the resolve
          trace((F_COMMIT, BOTH_OUT), (RESOLVE, "")),  # no separate test commit before it
          trace((T_COMMIT, TEST_OUT), (RESOLVE, "")),
-         trace((F_COMMIT, FIX_OUT), (T_COMMIT, TEST_OUT), (RESOLVE, ""))]),
+         trace((F_COMMIT, FIX_OUT), (T_COMMIT, TEST_OUT), (RESOLVE, "")),
+         trace((T_COMMIT, TEST_OUT), (AMEND, BOTH_OUT), (RESOLVE, ""))]),  # the fix amended into the test's commit
     (RED, "resolution-committed"): (
         [HISTORY,
          trace((RESOLVE, "E-001 resolved code bug"), (ADD_LEDGER, ""), (L_COMMIT, LEDGER_OUT)),
@@ -232,7 +237,12 @@ REGEX_SAMPLES = {
          trace((RESOLVE, ""), (f"git commit -a -m x", "")),
          trace((RESOLVE, ""), (f"git commit -am x", "")),
          trace((RESOLVE, ""), (f"git commit -m x -- {LEDGER}", "")),
-         trace((RESOLVE, ""), (f"git commit -m x {LEDGER}", ""))],
+         trace((RESOLVE, ""), (f"git commit -m x {LEDGER}", "")),
+         trace((RESOLVE, ""), (f'git add "{LEDGER}"', ""), (L_COMMIT, "")),  # a quoted path
+         trace((RESOLVE, ""), (f"git add {LEDGER}\n{L_COMMIT}", LEDGER_OUT)),  # two lines in one command
+         trace((RESOLVE, ""), (f"git add {PRD}", ""), (L_COMMIT, "")),  # the folder
+         trace((RESOLVE, ""), ("git add docs/prd", ""), (L_COMMIT, "")),
+         trace((RESOLVE, ""), ("git add docs", ""), (L_COMMIT, ""))],
         ["", trace((RESOLVE, "E-001 resolved code bug")),  # left in the working tree
          trace((RESOLVE, ""), (ADD_LEDGER, "")),  # staged, never committed
          trace((ADD_LEDGER, ""), (L_COMMIT, ""), (RESOLVE, "")),  # committed before the resolve
@@ -242,7 +252,9 @@ REGEX_SAMPLES = {
          trace((RESOLVE, ""), (f"git add {TOOL} && git commit -m 'update errors.md'", "")),  # the name only in a message
          trace((RESOLVE, ""), (f"git add {LEDGER}.bak && git commit -m x", "")),
          trace((RESOLVE, ""), ("git add .gitignore && git commit -m x", "")),
-         trace((RESOLVE, ""), ("git commit --amend -m x", ""))]),
+         trace((RESOLVE, ""), ("git commit --amend -m x", "")),
+         use("toolu_R", "/p/skills/handling-errors/running-an-error.md", "Read") + "\n"
+         + result("toolu_R", f"{RESOLVE}\n  git add {LEDGER}\n  git commit -m x")]),  # the skill's text, not a call
     (RED, "red-run-in-ledger"): (
         [RED_RUN, "Resolution: fixed in c002593277edbc3c05156d6ac5f6c214f3c78045, red run tests/unit/test_c.py::t [unit]"],
         ["Resolution: -\n", "Resolution: T-001.2 [unit], PRD 1.0.0, fixed in c002593\n",
