@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **Starts from `main` with 0.8.3 (ca2945e), the E-007 proof (PR #18) and this plan's refresh merged.** Work in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.8.4`, branch `feat/prd-toolkit-0.8.4`, cut from that `main`. The toolkit's own PRD is at 5.0.0. Never push, open a PR, or touch another repo without Ivan's request in his own words.
+- **Starts from `main` with 0.8.3 (ca2945e), the E-007 proof (PR #18) and this plan's refresh merged.** Work in `<repo>/.worktrees/prd-toolkit-0.8.4`, branch `feat/prd-toolkit-0.8.4`, cut from that `main`. The toolkit's own PRD is at 5.0.0. Never push, open a PR, or touch another repo without Ivan's request in his own words.
 - Commit as Ivan Histand <ihistand@rotoplas.com>; every message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Stage by path; never `git add -A`. One implementer at a time in this worktree.
 - **The toolkit's own PRD binds this branch.** `prdlint/model.py` is a `lint-cli` Boundary file: only Task 2 touches it, with the live ID Task 1 adds. Every other commit carries `Refs: none (no behaviour change)`. Never `--no-verify`. **The builder runs without isolation**: the Agent tool's `isolation: worktree` cuts from the main checkout's HEAD, not from this branch. Its round follows `running-a-build.md` as the E-007 build did: the caller cuts `prd-round/lint-cli-<n>` from this branch, the builder commits its code with its `prd_hooks.py vendor` refresh of `.prd-toolkit/` in one commit, and the round merges `--ff-only` after `prd_build_check.py --diff` exits 0.
 - The repo is public and the toolkit names no client: no app, editor or organization name in code, docs, tests or evals. Example slugs `greet`, `orders`, `notes`.

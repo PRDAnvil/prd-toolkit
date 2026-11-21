@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Work in `/Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.4`, branch `feat/prd-toolkit-0.4`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
+- Work in `<repo>/.worktrees/prd-toolkit-0.4`, branch `feat/prd-toolkit-0.4`. Never push, open a PR, or touch another repo without Ivan's request in his own words.
 - Commit as Ivan Histand <ihistand@rotoplas.com>; every message ends with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - The repo is public and the toolkit platform-neutral: no organization hosts, users, platform object names or people in code, docs, tests or evals.
 - Test-first: every rule, behaviour and skill-text pin fails before its change. Run it once to see it fail.
@@ -597,7 +597,7 @@ The controller runs steps 1, 2 and 5. Steps 3 and 4 are real sessions: Ivan driv
 - Outside this repo: `<scratchpad>/proof-0.4/hello`
 
 - [ ] **Step 1: Scaffold.** `hello_repo.py <dst>` runs `git init`, writes `TICKET.md` with spec §11's text and a `.gitignore` (`.venv/`, `__pycache__/`, `.pytest_cache/`), and commits. A pytest test in this repo runs it into `tmp_path` and checks the one commit and the two files. Commit: `test(prd-toolkit): hello-world scaffold`.
-- [ ] **Step 2: Load the branch.** Disable any installed prd-toolkit, so it does not shadow the branch (0.2 Later item 3), and run from `--plugin-dir /Users/ihistand/projects/claude-plugins/.worktrees/prd-toolkit-0.4/prd-toolkit`.
+- [ ] **Step 2: Load the branch.** Disable any installed prd-toolkit, so it does not shadow the branch (0.2 Later item 3), and run from `--plugin-dir <repo>/.worktrees/prd-toolkit-0.4/prd-toolkit`.
 - [ ] **Step 3: Author and build FR-001.**
   - `/prd-new` from `TICKET.md`, through every gate, dry run included: Approved, 1.0.0.
   - `prd_hooks.py install docs/prd/hello`, then `prd_hooks.py ci --github docs/prd/hello`; commit both with `Refs: none (no behaviour change)`.
