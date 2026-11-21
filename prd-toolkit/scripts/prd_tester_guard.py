@@ -9,6 +9,7 @@ Standard library only; it parses testing.md itself and does not import prdlint.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -30,6 +31,7 @@ _BACKTICKED = re.compile(r"`([^`]+)`")
 _ITEM_LIST = re.compile(r"\s*(`[^`]+`(?:\s*,\s*`[^`]+`)*)")
 _OP_CHARS = set("();<>|&")
 _TASK_OUTPUT = re.compile(r"^[A-Za-z0-9_-]+\.output$")
+_SESSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 # A glob character the shell would expand (outside quotes, unescaped; `^` and `#` are zsh's) is lexed as its mask, so
 # a check can tell `grep 'T-0*' tests` from `grep s* tests`; the other checks read the token with its glob characters back.
 _GLOB_MASK = {"*": "\x01", "?": "\x02", "[": "\x03", "^": "\x04", "#": "\x05"}
@@ -164,6 +166,9 @@ class Context:
         # Claude Code writes a background task's output in the `tasks` folder beside the scratchpad; a symlink is no tasks folder.
         tasks = self.scratch.parent / "tasks" if self.scratch else None
         self.tasks_dir: Path | None = tasks if tasks and tasks.is_dir() and not tasks.is_symlink() else None
+        # A headless session's hook input names no scratchpad: its tasks folder is then `<session id>/tasks`.
+        sid = data.get("session_id")
+        self.session_id: str | None = sid if isinstance(sid, str) and _SESSION_ID.match(sid) else None
         # The vendored packs are part of the PRD's harness; a symlinked `.prd-toolkit` or `packs` is no pack folder,
         # even one that points inside the repository.
         packs = self.top / ".prd-toolkit" / "packs"
@@ -240,10 +245,19 @@ class Context:
     def can_read_task_output(self, raw: str) -> bool:
         """Read (and only Read) of `<id>.output` directly in the tasks folder: a symlink or `..` that leaves
         the folder resolves to another parent and fails."""
-        if self.degraded or self.tasks_dir is None:
+        if self.degraded:
             return False
         p = (self.cwd / raw).resolve()
-        return p.parent == self.tasks_dir and bool(_TASK_OUTPUT.match(p.name))
+        if not _TASK_OUTPUT.match(p.name):
+            return False
+        if self.tasks_dir is not None:
+            return p.parent == self.tasks_dir
+        if self.scratch is not None or self.session_id is None:
+            return False
+        # no scratchpad in the hook input: the folder `tasks` of this session's own folder, and no symlink to one
+        named = Path(os.path.normpath(self.cwd / raw)).parent
+        return (p.parent.name == "tasks" and p.parent.parent.name == self.session_id
+                and named.name == "tasks" and not named.is_symlink())
 
     def can_write(self, raw: str, base: Path | None = None) -> bool:
         """`raw` resolved from `base` (default: cwd) is inside a write root."""
