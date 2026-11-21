@@ -520,6 +520,7 @@ Recurrence of: -
 ### E-038 known-failing-tags reports no tag that names an unknown errors.md entry
 Detected: 2026-11-21, adoption extract of trace (prd-toolkit/scripts/prdlint/trace.py:313 @a87f336)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-086
 Evidence: prd-toolkit/README.md, "Known-failing tests": "The trace's `known-failing-tags` rule reports a case with no tagged citation and a tag whose entry is resolved or unknown."
   prd-toolkit/scripts/prdlint/trace.py:318-321 reports a tag only when its T-id's case is not known-failing on that E-id, or when the entry exists and is resolved (`entry is not None and not entry.open`).
