@@ -762,6 +762,7 @@ Recurrence of: -
 ### E-061 contracts-valid accepts a permissions role with no secret
 Detected: 2026-11-22, confirmation of FR-176 (the answer of the owner to Q-33)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
 Touches: FR-176
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:290-292: a role is checked for `identity` only; `secret` is never read.
     In a copy of the fixture lint-cli/orders, line 2 of contracts/permissions.yaml replaced with `  admin: {identity: test-admin}` and line 3 with `  rep: {identity: test-rep, secret: ''}`: `prd lint` exits 0 and prints nothing.
