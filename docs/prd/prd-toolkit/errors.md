@@ -747,3 +747,44 @@ Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:500-508: `subprocess.ru
 Diagnosis: `_check_custom` wraps `subprocess.run` but catches only `FileNotFoundError`, `PermissionError` and `TimeoutExpired`. Any other `OSError` escapes the rule, and `prd_lint` exits 2 with `prd_lint: internal error in rule contracts-valid: OSError: …`. Two examples are a validator file that has its execute bit but no shebang and is not a binary (`[Errno 8] Exec format error`), and an argument list too long for the system (E2BIG). The evidence that this should be a finding: the rule's own description says the custom type's validator "must run and pass" and tells the user to correct the Validator command. The sibling branches turn "not found" and "not executable" into findings. Commit 5a66652 decoded validator output as UTF-8 "so non-ASCII validator output under a C locale is a finding, not exit 2". Reproduced in a copy of the fixture lint-cli/orders.
 Resolution: -
 Recurrence of: -
+
+### E-060 contracts-valid counts a field line inside a fenced code block for its event
+Detected: 2026-11-22, confirmation of FR-173 (the answer of the owner to Q-32)
+Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
+Touches: FR-173
+Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:207-215: `_check_events` matches headings in the code-stripped text (`st`) but field lines in the original text (`orig.startswith(f + ":")`).
+    In a copy of the fixture lint-cli/orders, line 4 of contracts/events.md replaced with three lines, a fence, `Trigger: a file arrives in the staging bucket.` and a fence: `prd lint` exits 0 and prints nothing.
+Diagnosis: `_check_events` finds headings in the code-stripped text but tests field lines against the original text (contracts.py:207-215). A `Trigger:`, `Payload:`, `Delivery:`, `Retries:` or `Failure:` line inside a fenced code block therefore counts for the event around it, though a fenced `### ` line starts no event (AC-173.3). The owner answered Q-32 on 2026-11-22 that a fenced field line counts for no event, and AC-173.3 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
+
+### E-061 contracts-valid accepts a permissions role with no secret
+Detected: 2026-11-22, confirmation of FR-176 (the answer of the owner to Q-33)
+Classification: code bug
+Touches: FR-176
+Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:290-292: a role is checked for `identity` only; `secret` is never read.
+    In a copy of the fixture lint-cli/orders, line 2 of contracts/permissions.yaml replaced with `  admin: {identity: test-admin}` and line 3 with `  rep: {identity: test-rep, secret: ''}`: `prd lint` exits 0 and prints nothing.
+Diagnosis: `_check_permissions` checks each role for `identity` only (contracts.py:290-292). prd-format.md gives a role the shape `{identity, secret}`, and a test's credentials come from its role's `secret`. The owner answered Q-33 on 2026-11-22 that a role with no secret, or an empty one, is a finding, and AC-176.8 now says so; the code reports nothing. Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
+
+### E-062 error-codes reads the failures of dependency files in subfolders of contracts/dependencies/
+Detected: 2026-11-22, confirmation of FR-184 (the answer of the owner to Q-35)
+Classification: code bug
+Touches: FR-184, FR-185
+Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:600-603: `error_citations` reads `failures` from every loaded YAML file whose path starts with `contracts/dependencies/`, at any depth; `contracts-valid` checks only the `.yaml` files directly in that folder (AC-180.5).
+    In a copy of the fixture lint-cli/orders, with contracts/dependencies/old/legacy.yaml holding `failures:` and `  timeout: NOT_CATALOGUED`: `prd lint` exits 1 and prints `docs/prd/orders/contracts/dependencies/old/legacy.yaml:2: error-codes: error code NOT_CATALOGUED is not in contracts/errors.yaml`.
+Diagnosis: `error_citations` reads `failures` from every loaded YAML file under `contracts/dependencies/`, at any depth (contracts.py:600-603), while `contracts-valid` checks only the `.yaml` files directly in that folder (AC-180.5). A file in a subfolder therefore cites codes for `error-codes` (FR-184) and counts as a citation for FR-185, though it is no dependency file. The owner answered Q-35 on 2026-11-22 that the dependency files are the `.yaml` files directly in `contracts/dependencies/` and that `error-codes` reads failures only from those, and AC-184.3 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
+
+### E-063 A custom type's Files glob passes files outside the PRD folder to the validator
+Detected: 2026-11-22, confirmation of FR-181 (the answer of the owner to Q-36)
+Classification: code bug
+Touches: FR-181
+Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:450: `glob.glob(g, root_dir=prd.root, recursive=True)` keeps every match that is a file, with no check that it lies in the PRD folder.
+    In a copy of the fixture lint-cli/orders, with docs/prd/outside.lkml written and the lookml row of prd.md section 7 given the Files `contracts/custom/*.lkml ../outside.lkml` and a validator that prints its arguments and exits 1: `prd lint` prints `docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: ['../outside.lkml', 'contracts/custom/sample.lkml']`. With the Files cell set to the file's absolute path, the validator receives that absolute path.
+Diagnosis: `custom_types` keeps every file a Files glob matches (contracts.py:450), so an absolute glob or one that climbs out with `..` passes files outside the PRD folder to the validator, and AC-181.1 already says a type's files are files in the PRD folder. The owner answered Q-36 on 2026-11-22 that such a match is a finding and is not passed to the validator, and AC-181.4 now says so; the code does neither. Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
