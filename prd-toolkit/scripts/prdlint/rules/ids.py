@@ -5,6 +5,7 @@ from collections.abc import Iterator
 
 from .. import languages
 from ..findings import Finding
+from ..markdown import split_cells
 from ..model import ADOPTION_STATES, IndexRow, Prd, ReqBlock
 from ..registry import rule
 from .structure import prose
@@ -192,13 +193,17 @@ def index_consistent(prd: Prd):
             yield Finding(b.file, b.line, "index-consistent", f"{b.id} is as-built but has no 'Source: <file>:<line> @<commit>' line")
         if b.id not in rows:
             yield Finding(b.file, b.line, "index-consistent", f"{b.id} has no row in the section 11 index")
+    prd_lines = prd.docs.get("prd.md", "").split("\n")
     for r in prd.index:
         b = block.get(r.id)
         if not b:
             yield Finding("prd.md", r.line, "index-consistent", f"{r.id} is in the index but has no block")
             continue
-        if r.title != b.title:
-            yield Finding("prd.md", r.line, "index-consistent", f"{r.id}: index title '{r.title}' differs from block title '{b.title}'")
+        # the Title cell as written: the loaded row has lost the backticks at either end
+        cells = split_cells(prd_lines[r.line - 1]) if 0 < r.line <= len(prd_lines) else []
+        title = cells[1] if len(cells) > 1 else r.title
+        if title != b.title:
+            yield Finding("prd.md", r.line, "index-consistent", f"{r.id}: index title '{title}' differs from block title '{b.title}'")
         if r.file != b.file:
             yield Finding("prd.md", r.line, "index-consistent", f"{r.id}: index file '{r.file}' differs from block file '{b.file}'")
         bad = False

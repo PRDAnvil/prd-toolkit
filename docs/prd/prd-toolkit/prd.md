@@ -269,7 +269,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-122 | Define each ID once | approved | features/lint-ids.md |  |
 | FR-123 | Mark a removal in both the index and the block | live | features/lint-ids.md | 9.3.0 |
 | FR-124 | Never cite a removed requirement or AC | live | features/lint-ids.md | 9.3.0 |
-| FR-125 | Keep the section 11 index and the blocks in step | approved | features/lint-ids.md |  |
+| FR-125 | Keep the section 11 index and the blocks in step | verified | features/lint-ids.md |  |
 | FR-126 | Require a Source line on an as-built block | approved | features/lint-ids.md |  |
 | FR-127 | Check errors.md entries against the blocks | approved | features/lint-ids.md |  |
 | FR-128 | Require a feature file for an area past not started | live | features/lint-ids.md | 9.3.0 |
