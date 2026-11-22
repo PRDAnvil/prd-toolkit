@@ -1,0 +1,1665 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below (they extend those of lint-cli.yaml, lint-structure.yaml and lint-ids.yaml):
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, written as an absolute path where a value
+#   takes it; <P> is <tmp>/docs/prd/orders. "python" is the interpreter running the tests (sys.executable).
+#   S0 = write each entry of fixture lint-cli/orders (contracts/fixtures/lint-cli/orders.yaml) to <P>/<key>, creating
+#   parent folders, and set PRD_PLUGINS_FILE to the absolute path of fixture lint-cli/plugins_superpowers.json.
+#   With S0 alone the folder lints clean (T-001.1).
+#   A file named in a setup step is relative to <P> unless it starts with <tmp>. "line N of F" is line N of F as S0
+#   wrote it, before any other step of the case; "replace line N of F with X" keeps every other line; "insert X
+#   after line N of F" makes X line N+1 (several lines listed in order follow one another); "delete line N of F"
+#   removes it; "delete the file F" removes F; "append X to F" adds each line of X, each with a newline, after F's final newline; "write F with the
+#   lines X" creates F, and its folders, holding each line of X and a newline. A step that does not find the file or
+#   the line it names ends the test as an error, not a failure.
+#   "texts.<key>" (a whole value) stands for the string, or the list of strings, one line each, under <key>; "the three lines of texts.<key>" writes its items in order in fixture lint-registries/texts
+#   (contracts/fixtures/lint-registries/texts.yaml, read with yaml.safe_load). Texts that a lint of this PRD folder
+#   would itself report (a clarification marker, a malformed ID) live there.
+#   LINT = python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders, run with <tmp> as its working directory.
+#   HELP = python <repo>/prd-toolkit/scripts/prd_help.py.
+#   A run written as a mapping {env: ..., command: ...} adds that env for that run only (Harness, Subprocess
+#   environment, which removes PRD_LINT_CI from the runner's environment).
+#   A case whose output has no exit key does not assert the exit code: other rules may report its edits.
+#   Every run, and every command of a step, uses the Subprocess environment (Harness) minus GIT_DIR, GIT_WORK_TREE,
+#   GIT_INDEX_FILE and GIT_COMMON_DIR, so a suite started from a git hook still sees <tmp> as its own place. A step whose
+#   own command exits other than 0 ends the test as an error. A precondition that a case's note states (a program not on
+#   PATH, a folder outside a git checkout, a path that does not exist, the git toplevel of a folder) is checked by the
+#   test before the run, and one that does not hold ends the test as an error.
+#   A note in parentheses at the end of a setup step that speaks of spaces or of line numbers, such as (three spaces
+#   before Run), (nothing after the colon) or (lines 15 to 18), describes what the step writes and is no part of it. Any
+#   other parenthesis belongs to the line: the runbook's own (actor: ...) and (env: ...), and the words of a message.
+#   "insert after line N of F the line X" is the same step as "insert X after line N of F".
+#   The tests' helpers (S0, the runs of LINT and HELP, the assertions) are defined in this area's own support file,
+#   lint_registries_support.py (testing.md, Layout); the tests import nothing from another area's support file.
+#   A run written as a mapping may hold before: <step>. That step is applied after the run before it and before this
+#   run, on the folder as the earlier run left it; "line N of F" in it is line N of F as it stands at that moment.
+T-132.1:
+  ac: AC-132.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `python3 -m json.tool` | none; stand-in command for the fixture | code, schema.sql | maybe |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/prd.md:59: registries: standards Decision 'maybe' is not one of enforced, declined, proposed"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-132.2:
+  ac: AC-132.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | plans | superpowers:writing-plans | maybe |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/prd.md:65: registries: skills Decision 'maybe' is not one of required, recommended, declined, proposed"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-132.3:
+  ac: AC-132.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `python3 -m json.tool` | none; stand-in command for the fixture | code, schema.sql | proposed |", "replace line 65 of prd.md with | plans | superpowers:writing-plans | proposed |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/prd.md:59: registries: standards row is still 'proposed' but the PRD is Approved"
+        - "docs/prd/orders/prd.md:65: registries: skills row is still 'proposed' but the PRD is Approved"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-132.4:
+  ac: AC-132.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of prd.md with status: Draft", "replace line 59 of prd.md with | `**/*.sql` | `python3 -m json.tool` | none; stand-in command for the fixture | code, schema.sql | proposed |", "replace line 65 of prd.md with | plans | superpowers:writing-plans | proposed |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "registries:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-132.5:
+  ac: AC-132.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `no-such-linter-xyz` | none; stand-in command for the fixture | code, schema.sql | `declined` |", "replace line 65 of prd.md with | plans | nonexistent:skill | `recommended` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-133.1:
+  ac: AC-133.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | python3 -m json.tool | none; stand-in command for the fixture | code, schema.sql | enforced |"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - LINT --ci
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines: ["docs/prd/orders/prd.md:59: registries: enforced standards row has no linter command ('python3 -m json.tool'); put it in backticks"]
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-133.2:
+  ac: AC-133.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `no-such-linter-xyz --check src` | none; stand-in command for the fixture | code, schema.sql | enforced |"]
+    cwd: <tmp>
+    command: LINT
+    note: no file named no-such-linter-xyz is on the runner's PATH
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/prd.md:59: registries: enforced linter command 'no-such-linter-xyz' is not on PATH"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-133.3:
+  ac: AC-133.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `'no such linter' -x` | none; stand-in command for the fixture | code, schema.sql | enforced |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/prd.md:59: registries: enforced linter command 'no such linter' is not on PATH"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-133.4:
+  ac: AC-133.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `no-such-linter-xyz --check src` | none; stand-in command for the fixture | code, schema.sql | enforced |"]
+    cwd: <tmp>
+    runs:
+      - LINT --ci
+      - {env: {PRD_LINT_CI: "1"}, command: LINT}
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-133.5:
+  ac: AC-133.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of prd.md with status: Draft", "replace line 59 of prd.md with | `**/*.sql` | no-such-linter-xyz | none; stand-in command for the fixture | code, schema.sql | proposed |", "insert after line 59 of prd.md the line | `**/*.py` | `no-such-linter-xyz` | none | code | declined |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "registries:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-134.1:
+  ac: AC-134.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | plans | nonexistent:skill | required |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/prd.md:65: registries: required skill 'nonexistent:skill' is not installed; if it is built into Claude Code, mark the row 'recommended'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-134.2:
+  ac: AC-134.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | tdd | `superpowers:test-driven-development` | required |"]
+    cwd: <tmp>
+    command: LINT
+    note: the plugins file lists superpowers@superpowers-marketplace with no installPath, so presence is enough
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-134.3:
+  ac: AC-134.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders]
+  input:
+    setup: [S0, "write <tmp>/plugins.json with the lines {\"plugins\": {\"superpowers@superpowers-marketplace\": [{\"installPath\": \"<tmp>/plug\"}]}}"]
+    cwd: <tmp>
+    command: {env: {PRD_PLUGINS_FILE: "<tmp>/plugins.json"}, command: LINT}
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/prd.md:65: registries: required skill 'superpowers:writing-plans' is not installed; if it is built into Claude Code, mark the row 'recommended'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-134.4:
+  ac: AC-134.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders]
+  input:
+    setup: [S0, "write <tmp>/plugins.json with the lines {\"plugins\": {\"superpowers@superpowers-marketplace\": [{\"installPath\": \"<tmp>/plug\"}]}}", "write <tmp>/plug/skills/writing-plans/SKILL.md with the lines # writing-plans"]
+    cwd: <tmp>
+    command: {env: {PRD_PLUGINS_FILE: "<tmp>/plugins.json"}, command: LINT}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-134.5:
+  ac: AC-134.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | plans | my-skill | required |"]
+    cwd: <tmp>
+    command: {env: {HOME: "<tmp>/home"}, command: LINT}
+    note: <tmp> is not inside a git checkout and <tmp>/home does not exist
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/prd.md:65: registries: required skill 'my-skill' is not installed; if it is built into Claude Code, mark the row 'recommended'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-134.6:
+  ac: AC-134.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | plans | my-skill | required |", "write <tmp>/home/.claude/skills/my-skill/SKILL.md with the lines # my-skill"]
+    cwd: <tmp>
+    command: {env: {HOME: "<tmp>/home"}, command: LINT}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-134.7:
+  ac: AC-134.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | plans | my-skill | required |", "run git init -q in <tmp>", "write <tmp>/.claude/skills/my-skill/SKILL.md with the lines # my-skill"]
+    cwd: <tmp>
+    command: {env: {HOME: "<tmp>/home"}, command: LINT}
+    note: the repository root is <tmp>, the git toplevel of <P>; <tmp>/home holds no skill
+  expect:
+    output: {stdout_not_contains: "registries:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-134.8:
+  ac: AC-134.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | plans | nonexistent:skill | required |"]
+    cwd: <tmp>
+    runs:
+      - LINT --ci
+      - {env: {PRD_LINT_CI: "1"}, command: LINT}
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-134.9:
+  ac: AC-134.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 65 of prd.md with | plans | nonexistent:skill | recommended |", "insert after line 65 of prd.md the line | reviews | other:skill | declined |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-135.1:
+  ac: AC-135.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 27 of operations.md with 6. Smoke on production (actor: agent) (env: production)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:27: runbook-steps: step 6: expected step 5"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-135.2:
+  ac: AC-135.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 20 of operations.md with 4. Approve production (actor: human) (env: production)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/operations.md:20: runbook-steps: step 4: expected step 3"
+        - "docs/prd/orders/operations.md:23: runbook-steps: step 4: expected step 5"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-135.3:
+  ac: AC-135.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 17 of operations.md the line    Rollback: `./deploy.sh staging --previous` (three spaces before Rollback)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:18: runbook-steps: step 1: label Rollback appears twice"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-135.4:
+  ac: AC-135.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 20 of operations.md with 3. Approve production (env: production)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:20: runbook-steps: step 3: the step line needs (actor: agent|human) (env: <environment>)"
+      stdout_not_contains: ["operations.md:21: runbook-steps", "operations.md:22: runbook-steps", "(prd-toolkit 0.5 runbook format)"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-135.5:
+  ac: AC-135.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 14 of operations.md with 1. Deploy to staging (actor: agent)", "replace line 18 of operations.md with 2. System tests on staging (actor: agent)", "replace line 20 of operations.md with 3. Approve production (actor: human)", "replace line 23 of operations.md with 4. Deploy to production (actor: agent)", "replace line 27 of operations.md with 5. Smoke on production (actor: agent)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/operations.md:14: runbook-steps: step 1: the step line needs (actor: agent|human) (env: <environment>) (prd-toolkit 0.5 runbook format)"
+        - "docs/prd/orders/operations.md:18: runbook-steps: step 2: the step line needs (actor: agent|human) (env: <environment>)"
+        - "docs/prd/orders/operations.md:20: runbook-steps: step 3: the step line needs (actor: agent|human) (env: <environment>)"
+        - "docs/prd/orders/operations.md:23: runbook-steps: step 4: the step line needs (actor: agent|human) (env: <environment>)"
+        - "docs/prd/orders/operations.md:27: runbook-steps: step 5: the step line needs (actor: agent|human) (env: <environment>)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-135.6:
+  ac: AC-135.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, delete the file operations.md]
+    cwd: <tmp>
+    command: LINT
+    note: another rule reports the missing file, so the exit code is not asserted
+  expect:
+    output: {stdout_not_contains: "runbook-steps", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-136.1:
+  ac: AC-136.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 21 of operations.md with    Run: `./deploy.sh production` (three spaces before Run)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:21: runbook-steps: step 3: a human step takes Do: and Check:, not Run:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-136.2:
+  ac: AC-136.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 22 of operations.md the lines    Run: `./deploy.sh production` and    Rollback: `./deploy.sh production --previous` (each with three spaces before its label)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:23: runbook-steps: step 3: a human step takes Do: and Check:, not Run: or Rollback:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-136.3:
+  ac: AC-136.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 22 of operations.md"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:20: runbook-steps: step 3: a human step needs Do: and Check:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-137.1:
+  ac: AC-137.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 15 of operations.md the line    Do: press the button (three spaces before Do)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:16: runbook-steps: step 1: an agent step takes Run:, Check: and Rollback:, not Do:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-137.2:
+  ac: AC-137.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 15 of operations.md"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:14: runbook-steps: step 1: an agent step needs Run:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-137.3:
+  ac: AC-137.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 15 of operations.md with    Run: ./deploy.sh staging (three spaces before Run)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:15: runbook-steps: step 1: Run: must be one backticked command or tests <level>[, <level>]; got './deploy.sh staging'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-137.4:
+  ac: AC-137.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 16 of operations.md"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:14: runbook-steps: step 1: an agent step needs Check:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-137.5:
+  ac: AC-137.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 16 of operations.md with    Check: curl it (three spaces before Check)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:16: runbook-steps: step 1: Check: must be one backticked command, optionally followed by prints `<text>`; got 'curl it'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-137.6:
+  ac: AC-137.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 17 of operations.md with    Rollback: ./deploy.sh staging --previous (three spaces before Rollback)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:17: runbook-steps: step 1: Rollback: must be one backticked command; got './deploy.sh staging --previous'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-137.7:
+  ac: AC-137.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 15 of operations.md with texts.run_marker", "replace line 16 of operations.md with texts.check_marker", "replace line 17 of operations.md with texts.rollback_marker"]
+    cwd: <tmp>
+    command: LINT
+    note: markers-open reports the three markers, since the PRD is Approved
+  expect:
+    output: {stdout_not_contains: "runbook-steps", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-137.8:
+  ac: AC-137.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 16 of operations.md with    Check: `curl -fsS https://orders-staging.example.com/health` prints `ok` prints `ok` (three spaces before Check)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:16: runbook-steps: step 1: Check: must be one backticked command, optionally followed by prints `<text>`; got '`curl -fsS https://orders-staging.example.com/health` prints `ok` prints `ok`'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-138.1:
+  ac: AC-138.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 19 of operations.md with    Run: tests , (three spaces before Run)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:19: runbook-steps: step 2: a tests step names no levels"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-138.2:
+  ac: AC-138.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 19 of operations.md the line    Check: `true` (three spaces before Check)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:20: runbook-steps: step 2: a tests step has no Check:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-138.3:
+  ac: AC-138.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 19 of operations.md the line    Rollback: undo it (three spaces before Rollback)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:20: runbook-steps: step 2: Rollback: must be one backticked command; got 'undo it'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-138.4:
+  ac: AC-138.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    command: LINT
+    note: steps 2 and 5 are tests steps with no Check line
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-139.1:
+  ac: AC-139.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 10 of operations.md the line | qa | https://qa.example.com | no |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:11: runbook-env: environment 'qa' is in operations.md but not in testing.md Environments"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-139.2:
+  ac: AC-139.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 9 of operations.md with | staging | https://orders-staging.example.com | maybe |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:9: runbook-env: environment 'staging': Production 'maybe' is not yes or no"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-139.3:
+  ac: AC-139.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of operations.md with | Environment | URL | Live |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:7: runbook-env: operations.md Environments has no Production column"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-139.4:
+  ac: AC-139.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 10 of operations.md with | production | https://orders.example.com | no |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:7: runbook-env: operations.md Environments: no environment has Production yes"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-139.5:
+  ac: AC-139.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, delete the file operations.md]
+    cwd: <tmp>
+    command: LINT
+    note: another rule reports the missing file, so the exit code is not asserted
+  expect:
+    output: {stdout_not_contains: "runbook-env", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-140.1:
+  ac: AC-140.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 14 of operations.md with 1. Deploy to staging (actor: agent) (env: qa)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:14: runbook-env: step 1: environment 'qa' is not in operations.md Environments"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-140.2:
+  ac: AC-140.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 14 of operations.md with 1. Deploy to staging (actor: agent) (env: Staging)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:14: runbook-env: step 1: environment 'Staging' is not in operations.md Environments (did you mean 'staging'?)"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-140.3:
+  ac: AC-140.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 34 of operations.md with | prod | 1.0.0 | 3f2c1a9 | 2026-11-02 | 20261102T103000Z-production |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:34: runbook-env: Deployed row: environment 'prod' is not in operations.md Environments"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-140.4:
+  ac: AC-140.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 40 of operations.md with | Production | version | `curl -fsS https://orders.example.com/version` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:40: runbook-env: Drift row: environment 'Production' is not in operations.md Environments (did you mean 'production'?)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-140.5:
+  ac: AC-140.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 10 of operations.md the line | qa | https://qa.example.com | no |", "replace line 14 of operations.md with 1. Deploy to staging (actor: agent) (env: qa)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/operations.md:11: runbook-env: environment 'qa' is in operations.md but not in testing.md Environments"
+        - "docs/prd/orders/operations.md:15: runbook-env: step 1: environment 'qa' is not in testing.md Environments"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-141.1:
+  ac: AC-141.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 20 of operations.md with 3. Approve production (actor: agent) (env: production)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:20: production-gate: step 3 deploys production with no human step at or just before it"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-141.2:
+  ac: AC-141.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 20 of operations.md with 3. Approve production (actor: human) (env: staging)"]
+    cwd: <tmp>
+    command: LINT
+    note: the first production step is now step 4 (agent), directly after the human step 3 on staging
+  expect:
+    output: {stdout_not_contains: "production-gate", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-141.3:
+  ac: AC-141.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    command: LINT
+    note: the first production step, step 3, is itself a human step
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-142.1:
+  ac: AC-142.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 19 of operations.md with    Run: tests system, nope (three spaces before Run)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:19: runbook-tests: step 2: level 'nope' is not in testing.md Levels"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-142.2:
+  ac: AC-142.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 19 of operations.md with    Run: tests system, unit (three spaces before Run)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/operations.md:19: runbook-tests: step 2: level 'unit' has Gate build; a tests step runs deploy-gate levels"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-142.3:
+  ac: AC-142.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 11 of testing.md with | e2e | `pytest tests/e2e` | staging | |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:19: runbook-tests: step 2: level 'e2e' has Gate none; a tests step runs deploy-gate levels"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-142.4:
+  ac: AC-142.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 11 of testing.md with | e2e | | staging | deploy |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:19: runbook-tests: step 2: level 'e2e' has no Harness command"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-142.5:
+  ac: AC-142.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 11 of testing.md with texts.e2e_marker_row"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "runbook-tests", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-143.1:
+  known-failing: E-053
+  symptom: "stdout holds the line docs/prd/orders/operations.md:40: drift-rows: check 'schema': schema drift arrives in prd-toolkit 0.6"
+  ac: AC-143.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 40 of operations.md with | production | schema | `true` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:40: drift-rows: check 'schema' is not version or config"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-143.2:
+  ac: AC-143.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 40 of operations.md with | production | size | `true` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:40: drift-rows: check 'size' is not version or config"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-143.3:
+  ac: AC-143.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 40 of operations.md with | production | Version | `curl -fsS https://orders.example.com/version` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:40: drift-rows: check 'Version' is not version or config"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-143.4:
+  ac: AC-143.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete the file contracts/config.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/operations.md:41: drift-rows: a config drift row needs contracts/config.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-144.1:
+  ac: AC-144.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 3 of errors.md with ### E-002 Empty import file crashed the importer"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/errors.md:3: error-entries: E-002 is the first entry: E-001 is missing; entries are never deleted, restore it from git"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-144.2:
+  ac: AC-144.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 3 of errors.md with ### E-003 Empty import file crashed the importer"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {command: LINT, before: "replace line 3 of errors.md with ### E-012 Empty import file crashed the importer"}
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout_contains_line: "docs/prd/orders/errors.md:3: error-entries: E-003 is the first entry: E-001, E-002 are missing; entries are never deleted, restore them from git"
+      run_2:
+        exit: 1
+        stdout_contains_line: "docs/prd/orders/errors.md:3: error-entries: E-012 is the first entry: E-001 to E-011 are missing; entries are never deleted, restore them from git"
+    effects: []
+    errors: []
+    leaks: none
+T-144.3:
+  ac: AC-144.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to errors.md five lines: an empty line, the line ### E-003 A later entry, then the three lines of texts.entry_tail"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:10: error-entries: E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-144.4:
+  ac: AC-144.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to errors.md five lines: an empty line, the line ### E-005 A later entry, then the three lines of texts.entry_tail"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:10: error-entries: E-005 follows E-001: E-002 to E-004 are missing; entries are never deleted, restore them from git"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-144.5:
+  ac: AC-144.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to errors.md five lines: an empty line, the line texts.short_id_heading, then the three lines of texts.entry_tail"]
+    cwd: <tmp>
+    command: LINT
+    note: the short ID counts as number 1, at or below the highest so far; id-format also reports it, and that line is not asserted
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: texts.short_id_expect
+      stdout_not_contains: "is missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-144.6:
+  ac: AC-144.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to errors.md ten lines: an empty line, the line ### E-002 A later entry, the three lines of texts.entry_tail, an empty line, the line ### E-003 The latest entry, then the three lines of texts.entry_tail_later"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-144.7:
+  known-failing: E-052
+  symptom: "stdout holds the line docs/prd/orders/errors.md:10: error-entries: E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git"
+  ac: AC-144.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to errors.md the ten lines of texts.later_entries: an empty line and the entry E-003 (lines 10 to 13), then an empty line and the entry E-002 (lines 15 to 18)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/errors.md:15: error-entries: E-002 follows E-003: entries run from E-001 upward, newest last"
+      stdout_not_contains: "is missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-145.1:
+  ac: AC-145.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of errors.md with Classification: typo"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:5: error-entries: E-001: Classification: 'typo' is not one of code bug, spec gap, invalid requirement, environment, standard, unclassified"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-145.2:
+  ac: AC-145.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 5 of errors.md the line Evidence: run 1, then the 20 lines `  run 2` to `  run 21` (two spaces, run, a space, the number)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:6: error-entries: E-001: Evidence: is 21 lines; at most 20"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-145.3:
+  ac: AC-145.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 5 of errors.md the line Evidence: run 1, then the 19 lines `  run 2` to `  run 20`"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-145.4:
+  ac: AC-145.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 5 of errors.md the line Evidence: (nothing after the colon), then the 21 lines `  run 1` to `  run 21`"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {command: LINT, before: "delete line 27 of errors.md, the line `  run 21` (two spaces, then run 21)"}
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout_exact_lines: ["docs/prd/orders/errors.md:6: error-entries: E-001: Evidence: is 21 lines; at most 20"]
+      run_2: {exit: 0, stdout: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-146.1:
+  ac: AC-146.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 5 of errors.md the line Confirmed: yesterday"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:6: error-entries: E-001: Confirmed: must be '<YYYY-MM-DD>, \"<reply>\"'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-146.2:
+  ac: AC-146.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of errors.md with Classification: unclassified", "replace line 7 of errors.md with Resolution: open", "insert after line 5 of errors.md the line Confirmed: 2026-11-01, \"yes\""]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:6: error-entries: E-001: Confirmed: on an unclassified entry"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-146.3:
+  ac: AC-146.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 5 of errors.md the line Confirmed: 2026-11-01, \"yes, a code bug\""]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-147.1:
+  ac: AC-147.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of errors.md with Detected: yesterday", "insert after line 5 of errors.md the line Confirmed: 2026-11-01, \"yes\""]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:4: error-entries: E-001: Detected: must be \"<YYYY-MM-DD>, <source>\""]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-147.2:
+  ac: AC-147.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of errors.md with Detected: 2026-10-29,test failure", "insert after line 5 of errors.md the line Confirmed: 2026-11-01, \"yes\""]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:4: error-entries: E-001: Detected: must be \"<YYYY-MM-DD>, <source>\""]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-147.3:
+  ac: AC-147.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of errors.md with Recurrence of: E-001, E-009", "insert after line 5 of errors.md the line Confirmed: 2026-11-01, \"yes\""]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:9: error-entries: E-001: Recurrence of: E-009 is not an entry"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-148.1:
+  ac: AC-148.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - HELP --rule registries
+      - HELP --rule runbook-steps
+      - HELP --rule runbook-env
+      - HELP --rule production-gate
+      - HELP --rule drift-rows
+      - HELP --rule error-entries
+  expect:
+    output:
+      run_1: {exit: 0, stdout_first_line: "registries (error)", stderr: ""}
+      run_2: {exit: 0, stdout_first_line: "runbook-steps (error)", stderr: ""}
+      run_3: {exit: 0, stdout_first_line: "runbook-env (error)", stderr: ""}
+      run_4: {exit: 0, stdout_first_line: "production-gate (error)", stderr: ""}
+      run_5: {exit: 0, stdout_first_line: "drift-rows (error)", stderr: ""}
+      run_6: {exit: 0, stdout_first_line: "error-entries (error)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-148.2:
+  ac: AC-148.2
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    command: HELP --rule registries
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks the section 5 and 6 registries: each Decision is one of its table's values, no row is proposed while the PRD is Approved, an enforced standard has a backticked linter command on PATH, and a required skill is installed. Fix the Decision or the command, install the skill, or mark a skill built into Claude Code recommended.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-148.3:
+  ac: AC-148.3
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    command: HELP --rule runbook-steps
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks the operations.md runbook: steps numbered from 1 with no gap, each with (actor: agent|human) (env: <environment>), an agent step's Run:, Check: and Rollback: in their forms, a human step's Do: and Check:, and no label twice. Rewrite the step to the form the message gives.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-148.4:
+  ac: AC-148.4
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    command: HELP --rule runbook-env
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that operations.md Environments has a Production column with yes or no on every row and at least one yes, and a valid branch name or blank in each Branch cell, that every environment there is also in testing.md Environments, and that each runbook step and Deployed or Drift row names an environment of both tables. Add the environment to both tables or correct the name the message gives, add the Production column or set a row's Production to yes or no, and write a valid branch name or leave the Branch blank.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-148.5:
+  ac: AC-148.5
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    command: HELP --rule production-gate
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that the first runbook step on each production environment is a human step or directly follows one. Add a human approval step just before it.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-148.6:
+  ac: AC-148.6
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    command: HELP --rule drift-rows
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that each Drift row's Check is version or config, and that a config row has contracts/config.yaml. Use one of the two checks, or add the config contract.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-148.7:
+  ac: AC-148.7
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    command: HELP --rule error-entries
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks errors.md entries: they run from E-001 upward with no gap, newest last; each has a known Classification, Evidence of at most 20 lines, and a Confirmed: in its form only on a classified entry; and an entry with Confirmed: also has Detected in its form and a Recurrence of that names an entry. Fix the line the message names, put an out-of-order entry back in sequence, and restore a deleted entry from git.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
