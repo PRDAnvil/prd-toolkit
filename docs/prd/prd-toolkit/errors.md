@@ -791,3 +791,20 @@ Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:450: `glob.glob(g, root
 Diagnosis: `custom_types` keeps every file a Files glob matches (contracts.py:450), so an absolute glob or one that climbs out with `..` passes files outside the PRD folder to the validator, and AC-181.1 already says a type's files are files in the PRD folder. The owner answered Q-36 on 2026-11-22 that such a match is a finding and is not passed to the validator, and AC-181.4 now says so; the code does neither. Reproduced in a copy of the fixture lint-cli/orders.
 Resolution: -
 Recurrence of: -
+
+### E-064 --sources reads a changed path's hunks through a glob pathspec, so another file's hunks can admit a SOURCES line
+Detected: 2026-11-22, adoption extract of build-check (prd-toolkit/scripts/prdlint/buildcheck.py:186 @2caf953)
+Classification: code bug
+Touches: FR-193
+Diagnosis: hunks_of runs `git diff -U0 --no-color --no-renames <base> <head> -- <path>` with no `--literal-pathspecs` (buildcheck.py:186), so git reads the path as a glob pathspec. If a changed file's name holds `*`, `?` or `[`, its hunk list also takes the hunks of every other changed file the pattern matches: a round that changes `src/x*.py` at line 1 and `src/xy.py` at line 50 lets the line `FR-001: src/x*.py:50` pass, though `src/x*.py` has no change at line 50. The path test just above (`path not in changed`) reads the path literally, as do the module's other git reads: `--stale` runs `git --literal-pathspecs log` and `status` (lines 254 and 296), and `--diff` reads blobs as `<rev>:<path>`. Commit 259c29b made the check read paths literally; `--sources` came later (d14b0ea), with no literal flag.
+Resolution: -
+Recurrence of: -
+
+### E-065 The plugin-directory search reads git ls-tree without -z, so a plugin under a non-ASCII folder name is never found
+Detected: 2026-11-22, adoption extract of build-check (prd-toolkit/scripts/prdlint/buildcheck.py:71 @2caf953)
+Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
+Touches: FR-191, FR-192
+Diagnosis: plugin_dir lists the head tree with `git ls-tree -r --name-only <rev>` and splits the output at newlines (buildcheck.py:71-75). With git's default `core.quotePath`, a path that holds a byte above 0x7F (or a quote, backslash or control character) is printed C-quoted, such as `"pl\303\274gin/.claude-plugin/plugin.json"`; that name does not end in `/.claude-plugin/plugin.json`, so the plugin directory is never found, and an exact vendor refresh in such a repository gets the AC-191.1 refusal instead of the comparison of AC-192.1. The sibling reads in the same module use `-z` for this reason: `refresh_differences` (line 113) and `_case_entries` (line 267); commit 78c95a6 says `--stale` uses `ls-tree -z` so a non-ASCII name is not C-quoted away.
+Resolution: -
+Recurrence of: -
