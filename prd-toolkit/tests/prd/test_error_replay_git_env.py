@@ -6,8 +6,6 @@ a line of `git status --porcelain` after run_1 whose path is `junk`, is the expe
 """
 from __future__ import annotations
 
-import pytest
-
 from error_replay_support import REPLAY, assert_left_as_it_was, case, given  # noqa: F401 (case is the fixture)
 
 
@@ -20,10 +18,9 @@ def _junk_lines(status: str) -> list[str]:
     return [line for line in status.splitlines() if line[3:] == "junk"]
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailureE036, reason="E-036")
 @given("R0", "RT", "RF", "RGA", "RE", resolution="T-006.1 [integration], PRD 1.0.0, fixed in <fix>")
 def test_replay_with_git_index_file_leaves_the_index(case):
-    """@prd T-079.9 known-failing E-036"""
+    """@prd T-079.9"""
     res = case.run(REPLAY, env={"GIT_INDEX_FILE": "<tmp>/repo/.git/index"})
     case.expect(res, exit=1, stdout="E-001: T-006.1 passes on <fix>^; <fix> did not turn it green\n")
     junk = _junk_lines(res.after["status"])
