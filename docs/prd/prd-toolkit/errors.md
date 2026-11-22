@@ -825,3 +825,11 @@ Touches: FR-191, FR-192
 Diagnosis: plugin_dir lists the head tree with `git ls-tree -r --name-only <rev>` and splits the output at newlines (buildcheck.py:71-75). With git's default `core.quotePath`, a path that holds a byte above 0x7F (or a quote, backslash or control character) is printed C-quoted, such as `"pl\303\274gin/.claude-plugin/plugin.json"`; that name does not end in `/.claude-plugin/plugin.json`, so the plugin directory is never found, and an exact vendor refresh in such a repository gets the AC-191.1 refusal instead of the comparison of AC-192.1. The sibling reads in the same module use `-z` for this reason: `refresh_differences` (line 113) and `_case_entries` (line 267); commit 78c95a6 says `--stale` uses `ls-tree -z` so a non-ASCII name is not C-quoted away.
 Resolution: -
 Recurrence of: -
+
+### E-067 The Glossary part matches a term against the "(area: …)" label the pack adds to a block's heading
+Detected: 2026-11-22, adoption extract of context (prd-toolkit/scripts/prdlint/context.py:91 @f5d2b4c)
+Classification: unclassified
+Touches: FR-208, FR-209
+Diagnosis: -
+Resolution: -
+Recurrence of: -
