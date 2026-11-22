@@ -567,7 +567,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-107, FR-099
 Evidence: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action.
 Diagnosis: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action. `vendor` is documented as a separate action that "writes `.prd-toolkit/` … and nothing else" (README.md:418, hooks.py:311 docstring), and the hooks command names every other refusal after its own action (`prd_hooks: vendor runs from the plugin, …`, `--ci belongs to check`). Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
-Resolution: -
+Resolution: T-107.4 [integration], PRD 9.6.0, fixed in 012db11a519eaa009e82d4c0e64d74980eb7cd80
 Recurrence of: -
 
 ### E-043 Outside a git checkout, install vendors into the PRD folder and then fails with an internal error
