@@ -226,6 +226,16 @@ needs_py: |
       sys.exit(3)
   sys.exit(subprocess.run([sys.executable, sys.argv[1]]).returncode)
 
+# tools/ro.py: makes the folders ro/x in its working directory, writes the file ro/x/f, sets the mode of ro/x to
+# 0500, so that a user other than root cannot remove what it holds, and exits 0, whatever it is given.
+ro_py: |
+  import os
+
+  os.makedirs("ro/x", exist_ok=True)
+  with open("ro/x/f", "w") as f:
+      f.write("f\n")
+  os.chmod("ro/x", 0o500)
+
 # src/importer.py: a file of the adopted area import.
 importer: |
   x = 1
