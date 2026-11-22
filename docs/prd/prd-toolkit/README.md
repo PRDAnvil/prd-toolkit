@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 9.5.0 · Approved · Owner: Ivan Histand · Updated 2026-11-22
+Version 9.6.0 · Approved · Owner: Ivan Histand · Updated 2026-11-22
 
 ## What this PRD covers
 
@@ -27,6 +27,7 @@ Version 9.5.0 · Approved · Owner: Ivan Histand · Updated 2026-11-22
 | inbox-cards | adopted | [features/inbox-cards.md](features/inbox-cards.md) |
 | launcher | adopted | [features/launcher.md](features/launcher.md) |
 | lint-cli | adopted | [features/lint-cli.md](features/lint-cli.md) |
+| lint-contracts | adopted | [features/lint-contracts.md](features/lint-contracts.md) |
 | lint-ids | adopted | [features/lint-ids.md](features/lint-ids.md) |
 | lint-registries | adopted | [features/lint-registries.md](features/lint-registries.md) |
 | lint-structure | adopted | [features/lint-structure.md](features/lint-structure.md) |
