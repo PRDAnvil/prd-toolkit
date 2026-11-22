@@ -905,8 +905,6 @@ T-107.3:
     leaks: none
 
 T-107.4:
-  known-failing: E-042
-  symptom: "the exit code is 2 and stderr holds `prd_hooks: install refused: pack nosuch 1.0.0 (prd-toolkit) not found; looked in: ` and does not hold `vendor refused`"
   ac: AC-107.3
   level: integration
   target: "cli:prd_hooks"

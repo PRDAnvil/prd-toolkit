@@ -126,7 +126,7 @@ Tests: T-089.1 [integration], T-089.2 [integration], T-089.3 [integration], T-08
 Traces: cli:prd_trace
 
 ### FR-090 Check each commit of a range against the commit rule
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/trace.py:323 @a87f336
 Flow: 1. `git log <range>` with each commit's message and changed paths → 2. per commit, the Boundary as that commit's own tree's adoption map stood
       → 3. a commit touching the Boundary: its `Refs:` problems (FR-091) → 4. every commit: its `Change-set:` problems (FR-092)

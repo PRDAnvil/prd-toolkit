@@ -547,7 +547,7 @@ Touches: FR-090
 Evidence: prd-toolkit/scripts/prdlint/trace.py:21 holds `_SHA = re.compile(r"[0-9a-f]{40}")`, and `_commits` (trace.py:229) takes the last line of a commit's path list for the next commit's name only when that pattern matches the whole line.
   In a repository whose object format is SHA-256 a commit's name has 64 hex digits, so the pattern never matches: the first commit of the log keeps the next commit's name as one of its paths, and the loop ends.
 Diagnosis: With `--range`, `_commits` reads `git log` and finds where one commit ends and the next begins by a line of exactly 40 hex digits (trace.py:21, :229). In a repository whose object format is SHA-256 that line has 64 digits, so only the newest commit of the range is judged: the older commits get no `commit-refs` finding whatever their messages say, and the next commit's name is taken for a path of the newest one. The command says nothing of the commits it skipped and exits as if the range held one commit. The owner answered Q-09 on 2026-11-21 that trace is to support such a repository, and AC-090.7 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area trace.
-Resolution: -
+Resolution: T-090.9 [integration], PRD 9.6.0, fixed in eb9f9ff7602b0178325ef691207639af3a1250cc
 Recurrence of: -
 
 ### E-041 The 0.8.13 upgrade note says hooks check runs from the vendored copy; it refuses
@@ -567,7 +567,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-107, FR-099
 Evidence: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action.
 Diagnosis: When a pack the PRD names cannot be resolved, `prd_hooks.py vendor <prd_dir>` prints `prd_hooks: install refused: <reason>` and exits 2. The one `InstallRefused` handler (prd_hooks.py:95-97) serves both actions, so the message names the wrong action. `vendor` is documented as a separate action that "writes `.prd-toolkit/` … and nothing else" (README.md:418, hooks.py:311 docstring), and the hooks command names every other refusal after its own action (`prd_hooks: vendor runs from the plugin, …`, `--ci belongs to check`). Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
-Resolution: -
+Resolution: T-107.4 [integration], PRD 9.6.0, fixed in 012db11a519eaa009e82d4c0e64d74980eb7cd80
 Recurrence of: -
 
 ### E-043 Outside a git checkout, install vendors into the PRD folder and then fails with an internal error

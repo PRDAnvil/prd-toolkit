@@ -84,15 +84,11 @@ def test_vendor_refuses_an_unresolved_pack(built):
     assert not (tmp / ".prd-toolkit").exists()
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-042")
 @given(_setup_nosuch_pack)
 def test_vendor_refusal_names_vendor(built):
-    """@prd T-107.4 known-failing E-042"""
+    """@prd T-107.4"""
     tmp = built
     r = run(tmp, tmp, VENDOR_CMD)
-    symptom = "prd_hooks: install refused: pack nosuch 1.0.0 (prd-toolkit) not found; looked in: "
-    if r.exit == 2 and symptom in r.stderr and "vendor refused" not in r.stderr:
-        raise KnownFailure(f"E-042: {r.stderr.strip()}")
     assert r.exit == 2, r
     assert r.stdout == ""
     assert "prd_hooks: vendor refused: pack nosuch 1.0.0 (prd-toolkit) not found; looked in: " in r.stderr, r.stderr

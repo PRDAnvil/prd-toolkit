@@ -234,7 +234,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-087 | Print the trace findings and exit by them | live | features/trace.md | 9.1.0 |
 | FR-088 | Print the trace result as a JSON document | live | features/trace.md | 9.1.0 |
 | FR-089 | Refuse a trace it cannot run | live | features/trace.md | 9.1.0 |
-| FR-090 | Check each commit of a range against the commit rule | approved | features/trace.md |  |
+| FR-090 | Check each commit of a range against the commit rule | verified | features/trace.md |  |
 | FR-091 | Judge a commit message's Refs: trailers | live | features/trace.md | 9.1.0 |
 | FR-092 | Judge a commit message's Change-set: trailers | live | features/trace.md | 9.1.0 |
 | FR-093 | The commit-msg hook refuses a message the commit rule rejects | live | features/trace.md | 9.1.0 |
@@ -243,7 +243,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-096 | The hook shims skip a branch without the vendored copy | live | features/trace.md | 9.1.0 |
 | FR-097 | Refuse a malformed hooks command line | live | features/hooks-install.md | 9.2.0 |
 | FR-098 | Install writes the vendored copy of the toolkit's files | approved | features/hooks-install.md |  |
-| FR-099 | Install vendors the PRD's packs and records where each came from | approved | features/hooks-install.md |  |
+| FR-099 | Install vendors the PRD's packs and records where each came from | verified | features/hooks-install.md |  |
 | FR-100 | Install adds the judge record and the review verdict to .gitignore | live | features/hooks-install.md | 9.2.0 |
 | FR-101 | Install writes the hook shims where core.hooksPath is not set | approved | features/hooks-install.md |  |
 | FR-102 | Install leaves a user's own hook alone and prints the line to add | live | features/hooks-install.md | 9.2.0 |
@@ -251,7 +251,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-104 | Install refreshes the managed blocks and refuses a broken marker | live | features/hooks-install.md | 9.2.0 |
 | FR-105 | Install names a stale CI file and never rewrites it | live | features/hooks-install.md | 9.2.0 |
 | FR-106 | Install from the vendored copy writes the hooks only | live | features/hooks-install.md | 9.2.0 |
-| FR-107 | Vendor refreshes .prd-toolkit/ and writes nothing else | approved | features/hooks-install.md |  |
+| FR-107 | Vendor refreshes .prd-toolkit/ and writes nothing else | verified | features/hooks-install.md |  |
 | FR-108 | Check compares the vendored copy with the plugin | approved | features/hooks-install.md |  |
 | FR-109 | Check reports a stale hook | live | features/hooks-install.md | 9.2.0 |
 | FR-110 | Check reports a stale vendored pack | live | features/hooks-install.md | 9.2.0 |
