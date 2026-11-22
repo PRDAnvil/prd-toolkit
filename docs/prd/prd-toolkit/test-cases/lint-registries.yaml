@@ -1313,8 +1313,6 @@ T-144.6:
     errors: []
     leaks: none
 T-144.7:
-  known-failing: E-052
-  symptom: "stdout holds the line docs/prd/orders/errors.md:10: error-entries: E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git"
   ac: AC-144.6
   level: integration
   target: cli:prd_lint
