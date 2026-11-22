@@ -58,8 +58,8 @@ Tests: T-124.1 [integration], T-124.2 [integration], T-124.3 [integration], T-12
 Traces: UJ-01; cli:prd_lint
 
 ### FR-125 Keep the section 11 index and the blocks in step
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/ids.py:174 @4465291
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/ids.py:175 @1ad8dbe
 Acceptance (EARS):
 - AC-125.1 When an ID appears in more than one section 11 row, the lint command shall report `index-consistent` at each later row with `<ID> appears twice in the section 11 index (first at prd.md:<line>)`.
 - AC-125.2 If a requirement block has no section 11 row, the lint command shall report `index-consistent` at the block's heading with `<ID> has no row in the section 11 index`.
