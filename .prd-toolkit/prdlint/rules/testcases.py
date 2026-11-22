@@ -140,11 +140,11 @@ def test_cases_consistent(prd: Prd):
     entries = {(tc.file, tc.id): tc for tc in prd.test_cases}
     cited: set[tuple[str | None, str]] = set()
     for b in prd.blocks:
+        if b.tests and b.tests_file is None:  # once for the line, and none of its T-ids is cited
+            yield Finding(b.file, b.tests[0][2], "test-cases-consistent", f"the Tests line of {b.id} names no test-cases file; end it with (test-cases/<area>.yaml)")
+            continue
         for tid, level, line in b.tests:
             cited.add((b.tests_file, tid))
-            if b.tests_file is None:
-                yield Finding(b.file, line, "test-cases-consistent", f"the Tests line of {b.id} names no test-cases file; end it with (test-cases/<area>.yaml)")
-                continue
             if not (prd.root / b.tests_file).is_file():
                 yield Finding(b.file, line, "test-cases-consistent", f"{tid}: the named file {b.tests_file} does not exist")
                 continue
