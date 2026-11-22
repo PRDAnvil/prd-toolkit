@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 9.4.0 · Approved · Owner: Ivan Histand · Updated 2026-11-21
+Version 9.5.0 · Approved · Owner: Ivan Histand · Updated 2026-11-22
 
 ## What this PRD covers
 
@@ -30,6 +30,7 @@ Version 9.4.0 · Approved · Owner: Ivan Histand · Updated 2026-11-21
 | lint-ids | adopted | [features/lint-ids.md](features/lint-ids.md) |
 | lint-registries | adopted | [features/lint-registries.md](features/lint-registries.md) |
 | lint-structure | adopted | [features/lint-structure.md](features/lint-structure.md) |
+| lint-testcases | adopted | [features/lint-testcases.md](features/lint-testcases.md) |
 | pack-authoring | adopted | [features/pack-authoring.md](features/pack-authoring.md) |
 | practices | adopted | [features/practices.md](features/practices.md) |
 | standards-run | adopted | [features/standards-run.md](features/standards-run.md) |

@@ -1,0 +1,2171 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below: those of lint-registries.yaml (<repo>, <tmp>, <P>, S0, LINT, HELP, the setup steps,
+#   runs and before:, the Subprocess environment, notes in parentheses about spaces or line numbers), and these:
+#   "texts.<key>" stands for the value at <key> of fixture lint-testcases/texts (contracts/fixtures/lint-testcases/texts.yaml,
+#   read with yaml.safe_load): a string, or a list of strings, one line each. "replace line N of F with texts.<key>" puts
+#   its lines in place of line N; "insert texts.<key> after line N of F" puts its lines right after line N; "write F with
+#   the lines texts.<key>" writes its lines. "delete lines N to M of F" deletes each line from N to M.
+#   In a setup step, as in lint-registries.yaml, "line N of F" is the line as S0 wrote it, before any other step of the
+#   case, also when an earlier step of the same case added or deleted lines of F; a before: step counts the lines of F
+#   as the file stands when the step runs.
+#   Every setup step, every before: step and every run of a case happens in the test's pytest fixture, and the test's
+#   body only asserts, so a before: step that does not find its file or line also ends the test as an error.
+#   A "Pack:" line whose source is (prd-toolkit) resolves to the toolkit's own pack, <repo>/prd-toolkit/packs/<name>/:
+#   <tmp> holds no .prd-toolkit/ folder and LINT runs the plugin's script. The pack document 1.0.0 gives the target
+#   kind doc and the contract type outline.
+#   The texts hold every value a lint of this PRD folder would itself report, such as real-looking personal data in an input.
+#   A finding line in expect names the line as the file stands after every step of its run.
+#   The tests' helpers are defined in this area's own support file, lint_testcases_support.py (testing.md, Layout); the
+#   tests import nothing from another area's support file.
+T-149.1:
+  ac: AC-149.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 19 of test-cases/api.yaml with   ac: AC-002.1 (two spaces before ac)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/features/api.md:16: ac-has-test: AC-002.2 has no test case whose ac: is AC-002.2"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-149.2:
+  ac: AC-149.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 19 of test-cases/api.yaml with   ac: AC-002.1 (two spaces before ac)", "replace line 20 of test-cases/import.yaml with   ac: AC-002.2 (two spaces before ac)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/features/import.md:10: ac-has-test: AC-001.2 has no test case whose ac: is AC-001.2"
+      stdout_not_contains: "ac-has-test: AC-002.2"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-149.3:
+  ac: AC-149.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "replace line 16 of features/api.md with - AC-002.2 (removed in 1.0.0) If the order id does not exist, the API shall respond 404 with error ORDER_NOT_FOUND."
+      - "replace line 19 of test-cases/api.yaml with   ac: AC-002.1 (two spaces before ac)"
+      - "replace line 22 of features/api.md with Status: removed"
+      - "replace line 52 of test-cases/api.yaml with   ac: AC-003.1 (two spaces before ac)"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "ac-has-test:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-150.1:
+  ac: AC-150.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of nfr.md with Tests: T-004.1 [system]"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)"
+        - "docs/prd/orders/test-cases/nfr.yaml:1: test-cases-consistent: T-004.1 is cited by no Tests line naming test-cases/nfr.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-150.2:
+  ac: AC-150.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 31 of features/api.md with Tests: T-003.1 [integration], T-003.2 [integration]  (test-cases/orders.yaml)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/features/api.md:31: test-cases-consistent: T-003.1: the named file test-cases/orders.yaml does not exist"
+        - "docs/prd/orders/features/api.md:31: test-cases-consistent: T-003.2: the named file test-cases/orders.yaml does not exist"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-150.3:
+  ac: AC-150.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 18 of features/api.md with Tests: T-002.1 [integration], T-002.2 [integration], T-002.9 [unit]  (test-cases/api.yaml)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/features/api.md:18: test-cases-consistent: T-002.9 has no entry in test-cases/api.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-150.4:
+  ac: AC-150.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 18 of features/api.md with Tests: T-002.1 [unit], T-002.2 [integration]  (test-cases/api.yaml)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/features/api.md:18: test-cases-consistent: T-002.1 is [unit] on the Tests line but level: integration in test-cases/api.yaml:3"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-150.5:
+  ac: AC-150.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "append texts.uncited_case to test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:72: test-cases-consistent: T-001.9 is cited by no Tests line naming test-cases/import.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-150.6:
+  ac: AC-150.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 3 of test-cases/api.yaml with   level: 3 (two spaces before level)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "T-002.1 is [integration] on the Tests line", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-150.7:
+  known-failing: E-056
+  symptom: "stdout holds that line twice, once for each T-id of the Tests line"
+  ac: AC-150.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of nfr.md with Tests: T-004.1 [system], T-004.2 [smoke]"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_count_of_line: {line: "docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)", count: 1}
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-151.1:
+  ac: AC-151.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of testing.md with | Level | Harness command | Environment | Stage |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_count_of_line: {line: "docs/prd/orders/testing.md:5: test-level: testing.md Levels: add a Gate column (build or deploy), new in prd-toolkit 0.4", count: 1}
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-151.2:
+  ac: AC-151.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 9 of testing.md with | component | `pytest tests/component` | ci | `nightly` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/testing.md:9: test-level: level 'component': Gate 'nightly' is not one of build, deploy"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-151.3:
+  ac: AC-151.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of testing.md with | Level | Harness command | Environment | Stage |", "replace line 7 of testing.md with | unit | `pytest tests` | local | build |", "replace line 9 of testing.md with | component | `pytest tests/component` | ci | nightly |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/testing.md:5: test-level: testing.md Levels: add a Gate column (build or deploy), new in prd-toolkit 0.4"
+      stdout_not_contains: ["(Gate build) would collect", "is not one of build, deploy"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-151.4:
+  ac: AC-151.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 3 of testing.md with ## Stages"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:3: test-level: T-002.1: level 'integration' is not a row of the Levels table in testing.md"
+      stdout_not_contains: ["test-level: testing.md Levels", "(Gate build) would collect", "is not one of build, deploy"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-152.1:
+  ac: AC-152.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 7 of testing.md with | unit | `pytest tests` | local | build |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'system' (Gate deploy) tests: tests/system"
+        - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'e2e' (Gate deploy) tests: tests/e2e"
+        - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'smoke' (Gate deploy) tests: tests/smoke"
+      stdout_not_contains: "level 'acceptance' (Gate deploy)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-152.2:
+  ac: AC-152.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of testing.md with | integration | `TEST_ENV=ci python -m pytest -q -n auto --basetemp build/tmp ./tests/` | ci | build |"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 8 of testing.md with | integration | `uv run pytest .` | ci | build |", command: LINT}
+      - {before: "replace line 8 of testing.md with | integration | `pytest tests/unit/test_a.py tests` | ci | build |", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/testing.md:8: test-level: level 'integration' (Gate build) would collect level 'system' (Gate deploy) tests: tests/system", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/testing.md:8: test-level: level 'integration' (Gate build) would collect level 'system' (Gate deploy) tests: tests/system", stderr: ""}
+      run_3: {exit: 1, stdout_contains_line: "docs/prd/orders/testing.md:8: test-level: level 'integration' (Gate build) would collect level 'system' (Gate deploy) tests: tests/system", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-152.3:
+  ac: AC-152.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    runs:
+      - {before: "replace line 7 of testing.md with | unit | `bash tools/gate.sh unit` | local | build |", command: LINT}
+      - {before: "replace line 7 of testing.md with | unit | `pytest tests/systematic` | local | build |", command: LINT}
+      - {before: "replace line 7 of testing.md with | unit | `cd tools && pytest unit` | local | build |", command: LINT}
+  expect:
+    output:
+      run_1: {stdout_not_contains: "level 'unit' (Gate build) would collect", stderr: ""}
+      run_2: {stdout_not_contains: "level 'unit' (Gate build) would collect", stderr: ""}
+      run_3: {stdout_not_contains: "level 'unit' (Gate build) would collect", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-152.4:
+  ac: AC-152.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    runs:
+      - {before: "replace line 7 of testing.md with | unit | `pytest --ignore tests/system tests` | local | build |", command: LINT}
+      - {before: "replace line 7 of testing.md with | unit | `pytest tests --ignore-glob 'tests/[se]*'` | local | build |", command: LINT}
+      - {before: "replace line 7 of testing.md with | unit | `pytest --ignore=tests tests` | local | build |", command: LINT}
+      - {before: "replace line 7 of testing.md with | unit | `pytest --deselect tests/system/test_a.py tests` | local | build |", command: LINT}
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout_lines_in_this_relative_order:
+          - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'e2e' (Gate deploy) tests: tests/e2e"
+          - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'smoke' (Gate deploy) tests: tests/smoke"
+        stdout_not_contains: "would collect level 'system'"
+        stderr: ""
+      run_2: {stdout_not_contains: "level 'unit' (Gate build) would collect", stderr: ""}
+      run_3: {stdout_not_contains: "level 'unit' (Gate build) would collect", stderr: ""}
+      run_4: {exit: 1, stdout_contains_line: "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'system' (Gate deploy) tests: tests/system", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-152.5:
+  ac: AC-152.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    runs:
+      - {before: 'replace line 7 of testing.md with | unit | `pytest -m "not system" tests` | local | build |', command: LINT}
+      - {before: "replace line 7 of testing.md with | unit | `pytest -k=quick tests` | local | build |", command: LINT}
+      - {before: "replace line 7 of testing.md with | unit | `python -m pytest tests` | local | build |", command: LINT}
+  expect:
+    output:
+      run_1: {stdout_not_contains: "level 'unit' (Gate build) would collect", stderr: ""}
+      run_2: {stdout_not_contains: "level 'unit' (Gate build) would collect", stderr: ""}
+      run_3:
+        exit: 1
+        stdout_lines_in_this_relative_order:
+          - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'system' (Gate deploy) tests: tests/system"
+          - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'e2e' (Gate deploy) tests: tests/e2e"
+          - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'smoke' (Gate deploy) tests: tests/smoke"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-152.6:
+  ac: AC-152.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 7 of testing.md with | unit | `pytest tests` | local | build |", "replace line 10 of testing.md with | system | none | staging | deploy |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'e2e' (Gate deploy) tests: tests/e2e"
+        - "docs/prd/orders/testing.md:7: test-level: level 'unit' (Gate build) would collect level 'smoke' (Gate deploy) tests: tests/smoke"
+      stdout_not_contains: "would collect level 'system'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-153.1:
+  ac: AC-153.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 38 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:36: test-level: T-001.3 has no level"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-153.2:
+  ac: AC-153.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 38 of test-cases/import.yaml with   level: nightly (two spaces before level)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:38: test-level: T-001.3: level 'nightly' is not a row of the Levels table in testing.md"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-154.1:
+  ac: AC-154.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 37 of test-cases/import.yaml", "delete line 40 of test-cases/import.yaml", "delete line 41 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: ac is missing"
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: environment is missing"
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: identity is missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-154.2:
+  ac: AC-154.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 40 of test-cases/import.yaml with   environment: 3 (two spaces before environment)", "replace line 41 of test-cases/import.yaml with   identity: [] (two spaces before identity)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: environment is missing"
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: identity is missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-154.3:
+  ac: AC-154.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 39 of test-cases/import.yaml"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "insert after line 38 of test-cases/import.yaml the line   target: 5 (two spaces before target)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: target is missing", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: target is missing", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-154.4:
+  ac: AC-154.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 39 of test-cases/import.yaml with   target: importer (two spaces before target)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: 'replace line 39 of test-cases/import.yaml with   target: "code:" (two spaces before target)', command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: sufficiency: T-001.3: target 'importer' must be <kind>:<name>", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: sufficiency: T-001.3: target 'code:' must be <kind>:<name>", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-154.5:
+  ac: AC-154.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 39 of test-cases/import.yaml with   target: widget:importer (two spaces before target)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 39 of test-cases/import.yaml with   target: openapi:orders (two spaces before target)", command: LINT}
+      - {before: "replace line 39 of test-cases/import.yaml with   target: lookml:orders_explore (two spaces before target)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: sufficiency: T-001.3: target kind 'widget' is unknown (known: code, component, event, job, lookml, op, page, table)", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: sufficiency: T-001.3: target kind 'openapi' is unknown (known: code, component, event, job, lookml, op, page, table)", stderr: ""}
+      run_3: {stdout_not_contains: "sufficiency: T-001.3: target kind", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-154.6:
+  ac: AC-154.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 19 of prd.md the line - Pack: document 1.0.0 (prd-toolkit)", "replace line 39 of test-cases/import.yaml with   target: doc:install-guide (two spaces before target)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "sufficiency: T-001.3: target kind", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-154.7:
+  ac: AC-154.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 1 of test-cases/nfr.yaml with T-004.1: oops", "insert after line 1 of test-cases/nfr.yaml the line T-004.9:"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/nfr.yaml:1: sufficiency: T-004.1: a test case must be a mapping"
+      stdout_not_contains: ["sufficiency: T-004.1: ac is missing", "test-level: T-004.1 has no level", "test-refs: T-004.1", "ac-has-test:"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-155.1:
+  ac: AC-155.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 42 of test-cases/import.yaml with   preconditions: none (two spaces before preconditions)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "delete line 42 of test-cases/import.yaml", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:42: sufficiency: T-001.3: preconditions must be a list (use [] for none)", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: preconditions must be a list (use [] for none)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-155.2:
+  ac: AC-155.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 43 of test-cases/import.yaml with   input: {} (two spaces before input)", "delete line 44 of test-cases/import.yaml"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 43 of test-cases/import.yaml with   input: ~ (two spaces before input)", command: LINT}
+      - {before: "delete line 43 of test-cases/import.yaml", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:43: sufficiency: T-001.3: input is missing or empty", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:43: sufficiency: T-001.3: input is missing or empty", stderr: ""}
+      run_3: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: input is missing or empty", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-155.3:
+  ac: AC-155.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete lines 45 to 51 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: expect is missing"
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: expect.output is missing"
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: expect.effects must be a list (use [] for none)"
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: expect.errors must be a list (use [] for none)"
+        - "docs/prd/orders/test-cases/import.yaml:36: sufficiency: T-001.3: expect.leaks is missing (use 'none')"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-155.4:
+  ac: AC-155.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with     output: {} (four spaces before output)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "delete line 46 of test-cases/import.yaml", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:46: sufficiency: T-001.3: expect.output is missing", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect.output is missing", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-155.5:
+  ac: AC-155.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 50 of test-cases/import.yaml with     errors: IMPORT_EMPTY (four spaces before errors)", "delete lines 47 to 49 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect.effects must be a list (use [] for none)"
+        - "docs/prd/orders/test-cases/import.yaml:47: sufficiency: T-001.3: expect.errors must be a list (use [] for none)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-155.6:
+  ac: AC-155.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 51 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect.leaks is missing (use 'none')"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-155.7:
+  ac: AC-155.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 45 of test-cases/import.yaml with   expect: oops (two spaces before expect)", "delete lines 46 to 51 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect is missing"
+        - "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect.output is missing"
+        - "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect.effects must be a list (use [] for none)"
+        - "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect.errors must be a list (use [] for none)"
+        - "docs/prd/orders/test-cases/import.yaml:45: sufficiency: T-001.3: expect.leaks is missing (use 'none')"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-156.1:
+  ac: AC-156.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 67 of test-cases/import.yaml with   steps: Do it (two spaces before steps)", "delete lines 68 to 70 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:67: sufficiency: T-001.4: an acceptance case needs steps: a non-empty list of strings"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-156.2:
+  ac: AC-156.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 71 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:53: sufficiency: T-001.4: an acceptance case needs signoff: the business owner"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-156.3:
+  ac: AC-156.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, insert texts.acceptance_keys_on_unit after line 51 of test-cases/import.yaml]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "an acceptance case needs", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-157.1:
+  ac: AC-157.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.judged_ok"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-157.2:
+  ac: AC-157.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.rubric_empty"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 46 of test-cases/import.yaml with     rubric: [The importer reports status empty, 3] (four spaces before rubric)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:46: judged-case: T-001.3: rubric must be a non-empty list of non-empty strings", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:46: judged-case: T-001.3: rubric must be a non-empty list of non-empty strings", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-157.3:
+  ac: AC-157.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.rubric_repeat"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:46: judged-case: T-001.3: rubric item 3 repeats item 1"
+        - "docs/prd/orders/test-cases/import.yaml:46: judged-case: T-001.3: rubric item 4 repeats item 1"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-157.4:
+  ac: AC-157.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.threshold_zero"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 48 of test-cases/import.yaml with     threshold: true (four spaces before threshold)", command: LINT}
+      - {before: "replace line 48 of test-cases/import.yaml with     threshold: 1.5 (four spaces before threshold)", command: LINT}
+      - {before: "replace line 48 of test-cases/import.yaml with     threshold: high (four spaces before threshold)", command: LINT}
+      - {before: "delete line 48 of test-cases/import.yaml", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:48: judged-case: T-001.3: threshold must be a number in (0, 1]", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:48: judged-case: T-001.3: threshold must be a number in (0, 1]", stderr: ""}
+      run_3: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:48: judged-case: T-001.3: threshold must be a number in (0, 1]", stderr: ""}
+      run_4: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:48: judged-case: T-001.3: threshold must be a number in (0, 1]", stderr: ""}
+      run_5: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:46: judged-case: T-001.3: threshold must be a number in (0, 1]", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-157.5:
+  ac: AC-157.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.runs_zero"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 49 of test-cases/import.yaml with     runs: 2.5 (four spaces before runs)", command: LINT}
+      - {before: "replace line 49 of test-cases/import.yaml with     runs: true (four spaces before runs)", command: LINT}
+      - {before: "replace line 49 of test-cases/import.yaml with     runs: 1 (four spaces before runs)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:49: judged-case: T-001.3: runs must be an integer of at least 1", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:49: judged-case: T-001.3: runs must be an integer of at least 1", stderr: ""}
+      run_3: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:49: judged-case: T-001.3: runs must be an integer of at least 1", stderr: ""}
+      run_4: {stdout_not_contains: "runs must be an integer", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-157.6:
+  ac: AC-157.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.judged_output"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:49: judged-case: T-001.3: a judged case has no expect.output"
+      stdout_not_contains: "sufficiency: T-001.3: expect.output is missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-157.7:
+  known-failing: E-055
+  symptom: "the exit code is 0 and stdout is empty"
+  ac: AC-157.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.rubric_inner_space"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:46: judged-case: T-001.3: rubric item 2 repeats item 1"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-158.1:
+  ac: AC-158.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.threshold_067"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 0
+      stdout_exact_lines: ["docs/prd/orders/test-cases/import.yaml:50: warn: judged-case: T-001.3: threshold 0.67 needs all 3 items (2 of 3 is 0.6667); write 0.66 to allow one miss, or 1.0"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-158.2:
+  ac: AC-158.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.threshold_two"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 0
+      stdout_exact_lines: ["docs/prd/orders/test-cases/import.yaml:49: warn: judged-case: T-001.3: threshold 0.67 needs all 2 items (1 of 2 is 0.5); write 0.5 to allow one miss, or 1.0"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-158.3:
+  ac: AC-158.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 46 of test-cases/import.yaml with texts.threshold_five"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 52 of test-cases/import.yaml with     threshold: 0.5 (four spaces before threshold)", command: LINT}
+      - {before: "replace line 52 of test-cases/import.yaml with     threshold: 1.0 (four spaces before threshold)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+      run_2: {exit: 0, stdout: "", stderr: ""}
+      run_3: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-159.1:
+  ac: AC-159.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 2 of test-cases/api.yaml with   ac: AC-002.7 (two spaces before ac)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:2: test-refs: T-002.1: AC-002.7 is not an acceptance criterion in any requirement block"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-159.2:
+  ac: AC-159.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 2 of test-cases/api.yaml with   ac: AC-001.1 (two spaces before ac)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:2: test-refs: T-002.1: AC-001.1 belongs to requirement 001, but T-002.1 is numbered for requirement 002"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-160.1:
+  ac: AC-160.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 7 of test-cases/api.yaml with   preconditions: [customers/two_customers, 3] (two spaces before preconditions)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:7: test-refs: T-002.1: precondition 3 must be a fixture name or mock:<service>"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-160.2:
+  ac: AC-160.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of test-cases/import.yaml with   preconditions: [customers/two_customers, mock:payments] (two spaces before preconditions)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:8: test-refs: T-001.1: mock:payments has no contracts/dependencies/payments.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-160.3:
+  ac: AC-160.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 7 of test-cases/api.yaml with   preconditions: [customers/two_customers, orders/missing] (two spaces before preconditions)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/api.yaml:7: test-refs: T-002.1: fixture 'orders/missing' is not in the Fixtures table of testing.md"
+        - "docs/prd/orders/test-cases/api.yaml:7: test-refs: T-002.1: fixture 'orders/missing' has no file or directory at contracts/fixtures/orders/missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-160.4:
+  ac: AC-160.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.ghost_rows after line 55 of testing.md", "replace line 7 of test-cases/api.yaml with   preconditions: [customers/ghost, customers] (two spaces before preconditions)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:7: test-refs: T-002.1: fixture 'customers/ghost' has no file or directory at contracts/fixtures/customers/ghost"
+      stdout_not_contains: ["fixture 'customers/ghost' is not in the Fixtures table", "fixture 'customers' "]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-160.5:
+  ac: AC-160.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 27 of test-cases/import.yaml with     file: orders/nope.csv (four spaces before file)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:26: test-refs: T-001.2: input.file 'orders/nope.csv' does not exist under contracts/fixtures/"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-161.1:
+  ac: AC-161.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 32 of test-cases/api.yaml with     errors: [ORDER_MISSING, 7] (four spaces before errors)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/api.yaml:27: test-refs: T-002.2: error code ORDER_MISSING is not in contracts/errors.yaml"
+        - "docs/prd/orders/test-cases/api.yaml:27: test-refs: T-002.2: expect.errors item 7 must be an error code string"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-161.2:
+  ac: AC-161.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of test-cases/nfr.yaml with   environment: prod (two spaces before environment)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/nfr.yaml:5: test-refs: T-004.1: environment 'prod' is not in the Environments table of testing.md"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-161.3:
+  ac: AC-161.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of test-cases/nfr.yaml with   identity: test-nobody (two spaces before identity)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/nfr.yaml:6: test-refs: T-004.1: identity 'test-nobody' is neither none nor a test identity in contracts/permissions.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-162.1:
+  ac: AC-162.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "write <tmp>/docs/README.md with the lines # Docs"
+      - 'replace line 4 of test-cases/import.yaml with   refs: ["contracts/events.md#import_orders", "testing.md#Harness", "contracts/nowhere.md", "../../README.md"] (two spaces before refs)'
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 'contracts/nowhere.md': no file contracts/nowhere.md in the PRD folder"
+        - "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry '../../README.md': no file ../../README.md in the PRD folder"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-162.2:
+  ac: AC-162.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup:
+      - S0
+      - "write contracts/notes.md with the lines texts.fenced_notes"
+      - 'replace line 4 of test-cases/import.yaml with   refs: ["contracts/events.md#export_orders", "contracts/notes.md#Hidden"] (two spaces before refs)'
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 'contracts/events.md#export_orders': contracts/events.md has no heading 'export_orders'"
+        - "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 'contracts/notes.md#Hidden': contracts/notes.md has no heading 'Hidden'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-162.3:
+  ac: AC-162.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup:
+      - S0
+      - "write contracts/notes.md with the lines texts.fenced_notes"
+      - 'replace line 4 of test-cases/import.yaml with   refs: ["prd.md#7. Contract types", "contracts/notes.md#Shown", "contracts/notes.md#Notes", "nfr.md", "testing.md#"] (two spaces before refs)'
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "test-refs: T-001.1: refs entry", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-162.4:
+  ac: AC-162.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of test-cases/import.yaml with   refs: testing.md#Nowhere (two spaces before refs)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: 'replace line 4 of test-cases/import.yaml with   refs: [7, ""] (two spaces before refs)', command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 'testing.md#Nowhere': testing.md has no heading 'Nowhere'", stderr: ""}
+      run_2:
+        exit: 1
+        stdout_lines_in_this_relative_order:
+          - "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 7 must be a path in the PRD folder, optionally with #heading"
+          - "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry '' must be a path in the PRD folder, optionally with #heading"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-162.5:
+  ac: AC-162.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - 'replace line 4 of test-cases/import.yaml with   refs: ["testing.md#Harness", 7] (two spaces before refs)'
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 7 must be a path in the PRD folder, optionally with #heading"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-162.6:
+  known-failing: E-054
+  symptom: "stdout holds the line docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 'contracts/notes.md#The `orders` table': contracts/notes.md has no heading 'The `orders` table'"
+  ac: AC-162.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup:
+      - S0
+      - "write contracts/notes.md with the lines texts.code_span_notes"
+      - "replace line 4 of test-cases/import.yaml with texts.refs_code_span"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-162.7:
+  known-failing: E-054
+  symptom: "the exit code is 0 and stdout is empty"
+  ac: AC-162.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup:
+      - S0
+      - "write contracts/notes.md with the lines texts.code_span_notes"
+      - 'replace line 4 of test-cases/import.yaml with   refs: ["contracts/notes.md#Totals"] (two spaces before refs)'
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 'contracts/notes.md#Totals': contracts/notes.md has no heading 'Totals'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-163.1:
+  ac: AC-163.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.kf_unknown after line 38 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: known-failing 'E-099' must be an E-nnn entry of errors.md"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-163.2:
+  ac: AC-163.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.kf_e001 after line 38 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: known-failing E-001 is resolved in errors.md; remove the line"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-163.3:
+  ac: AC-163.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 38 of test-cases/import.yaml the line   symptom: the importer crashes (two spaces before symptom)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: 'replace line 39 of test-cases/import.yaml with   symptom: "" (two spaces before symptom)', command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: symptom: needs known-failing: on the same case", stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: symptom: needs known-failing: on the same case", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-163.4:
+  ac: AC-163.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 7 of errors.md with Resolution: open", "insert after line 38 of test-cases/import.yaml the line   known-failing: E-001 (two spaces before known-failing)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "insert after line 39 of test-cases/import.yaml the line   symptom: 3 (two spaces before symptom)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 0, stdout_exact_lines: ["docs/prd/orders/test-cases/import.yaml:39: warn: test-refs: T-001.3: known-failing E-001 names no symptom; any failure would pass as it"], stderr: ""}
+      run_2: {exit: 0, stdout_exact_lines: ["docs/prd/orders/test-cases/import.yaml:39: warn: test-refs: T-001.3: known-failing E-001 names no symptom; any failure would pass as it"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-163.5:
+  ac: AC-163.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 7 of errors.md with Resolution: open", "insert texts.kf_e001 after line 38 of test-cases/import.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-164.1:
+  ac: AC-164.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of test-cases/nfr.yaml with   target: op:getOrdr (two spaces before target)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/nfr.yaml:4: test-refs: T-004.1: target op:getOrdr: no operationId 'getOrdr' in contracts/openapi.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-164.2:
+  ac: AC-164.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 39 of test-cases/import.yaml with   target: table:order (two spaces before target)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 39 of test-cases/import.yaml with   target: table:ORDERS (two spaces before target)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: target table:order: no table 'order' in contracts/schema.sql", stderr: ""}
+      run_2: {stdout_not_contains: "test-refs: T-001.3: target table:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-164.3:
+  ac: AC-164.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 22 of test-cases/import.yaml with   target: job:import_order (two spaces before target)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 22 of test-cases/import.yaml with   target: event:import_orders (two spaces before target)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:22: test-refs: T-001.2: target job:import_order: no '### import_order' heading in contracts/events.md and no such asyncapi channel or operation", stderr: ""}
+      run_2: {stdout_not_contains: "test-refs: T-001.2: target", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-164.4:
+  ac: AC-164.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 19 of prd.md the line - Pack: document 1.0.0 (prd-toolkit)", "replace line 39 of test-cases/import.yaml with   target: doc:install-guide (two spaces before target)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: target doc:install-guide: contract type outline has no §7 row (Validator pack)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-164.5:
+  ac: AC-164.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup:
+      - S0
+      - "insert after line 19 of prd.md the line - Pack: document 1.0.0 (prd-toolkit)"
+      - "insert texts.outline_row after line 80 of prd.md"
+      - "write contracts/outline.yaml with the lines texts.outline_yaml"
+      - "replace line 39 of test-cases/import.yaml with   target: doc:upgrade-guide (two spaces before target)"
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 39 of test-cases/import.yaml with   target: doc:install-guide (two spaces before target)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: target doc:upgrade-guide: no outline entry 'upgrade-guide'", stderr: ""}
+      run_2: {stdout_not_contains: "test-refs: T-001.3: target doc:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-164.6:
+  ac: AC-164.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup:
+      - S0
+      - "insert texts.looker_row after line 80 of prd.md"
+      - "write contracts/looker/kpi.yaml with the lines orders_summary: {kind: explore}"
+      - "write contracts/looker/more.yaml with the lines returns_summary: {kind: explore}"
+      - "replace line 39 of test-cases/import.yaml with   target: looker:no_such_explore (two spaces before target)"
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "replace line 39 of test-cases/import.yaml with   target: looker:returns_summary (two spaces before target)", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:39: test-refs: T-001.3: target looker:no_such_explore: 'no_such_explore' is not an item of the looker files (items: orders_summary, returns_summary)", stderr: ""}
+      run_2: {stdout_not_contains: "test-refs: T-001.3: target looker:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-164.7:
+  ac: AC-164.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    runs:
+      - {before: "replace line 39 of test-cases/import.yaml with   target: lookml:anything (two spaces before target)", command: LINT}
+      - {before: "replace line 39 of test-cases/import.yaml with   target: component:Anything (two spaces before target)", command: LINT}
+      - {before: "replace line 39 of test-cases/import.yaml with   target: code:whatever.at_all (two spaces before target)", command: LINT}
+  expect:
+    output:
+      run_1: {stdout_not_contains: "test-refs: T-001.3", stderr: ""}
+      run_2: {stdout_not_contains: "test-refs: T-001.3", stderr: ""}
+      run_3: {stdout_not_contains: "test-refs: T-001.3", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-164.8:
+  ac: AC-164.8
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write links.md with the lines # Links", "replace line 4 of test-cases/nfr.yaml with   target: widget:greet/getOrder (two spaces before target)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "delete the file links.md", command: LINT}
+  expect:
+    output:
+      run_1: {stdout_not_contains: ["sufficiency: T-004.1", "test-refs: T-004.1"], stderr: ""}
+      run_2: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/nfr.yaml:4: sufficiency: T-004.1: target kind 'widget' is unknown (known: code, component, event, job, lookml, op, page, table)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-165.1:
+  ac: AC-165.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 3 of contracts/permissions.yaml with   rep: {secret: ORDERS_TEST_REP_TOKEN} (two spaces before rep)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:6: deny-tested: deny cell (deleteOrder, rep): role 'rep' has no test identity"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-165.2:
+  ac: AC-165.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 66 of test-cases/api.yaml with     errors: [] (four spaces before errors)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:6: deny-tested: deny cell (deleteOrder, rep) has no test case with target op:deleteOrder, identity test-rep and expect.errors"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-165.3:
+  ac: AC-165.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of contracts/permissions.yaml with   deleteOrder: {allow: [admin], deny: [[rep]]} (two spaces before deleteOrder)"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "delete the file contracts/permissions.yaml", command: LINT}
+  expect:
+    output:
+      run_1: {stdout_not_contains: "deny-tested:", stderr: ""}
+      run_2: {stdout_not_contains: "deny-tested:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-166.1:
+  ac: AC-166.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "replace line 2 of contracts/fixtures/customers/two_customers.csv with texts.csv_real_email"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/fixtures/customers/two_customers.csv:2: classified-fixtures: customers.email is classified pii but holds the real-looking value 'jane@gmail.com'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-166.2:
+  ac: AC-166.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "write contracts/fixtures/customers.csv with the lines texts.flat_csv"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/fixtures/customers.csv:2: classified-fixtures: customers.email is classified pii but holds the real-looking value 'jane@gmail.com'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-166.3:
+  ac: AC-166.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "write contracts/fixtures/customers/more.yaml with the lines texts.yaml_fixture", "write contracts/fixtures/customers/more.json with the lines texts.json_fixture"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/fixtures/customers/more.json:1: classified-fixtures: customers.email is classified pii but holds the real-looking value 'json@gmail.com'"
+        - "docs/prd/orders/contracts/fixtures/customers/more.yaml:2: classified-fixtures: customers.email is classified pii but holds the real-looking value 'real@gmail.com'"
+        - "docs/prd/orders/contracts/fixtures/customers/more.yaml:3: classified-fixtures: customers.name is classified pii but holds the real-looking value 'other@gmail.com'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-166.4:
+  ac: AC-166.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup:
+      - S0
+      - "replace line 5 of contracts/data-classification.yaml with     columns: {id: internal, email: pii, name: internal} (four spaces before columns)"
+      - "replace line 2 of contracts/fixtures/customers/two_customers.csv with texts.csv_real_name"
+      - "write contracts/fixtures/customers/broken.yaml with the lines texts.broken_yaml"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "classified-fixtures:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-166.5:
+  ac: AC-166.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "write contracts/fixtures/seed/customers.csv with the lines texts.flat_csv"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - {before: "write contracts/fixtures/seed/customers/extra.csv with the lines texts.flat_csv", command: LINT}
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+      run_2:
+        exit: 1
+        stdout_exact_lines:
+          - "docs/prd/orders/contracts/fixtures/seed/customers/extra.csv:2: classified-fixtures: customers.email is classified pii but holds the real-looking value 'jane@gmail.com'"
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-166.6:
+  ac: AC-166.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "write contracts/fixtures/customers/notes.txt with the lines texts.flat_csv"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-167.1:
+  ac: AC-167.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_email after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value 'bob@acme.io'; use a synthetic form"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-167.2:
+  ac: AC-167.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_key after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "classified-fixtures:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-168.1:
+  ac: AC-168.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_mixed after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value 'bob@acme.io'; use a synthetic form"
+        - "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value '123-45-6789'; use a synthetic form"
+        - "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value '312-444-0142'; use a synthetic form"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-168.2:
+  ac: AC-168.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_blind after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value '3124440142@acme.io'; use a synthetic form"
+      stdout_not_contains: "PII value '3124440142'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-168.3:
+  ac: AC-168.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_runs after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "classified-fixtures:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-168.4:
+  ac: AC-168.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_emails after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value 'g@example.co'; use a synthetic form"
+      stdout_not_contains: ["'a@example.com'", "'b@EXAMPLE.org'", "'c@mail.test'", "'d@x.example'", "'e@y.invalid'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-168.5:
+  ac: AC-168.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_ssns after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value '123-45-6789'; use a synthetic form"
+      stdout_not_contains: ["'000-12-3456'", "'666-12-3456'", "'900-12-3456'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-168.6:
+  ac: AC-168.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_phones after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value '312-555-0242'; use a synthetic form"
+        - "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value '312-555-0200'; use a synthetic form"
+      stdout_not_contains: ["'(312) 555-0142'", "'312.555.0199'", "'312 555 0100'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-168.7:
+  known-failing: E-057
+  symptom: "stdout also holds the line docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value 'a@mail.example.com'; use a synthetic form"
+  ac: AC-168.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers, lint-testcases/texts]
+  input:
+    setup: [S0, "insert texts.inline_subdomains after line 26 of test-cases/api.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value 'd@notexample.com'; use a synthetic form"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.1:
+  ac: AC-169.1
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - HELP --rule ac-has-test
+      - HELP --rule test-cases-consistent
+      - HELP --rule test-level
+      - HELP --rule sufficiency
+      - HELP --rule judged-case
+      - HELP --rule test-refs
+      - HELP --rule deny-tested
+      - HELP --rule classified-fixtures
+  expect:
+    output:
+      run_1: {exit: 0, stdout_first_line: "ac-has-test (error)", stderr: ""}
+      run_2: {exit: 0, stdout_first_line: "test-cases-consistent (error)", stderr: ""}
+      run_3: {exit: 0, stdout_first_line: "test-level (error)", stderr: ""}
+      run_4: {exit: 0, stdout_first_line: "sufficiency (error)", stderr: ""}
+      run_5: {exit: 0, stdout_first_line: "judged-case (error)", stderr: ""}
+      run_6: {exit: 0, stdout_first_line: "test-refs (error)", stderr: ""}
+      run_7: {exit: 0, stdout_first_line: "deny-tested (error)", stderr: ""}
+      run_8: {exit: 0, stdout_first_line: "classified-fixtures (error)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-169.2:
+  ac: AC-169.2
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule ac-has-test}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that every live acceptance criterion of a requirement that is not removed has at least one test case whose ac: names it. Add a case to the area's test-cases file with ac: set to that AC.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.3:
+  ac: AC-169.3
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule test-cases-consistent}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that each block's Tests line names its test-cases file, that the file exists and holds an entry for every T-id listed, at the level the line gives, and that every test case is cited by a Tests line naming its file. End the Tests line with (test-cases/<area>.yaml) for a file that exists, add the missing entry or Tests item, or make the level on the line and in the case agree.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.4:
+  ac: AC-169.4
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule test-level}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that testing.md's Levels table has a Gate column whose values are build or deploy, that no build-gate Harness command would collect a deploy-gate level's tests, and that each test case's level: is a row of that table. Add the level or the Gate value, or exclude the deploy-gate path from the build command with --ignore.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.5:
+  ac: AC-169.5
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule sufficiency}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that each test-cases file parses as YAML mapping each T-id to a mapping, and that each case has the eight sufficiency elements: ac, level, environment and identity as strings, target as <kind>:<name> of a known kind, preconditions as a list, a non-empty input, and expect with output (unless judged), effects and errors lists and leaks; an acceptance case also needs steps: and signoff:. Fix the YAML, or fill the element the message names in its form, with a target kind that is built in, a pack's, or a section 7 custom type. An entry named .md or .yaml in the PRD folder that is not a file is reported here too; rename or remove it.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.6:
+  ac: AC-169.6
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule judged-case}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks a judged case's expect: rubric a non-empty list of distinct non-empty strings, threshold a number in (0, 1], runs an integer of at least 1, and no output beside rubric; it warns when a threshold below 1.0 still needs every rubric item. Fix the key the message names, or lower the threshold to allow one miss.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.7:
+  ac: AC-169.7
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule test-refs}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that each test case's references resolve: ac names an AC of the requirement its T-id is numbered for, preconditions name fixtures in testing.md and contracts/fixtures/ or mock services in contracts/dependencies/, input.file, error codes, refs entries, environment, identity and target exist, known-failing names an open errors.md entry and has a symptom: beside it (a warning when it has none), and a symptom: has a known-failing: beside it. Point the reference at something that exists or add what it names; delete a known-failing: line whose entry is resolved, and a symptom: with no known-failing: beside it.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.8:
+  ac: AC-169.8
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule deny-tested}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that every deny cell of contracts/permissions.yaml has a role with a test identity and a test case with target op:<operation>, that identity and a non-empty expect.errors. Give the role an identity, or add the case that proves the denial.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-169.9:
+  ac: AC-169.9
+  level: integration
+  target: cli:prd_help
+  environment: local
+  identity: none
+  preconditions: []
+  input: {cwd: <tmp>, command: HELP --rule classified-fixtures}
+  expect:
+    output:
+      exit: 0
+      relations:
+        - "the second stdout line (str.splitlines()) is exactly `Checks that no fixture file under contracts/fixtures/ holds a real-looking email, phone number or SSN in a column contracts/data-classification.yaml classifies pii, and that no test case's inline input holds one in any value. Use a synthetic form: an example.com address, a 555-01xx phone number, or an SSN starting 000, 666 or 9.`"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none

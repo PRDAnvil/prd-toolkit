@@ -5,7 +5,7 @@
 | lint-cli | adopted | `prd-toolkit/scripts/prd_lint.py`, `prd-toolkit/scripts/prdlint/__init__.py`, `prd-toolkit/scripts/prdlint/model.py`, `prd-toolkit/scripts/prdlint/markdown.py`, `prd-toolkit/scripts/prdlint/yamlload.py`, `prd-toolkit/scripts/prdlint/findings.py`, `prd-toolkit/scripts/prdlint/registry.py`, `prd-toolkit/scripts/prdlint/deps.py`, `prd-toolkit/scripts/prdlint/rules/__init__.py`, `prd-toolkit/scripts/prdlint/interface.py` |
 | lint-structure | adopted | `prd-toolkit/scripts/prdlint/rules/structure.py` |
 | lint-ids | adopted | `prd-toolkit/scripts/prdlint/rules/ids.py` |
-| lint-testcases | not started | `prd-toolkit/scripts/prdlint/rules/testcases.py` |
+| lint-testcases | adopted | `prd-toolkit/scripts/prdlint/rules/testcases.py` |
 | lint-contracts | not started | `prd-toolkit/scripts/prdlint/rules/contracts.py` |
 | lint-registries | adopted | `prd-toolkit/scripts/prdlint/rules/registries.py`, `prd-toolkit/scripts/prdlint/rules/errors.py` |
 | trace | adopted | `prd-toolkit/scripts/prd_trace.py`, `prd-toolkit/scripts/prdlint/trace.py`, `prd-toolkit/scripts/prd_git_hook.py`, `prd-toolkit/scripts/prdlint/githook.py`, `prd-toolkit/templates/hooks/**` |

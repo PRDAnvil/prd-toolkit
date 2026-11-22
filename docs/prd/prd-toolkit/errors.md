@@ -703,3 +703,23 @@ Evidence: judged-case reports a repeated rubric item when two items are equal af
 Diagnosis: judged-case reports a repeated rubric item when two items are equal after `str.strip()` (testcases.py:363-368). Its comment says it reports them because "prd_judge.py refuses it with exit 2: an answer cannot name each item", and commit 9e58d2e says the same. prd_judge.py refuses a rubric when two items are equal after `_collapse(r).strip()` (judge.py:245), and `_collapse` also turns every run of white space inside an item into one space (judge.py:39, 99-100). So two items that differ only in inner white space, such as `The importer inserts no rows` and `The importer inserts no rows`, pass lint. prd_judge.py then exits 2 on them with `rubric repeats an item, so an answer cannot name each one`. Not reproduced by a run: read from the code during the adoption extract of the area lint-testcases.
 Resolution: -
 Recurrence of: -
+
+### E-056 test-cases-consistent repeats the no-file finding for each T-id of a Tests line
+Detected: 2026-11-21, confirmation of FR-150 (the answer of the owner to Q-27)
+Classification: code bug
+Touches: FR-150
+Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:143-147 yields the finding inside the loop over the T-ids of the Tests line.
+  In a copy of the fixture lint-cli/orders, line 8 of nfr.md replaced with `Tests: T-004.1 [system], T-004.2 [system], T-004.3 [system]`: `prd lint` exits 1 and prints `docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)` three times.
+Diagnosis: For a block whose Tests line names no test-cases file, `test_cases_consistent` yields the finding inside its loop over the T-ids of that line (testcases.py:143-147). A line that lists three T-ids gets the same message at the same line three times. The owner answered Q-27 on 2026-11-21 that such a line gets the finding once, whatever the number of T-ids on it, and AC-150.1 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
+
+### E-057 classified-fixtures calls an address at a subdomain of a reserved example domain real-looking
+Detected: 2026-11-21, confirmation of FR-168 (the answer of the owner to Q-31)
+Classification: code bug
+Touches: FR-168
+Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:66: `return domain in _SYNTHETIC_DOMAINS or domain.endswith(_SYNTHETIC_SUFFIXES)`. The set (testcases.py:43) holds only `example.com`, `example.org` and `example.net`.
+  `is_synthetic` returns False for an address at `mail.example.com` and at `sub.example.org`, and True for one at `example.com`.
+Diagnosis: `is_synthetic` counts an email as synthetic only when its domain is exactly `example.com`, `example.org` or `example.net`, or ends with `.test`, `.example` or `.invalid` (testcases.py:43-44, 66). An address at `mail.example.com` therefore counts as real-looking, and `classified-fixtures` and `sufficiency` report it, though the three domains are reserved with every name under them. The owner answered Q-31 on 2026-11-21 that an address at a subdomain of the three domains counts as synthetic, and AC-168.2 now says so; the code does not. Reproduced by calling `is_synthetic`.
+Resolution: -
+Recurrence of: -

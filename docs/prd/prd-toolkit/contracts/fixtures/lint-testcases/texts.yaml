@@ -1,0 +1,38 @@
+# Fixture lint-testcases/texts: the lines lint-testcases's cases write, by name. Real-looking personal data lives here
+# because a lint of the PRD folder reports it in a test case's input; lint never reads fixture data.
+uncited_case: ["T-001.9:", "  ac: AC-001.1", "  level: unit"]
+judged_ok: ["    rubric:", "      - The importer reports status empty", "      - The importer inserts no rows", "      - The importer logs IMPORT_EMPTY once", "    threshold: 1.0"]
+rubric_empty: ["    rubric: []", "    threshold: 1.0"]
+rubric_repeat: ["    rubric:", "      - The importer inserts no rows", "      - The importer logs IMPORT_EMPTY once", "      - The importer inserts no rows", "      - '  The importer inserts no rows  '", "    threshold: 1.0"]
+rubric_inner_space: ["    rubric:", "      - The importer inserts no rows", "      - 'The importer  inserts no rows'", "    threshold: 1.0"]
+threshold_zero: ["    rubric:", "      - The importer reports status empty", "    threshold: 0"]
+runs_zero: ["    rubric:", "      - The importer reports status empty", "    threshold: 1.0", "    runs: 0"]
+judged_output: ["    rubric:", "      - The importer reports status empty", "    threshold: 1.0", "    output: {status: empty}"]
+threshold_067: ["    rubric:", "      - The importer reports status empty", "      - The importer inserts no rows", "      - The importer logs IMPORT_EMPTY once", "    threshold: 0.67"]
+threshold_two: ["    rubric:", "      - The importer reports status empty", "      - The importer inserts no rows", "    threshold: 0.67"]
+threshold_five: ["    rubric:", "      - The importer reports status empty", "      - The importer inserts no rows", "      - The importer logs IMPORT_EMPTY once", "      - The importer skips no row", "      - The importer writes no file", "    threshold: 0.8"]
+ghost_rows: ["| customers/ghost | Nothing | `x` | `y` |", "| customers | Every customer fixture | `x` | `y` |"]
+fenced_notes: ["# Notes", "", "```", "# Hidden", "```", "", "## Shown"]
+code_span_notes: ["# Notes", "", "## The `orders` table", "", "## Totals `beta`"]
+refs_code_span: '  refs: ["contracts/notes.md#The `orders` table"]'
+outline_row: '| outline | `contracts/outline.yaml` | `python3 -c "import sys; sys.exit(0)"` |'
+outline_yaml: ["install-guide: {title: Install}"]
+looker_row: '| looker | `contracts/looker/*.yaml` | `python3 -c "import sys; sys.exit(0)"` |'
+kf_unknown: ["  known-failing: E-099", "  symptom: the importer crashes"]
+kf_e001: ["  known-failing: E-001", "  symptom: the importer crashes"]
+csv_real_email: "1,jane@gmail.com,Ada Example"
+flat_csv: ["id,email,name", "1,jane@gmail.com,Jane"]
+yaml_fixture: ["customers:", "  - {id: 3, email: real@gmail.com, name: Real}", "  - {id: 4, email: ok@example.com, name: [Nested, other@gmail.com]}"]
+json_fixture: ['{"customers": [{"id": 5, "email": "json@gmail.com"}]}']
+csv_real_name: "1,ada@example.com,ada@gmail.com"
+broken_yaml: ["customers: [{email: x@gmail.com"]
+inline_email: "    email: bob@acme.io"
+inline_key: "    jane@gmail.com: 3125550142"
+inline_mixed: "    note: call 312-444-0142 or 123-45-6789, mail bob@acme.io"
+inline_blind: "    note: 3124440142@acme.io"
+inline_runs: "    ref: 550e8400-e29b-41d4-a716-446655440000 ORD-20261029123456"
+inline_emails: "    note: a@example.com b@EXAMPLE.org c@mail.test d@x.example e@y.invalid g@example.co"
+inline_subdomains: "    note: a@mail.example.com b@Sub.Example.org c@x.y.example.net d@notexample.com"
+inline_ssns: "    note: 000-12-3456 666-12-3456 900-12-3456 123-45-6789"
+inline_phones: "    note: (312) 555-0142, 312.555.0199, 312 555 0100, 312-555-0242, 312-555-0200"
+acceptance_keys_on_unit: ["  steps: []", "  signoff: 7"]
