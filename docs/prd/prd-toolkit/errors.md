@@ -712,7 +712,7 @@ Touches: FR-150
 Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:143-147 yields the finding inside the loop over the T-ids of the Tests line.
   In a copy of the fixture lint-cli/orders, line 8 of nfr.md replaced with `Tests: T-004.1 [system], T-004.2 [system], T-004.3 [system]`: `prd lint` exits 1 and prints `docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)` three times.
 Diagnosis: For a block whose Tests line names no test-cases file, `test_cases_consistent` yields the finding inside its loop over the T-ids of that line (testcases.py:143-147). A line that lists three T-ids gets the same message at the same line three times. The owner answered Q-27 on 2026-11-21 that such a line gets the finding once, whatever the number of T-ids on it, and AC-150.1 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-150.7 [integration], PRD 9.7.0, fixed in 854efb18ec9dd7c36ba994607e4cf79e170198e2
 Recurrence of: -
 
 ### E-057 classified-fixtures calls an address at a subdomain of a reserved example domain real-looking
