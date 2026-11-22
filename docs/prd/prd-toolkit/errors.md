@@ -829,6 +829,7 @@ Recurrence of: -
 ### E-067 The Glossary part matches a term against the "(area: …)" label the pack adds to a block's heading
 Detected: 2026-11-22, adoption extract of context (prd-toolkit/scripts/prdlint/context.py:91 @f5d2b4c)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class: The Glossary part prints the glossary rows whose term appears in the selected blocks' own text, the heading as written and the block's lines, never in the (area: <name>) label the pack adds to another area's heading. (form)"
 Touches: FR-208, FR-209
 Diagnosis: `_block_text` (context.py:87-92) adds ` (area: <other>)` to the heading of a block from another area. `build_pack` (context.py:508-509) joins those labelled texts into `text`, and `_glossary` (context.py:162-163) searches `text` for each section 3 Term. A Term the label holds, such as `area` (a term in this PRD's own glossary, prd.md line 67), is therefore printed for any `--req` block of another area, whether or not the block says it. The 0.3 design (docs/superpowers/specs/2026-10-30-prd-toolkit-0.3-design.md, line 96) says the Glossary holds "the §3 rows whose Term occurs (case-insensitive, whole word) in a selected block". The label is the pack's annotation, not text of the block.
 Resolution: -
