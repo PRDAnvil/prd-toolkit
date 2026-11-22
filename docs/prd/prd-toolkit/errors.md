@@ -683,3 +683,45 @@ Evidence: prd-toolkit/scripts/prdlint/rules/registries.py:264 reports a `## Drif
 Diagnosis: A `## Drift` row whose Check cell is `schema` gets its own message, `check 'schema': schema drift arrives in prd-toolkit 0.6`. The toolkit is at 0.8.14 and no release brought a schema drift check, so the message promises what did not happen; the format reference repeats the wording. The owner answered Q-24 on 2026-11-22 that such a row is to be reported as `check 'schema' is not version or config`, like any other unknown check, with no release named, and AC-143.1 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-registries.
 Resolution: -
 Recurrence of: -
+
+### E-054 A refs entry cannot name a heading that holds a code span
+Detected: 2026-11-21, adoption extract of lint-testcases (prd-toolkit/scripts/prdlint/rules/testcases.py:35 @5483ca1)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-162
+Evidence: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces.
+Diagnosis: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces. So the heading ``## The `orders` table`` is read as `The table`. The entry ``prd.md#The `orders` table`` then gets `has no heading 'The `orders` table'`, and no entry can name that heading. The reverse also happens: the heading ``## Totals `beta` `` is read as `Totals`, so an entry `#Totals` resolves to it. The docstring (testcases.py:26-27) says an entry is a PRD-folder path "optionally followed by '#' and the exact text of a heading in that file". prd-format.md ("Test cases", `refs:`) says the same. Blanking fences is needed, because a `#` line in a code block is not a heading. Blanking inline spans is not needed. Not reproduced by a run: read from the code during the adoption extract of the area lint-testcases.
+Resolution: -
+Recurrence of: -
+
+### E-055 judged-case passes rubric items that prd_judge.py refuses as repeats
+Detected: 2026-11-21, adoption extract of lint-testcases (prd-toolkit/scripts/prdlint/rules/testcases.py:365 @5483ca1)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-157
+Evidence: judged-case reports a repeated rubric item when two items are equal after `str.strip()` (testcases.py:363-368). Its comment says it reports them because "prd_judge.py refuses it with exit 2: an answer cannot name each item", and commit 9e58d2e says the same. prd_judge.py refuses a rubric when two items are equal after `_collapse(r).strip()` (judge.py:245), and `_collapse` also turns every run of white space inside an item into one space (judge.py:39, 99-100).
+Diagnosis: judged-case reports a repeated rubric item when two items are equal after `str.strip()` (testcases.py:363-368). Its comment says it reports them because "prd_judge.py refuses it with exit 2: an answer cannot name each item", and commit 9e58d2e says the same. prd_judge.py refuses a rubric when two items are equal after `_collapse(r).strip()` (judge.py:245), and `_collapse` also turns every run of white space inside an item into one space (judge.py:39, 99-100). So two items that differ only in inner white space, such as `The importer inserts no rows` and `The importer inserts no rows`, pass lint. prd_judge.py then exits 2 on them with `rubric repeats an item, so an answer cannot name each one`. Not reproduced by a run: read from the code during the adoption extract of the area lint-testcases.
+Resolution: -
+Recurrence of: -
+
+### E-056 test-cases-consistent repeats the no-file finding for each T-id of a Tests line
+Detected: 2026-11-21, confirmation of FR-150 (the answer of the owner to Q-27)
+Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
+Touches: FR-150
+Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:143-147 yields the finding inside the loop over the T-ids of the Tests line.
+  In a copy of the fixture lint-cli/orders, line 8 of nfr.md replaced with `Tests: T-004.1 [system], T-004.2 [system], T-004.3 [system]`: `prd lint` exits 1 and prints `docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)` three times.
+Diagnosis: For a block whose Tests line names no test-cases file, `test_cases_consistent` yields the finding inside its loop over the T-ids of that line (testcases.py:143-147). A line that lists three T-ids gets the same message at the same line three times. The owner answered Q-27 on 2026-11-21 that such a line gets the finding once, whatever the number of T-ids on it, and AC-150.1 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
+
+### E-057 classified-fixtures calls an address at a subdomain of a reserved example domain real-looking
+Detected: 2026-11-21, confirmation of FR-168 (the answer of the owner to Q-31)
+Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
+Touches: FR-168
+Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:66: `return domain in _SYNTHETIC_DOMAINS or domain.endswith(_SYNTHETIC_SUFFIXES)`. The set (testcases.py:43) holds only `example.com`, `example.org` and `example.net`.
+  `is_synthetic` returns False for an address at `mail.example.com` and at `sub.example.org`, and True for one at `example.com`.
+Diagnosis: `is_synthetic` counts an email as synthetic only when its domain is exactly `example.com`, `example.org` or `example.net`, or ends with `.test`, `.example` or `.invalid` (testcases.py:43-44, 66). An address at `mail.example.com` therefore counts as real-looking, and `classified-fixtures` and `sufficiency` report it, though the three domains are reserved with every name under them. The owner answered Q-31 on 2026-11-21 that an address at a subdomain of the three domains counts as synthetic, and AC-168.2 now says so; the code does not. Reproduced by calling `is_synthetic`.
+Resolution: -
+Recurrence of: -
