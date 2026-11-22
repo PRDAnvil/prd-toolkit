@@ -773,6 +773,7 @@ Recurrence of: -
 ### E-062 error-codes reads the failures of dependency files in subfolders of contracts/dependencies/
 Detected: 2026-11-22, confirmation of FR-184 (the answer of the owner to Q-35)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
 Touches: FR-184, FR-185
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:600-603: `error_citations` reads `failures` from every loaded YAML file whose path starts with `contracts/dependencies/`, at any depth; `contracts-valid` checks only the `.yaml` files directly in that folder (AC-180.5).
     In a copy of the fixture lint-cli/orders, with contracts/dependencies/old/legacy.yaml holding `failures:` and `  timeout: NOT_CATALOGUED`: `prd lint` exits 1 and prints `docs/prd/orders/contracts/dependencies/old/legacy.yaml:2: error-codes: error code NOT_CATALOGUED is not in contracts/errors.yaml`.
