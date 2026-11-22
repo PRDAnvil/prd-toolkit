@@ -1,0 +1,11 @@
+# Fixture lint-registries/texts: the lines lint-registries's cases write or expect, by name. They live here because a
+# lint of the PRD folder would report them anywhere else; lint never reads fixture data.
+run_marker: "   Run: [NEEDS CLARIFICATION: the staging deploy command]"
+check_marker: "   Check: [NEEDS CLARIFICATION: the staging health check]"
+rollback_marker: "   Rollback: [NEEDS CLARIFICATION: the staging rollback]"
+e2e_marker_row: "| e2e | [NEEDS CLARIFICATION: the e2e command] | staging | deploy |"
+short_id_heading: "### E-1 The first entry written again"
+short_id_expect: "docs/prd/orders/errors.md:10: error-entries: E-1 follows E-001: entries run from E-001 upward, newest last"
+later_entries: ["", "### E-003 A later report", "Detected: 2026-11-01, a report", "Classification: code bug", "Resolution: open", "", "### E-002 An earlier report", "Detected: 2026-10-30, a report", "Classification: code bug", "Resolution: open"]
+entry_tail: ["Detected: 2026-11-01, a report", "Classification: code bug", "Resolution: open"]
+entry_tail_later: ["Detected: 2026-11-02, a report", "Classification: code bug", "Resolution: open"]
