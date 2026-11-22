@@ -717,6 +717,7 @@ Recurrence of: -
 ### E-057 classified-fixtures calls an address at a subdomain of a reserved example domain real-looking
 Detected: 2026-11-21, confirmation of FR-168 (the answer of the owner to Q-31)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
 Touches: FR-168
 Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:66: `return domain in _SYNTHETIC_DOMAINS or domain.endswith(_SYNTHETIC_SUFFIXES)`. The set (testcases.py:43) holds only `example.com`, `example.org` and `example.net`.
   `is_synthetic` returns False for an address at `mail.example.com` and at `sub.example.org`, and True for one at `example.com`.
