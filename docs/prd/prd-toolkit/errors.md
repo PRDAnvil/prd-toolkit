@@ -791,3 +791,18 @@ Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:450: `glob.glob(g, root
 Diagnosis: `custom_types` keeps every file a Files glob matches (contracts.py:450), so an absolute glob or one that climbs out with `..` passes files outside the PRD folder to the validator, and AC-181.1 already says a type's files are files in the PRD folder. The owner answered Q-36 on 2026-11-22 that such a match is a finding and is not passed to the validator, and AC-181.4 now says so; the code does neither. Reproduced in a copy of the fixture lint-cli/orders.
 Resolution: -
 Recurrence of: -
+
+### E-064 The prd-tester guard finds the PRD from the session's working directory, so a dispatch for a PRD in another repository may read nothing
+Detected: 2026-11-22, user report (/prd-toolkit:prd-error), a dry-run dispatch
+Classification: unclassified
+Evidence: A Claude Code session started in <session dir>, a folder that holds no docs/prd/ folder, dispatched the
+  prd-toolkit:prd-tester agent for a dry run (changing-prds step 4) of a PRD in another repository:
+    Mode: dry run
+    PRD: <other repo>/docs/prd/<slug>/
+    Dry-run directory: <other repo>/<test root>/.prd-dry-run-<timestamp>/
+  The guard refused every call of the tester, its Bash ls of the PRD folder and its Read of the test-case file:
+    prd-tester may only read under: (none) (testing.md is missing or has no Test roots: no docs/prd/*/ folder)
+  The tester wrote no test and reported TESTS: none. The repository's git status was the same before and after.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
