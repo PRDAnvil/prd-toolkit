@@ -687,6 +687,7 @@ Recurrence of: -
 ### E-054 A refs entry cannot name a heading that holds a code span
 Detected: 2026-11-21, adoption extract of lint-testcases (prd-toolkit/scripts/prdlint/rules/testcases.py:35 @5483ca1)
 Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-162
 Evidence: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces.
 Diagnosis: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces. So the heading ``## The `orders` table`` is read as `The table`. The entry ``prd.md#The `orders` table`` then gets `has no heading 'The `orders` table'`, and no entry can name that heading. The reverse also happens: the heading ``## Totals `beta` `` is read as `Totals`, so an entry `#Totals` resolves to it. The docstring (testcases.py:26-27) says an entry is a PRD-folder path "optionally followed by '#' and the exact text of a heading in that file". prd-format.md ("Test cases", `refs:`) says the same. Blanking fences is needed, because a `#` line in a code block is not a heading. Blanking inline spans is not needed. Not reproduced by a run: read from the code during the adoption extract of the area lint-testcases.
