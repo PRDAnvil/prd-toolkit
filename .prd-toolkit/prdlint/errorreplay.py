@@ -113,10 +113,15 @@ def _local_env_vars() -> frozenset[str]:
     return frozenset(out.decode().split())
 
 
-def _git_env() -> dict[str, str]:
-    """The command's environment less the variables that point git at a repository (FR-079)."""
+def _run_env() -> dict[str, str]:
+    """The command's environment less the variables that point git at a repository (FR-079, E-036)."""
     local = _local_env_vars()
-    return {**{k: v for k, v in os.environ.items() if k not in local}, "GIT_LITERAL_PATHSPECS": "1"}
+    return {k: v for k, v in os.environ.items() if k not in local}
+
+
+def _git_env() -> dict[str, str]:
+    """A run's environment, with git's pathspecs taken literally (FR-079, E-033)."""
+    return {**_run_env(), "GIT_LITERAL_PATHSPECS": "1"}
 
 
 def _git(repo_root: Path, *args: str, check: bool = True, stdin: bytes | None = None) -> subprocess.CompletedProcess:
@@ -289,7 +294,7 @@ def _execute(argv: list[str], cwd: Path, timeout: int) -> tuple[int | None, floa
     start = time.monotonic()
     try:
         proc = subprocess.Popen(argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL, start_new_session=True)
+                                stderr=subprocess.DEVNULL, start_new_session=True, env=_run_env())
     except OSError:  # AC-078.14: the operating system cannot start the program
         return None, round(time.monotonic() - start, 3), False, True
     try:
