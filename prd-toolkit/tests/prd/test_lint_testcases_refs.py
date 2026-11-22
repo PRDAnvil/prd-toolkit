@@ -314,7 +314,6 @@ def test_refs_entry_not_a_string(lint_case):
     )
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-054")
 @pytest.mark.parametrize(
     "lint_case",
     _one(
@@ -324,7 +323,7 @@ def test_refs_entry_not_a_string(lint_case):
     indirect=True,
 )
 def test_refs_heading_with_code_span_found(lint_case):
-    """@prd T-162.6 known-failing E-054"""
+    """@prd T-162.6"""
     run = lint_case[0]
     # The symptom of E-054: stdout holds this line.
     symptom = (
@@ -336,7 +335,6 @@ def test_refs_heading_with_code_span_found(lint_case):
     check(run, {"exit": 0, "stdout": "", "stderr": ""})
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-054")
 @pytest.mark.parametrize(
     "lint_case",
     _one(
@@ -346,7 +344,7 @@ def test_refs_heading_with_code_span_found(lint_case):
     indirect=True,
 )
 def test_refs_heading_without_its_code_span_not_found(lint_case):
-    """@prd T-162.7 known-failing E-054"""
+    """@prd T-162.7"""
     run = lint_case[0]
     # The symptom of E-054 here: the exit code is 0 and stdout is empty.
     if run.exit == 0 and run.stdout == "":
