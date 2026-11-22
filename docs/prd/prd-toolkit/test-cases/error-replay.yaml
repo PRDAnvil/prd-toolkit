@@ -1655,6 +1655,37 @@ T-079.7:
     errors: []
     leaks: none
 
+T-079.8:
+  known-failing: E-037
+  symptom: "the exit code is 1 with the finding on stdout and nothing on stderr, and <tmp>/scratch still holds exactly one entry, the folder the command made, a folder that holds the folders run-1/ro/x and run-2/ro/x, whatever else it holds"
+  ac: AC-079.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RTP, RRO, RF, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "RRO makes the integration level's One test command `python3 tools/ro.py`, which leaves the folder ro/x of each run's clone without write permission and exits 0, so both runs pass and the replay ends with a finding; the mode stops a removal only for a user other than root, so step RRO ends the test as skipped when it runs as root"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: T-006.1 passes on <fix>^; <fix> did not turn it green\n"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "`git worktree list --porcelain` in <tmp>/repo after run_1 names exactly one worktree, <tmp>/repo itself"
+    errors: []
+    leaks: none
+
 T-080.1:
   ac: AC-080.1
   level: integration
