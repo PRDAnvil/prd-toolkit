@@ -1,0 +1,1074 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below (they extend those of lint-cli.yaml and lint-structure.yaml):
+#   <repo> is the repository root; <tmp> is the test's own tmp_path; <P> is <tmp>/docs/prd/orders.
+#   S0 = write each entry of fixture lint-cli/orders (contracts/fixtures/lint-cli/orders.yaml) to <P>/<key>, creating
+#   parent folders, and set PRD_PLUGINS_FILE to the absolute path of fixture lint-cli/plugins_superpowers.json.
+#   With S0 alone the folder lints clean (T-001.1).
+#   A file named in a setup step is relative to <P>. "line N of F" is line N of F as S0 wrote it, before any other
+#   step of the case; "replace line N of F with X" keeps every other line; "insert X before line N of F" makes X line N;
+#   "insert X after line N of F" makes X line N+1; "append X to F" adds each line of X, each with a newline, after F's
+#   final newline. Several inserted or appended lines are listed in order. "delete line N of F" removes that line, and the
+#   lines after it move up. "write F with the one line X" creates F holding X and a newline. A step that does not find
+#   the file or the line it names ends the test as an error, not a failure, since the state the case needs was never built.
+#   A2 = write <P>/adoption.md as the lines "# Adoption map", "", "| Area | State | Boundary |", "|---|---|---|",
+#        "| import | adopted | `features/import.md` |", "| ghost | extracted | `src/ghost/**` |",
+#        "| spare | confirmed | `src/spare/**` |", "| later | not started | |", each ending in a newline
+#        (rows at lines 5 to 8).
+#   A case whose output has no exit key does not assert the exit code: other rules may report its edits.
+#   "texts.<key>" (a whole value) stands for the string, or the list of strings, under <key> in fixture lint-ids/texts
+#   (contracts/fixtures/lint-ids/texts.yaml, read with yaml.safe_load). Texts that a lint of this PRD folder would itself
+#   report live there, because lint never reads fixture data. A line a step writes from texts has no backticks around it; a list under texts gives one line per item.
+#   R3 = replace line 105 of prd.md with "| FR-003 | Delete an order | removed | features/api.md | 1.0.0 |" and
+#        replace line 22 of features/api.md with "Status: removed" (FR-003 removed in both places).
+T-121.1:
+  ac: AC-121.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 19 of features/api.md with texts.traces_line]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: texts.traces_expect, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-121.2:
+  ac: AC-121.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 34 of prd.md with texts.kinds_line]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains: texts.kinds_expect
+      stdout_not_contains: "id-format: 'FR-001'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-121.3:
+  ac: AC-121.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 34 of prd.md with texts.span_line]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: texts.span_absent, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-121.4:
+  ac: AC-121.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 43 of contracts/openapi.yaml with texts.openapi_line]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: texts.openapi_expect, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-121.5:
+  ac: AC-121.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 37 of test-cases/import.yaml with texts.case_ac_line]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: texts.case_ac_expect, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-121.6:
+  ac: AC-121.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 34 of prd.md with texts.dot_line]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: texts.dot_expect
+      stdout_not_contains: ["id-format: 'FR-001.'", "id-format: 'FR-001' "]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-121.7:
+  known-failing: E-047
+  symptom: "stdout holds the expected finding at docs/prd/orders/test-cases/import.yaml:1, not at line 36"
+  ac: AC-121.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 36 of test-cases/import.yaml with texts.key_line]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: texts.key_expect, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-121.8:
+  known-failing: E-048
+  symptom: "stdout holds a line that starts docs/prd/orders/.notes.md: or docs/prd/orders/contracts/.draft.yaml: and holds the text of texts.span_absent"
+  ac: AC-121.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write <P>/.notes.md with the one line texts.hidden_md", "write <P>/contracts/.draft.yaml with the one line texts.hidden_yaml"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: texts.span_absent, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-122.1:
+  ac: AC-122.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `- AC-001.2 When a row repeats, the importer shall skip it.` before line 12 of features/import.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:12: id-unique: AC-001.2 is already defined at features/import.md:10", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-122.2:
+  ac: AC-122.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to features/import.md the lines ``, `### FR-002 Get an order`, `Status: live (since 1.0.0)`, `Acceptance (EARS):`, `- AC-002.9 When asked, the API shall answer.` (the heading is line 19)"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:19: id-unique: FR-002 is already defined at features/api.md:9", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-122.3:
+  ac: AC-122.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to test-cases/import.yaml the lines ``, `T-002.1:`, `  ac: AC-002.1`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains: "id-unique: T-002.1 is already defined at test-cases/api.yaml:1", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-122.4:
+  ac: AC-122.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to errors.md the lines `### E-001 Again` (line 9) and `Recurrence of: -`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/errors.md:9: id-unique: E-001 is already defined at errors.md:3", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-122.5:
+  ac: AC-122.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `| A-01 | Another | open |` after line 112 of prd.md", "insert `| A-01 | A third | open |` after that line (it is line 114)"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains:
+        - "docs/prd/orders/prd.md:113: id-unique: A-01 is already defined at prd.md:112"
+        - "docs/prd/orders/prd.md:114: id-unique: A-01 is already defined at prd.md:112"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-122.6:
+  ac: AC-122.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to features/api.md the lines ``, `### FR-004 Extra`, `Status: approved`, `Acceptance (EARS):`, `- AC-004.7 When asked, the API shall answer.`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_count_of_line: {line: "docs/prd/orders/nfr.md:3: id-unique: FR-004 and NFR-004 share a number; FR and NFR use one sequence", count: 1}, stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-122.7:
+  known-failing: E-046
+  symptom: "stdout holds a line that ends `id-unique: E-001 is already defined at errors.md:3`"
+  ac: AC-122.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append to errors.md the four lines of texts.fence_lines: an empty line, then a code fence that holds one heading"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: "id-unique: E-001", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-123.1:
+  ac: AC-123.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 105 of prd.md with `| FR-003 | Delete an order | removed | features/api.md | 1.0.0 |`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:105: id-removed-reused: FR-003 is 'removed' in the index but 'live' in features/api.md:21; both must say removed or neither", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-123.2:
+  ac: AC-123.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 22 of features/api.md with `Status: removed`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:105: id-removed-reused: FR-003 is 'live' in the index but 'removed' in features/api.md:21; both must say removed or neither", stdout_not_contains: "index-consistent: FR-003: index status", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-123.3:
+  ac: AC-123.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 105 of prd.md with `| FR-003 | Delete an order | removed | features/api.md | 1.0.0 |`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_not_contains: "index-consistent: FR-003: index status", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-124.1:
+  ac: AC-124.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, R3]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains:
+        - "docs/prd/orders/test-cases/api.yaml:36: id-removed-reused: test case T-003.1 cites AC-003.1 of removed FR-003"
+        - "docs/prd/orders/test-cases/api.yaml:52: id-removed-reused: test case T-003.2 cites AC-003.2 of removed FR-003"
+      stdout_not_contains: "both must say removed or neither"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-124.2:
+  ac: AC-124.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, R3]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains:
+        - "docs/prd/orders/contracts/openapi.yaml:43: id-removed-reused: x-prd-ids cites removed FR-003"
+        - "docs/prd/orders/contracts/openapi.yaml:43: id-removed-reused: x-prd-ids cites AC-003.1 of removed FR-003"
+        - "docs/prd/orders/contracts/openapi.yaml:43: id-removed-reused: x-prd-ids cites AC-003.2 of removed FR-003"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-124.3:
+  ac: AC-124.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, R3, "insert `  FR-003` after line 19 of features/api.md (a Traces continuation line, now line 20)"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains:
+        - "docs/prd/orders/features/api.md:7: id-removed-reused: UJ-01 Traces cites removed FR-003"
+        - "docs/prd/orders/features/api.md:20: id-removed-reused: FR-002 Traces cites removed FR-003"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-124.4:
+  ac: AC-124.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 12 of features/import.md with `- AC-001.3 (removed in 2.0.0) If the import file is empty, the importer shall finish with status `empty`,` (the word empty in backticks, as before)"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/test-cases/import.yaml:37: id-removed-reused: test case T-001.3 cites removed AC-001.3", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-124.5:
+  ac: AC-124.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 12 of features/import.md as T-124.4 does", "replace line 19 of features/api.md with `Traces: UJ-01; AC-001.3; `orders.id``, the last span in backticks as before"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/api.md:19: id-removed-reused: FR-002 Traces cites removed AC-001.3", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-124.6:
+  ac: AC-124.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 105 of prd.md with `| FR-003 | Delete an order | removed | features/api.md | 1.0.0 |`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_not_contains: ["cites removed FR-003", "of removed FR-003"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.1:
+  ac: AC-125.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `| FR-002 | Get an order | live | features/api.md | 1.0.0 |` after line 104 of prd.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:105: index-consistent: FR-002 appears twice in the section 11 index (first at prd.md:104)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.2:
+  ac: AC-125.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 102 of prd.md (the UJ-01 row)"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/api.md:3: index-consistent: UJ-01 has no row in the section 11 index", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.3:
+  ac: AC-125.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `| FR-005 | Ghost | approved | features/api.md |  |` after line 106 of prd.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:107: index-consistent: FR-005 is in the index but has no block", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.4:
+  ac: AC-125.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 104 of prd.md with `| FR-002 | Fetch an order | live | features/import.md | 1.0.0 |`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains:
+        - "docs/prd/orders/prd.md:104: index-consistent: FR-002: index title 'Fetch an order' differs from block title 'Get an order'"
+        - "docs/prd/orders/prd.md:104: index-consistent: FR-002: index file 'features/import.md' differs from block file 'features/api.md'"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-125.5:
+  ac: AC-125.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 104 of prd.md with `| FR-002 | Get an order | shipped | features/api.md | 1.0.0 |`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:104: index-consistent: FR-002: unknown index status 'shipped'", stdout_not_contains: "index status 'shipped' differs", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.6:
+  ac: AC-125.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of features/import.md with `Status: shipped`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:3: index-consistent: FR-001: unknown status 'shipped'", stdout_not_contains: "FR-001: index status 'live' differs", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.7:
+  ac: AC-125.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 104 of prd.md with `| FR-002 | Get an order | live | features/api.md |  |`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:104: index-consistent: FR-002 is live but the index has no Since", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.8:
+  ac: AC-125.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 10 of features/api.md with `Status: live`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/api.md:9: index-consistent: FR-002 is live but its Status line has no '(since X.Y.Z)'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.9:
+  ac: AC-125.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 104 of prd.md with `| FR-002 | Get an order | built | features/api.md | 1.0.0 |`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:104: index-consistent: FR-002: index status 'built' differs from block status 'live'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.10:
+  ac: AC-125.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+    note: every row and block of the fixture agree, so no index-consistent finding
+  expect:
+    output: {exit: 0, stdout_not_contains: "index-consistent", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-125.11:
+  known-failing: E-049
+  symptom: "stdout holds a line with `index-consistent: FR-002: index title` and `differs from block title`"
+  ac: AC-125.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, replace line 104 of prd.md with texts.title_row, replace line 9 of features/api.md with texts.title_heading]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: "FR-002: index title", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-126.1:
+  ac: AC-126.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 104 of prd.md with `| FR-002 | Get an order | as-built | features/api.md |  |`", "replace line 10 of features/api.md with `Status: as-built`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/api.md:9: index-consistent: FR-002 is as-built but has no 'Source: <file>:<line> @<commit>' line", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-126.2:
+  ac: AC-126.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "the two replacements of T-126.1", "insert `Source: src/api.py:10 @abc1234` after line 10 of features/api.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: "is as-built but has no", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-126.3:
+  known-failing: E-051
+  symptom: "stdout holds no index-consistent line for FR-002"
+  ac: AC-126.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 104 of prd.md with `| FR-002 | Get an order | as-built | features/api.md |  |`", "replace line 10 of features/api.md with `Status: as-built`", "insert `Source: somewhere in the code` after line 10 of features/api.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/api.md:9: index-consistent: FR-002 is as-built but its Source line is not '<file>:<line> @<commit>'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-127.1:
+  ac: AC-127.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of errors.md with `Classification: unclassified`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+    note: the entry stays resolved; its Resolution line 7 carries a value
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/errors.md:3: index-consistent: E-001: unclassified is allowed only on an open entry", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-127.2:
+  ac: AC-127.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of errors.md with `Classification: unclassified`", "replace line 7 of errors.md with `Resolution: open`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: "unclassified is allowed only on an open entry", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-127.3:
+  ac: AC-127.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `Touches: FR-001, FR-099` before line 6 of errors.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/errors.md:6: index-consistent: E-001 Touches FR-099, which no block defines", stdout_not_contains: "E-001 Touches FR-001", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-127.4:
+  known-failing: E-050
+  symptom: "stdout holds no index-consistent line for E-001"
+  ac: AC-127.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, delete line 5 of errors.md]
+    cwd: <tmp>
+    note: line 5 is the entry's Classification line; the entry stays resolved
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/errors.md:3: index-consistent: E-001: unclassified is allowed only on an open entry", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-128.1:
+  ac: AC-128.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, A2]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output:
+      exit: 1
+      stdout_contains:
+        - "docs/prd/orders/adoption.md:6: index-consistent: adoption area 'ghost' is extracted but features/ghost.md does not exist"
+        - "docs/prd/orders/adoption.md:7: index-consistent: adoption area 'spare' is confirmed but features/spare.md does not exist"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-128.2:
+  ac: AC-128.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, A2]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+    note: the import row is adopted and features/import.md exists; the later row is not started
+  expect:
+    output:
+      stdout_not_contains: ["adoption area 'import'", "adoption area 'later'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-129.1:
+  ac: AC-129.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete lines 25 to 29 of features/api.md (FR-003's Acceptance (EARS): line and its two ACs)"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/api.md:21: fr-has-ac: FR-003 has no acceptance criteria", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-129.2:
+  ac: AC-129.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of nfr.md with `- AC-004.1 (removed in 2.0.0) The API shall answer getOrder within 300 ms at p95 under 50 requests/s.`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/nfr.md:3: fr-has-ac: NFR-004 has no live acceptance criteria; remove the requirement instead", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-129.3:
+  ac: AC-129.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, R3, "delete lines 25 to 29 of features/api.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_not_contains: "fr-has-ac: FR-003", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-129.4:
+  ac: AC-129.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+    note: UJ-01 (features/api.md:3) has no AC
+  expect:
+    output: {exit: 0, stdout_not_contains: "fr-has-ac", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.1:
+  ac: AC-130.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of features/import.md with `- AC-001.1 Rows get inserted.`", "delete line 9 of features/import.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:8: ac-ears: AC-001.1 must start with When, While, If, Where or 'The <thing> shall'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.2:
+  ac: AC-130.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of features/import.md with `- AC-001.1 when an imported row has a new order_key, the importer shall insert the row`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:8: ac-ears: AC-001.1 must start with When, While, If, Where or 'The <thing> shall'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.3:
+  ac: AC-130.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of features/import.md with `- AC-001.1 When an imported row has a new order_key, the importer inserts the row`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:8: ac-ears: AC-001.1 must contain 'shall'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.4:
+  ac: AC-130.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+    note: AC-004.1 (nfr.md:6) is the ubiquitous form "The API shall …"; the others open with When or If
+  expect:
+    output: {exit: 0, stdout_not_contains: "ac-ears", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.5:
+  ac: AC-130.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of features/import.md with `- AC-001.1 (removed in 2.0.0) Rows get inserted.`", "delete line 9 of features/import.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_not_contains: "ac-ears: AC-001.1", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.6:
+  ac: AC-130.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `language: es` before line 8 of prd.md (inside the frontmatter)"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:8: ac-ears: AC-001.1 must start with Cuando, Mientras, Si, Donde or 'El/La/Los/Las <cosa> deberá'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.7:
+  ac: AC-130.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `language: es` before line 8 of prd.md", "replace line 8 of features/import.md with `- AC-001.1 Cuando una fila importada trae un order_key nuevo, el importador deberá insertarla`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_not_contains: "ac-ears: AC-001.1 ", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-130.8:
+  ac: AC-130.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert `language: es` before line 8 of prd.md", "replace line 8 of features/import.md with `- AC-001.1 Cuando una fila importada trae un order_key nuevo, el importador la inserta`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/features/import.md:8: ac-ears: AC-001.1 must contain 'deberá'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-131.1:
+  ac: AC-131.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of nfr.md with `- AC-004.1 The API shall answer getOrder quickly.`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/nfr.md:3: nfr-bound: NFR-004 states no measurable bound (a number with a unit such as ms, %, requests/s)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-131.2:
+  ac: AC-131.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of nfr.md with `- AC-004.1 The API shall answer getOrder within the bound NFR-300 ms names.`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/nfr.md:3: nfr-bound: NFR-004 states no measurable bound (a number with a unit such as ms, %, requests/s)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-131.3:
+  ac: AC-131.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of nfr.md with `- AC-004.1 The API shall reach 99.9% availability.`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: "nfr-bound", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-131.4:
+  ac: AC-131.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of nfr.md with `- AC-004.1 The API shall sustain 600 req/min.`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: "nfr-bound", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-131.5:
+  ac: AC-131.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of nfr.md with `- AC-004.1 The API shall answer getOrder within its budget.`", "insert `Edge cases: the budget is 300 ms at p95` before line 7 of nfr.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {stdout_not_contains: "nfr-bound", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-131.6:
+  ac: AC-131.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 106 of prd.md with `| NFR-004 | Order lookup latency | removed | nfr.md | 1.0.0 |`", "replace line 4 of nfr.md with `Status: removed`", "replace line 6 of nfr.md with `- AC-004.1 The API shall answer getOrder quickly.`"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_not_contains: "nfr-bound", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none

@@ -4,7 +4,7 @@
 |---|---|---|
 | lint-cli | adopted | `prd-toolkit/scripts/prd_lint.py`, `prd-toolkit/scripts/prdlint/__init__.py`, `prd-toolkit/scripts/prdlint/model.py`, `prd-toolkit/scripts/prdlint/markdown.py`, `prd-toolkit/scripts/prdlint/yamlload.py`, `prd-toolkit/scripts/prdlint/findings.py`, `prd-toolkit/scripts/prdlint/registry.py`, `prd-toolkit/scripts/prdlint/deps.py`, `prd-toolkit/scripts/prdlint/rules/__init__.py`, `prd-toolkit/scripts/prdlint/interface.py` |
 | lint-structure | adopted | `prd-toolkit/scripts/prdlint/rules/structure.py` |
-| lint-ids | not started | `prd-toolkit/scripts/prdlint/rules/ids.py` |
+| lint-ids | adopted | `prd-toolkit/scripts/prdlint/rules/ids.py` |
 | lint-testcases | not started | `prd-toolkit/scripts/prdlint/rules/testcases.py` |
 | lint-contracts | not started | `prd-toolkit/scripts/prdlint/rules/contracts.py` |
 | lint-registries | not started | `prd-toolkit/scripts/prdlint/rules/registries.py`, `prd-toolkit/scripts/prdlint/rules/errors.py` |
