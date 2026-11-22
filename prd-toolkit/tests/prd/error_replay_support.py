@@ -231,6 +231,7 @@ class Case:
         self.scratch = tmp / "scratch"
         self.many: str | None = None
         self._frozen: dict[str, str] | None = None
+        self.add_finalizer = None  # the `case` fixture sets it to request.addfinalizer (step RRO's mode reset)
 
     # environment and git
 
@@ -527,6 +528,28 @@ class Case:
                   f"| integration | `pytest tests/integration` | local | build | `{program}` |  |")
         self._commit(root, "git check")
 
+    def _restore_scratch_modes(self) -> None:
+        """Set the mode of every folder under <tmp>/scratch back to 0o700, so that tmp_path can be removed."""
+        if not self.scratch.is_dir():
+            return
+        for dirpath, dirnames, _ in os.walk(self.scratch):
+            for name in dirnames:
+                path = os.path.join(dirpath, name)
+                if not os.path.islink(path):
+                    os.chmod(path, 0o700)
+
+    def _step_RRO(self, root: Path, resolution) -> None:
+        """Line 8's One test is `python3 tools/ro.py`, which leaves the folder ro/x of each run's clone read-only."""
+        if self.add_finalizer is None:
+            raise SetupError("step RRO needs the `case` fixture's finalizer")
+        self.add_finalizer(self._restore_scratch_modes)  # when the test ends: skipped, passed or failed
+        if os.geteuid() == 0:
+            pytest.skip("step RRO: root may remove a folder whatever its mode")
+        _write(root / "tools/ro.py", files("ro_py"))
+        _set_line(root / ORDERS / "testing.md", 8,
+                  "| integration | `pytest tests/integration` | local | build | `python3 tools/ro.py` |  |")
+        self._commit(root, "read-only")
+
     def _step_RQ(self, root: Path, resolution) -> None:
         testing = root / ORDERS / "testing.md"
         _set_line(testing, 5, "| Level | Harness command | Environment | Gate | ONE TEST | Timeout |")
@@ -621,6 +644,7 @@ def case(request, tmp_path, monkeypatch) -> Case:
     """<tmp>/scratch made and the git variables set, then the case's steps run in order; names then taken."""
     steps, resolution = getattr(request, "param", ((), None))
     c = Case(tmp_path)
+    c.add_finalizer = request.addfinalizer
     c.scratch.mkdir()
     for name, value in _GIT_ENV.items():
         monkeypatch.setenv(name, value)
