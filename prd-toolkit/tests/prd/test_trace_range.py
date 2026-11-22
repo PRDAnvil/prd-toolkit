@@ -209,10 +209,9 @@ def commit_b(tmp: Path) -> None:
     CAPTURED.setdefault(tmp, {})["sha8_b"] = git_out(tmp, "rev-parse", "HEAD")[:8]
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailureE040, reason="E-040")
 @given_steps("T256", "TB", commit_a, commit_b)
 def test_range_sha256_checks_every_commit(scratch):
-    """@prd T-090.9 known-failing E-040"""
+    """@prd T-090.9"""
     sha8_a = CAPTURED[scratch]["sha8_a"]
     sha8_b = CAPTURED[scratch]["sha8_b"]
     r = run_trace(scratch, "docs/prd/orders", "--range", "HEAD~2..HEAD")
