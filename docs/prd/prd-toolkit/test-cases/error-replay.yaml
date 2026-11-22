@@ -1684,6 +1684,37 @@ T-079.8:
     errors: []
     leaks: none
 
+T-079.9:
+  known-failing: E-036
+  symptom: "`git status --porcelain` in <tmp>/repo after run_1 holds a line whose path, the text after its first three characters, is junk (such as `A  junk` or `AD junk`): the test's `git add -A` in its clone staged the file in the index that GIT_INDEX_FILE names"
+  ac: AC-079.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, RGA, RE]
+    resolution: "T-006.1 [integration], PRD 1.0.0, fixed in <fix>"
+    cwd: "<tmp>/repo"
+    runs:
+    - {env: {GIT_INDEX_FILE: "<tmp>/repo/.git/index"}, command: python ERROR replay docs/prd/orders E-001}
+    note: "run_1 starts with GIT_INDEX_FILE set to the absolute path of the scratch repository's own index, as git sets it for the pre-commit hook of a partial commit; RGA makes the integration level's One test command a program that writes the file junk in its working directory and runs `git add -A` there, which exits 0 on both commits, so both runs pass and the replay ends with a finding; the bytes of <tmp>/repo/.git/index are not compared, since git may refresh its stat cache"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "E-001: T-006.1 passes on <fix>^; <fix> did not turn it green\n"
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    - "<tmp>/repo holds no file junk after run_1"
+    errors: []
+    leaks: none
+
 T-080.1:
   ac: AC-080.1
   level: integration
