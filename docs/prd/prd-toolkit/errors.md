@@ -794,7 +794,7 @@ Recurrence of: -
 
 ### E-064 The prd-tester guard finds the PRD from the session's working directory, so a dispatch for a PRD in another repository may read nothing
 Detected: 2026-11-22, user report (/prd-toolkit:prd-error), a dry-run dispatch
-Classification: unclassified
+Classification: code bug
 Evidence: A Claude Code session started in <session dir>, a folder that holds no docs/prd/ folder, dispatched the
   prd-toolkit:prd-tester agent for a dry run (changing-prds step 4) of a PRD in another repository:
     Mode: dry run
@@ -803,6 +803,6 @@ Evidence: A Claude Code session started in <session dir>, a folder that holds no
   The guard refused every call of the tester, its Bash ls of the PRD folder and its Read of the test-case file:
     prd-tester may only read under: (none) (testing.md is missing or has no Test roots: no docs/prd/*/ folder)
   The tester wrote no test and reported TESTS: none. The repository's git status was the same before and after.
-Diagnosis: -
+Diagnosis: not a defect: reproduced once. Given the hook input of a prd-tester whose session started in a folder that holds no docs/prd/ (its cwd) and a Read of a testing.md in another repository, prd_tester_guard.py exits 2 with `prd-tester may only read under: (none) (testing.md is missing or has no Test roots: no docs/prd/*/ folder)`. The guard takes the repository from `git rev-parse --show-toplevel` run in the hook input's cwd (`Context.__init__` and `_toplevel`), and `_load_prds` reads docs/prd/*/ under it; with no PRD there its read roots are empty, so it refuses every call. No adopted area covers prd-toolkit/scripts/prd_tester_guard.py (tester-guard is not started), so its account is its own, and the README states this binding: "A dry run and a build dispatch agents bound to the session's own repository, so they run in a session started in that member's root", and in its limits, "a dry run or build of a member runs in a session started in that member's root". It also failed closed, as its docstring says: "For the tester it never fails open: any error blocks." The caller is what went wrong: changing-prds step 4 and testing-from-prds/dispatching.md dispatched the tester from a session started outside the PRD's repository, and neither says to check that first. That is a change to those skills, not a defect of the guard.
 Resolution: -
 Recurrence of: -
