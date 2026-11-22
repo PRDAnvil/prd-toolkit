@@ -662,3 +662,13 @@ Evidence: prd-toolkit/scripts/prdlint/rules/ids.py:191: `if b.status == "as-buil
 Diagnosis: For an `as-built` block, `index_consistent` only asks whether the block has a `Source:` line with text (ids.py:191). A line such as `Source: somewhere in the code` passes, though the message of the rule names the form `<file>:<line> @<commit>`, and the context pack and the adoption checks read a path, a line and a commit from that line. The owner answered Q-20 on 2026-11-21 that lint is to check the form, and AC-126.3 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-ids.
 Resolution: -
 Recurrence of: -
+
+### E-052 A gap finding calls an entry missing when it stands later in errors.md
+Detected: 2026-11-21, adoption extract of lint-registries (prd-toolkit/scripts/prdlint/rules/errors.py:37 @6162689)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-144
+Evidence: `_sequence` reports a gap as soon as an entry's number is more than one above the highest number so far (`n > top + 1`). It does not look ahead. With the entries in the order E-001, E-003, E-002, the rule reports at E-003 `E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git`, even though E-002 is in the file.
+Diagnosis: `_sequence` reports a gap as soon as an entry's number is more than one above the highest number so far (`n > top + 1`). It does not look ahead. With the entries in the order E-001, E-003, E-002, the rule reports at E-003 `E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git`, even though E-002 is in the file. It then reports E-002 as out of order. The message says the entry was deleted and must be restored from git, which is false for that file. The rule's own description says "put an out-of-order entry back in sequence" and treats a gap ("restore a deleted entry from git") as a separate case. prd-format.md also names the two separately ("lint reports a gap or an entry out of order"). The unit test `test_out_of_order` (prd-toolkit/tests/test_errors_model.py:160) asserts only `_ledger_findings(prd)[1:]` and skips this first finding. The same happens when the first entry is above 1 and a lower one follows (E-002, E-001 gives `E-001 is missing`). Not reproduced by a run: read from the code during the adoption extract of the area lint-registries.
+Resolution: -
+Recurrence of: -
