@@ -223,7 +223,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-076 | Replay an entry resolved with a T-id | verified | features/error-replay.md |  |
 | FR-077 | Replay an entry resolved with a red run | verified | features/error-replay.md |  |
 | FR-078 | What the replay prints and how it exits | verified | features/error-replay.md |  |
-| FR-079 | The replay leaves nothing behind and writes nothing | approved | features/error-replay.md |  |
+| FR-079 | The replay leaves nothing behind and writes nothing | verified | features/error-replay.md |  |
 | FR-080 | Resolve a fix outside every adopted Boundary with a red run | verified | features/error-replay.md |  |
 | FR-081 | Check a red run, and the older forms as before | verified | features/error-replay.md |  |
 | FR-082 | Report a test that cites a T-id no live requirement owns | live | features/trace.md | 9.1.0 |

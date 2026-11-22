@@ -245,8 +245,8 @@ Tests: T-078.1 [integration], T-078.2 [integration], T-078.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-079 The replay leaves nothing behind and writes nothing
-Status: approved
-Source: prd-toolkit/scripts/prdlint/errorreplay.py:219 @2d74a6b
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errorreplay.py:224 @4b2f2f3
 Flow: 1. make a clone for each run → 2. remove its folder when the run ends → 3. remove the folder the
       clones were made in when the command ends, however it ends
 Acceptance (EARS):
