@@ -820,6 +820,7 @@ Recurrence of: -
 ### E-066 The plugin-directory search reads git ls-tree without -z, so a plugin under a non-ASCII folder name is never found
 Detected: 2026-11-22, adoption extract of build-check (prd-toolkit/scripts/prdlint/buildcheck.py:71 @2caf953)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
 Touches: FR-191, FR-192
 Diagnosis: plugin_dir lists the head tree with `git ls-tree -r --name-only <rev>` and splits the output at newlines (buildcheck.py:71-75). With git's default `core.quotePath`, a path that holds a byte above 0x7F (or a quote, backslash or control character) is printed C-quoted, such as `"pl\303\274gin/.claude-plugin/plugin.json"`; that name does not end in `/.claude-plugin/plugin.json`, so the plugin directory is never found, and an exact vendor refresh in such a repository gets the AC-191.1 refusal instead of the comparison of AC-192.1. The sibling reads in the same module use `-z` for this reason: `refresh_differences` (line 113) and `_case_entries` (line 267); commit 78c95a6 says `--stale` uses `ls-tree -z` so a non-ASCII name is not C-quoted away.
 Resolution: -
