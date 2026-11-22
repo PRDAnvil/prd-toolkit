@@ -441,7 +441,7 @@ Evidence: Whole unit suite, uv run --directory prd-toolkit pytest -q -n auto tes
   22 passed in 25.26s
   The same test passed in three whole-suite runs earlier the same day (on e491e37, 22218e9 and 6e9cae9).
 Diagnosis: Not reproduced on demand: the test failed once in a whole parallel unit run and passed in the second run, the file alone (22 passed); two runs made, as the rule allows. Root cause by reading: the test's driver calls `openAdoption(entry)`, waits a fixed 300 ms (`await new Promise((r) => setTimeout(r, 300))`) and then calls `save(S.order.find((it) => it.id === 'E-003'), …)`. `S.order` is filled only when the panel's `load()` gets its `GET /items` answer from the test's inbox server (templates/confirm/panel.html). When that answer takes longer than 300 ms, as on a machine busy with the parallel run, `find` returns undefined and `save` fails with `TypeError: Cannot read properties of undefined (reading 'id')`, the error in the evidence. The faulty code is the test itself, prd-toolkit/tests/test_inbox_page.py, which no adopted area covers: it acts on the panel before the load it started has finished. The page and the server are not shown wrong. The rule the test breaks is the Harness line of testing.md: "**Waits.** Not applicable: every command runs to completion before the test asserts."
-Resolution: -
+Resolution: fixed in af56defaa0a8f5df80f4988e5c2a8fbd06bde72e, red run prd-toolkit/tests/test_inbox_page_slow_items.py [unit]
 Recurrence of: -
 
 ### E-035 prd error replay cannot add its worktree inside the Bash sandbox of a Claude Code session
@@ -792,20 +792,18 @@ Diagnosis: `custom_types` keeps every file a Files glob matches (contracts.py:45
 Resolution: -
 Recurrence of: -
 
-### E-064 --sources reads a changed path's hunks through a glob pathspec, so another file's hunks can admit a SOURCES line
-Detected: 2026-11-22, adoption extract of build-check (prd-toolkit/scripts/prdlint/buildcheck.py:186 @2caf953)
+### E-064 The prd-tester guard finds the PRD from the session's working directory, so a dispatch for a PRD in another repository may read nothing
+Detected: 2026-11-22, user report (/prd-toolkit:prd-error), a dry-run dispatch
 Classification: code bug
-Confirmed: 2026-11-22, "Confirm the class (form)"
-Touches: FR-193
-Diagnosis: hunks_of runs `git diff -U0 --no-color --no-renames <base> <head> -- <path>` with no `--literal-pathspecs` (buildcheck.py:186), so git reads the path as a glob pathspec. If a changed file's name holds `*`, `?` or `[`, its hunk list also takes the hunks of every other changed file the pattern matches: a round that changes `src/x*.py` at line 1 and `src/xy.py` at line 50 lets the line `FR-001: src/x*.py:50` pass, though `src/x*.py` has no change at line 50. The path test just above (`path not in changed`) reads the path literally, as do the module's other git reads: `--stale` runs `git --literal-pathspecs log` and `status` (lines 254 and 296), and `--diff` reads blobs as `<rev>:<path>`. Commit 259c29b made the check read paths literally; `--sources` came later (d14b0ea), with no literal flag.
-Resolution: -
-Recurrence of: -
-
-### E-065 The plugin-directory search reads git ls-tree without -z, so a plugin under a non-ASCII folder name is never found
-Detected: 2026-11-22, adoption extract of build-check (prd-toolkit/scripts/prdlint/buildcheck.py:71 @2caf953)
-Classification: code bug
-Confirmed: 2026-11-22, "Confirm the class (form)"
-Touches: FR-191, FR-192
-Diagnosis: plugin_dir lists the head tree with `git ls-tree -r --name-only <rev>` and splits the output at newlines (buildcheck.py:71-75). With git's default `core.quotePath`, a path that holds a byte above 0x7F (or a quote, backslash or control character) is printed C-quoted, such as `"pl\303\274gin/.claude-plugin/plugin.json"`; that name does not end in `/.claude-plugin/plugin.json`, so the plugin directory is never found, and an exact vendor refresh in such a repository gets the AC-191.1 refusal instead of the comparison of AC-192.1. The sibling reads in the same module use `-z` for this reason: `refresh_differences` (line 113) and `_case_entries` (line 267); commit 78c95a6 says `--stale` uses `ls-tree -z` so a non-ASCII name is not C-quoted away.
-Resolution: -
+Confirmed: 2026-11-22, "not a defect, close it"
+Evidence: A Claude Code session started in <session dir>, a folder that holds no docs/prd/ folder, dispatched the
+  prd-toolkit:prd-tester agent for a dry run (changing-prds step 4) of a PRD in another repository:
+    Mode: dry run
+    PRD: <other repo>/docs/prd/<slug>/
+    Dry-run directory: <other repo>/<test root>/.prd-dry-run-<timestamp>/
+  The guard refused every call of the tester, its Bash ls of the PRD folder and its Read of the test-case file:
+    prd-tester may only read under: (none) (testing.md is missing or has no Test roots: no docs/prd/*/ folder)
+  The tester wrote no test and reported TESTS: none. The repository's git status was the same before and after.
+Diagnosis: not a defect: reproduced once. Given the hook input of a prd-tester whose session started in a folder that holds no docs/prd/ (its cwd) and a Read of a testing.md in another repository, prd_tester_guard.py exits 2 with `prd-tester may only read under: (none) (testing.md is missing or has no Test roots: no docs/prd/*/ folder)`. The guard takes the repository from `git rev-parse --show-toplevel` run in the hook input's cwd (`Context.__init__` and `_toplevel`), and `_load_prds` reads docs/prd/*/ under it; with no PRD there its read roots are empty, so it refuses every call. No adopted area covers prd-toolkit/scripts/prd_tester_guard.py (tester-guard is not started), so its account is its own, and the README states this binding: "A dry run and a build dispatch agents bound to the session's own repository, so they run in a session started in that member's root", and in its limits, "a dry run or build of a member runs in a session started in that member's root". It also failed closed, as its docstring says: "For the tester it never fails open: any error blocks." The caller is what went wrong: changing-prds step 4 and testing-from-prds/dispatching.md dispatched the tester from a session started outside the PRD's repository, and neither says to check that first. That is a change to those skills, not a defect of the guard.
+Resolution: not a defect: the guard binds the tester to the session's own repository, as the README says: "A dry run and a build dispatch agents bound to the session's own repository, so they run in a session started in that member's root"; a dispatch for a PRD in another repository runs from a session started in that repository's root
 Recurrence of: -

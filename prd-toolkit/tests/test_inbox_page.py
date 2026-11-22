@@ -341,7 +341,9 @@ await refresh();
 const entry = [...I.seen.values()].find((e) => e.g.kind === 'adoption' && e.wt.path === {json.dumps(str(box.repo))});
 openAdoption(entry);
 const shown = window.PANEL_HOST.question;
-await new Promise((r) => setTimeout(r, 300));
+// openAdoption starts the panel's load without returning it: wait until the load has listed the items, up to 30 s
+const until = Date.now() + 30000;
+while (!S.order.some((it) => it.id === 'E-003') && Date.now() < until) await new Promise((r) => setTimeout(r, 20));
 await save(S.order.find((it) => it.id === 'E-003'), 'intended', '', null);
 const stale = window.PANEL_HOST.question === shown;
 await finish();
