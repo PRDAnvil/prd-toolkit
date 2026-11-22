@@ -160,7 +160,7 @@ def test_out_of_order(prd):
     append(prd, _bare(3))
     append(prd, _bare(2))
     n = line_of(prd, "### E-002")
-    assert _ledger_findings(prd)[1:] == [(n, "E-002 follows E-003: entries run from E-001 upward, newest last")]
+    assert _ledger_findings(prd) == [(n, "E-002 follows E-003: entries run from E-001 upward, newest last")]
 
 
 def test_heading_in_fence_is_no_entry(prd):
