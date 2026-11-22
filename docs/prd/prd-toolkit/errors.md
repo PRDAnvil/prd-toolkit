@@ -683,3 +683,22 @@ Evidence: prd-toolkit/scripts/prdlint/rules/registries.py:264 reports a `## Drif
 Diagnosis: A `## Drift` row whose Check cell is `schema` gets its own message, `check 'schema': schema drift arrives in prd-toolkit 0.6`. The toolkit is at 0.8.14 and no release brought a schema drift check, so the message promises what did not happen; the format reference repeats the wording. The owner answered Q-24 on 2026-11-22 that such a row is to be reported as `check 'schema' is not version or config`, like any other unknown check, with no release named, and AC-143.1 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-registries.
 Resolution: -
 Recurrence of: -
+
+### E-054 A refs entry cannot name a heading that holds a code span
+Detected: 2026-11-21, adoption extract of lint-testcases (prd-toolkit/scripts/prdlint/rules/testcases.py:35 @5483ca1)
+Classification: code bug
+Touches: FR-162
+Evidence: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces.
+Diagnosis: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces. So the heading ``## The `orders` table`` is read as `The table`. The entry ``prd.md#The `orders` table`` then gets `has no heading 'The `orders` table'`, and no entry can name that heading. The reverse also happens: the heading ``## Totals `beta` `` is read as `Totals`, so an entry `#Totals` resolves to it. The docstring (testcases.py:26-27) says an entry is a PRD-folder path "optionally followed by '#' and the exact text of a heading in that file". prd-format.md ("Test cases", `refs:`) says the same. Blanking fences is needed, because a `#` line in a code block is not a heading. Blanking inline spans is not needed. Not reproduced by a run: read from the code during the adoption extract of the area lint-testcases.
+Resolution: -
+Recurrence of: -
+
+### E-055 judged-case passes rubric items that prd_judge.py refuses as repeats
+Detected: 2026-11-21, adoption extract of lint-testcases (prd-toolkit/scripts/prdlint/rules/testcases.py:365 @5483ca1)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-157
+Evidence: judged-case reports a repeated rubric item when two items are equal after `str.strip()` (testcases.py:363-368). Its comment says it reports them because "prd_judge.py refuses it with exit 2: an answer cannot name each item", and commit 9e58d2e says the same. prd_judge.py refuses a rubric when two items are equal after `_collapse(r).strip()` (judge.py:245), and `_collapse` also turns every run of white space inside an item into one space (judge.py:39, 99-100).
+Diagnosis: judged-case reports a repeated rubric item when two items are equal after `str.strip()` (testcases.py:363-368). Its comment says it reports them because "prd_judge.py refuses it with exit 2: an answer cannot name each item", and commit 9e58d2e says the same. prd_judge.py refuses a rubric when two items are equal after `_collapse(r).strip()` (judge.py:245), and `_collapse` also turns every run of white space inside an item into one space (judge.py:39, 99-100). So two items that differ only in inner white space, such as `The importer inserts no rows` and `The importer inserts no rows`, pass lint. prd_judge.py then exits 2 on them with `rubric repeats an item, so an answer cannot name each one`. Not reproduced by a run: read from the code during the adoption extract of the area lint-testcases.
+Resolution: -
+Recurrence of: -
