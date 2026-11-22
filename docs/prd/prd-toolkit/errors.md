@@ -834,3 +834,11 @@ Touches: FR-208, FR-209
 Diagnosis: `_block_text` (context.py:87-92) adds ` (area: <other>)` to the heading of a block from another area. `build_pack` (context.py:508-509) joins those labelled texts into `text`, and `_glossary` (context.py:162-163) searches `text` for each section 3 Term. A Term the label holds, such as `area` (a term in this PRD's own glossary, prd.md line 67), is therefore printed for any `--req` block of another area, whether or not the block says it. The 0.3 design (docs/superpowers/specs/2026-10-30-prd-toolkit-0.3-design.md, line 96) says the Glossary holds "the §3 rows whose Term occurs (case-insensitive, whole word) in a selected block". The label is the pack's annotation, not text of the block.
 Resolution: -
 Recurrence of: -
+
+### E-068 The decision inbox stops answering in a repository with many worktrees: each listing loads every worktree's PRD, and the page asks again every 5 seconds before the last listing ends
+Detected: 2026-11-22, adoption confirmation of context (prd-toolkit/scripts/prdlint/gates.py:1004 @ad9c628)
+Classification: unclassified
+Touches: -
+Diagnosis: -
+Resolution: -
+Recurrence of: -
