@@ -707,6 +707,7 @@ Recurrence of: -
 ### E-056 test-cases-consistent repeats the no-file finding for each T-id of a Tests line
 Detected: 2026-11-21, confirmation of FR-150 (the answer of the owner to Q-27)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
 Touches: FR-150
 Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:143-147 yields the finding inside the loop over the T-ids of the Tests line.
   In a copy of the fixture lint-cli/orders, line 8 of nfr.md replaced with `Tests: T-004.1 [system], T-004.2 [system], T-004.3 [system]`: `prd lint` exits 1 and prints `docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)` three times.
