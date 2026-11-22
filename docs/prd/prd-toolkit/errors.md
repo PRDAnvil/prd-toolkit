@@ -601,3 +601,64 @@ Evidence: prd-toolkit/scripts/prdlint/hooks.py:454-458: `check` looks for a file
 Diagnosis: `check` reports a file the plugin does not ship only under six folders of `.prd-toolkit/` (hooks.py:454-458). A file at the top of `.prd-toolkit/`, such as a script the plugin has retired, or a file under `.prd-toolkit/templates/`, gets no line, and install and vendor leave it in place; the dispatcher can still run such a script by its command name. The owner answered Q-16 on 2026-11-21 that check is to report such a file, and AC-108.2 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area hooks-install.
 Resolution: -
 Recurrence of: -
+
+### E-046 id-unique counts `### E-nnn` headings inside code fences of errors.md
+Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:41 @4465291)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-122
+Evidence: `defined_ids` matches `^### (E-\d+)\b` against the raw lines of errors.md (ids.py:40-43), so a fenced example such as `### E-001 <title>` counts as a definition. If the ledger's real E-001 comes after it, id-unique reports it as `E-001 is already defined at errors.md:<fence line>`. prd-format.md ("errors.md") says "Headings inside code fences are not entries", and the loader's own ledger parser (model.py `_errors_ledger`) matches against `strip_code(text)` and skips fenced headings.
+Diagnosis: `defined_ids` matches `^### (E-\d+)\b` against the raw lines of errors.md (ids.py:40-43), so a fenced example such as `### E-001 <title>` counts as a definition. If the ledger's real E-001 comes after it, id-unique reports it as `E-001 is already defined at errors.md:<fence line>`. prd-format.md ("errors.md") says "Headings inside code fences are not entries", and the loader's own ledger parser (model.py `_errors_ledger`) matches against `strip_code(text)` and skips fenced headings. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
+Resolution: -
+Recurrence of: -
+
+### E-047 id-format reports a malformed test-case key at line 1
+Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:74 @4465291)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-121
+Evidence: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54).
+Diagnosis: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54). A key such as `T-12.1:` on line 40 is therefore reported at `test-cases/<area>.yaml:1`. Every other place in this file reports a test-case key at its real line (`tc.line`, ids.py:38, 157), and every other key and value in this rule is reported at its own line. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
+Resolution: -
+Recurrence of: -
+
+### E-048 id-format reads hidden Markdown and YAML files
+Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:72 @4465291)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-121
+Evidence: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`.
+Diagnosis: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`. The owner's confirmed rule in E-011 says that a file or folder whose name starts with `.` is not part of the PRD and that no rule reads it. The sibling rules in structure.py read `_visible_prose` and skip hidden YAML sources (structure.py:54-58, 283). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
+Resolution: -
+Recurrence of: -
+
+### E-049 index-consistent reports matching titles as different when a title starts or ends with a code span
+Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:200 @4465291)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-125
+Evidence: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text.
+Diagnosis: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text. `r.title != b.title` compares `prd help` prints the catalogue` (leading backtick gone) with the heading's text, so the rule reports `index title ... differs from block title ...`. The rule's own description says it checks that the index and the block have "the same title", and here the two titles are the same. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
+Resolution: -
+Recurrence of: -
+
+### E-050 A resolved errors.md entry with no Classification line is not reported as unclassified
+Detected: 2026-11-21, adoption extract of lint-ids (prd-toolkit/scripts/prdlint/rules/ids.py:185 @4465291)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-127
+Evidence: `index_consistent` reports only the literal `Classification: unclassified` on a resolved entry (`e.classification == "unclassified"`). A resolved entry with no `Classification:` line passes. prd-format.md's state table counts "no `Classification:`" as `unclassified`, and it says `unclassified` is allowed only on an open entry.
+Diagnosis: `index_consistent` reports only the literal `Classification: unclassified` on a resolved entry (`e.classification == "unclassified"`). A resolved entry with no `Classification:` line passes. prd-format.md's state table counts "no `Classification:`" as `unclassified`, and it says `unclassified` is allowed only on an open entry. The sibling code treats the two forms alike: `ErrorEntry.state` (model.py) and error-entries (errors.py:60, `e.classification in ("", "unclassified")`). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
+Resolution: -
+Recurrence of: -
+
+### E-051 index-consistent accepts any text as the Source line of an as-built block
+Detected: 2026-11-21, confirmation of FR-126 (the answer of the owner to Q-20)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-126
+Evidence: prd-toolkit/scripts/prdlint/rules/ids.py:191: `if b.status == "as-built" and not b.source:` is the whole check, so any text after `Source:` satisfies it.
+  The finding's own message names the form the line is to have: `<ID> is as-built but has no 'Source: <file>:<line> @<commit>' line`.
+Diagnosis: For an `as-built` block, `index_consistent` only asks whether the block has a `Source:` line with text (ids.py:191). A line such as `Source: somewhere in the code` passes, though the message of the rule names the form `<file>:<line> @<commit>`, and the context pack and the adoption checks read a path, a line and a commit from that line. The owner answered Q-20 on 2026-11-21 that lint is to check the form, and AC-126.3 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-ids.
+Resolution: -
+Recurrence of: -
