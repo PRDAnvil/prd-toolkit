@@ -795,6 +795,7 @@ Recurrence of: -
 ### E-064 The prd-tester guard finds the PRD from the session's working directory, so a dispatch for a PRD in another repository may read nothing
 Detected: 2026-11-22, user report (/prd-toolkit:prd-error), a dry-run dispatch
 Classification: code bug
+Confirmed: 2026-11-22, "not a defect, close it"
 Evidence: A Claude Code session started in <session dir>, a folder that holds no docs/prd/ folder, dispatched the
   prd-toolkit:prd-tester agent for a dry run (changing-prds step 4) of a PRD in another repository:
     Mode: dry run
