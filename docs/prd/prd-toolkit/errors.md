@@ -784,6 +784,7 @@ Recurrence of: -
 ### E-063 A custom type's Files glob passes files outside the PRD folder to the validator
 Detected: 2026-11-22, confirmation of FR-181 (the answer of the owner to Q-36)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
 Touches: FR-181
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:450: `glob.glob(g, root_dir=prd.root, recursive=True)` keeps every match that is a file, with no check that it lies in the PRD folder.
     In a copy of the fixture lint-cli/orders, with docs/prd/outside.lkml written and the lookml row of prd.md section 7 given the Files `contracts/custom/*.lkml ../outside.lkml` and a validator that prints its arguments and exits 1: `prd lint` prints `docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: ['../outside.lkml', 'contracts/custom/sample.lkml']`. With the Files cell set to the file's absolute path, the validator receives that absolute path.
