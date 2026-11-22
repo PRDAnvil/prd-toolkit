@@ -672,3 +672,14 @@ Evidence: `_sequence` reports a gap as soon as an entry's number is more than on
 Diagnosis: `_sequence` reports a gap as soon as an entry's number is more than one above the highest number so far (`n > top + 1`). It does not look ahead. With the entries in the order E-001, E-003, E-002, the rule reports at E-003 `E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git`, even though E-002 is in the file. It then reports E-002 as out of order. The message says the entry was deleted and must be restored from git, which is false for that file. The rule's own description says "put an out-of-order entry back in sequence" and treats a gap ("restore a deleted entry from git") as a separate case. prd-format.md also names the two separately ("lint reports a gap or an entry out of order"). The unit test `test_out_of_order` (prd-toolkit/tests/test_errors_model.py:160) asserts only `_ledger_findings(prd)[1:]` and skips this first finding. The same happens when the first entry is above 1 and a lower one follows (E-002, E-001 gives `E-001 is missing`). Not reproduced by a run: read from the code during the adoption extract of the area lint-registries.
 Resolution: -
 Recurrence of: -
+
+### E-053 drift-rows tells a schema Drift row that schema drift arrives in prd-toolkit 0.6
+Detected: 2026-11-21, confirmation of FR-143 (the answer of the owner to Q-24)
+Classification: code bug
+Confirmed: 2026-11-21, "Confirm the class (form)"
+Touches: FR-143
+Evidence: prd-toolkit/scripts/prdlint/rules/registries.py:264 reports a `## Drift` row whose Check is `schema` with `check 'schema': schema drift arrives in prd-toolkit 0.6`.
+  prd-toolkit/.claude-plugin/plugin.json holds version 0.8.14, and the toolkit has no schema drift check.
+Diagnosis: A `## Drift` row whose Check cell is `schema` gets its own message, `check 'schema': schema drift arrives in prd-toolkit 0.6`. The toolkit is at 0.8.14 and no release brought a schema drift check, so the message promises what did not happen; the format reference repeats the wording. The owner answered Q-24 on 2026-11-22 that such a row is to be reported as `check 'schema' is not version or config`, like any other unknown check, with no release named, and AC-143.1 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-registries.
+Resolution: -
+Recurrence of: -
