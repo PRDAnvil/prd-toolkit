@@ -1685,8 +1685,6 @@ T-079.8:
     leaks: none
 
 T-079.9:
-  known-failing: E-036
-  symptom: "`git status --porcelain` in <tmp>/repo after run_1 holds a line whose path, the text after its first three characters, is junk (such as `A  junk` or `AD junk`): the test's `git add -A` in its clone staged the file in the index that GIT_INDEX_FILE names"
   ac: AC-079.2
   level: integration
   target: "cli:prd_error"
