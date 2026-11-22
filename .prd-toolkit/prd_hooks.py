@@ -93,7 +93,7 @@ def main(argv: list[str]) -> int:
         print(f"prd_hooks: install refused: {e}", file=sys.stderr)
         return 1
     except hooks.InstallRefused as e:
-        print(f"prd_hooks: install refused: {e}", file=sys.stderr)
+        print(f"prd_hooks: {args.action} refused: {e}", file=sys.stderr)
         return 2
     except Exception as e:
         print(f"prd_hooks: internal error: {type(e).__name__}: {e}", file=sys.stderr)

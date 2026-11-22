@@ -84,7 +84,7 @@ Tests: T-098.1 [integration], T-098.2 [integration], T-098.3 [integration], T-09
 Traces: cli:prd_hooks; cli:prd_launcher; FR-069
 
 ### FR-099 Install vendors the PRD's packs and records where each came from
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/hooks.py:107 @07f77b1
   prd-toolkit/scripts/prdlint/hooks.py:125 @07f77b1
   prd-toolkit/scripts/prdlint/hooks.py:229 @07f77b1
@@ -229,7 +229,7 @@ Tests: T-106.1 [integration]  (test-cases/hooks-install.yaml)
 Traces: cli:prd_hooks
 
 ### FR-107 Vendor refreshes .prd-toolkit/ and writes nothing else
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/hooks.py:311 @07f77b1
   prd-toolkit/scripts/prd_hooks.py:73 @07f77b1
 Acceptance (EARS):
