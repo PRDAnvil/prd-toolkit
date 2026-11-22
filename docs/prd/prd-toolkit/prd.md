@@ -306,7 +306,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-159 | Point each case's ac at its own requirement | live | features/lint-testcases.md | 9.5.0 |
 | FR-160 | Resolve each case's preconditions and input file | live | features/lint-testcases.md | 9.5.0 |
 | FR-161 | Resolve each case's error codes, environment and identity | live | features/lint-testcases.md | 9.5.0 |
-| FR-162 | Resolve each case's refs entries | approved | features/lint-testcases.md |  |
+| FR-162 | Resolve each case's refs entries | verified | features/lint-testcases.md |  |
 | FR-163 | Tie a known-failing case to an open entry and its symptom | live | features/lint-testcases.md | 9.5.0 |
 | FR-164 | Resolve each case's target in the contracts | live | features/lint-testcases.md | 9.5.0 |
 | FR-165 | Prove every denial with a test case | live | features/lint-testcases.md | 9.5.0 |

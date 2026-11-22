@@ -178,9 +178,8 @@ Tests: T-161.1 [integration], T-161.2 [integration], T-161.3 [integration]  (tes
 Traces: UJ-01; cli:prd_lint
 
 ### FR-162 Resolve each case's refs entries
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/testcases.py:435 @5483ca1
-  prd-toolkit/scripts/prdlint/rules/testcases.py:25 @5483ca1
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/testcases.py:25 @9038960
 Acceptance (EARS):
 - AC-162.1 Where a test case has `refs:`, the lint command shall check each item when the value is a list, and the value itself when it is not.
 - AC-162.2 If a refs entry is not a string, or is a string of white space only, the lint command shall report `test-refs` at the `refs:` line with `<T-id>: refs entry <entry> must be a path in the PRD folder, optionally with #heading`, writing `<entry>` the way Python's `repr` writes it.
