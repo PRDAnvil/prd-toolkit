@@ -15,7 +15,7 @@ Tests: T-149.1 [integration], T-149.2 [integration], T-149.3 [integration]  (tes
 Traces: UJ-01; cli:prd_lint
 
 ### FR-150 Tie each Tests line to its test-cases file
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/rules/testcases.py:139 @5483ca1
 Flow: 1. for each T-id on each block's Tests line: does the line name a file → does the file exist → does it hold the T-id → does its level agree
       → 2. for each test case: does some Tests line that names the case's file list its T-id
