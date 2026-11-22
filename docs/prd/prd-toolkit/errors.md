@@ -725,3 +725,24 @@ Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:66: `return domain in _
 Diagnosis: `is_synthetic` counts an email as synthetic only when its domain is exactly `example.com`, `example.org` or `example.net`, or ends with `.test`, `.example` or `.invalid` (testcases.py:43-44, 66). An address at `mail.example.com` therefore counts as real-looking, and `classified-fixtures` and `sufficiency` report it, though the three domains are reserved with every name under them. The owner answered Q-31 on 2026-11-21 that an address at a subdomain of the three domains counts as synthetic, and AC-168.2 now says so; the code does not. Reproduced by calling `is_synthetic`.
 Resolution: -
 Recurrence of: -
+
+### E-058 A list or mapping column class crashes contracts-valid
+Detected: 2026-11-22, adoption extract of lint-contracts (prd-toolkit/scripts/prdlint/rules/contracts.py:367 @9961c9e)
+Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
+Touches: FR-179
+Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:367: `if kind not in _KINDS:`, and `_KINDS` (contracts.py:105) is a set.
+  In a copy of the fixture lint-cli/orders, line 5 of contracts/data-classification.yaml replaced with `    columns: {id: internal, email: [pii], name: pii}`: `prd lint` exits 2 with stderr `prd_lint: internal error in rule contracts-valid: TypeError: cannot use 'list' as a set element (unhashable type: 'list')`.
+Diagnosis: `_check_classification` tests `kind not in _KINDS`, and `_KINDS` is a set. A column class that is a YAML list or mapping (`columns: {email: [pii]}` or `{email: {a: b}}`) is unhashable, so the test raises `TypeError: unhashable type`. Nothing in the rule catches it, so `prd_lint` prints `prd_lint: internal error in rule contracts-valid: TypeError: …` and exits 2, instead of reporting `<t>.<c>: class [...] must be public, internal, confidential or pii`. Three things say this should be a finding. First, `prd-toolkit/tests/test_rules_contracts.py:146`, `test_malformed_shapes_never_crash`, asserts that malformed contract shapes give a `contracts-valid` finding and no `internal error`; its two classification inputs never put a list or mapping in the class position. Second, every sibling check in the file guards a value's type before it uses the value. Third, E-003 settled the same kind of TypeError escape as a bug. Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
+
+### E-059 A validator the system cannot execute crashes contracts-valid
+Detected: 2026-11-22, adoption extract of lint-contracts (prd-toolkit/scripts/prdlint/rules/contracts.py:500 @9961c9e)
+Classification: code bug
+Touches: FR-182
+Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:500-508: `subprocess.run` is wrapped by handlers for `FileNotFoundError`, `PermissionError` and `subprocess.TimeoutExpired` only.
+  In a copy of the fixture lint-cli/orders, with an executable `tools/check.sh` holding `exit 0` and no shebang, and the lookml row of prd.md section 7 given the Validator `tools/check.sh`: `prd lint` exits 2 with stderr `prd_lint: internal error in rule contracts-valid: OSError: [Errno 8] Exec format error: 'tools/check.sh'`.
+Diagnosis: `_check_custom` wraps `subprocess.run` but catches only `FileNotFoundError`, `PermissionError` and `TimeoutExpired`. Any other `OSError` escapes the rule, and `prd_lint` exits 2 with `prd_lint: internal error in rule contracts-valid: OSError: …`. Two examples are a validator file that has its execute bit but no shebang and is not a binary (`[Errno 8] Exec format error`), and an argument list too long for the system (E2BIG). The evidence that this should be a finding: the rule's own description says the custom type's validator "must run and pass" and tells the user to correct the Validator command. The sibling branches turn "not found" and "not executable" into findings. Commit 5a66652 decoded validator output as UTF-8 "so non-ASCII validator output under a C locale is a finding, not exit 2". Reproduced in a copy of the fixture lint-cli/orders.
+Resolution: -
+Recurrence of: -
