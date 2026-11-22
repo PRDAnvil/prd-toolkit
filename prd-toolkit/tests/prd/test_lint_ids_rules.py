@@ -472,13 +472,12 @@ def test_fixture_index_consistent(built):
     assert_stderr_empty(r)
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-049")
 @setup(
     lambda f: f.replace("prd.md", 104, T["title_row"]),
     lambda f: f.replace("features/api.md", 9, T["title_heading"]),
 )
 def test_title_with_code_span_matches(built):
-    """@prd T-125.11 known-failing E-049"""
+    """@prd T-125.11"""
     r = run_lint(built)
     known_failure_if(
         any(

@@ -639,7 +639,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-125
 Evidence: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text.
 Diagnosis: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text. `r.title != b.title` compares `prd help` prints the catalogue` (leading backtick gone) with the heading's text, so the rule reports `index title ... differs from block title ...`. The rule's own description says it checks that the index and the block have "the same title", and here the two titles are the same. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-125.11 [integration], PRD 9.7.0, fixed in bec6d30
 Recurrence of: -
 
 ### E-050 A resolved errors.md entry with no Classification line is not reported as unclassified
