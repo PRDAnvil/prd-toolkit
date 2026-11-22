@@ -811,6 +811,7 @@ Recurrence of: -
 ### E-065 --sources reads a changed path's hunks through a glob pathspec, so another file's hunks can admit a SOURCES line
 Detected: 2026-11-22, adoption extract of build-check (prd-toolkit/scripts/prdlint/buildcheck.py:186 @2caf953)
 Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class (form)"
 Touches: FR-193
 Diagnosis: hunks_of runs `git diff -U0 --no-color --no-renames <base> <head> -- <path>` with no `--literal-pathspecs` (buildcheck.py:186), so git reads the path as a glob pathspec. If a changed file's name holds `*`, `?` or `[`, its hunk list also takes the hunks of every other changed file the pattern matches: a round that changes `src/x*.py` at line 1 and `src/xy.py` at line 50 lets the line `FR-001: src/x*.py:50` pass, though `src/x*.py` has no change at line 50. The path test just above (`path not in changed`) reads the path literally, as do the module's other git reads: `--stale` runs `git --literal-pathspecs log` and `status` (lines 254 and 296), and `--diff` reads blobs as `<rev>:<path>`. Commit 259c29b made the check read paths literally; `--sources` came later (d14b0ea), with no literal flag.
 Resolution: -
