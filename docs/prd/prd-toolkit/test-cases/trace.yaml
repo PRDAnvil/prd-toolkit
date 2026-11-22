@@ -906,8 +906,6 @@ T-090.8:
     leaks: none
 
 T-090.9:
-  known-failing: E-040
-  symptom: "the exit code is 1 and stderr is empty, and stdout is exactly one line, the expected line of the newest commit (<sha8_b>, src/b.py): no line holds <sha8_a>"
   ac: AC-090.7
   level: integration
   target: "cli:prd_trace"

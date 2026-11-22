@@ -234,7 +234,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-087 | Print the trace findings and exit by them | live | features/trace.md | 9.1.0 |
 | FR-088 | Print the trace result as a JSON document | live | features/trace.md | 9.1.0 |
 | FR-089 | Refuse a trace it cannot run | live | features/trace.md | 9.1.0 |
-| FR-090 | Check each commit of a range against the commit rule | approved | features/trace.md |  |
+| FR-090 | Check each commit of a range against the commit rule | verified | features/trace.md |  |
 | FR-091 | Judge a commit message's Refs: trailers | live | features/trace.md | 9.1.0 |
 | FR-092 | Judge a commit message's Change-set: trailers | live | features/trace.md | 9.1.0 |
 | FR-093 | The commit-msg hook refuses a message the commit rule rejects | live | features/trace.md | 9.1.0 |
