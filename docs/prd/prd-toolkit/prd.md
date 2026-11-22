@@ -294,7 +294,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-147 | Check Detected and Recurrence of on an entry with Confirmed | live | features/lint-registries.md | 9.4.0 |
 | FR-148 | Describe each rule of the area | live | features/lint-registries.md | 9.4.0 |
 | FR-149 | Require a test case for every live acceptance criterion | live | features/lint-testcases.md | 9.5.0 |
-| FR-150 | Tie each Tests line to its test-cases file | approved | features/lint-testcases.md |  |
+| FR-150 | Tie each Tests line to its test-cases file | verified | features/lint-testcases.md |  |
 | FR-151 | Check the Gate column of the Levels table | live | features/lint-testcases.md | 9.5.0 |
 | FR-152 | Report a build command that would collect deploy-gate tests | live | features/lint-testcases.md | 9.5.0 |
 | FR-153 | Name a Levels row in each test case | live | features/lint-testcases.md | 9.5.0 |

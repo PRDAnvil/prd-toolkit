@@ -78,10 +78,9 @@ def test_non_string_level_is_not_compared(lint_case):
     check(lint_case[0], {"stdout_not_contains": "T-002.1 is [integration] on the Tests line", "stderr": ""})
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 @case(setup=[("replace", "nfr.md", 8, "Tests: T-004.1 [system], T-004.2 [smoke]")])
 def test_no_file_finding_once_per_line(lint_case):
-    """@prd T-150.7 known-failing E-056"""
+    """@prd T-150.7"""
     run = lint_case[0]
     check(run, {"exit": 1, "stderr": ""})
     # symptom: stdout holds that line twice, once for each T-id of the Tests line
