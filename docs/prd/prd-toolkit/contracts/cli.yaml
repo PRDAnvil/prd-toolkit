@@ -554,13 +554,28 @@ eval_scaffolds:
     0: "the start state is built"
     other: "the build failed; the eval case does not run"
 prd_build_check:
-  # Only what the tester-paths area needs so far (FR-074); the build-check area adds the rest when it is adopted.
-  invocation: "uv run --script prd-toolkit/scripts/prd_build_check.py <prd_dir> --diff <base>..<head>"
+  # The build's mechanical checks (build-check, FR-186 to FR-198; tester-paths, FR-074).
+  invocation: "python prd-toolkit/scripts/prd_build_check.py <prd_dir> (--diff <base>..<head> [--sources FILE] | --results REPORT --tids <T-id>[,<T-id>…] | --stale --tids <T-id>[,<T-id>…]); -h | --help; through the launcher, prd build-check …"
+  usage: "stderr: the usage line, then prd_build_check: give exactly one of --diff, --results (with --tids) or --stale (with --tids); --sources goes with --diff (FR-186)"
   tester_test: "stdout, one line per changed path that lies under a test root of testing.md (tests when it names none) and whose text at <base> or <head> cites a T-id of a level other than unit: <path> cites <T-ids>, a tester's test: the builder may not edit it; a changed path under no test root gets no such line (FR-074)"
+  prd_folder: "stdout, --diff: <path>: the builder may not edit the PRD folder (FR-190)"
+  vendored_copy: "stdout, --diff, after every other --diff line, <head> holding no plugin directory or several: <path>: the builder may not edit the vendored .prd-toolkit/ copy (FR-191)"
+  refresh: "stdout, --diff, <head> holding one plugin directory: <path>: differs from the plugin; refresh it with prd_hooks.py vendor, one per differing path of .prd-toolkit/, sorted (FR-192)"
+  sources: "stdout, after the --diff lines, in the file's line order: sources: line <n> is not '<ID>: <path>:<line>' | sources: <ID>: <path> is not changed in <range> | sources: <ID>: <path>:<line> is outside the round's changes (hunks <a>-<b>, …) (FR-193)"
+  results: "stdout: <T-id> was not dispatched | <T-id>: not one of pass, fail: <reason>, known-failing E-nnn (report order), then <T-id>: more than one RESULTS line, then <T-id> has no RESULTS line (--tids order) (FR-194)"
+  stale: "stdout, --tids order: stale <T-id> <path>: its test case changed after the test (last changed in <abbreviated sha>) (FR-195)"
+  errors_stderr:
+    not_a_prd: "prd_build_check: <loader's message> (FR-188)"
+    unmigrated: "prd_build_check: <folder>/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\" (FR-188)"
+    bad_range: "prd_build_check: bad range <value>: expected <base>..<head> | prd_build_check: bad range <value>: <end> is not a commit (FR-189)"
+    vendor_failed: "prd_build_check: vendor at <first 12 characters of the head SHA>: <first line> (FR-192)"
+    not_in_git: "prd_build_check: <folder> is not in a git working tree, --stale only (FR-196)"
+    timeout: "prd_build_check: <git <subcommand> | vendor> timed out after 120 s (FR-197)"
+    unreadable_input: "one line starting prd_build_check: , for a --results or --sources file that is missing or not UTF-8 (FR-198)"
   exit_codes:
-    0: "no finding"
+    0: "no finding; --help"
     1: "at least one finding line on stdout"
-    2: "usage, dependency or internal error"
+    2: "usage, a missing package (FR-187), a PRD folder that cannot be loaded, a bad range, --stale outside git, a failed vendor run, a timeout, an unreadable input file or an internal error"
 prd_launcher:
   # The sh launcher prd-toolkit/scripts/prd and its vendored copy .prd-toolkit/prd, the same file (launcher, FR-069).
   invocation: "prd-toolkit/scripts/prd <command> [arguments], or .prd-toolkit/prd <command> [arguments]; prd --version prints the toolkit's version"
