@@ -514,7 +514,7 @@ Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by
   <tmp>/prd-error-replay-<x>/run-1/ro/x
   <tmp>/prd-error-replay-<x>/run-2/ro/x
 Diagnosis: Reproduced once, as the evidence shows. AC-079.2 says that when the replay ends with findings "the folder the command made in the system temporary folder shall no longer exist", and AC-079.1 says the same of a proof that holds. prdlint/errorreplay.py removes each run's clone and then its own folder with `shutil.rmtree(..., ignore_errors=True)`, so a folder a test left without write permission stops the removal, nothing is printed, and the command exits as if it had cleaned up. The fault is in the code: it neither makes such a folder removable before it removes it nor reports a folder it could not remove.
-Resolution: -
+Resolution: T-079.8 [integration], PRD 9.6.1, fixed in d38de99c
 Recurrence of: -
 
 ### E-038 known-failing-tags reports no tag that names an unknown errors.md entry
