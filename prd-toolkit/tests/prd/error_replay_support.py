@@ -528,6 +528,15 @@ class Case:
                   f"| integration | `pytest tests/integration` | local | build | `{program}` |  |")
         self._commit(root, "git check")
 
+    def _step_RGA(self, root: Path, resolution) -> None:
+        """Line 8's One test is a program that writes the file junk in its working directory, then runs
+        `git add -A` there and exits with git's exit code."""
+        program = ("python3 -c \"raise SystemExit(__import__('pathlib').Path('junk').write_text('junk') and "
+                   "__import__('subprocess').run(['git', 'add', '-A']).returncode)\"")
+        _set_line(root / ORDERS / "testing.md", 8,
+                  f"| integration | `pytest tests/integration` | local | build | `{program}` |  |")
+        self._commit(root, "git add")
+
     def _restore_scratch_modes(self) -> None:
         """Set the mode of every folder under <tmp>/scratch back to 0o700, so that tmp_path can be removed."""
         if not self.scratch.is_dir():
