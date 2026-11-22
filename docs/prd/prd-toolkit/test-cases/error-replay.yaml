@@ -1656,8 +1656,6 @@ T-079.7:
     leaks: none
 
 T-079.8:
-  known-failing: E-037
-  symptom: "the exit code is 1 with the finding on stdout and nothing on stderr, and <tmp>/scratch still holds exactly one entry, the folder the command made, a folder that holds the folders run-1/ro/x and run-2/ro/x, whatever else it holds"
   ac: AC-079.2
   level: integration
   target: "cli:prd_error"
