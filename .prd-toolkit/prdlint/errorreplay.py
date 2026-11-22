@@ -6,6 +6,7 @@ import re
 import shlex
 import shutil
 import signal
+import stat
 import subprocess
 import tempfile
 import time
@@ -239,10 +240,28 @@ class _Clones:
 
     def drop(self, path: Path) -> None:
         """Removing a clone is removing its folder."""
-        shutil.rmtree(path, ignore_errors=True)
+        _remove(path)
 
     def close(self) -> None:
-        shutil.rmtree(self.folder, ignore_errors=True)
+        _remove(self.folder)
+
+
+def _remove(path: Path) -> None:
+    """Remove a folder whatever a test left in it (FR-079, E-037): every folder under it, a symlink never followed,
+    is first given its owner's read, write and search permission, so a folder left at mode 0500 or 0000 goes too."""
+    stack = [str(path)]
+    while stack:
+        here = stack.pop()
+        try:
+            mode = os.lstat(here).st_mode
+            if not stat.S_ISDIR(mode):
+                continue
+            os.chmod(here, stat.S_IMODE(mode) | stat.S_IRWXU)
+            with os.scandir(here) as entries:
+                stack.extend(e.path for e in entries if e.is_dir(follow_symlinks=False))
+        except OSError:
+            continue
+    shutil.rmtree(path, ignore_errors=True)
 
 
 def _replace_roots(wt: Path, resolving: str, roots: list[str]) -> None:
