@@ -837,8 +837,8 @@ Recurrence of: -
 
 ### E-068 The decision inbox stops answering in a repository with many worktrees: each listing loads every worktree's PRD, and the page asks again every 5 seconds before the last listing ends
 Detected: 2026-11-22, adoption confirmation of context (prd-toolkit/scripts/prdlint/gates.py:1004 @ad9c628)
-Classification: unclassified
+Classification: code bug
 Touches: -
-Diagnosis: -
+Diagnosis: `_Inbox.listing` (gates.py:1002-1022) loads the PRD of every worktree of the repository with `model.load` and lists its gates on every `GET /gates`. With seven worktrees holding the PRD, one listing took about 60 seconds when run alone (8 to 12 seconds per worktree, most of it in the pure-Python YAML loader). The inbox page (templates/gates/inbox.html:517) calls `refresh` every 5 seconds with `setInterval`, whether or not the last `GET /gates` has returned, and the server (formserver.py:149, a ThreadingHTTPServer) starts a thread for each one, so the listings run at once and share one interpreter: none returned within 120 seconds, and an item answer sent from the form never completed. The `wait` process, polling the same gate, also kept a CPU busy. Seen on 2026-11-22 with worktrees main, adopt-context and five fix worktrees: the inbox recorded an error-class confirmation at 15:02, then a confirmation-form answer for FR-199 hung, and `/gates` timed out at 120 seconds.
 Resolution: -
 Recurrence of: -
