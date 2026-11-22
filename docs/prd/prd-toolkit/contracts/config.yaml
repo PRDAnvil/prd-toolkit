@@ -17,3 +17,8 @@ settings:
     default: unset
     environments: {local: unset, production: unset}
     owner: "Ivan Histand (2026-11-15); tests set it to a fixture catalogue, and unset or empty means the catalogue the toolkit ships (FR-037)"
+  PRD_VALIDATOR_TIMEOUT:
+    type: integer
+    default: 120
+    environments: {local: unset, production: unset}
+    owner: "Ivan Histand (2026-11-22); the seconds a section 7 custom type's validator may run; tests set it to 1 for a run (T-182.5); unset or not an integer means 120 (FR-182)"

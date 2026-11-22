@@ -1,0 +1,1630 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below: those of lint-registries.yaml (<repo>, <tmp>, <P>, S0, LINT, the setup steps, runs
+#   written as a mapping {env: ..., command: ...}, the Subprocess environment, notes in parentheses about spaces or line
+#   numbers), and these:
+#   "delete lines N to M of F" deletes each line from N to M. "write F with the lines X" does not set the file's
+#   execute permission; "make F executable" adds the execute permission for F's owner (chmod u+x).
+#   A "Pack:" line whose source is (prd-toolkit) resolves to the toolkit's own pack, <repo>/prd-toolkit/packs/<name>/:
+#   <tmp> holds no .prd-toolkit/ folder and LINT runs the plugin's script. The pack document 1.0.0 declares the
+#   contract type outline with a validator other than built-in.
+#   stdout_contains requires the text to appear in stdout; stdout_contains_line requires a stdout line equal to it.
+#   A finding line in expect names the line as the file stands after every step of its run.
+#   "python3" in a validator command is the python3 on PATH (testing.md, Tools on the runner).
+#   The tests' helpers are defined in this area's own support file, lint_contracts_support.py (testing.md, Layout); the
+#   tests import nothing from another area's support file.
+#   S0 writes each fixture text as UTF-8. Every run of these cases uses the Subprocess environment (Harness) minus
+#   PRD_VALIDATOR_TIMEOUT as well, plus the case's own env, so only a case that sets the timeout changes it (T-182.5).
+#   A case that writes <tmp> into a Files cell (T-181.7) assumes a temporary folder whose path holds no white space,
+#   no comma and none of the glob characters * ? [ ]; the test checks that before its first step, and a path that
+#   breaks it ends the test as an error.
+#   A symptom that says a line "starts with" a text in backticks requires the line to start with exactly the text
+#   between the backticks.
+T-170.1:
+  ac: AC-170.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 1 of contracts/openapi.yaml with openapi: 9.9.9", "replace line 25 of contracts/openapi.yaml with       x-effect: [] (six spaces before x-effect)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains: "docs/prd/orders/contracts/openapi.yaml:1: contracts-valid: openapi validation failed: "
+      stdout_contains_line: "docs/prd/orders/contracts/openapi.yaml:19: contracts-valid: GET /orders/{id}: x-effects must be a list (use [] for none)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-170.2:
+  ac: AC-170.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append webhooks: [x] to contracts/openapi.yaml (it becomes line 74)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/openapi.yaml:74: contracts-valid: webhooks must be a mapping", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-170.3:
+  ac: AC-170.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append webhooks: {orderShipped: 3} to contracts/openapi.yaml (it becomes line 74)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/openapi.yaml:74: contracts-valid: orderShipped: must be a mapping", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-170.4:
+  ac: AC-170.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append webhooks: {orderShipped: {post: 3, get: null}} to contracts/openapi.yaml (it becomes line 74)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/openapi.yaml:74: contracts-valid: POST orderShipped: operation must be a mapping"
+      stdout_not_contains: "GET orderShipped"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-170.5:
+  ac: AC-170.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 19 of contracts/openapi.yaml with       operationId: 3 (six spaces before operationId)", 'replace line 40 of contracts/openapi.yaml with       operationId: "" (six spaces before operationId)']
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/openapi.yaml:18: contracts-valid: GET /orders/{id}: missing operationId"
+        - "docs/prd/orders/contracts/openapi.yaml:39: contracts-valid: DELETE /orders/{id}: missing operationId"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-170.6:
+  ac: AC-170.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 22 of contracts/openapi.yaml with       x-prd: [FR-002] (six spaces before x-prd)", "replace line 43 of contracts/openapi.yaml with       x-prd-ids: [] (six spaces before x-prd-ids)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/openapi.yaml:19: contracts-valid: GET /orders/{id}: x-prd-ids must be a non-empty list"
+        - "docs/prd/orders/contracts/openapi.yaml:43: contracts-valid: DELETE /orders/{id}: x-prd-ids must be a non-empty list"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-170.7:
+  ac: AC-170.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 43 of contracts/openapi.yaml with       x-prd-ids: [FR-003, AC-003.1, AC-003.9, T-002.1] (six spaces before x-prd-ids)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/openapi.yaml:43: contracts-valid: DELETE /orders/{id}: x-prd-ids item 'AC-003.9' is not a defined requirement or AC id"
+        - "docs/prd/orders/contracts/openapi.yaml:43: contracts-valid: DELETE /orders/{id}: x-prd-ids item 'T-002.1' is not a defined requirement or AC id"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-170.8:
+  ac: AC-170.8
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 23 of contracts/openapi.yaml with       x-error-codes: ORDER_NOT_FOUND (six spaces before x-error-codes)", "replace line 25 of contracts/openapi.yaml with       x-effect: [] (six spaces before x-effect)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/openapi.yaml:19: contracts-valid: GET /orders/{id}: x-effects must be a list (use [] for none)"
+        - "docs/prd/orders/contracts/openapi.yaml:23: contracts-valid: GET /orders/{id}: x-error-codes must be a list (use [] for none)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-171.1:
+  ac: AC-171.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append webhooks: {orderShipped: {post: {operationId: orderShipped, x-prd-ids: [FR-002], x-error-codes: [], x-preconditions: [], x-effects: []}}} to contracts/openapi.yaml (it becomes line 74)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/openapi.yaml:74: contracts-valid: POST orderShipped: responses must be a mapping", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-171.2:
+  ac: AC-171.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, 'append webhooks: {orderShipped: {post: {operationId: orderShipped, x-prd-ids: [FR-002], x-error-codes: [], x-preconditions: [], x-effects: [], responses: {"200": 5}}}} to contracts/openapi.yaml (it becomes line 74)']
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/openapi.yaml:74: contracts-valid: POST orderShipped: response 200 must be a mapping", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-171.3:
+  ac: AC-171.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 32 of contracts/openapi.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/openapi.yaml:27: contracts-valid: GET /orders/{id}: response 200 has no content example", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-171.4:
+  ac: AC-171.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, 'append webhooks: {shipped: {post: {operationId: shipped, x-prd-ids: [FR-002], x-error-codes: [], x-preconditions: [], x-effects: [], responses: {"204": 5}}}, cancelled: {post: {operationId: cancelled, x-prd-ids: [FR-002], x-error-codes: [], x-preconditions: [], x-effects: [], responses: {204: 5}}}} to contracts/openapi.yaml (it becomes line 74)']
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: ["response 204", "responses must be a mapping"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-171.5:
+  ac: AC-171.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "replace line 32 of contracts/openapi.yaml with               examples: {one: {value: {id: 1, order_key: K-1000, customer_id: 1, status: open}}} (fourteen spaces before examples)"
+      - 'append webhooks: {orderShipped: {post: {operationId: orderShipped, x-prd-ids: [FR-002], x-error-codes: [], x-preconditions: [], x-effects: [], responses: {"400": {$ref: "#/components/responses/Bad"}}}}} to contracts/openapi.yaml (it becomes line 74)'
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: ["has no content example", "response 400 must be a mapping"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-172.1:
+  ac: AC-172.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/asyncapi.yaml with the lines channels: {}"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/asyncapi.yaml:1: contracts-valid: missing top-level key asyncapi", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-172.2:
+  ac: AC-172.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/asyncapi.yaml with the lines asyncapi: 3.0.0", "append channels: [x] to contracts/asyncapi.yaml", "append operations: 4 to contracts/asyncapi.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "contracts/asyncapi.yaml:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-173.1:
+  ac: AC-173.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 7 of contracts/events.md with Retried: 3 attempts, 30 s apart"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/events.md:3: contracts-valid: event 'import_orders' has no Retries: line", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-173.2:
+  ac: AC-173.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append ### `order_shipped` to contracts/events.md (it becomes line 9)", "append Trigger: a shipment is booked to contracts/events.md"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/events.md:9: contracts-valid: event 'order_shipped' has no Payload: line"
+        - "docs/prd/orders/contracts/events.md:9: contracts-valid: event 'order_shipped' has no Delivery: line"
+        - "docs/prd/orders/contracts/events.md:9: contracts-valid: event 'order_shipped' has no Retries: line"
+        - "docs/prd/orders/contracts/events.md:9: contracts-valid: event 'order_shipped' has no Failure: line"
+      stdout_not_contains: "has no Trigger: line"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-173.3:
+  ac: AC-173.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert ## Notes after line 6 of contracts/events.md"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/events.md:3: contracts-valid: event 'import_orders' has no Retries: line"
+        - "docs/prd/orders/contracts/events.md:3: contracts-valid: event 'import_orders' has no Failure: line"
+      stdout_not_contains: "has no Delivery: line"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-173.4:
+  ac: AC-173.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append ``` to contracts/events.md", "append ### fenced_event to contracts/events.md", "append ``` to contracts/events.md"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "event 'fenced_event'", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-173.5:
+  known-failing: E-060
+  symptom: "the exit code is 0 and stdout is empty"
+  ac: AC-173.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "append ### fenced_trigger to contracts/events.md (it becomes line 9)"
+      - "append ``` to contracts/events.md"
+      - "append Trigger: a file arrives. to contracts/events.md"
+      - "append ``` to contracts/events.md"
+      - "append Payload: one row. to contracts/events.md"
+      - "append Delivery: at least once. to contracts/events.md"
+      - "append Retries: none. to contracts/events.md"
+      - "append Failure: the owner is paged. to contracts/events.md"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/contracts/events.md:9: contracts-valid: event 'fenced_trigger' has no Trigger: line"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-174.1:
+  ac: AC-174.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 5 of contracts/schema.sql"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains: "docs/prd/orders/contracts/schema.sql:1: contracts-valid: schema.sql does not parse (postgres): "
+      stdout_not_contains: "has no COMMENT ON"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-174.2:
+  ac: AC-174.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 7 of prd.md", "delete line 5 of contracts/schema.sql"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains: "docs/prd/orders/contracts/schema.sql:1: contracts-valid: schema.sql does not parse (default dialect): ", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-174.3:
+  ac: AC-174.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 15 of contracts/schema.sql"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/schema.sql:1: contracts-valid: table customers has no COMMENT ON TABLE or OPTIONS(description=...)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-174.4:
+  ac: AC-174.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 23 of contracts/schema.sql"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/schema.sql:11: contracts-valid: column orders.status has no COMMENT ON COLUMN or OPTIONS(description=...)", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-174.5:
+  ac: AC-174.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "replace line 7 of prd.md with sql-dialect: bigquery"
+      - 'write contracts/schema.sql with the lines CREATE TABLE customers (id INT64 OPTIONS(description="k"), email STRING OPTIONS(description="e"), name STRING) OPTIONS(description="t");'
+      - 'append CREATE TABLE orders (id INT64 OPTIONS(description="k"), order_key STRING OPTIONS(description="k"), customer_id INT64 OPTIONS(description="c"), status STRING OPTIONS(description="s"), sales_rep_name STRING OPTIONS(description="r")) OPTIONS(description="t"); to contracts/schema.sql'
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/schema.sql:1: contracts-valid: column customers.name has no COMMENT ON COLUMN or OPTIONS(description=...)"
+      stdout_not_contains: ["table customers has no", "table orders has no", "column orders.", "column customers.id", "column customers.email"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-175.1:
+  ac: AC-175.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 25 of contracts/errors.yaml with Forbidden:"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/errors.yaml:25: contracts-valid: error code 'Forbidden' must match ^[A-Z][A-Z0-9_]*$", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-175.2:
+  ac: AC-175.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append NOT_A_MAP: 3 to contracts/errors.yaml (it becomes line 41)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/errors.yaml:41: contracts-valid: NOT_A_MAP: must be a mapping with meaning, when, status, message, log_level, retryable, metric"
+      stdout_not_contains: "NOT_A_MAP: missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-175.3:
+  ac: AC-175.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 27 of contracts/errors.yaml", "delete line 32 of contracts/errors.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/errors.yaml:25: contracts-valid: FORBIDDEN: missing when"
+        - "docs/prd/orders/contracts/errors.yaml:25: contracts-valid: FORBIDDEN: missing metric"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-175.4:
+  ac: AC-175.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 28 of contracts/errors.yaml with   status: true (two spaces before status)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/errors.yaml:28: contracts-valid: FORBIDDEN: status must be an integer", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-175.5:
+  ac: AC-175.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, 'replace line 31 of contracts/errors.yaml with   retryable: "no" (two spaces before retryable)']
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/errors.yaml:31: contracts-valid: FORBIDDEN: retryable must be true or false", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-176.1:
+  ac: AC-176.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 1 of contracts/permissions.yaml with people:"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:1: contracts-valid: roles must be a mapping of role to {identity}", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-176.2:
+  ac: AC-176.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 3 of contracts/permissions.yaml with   rep: {secret: ORDERS_TEST_REP_TOKEN} (two spaces before rep)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:3: contracts-valid: role rep: missing identity", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-176.3:
+  ac: AC-176.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 4 of contracts/permissions.yaml with actions:"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:1: contracts-valid: operations must be a mapping of operation to {allow, deny}", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-176.4:
+  ac: AC-176.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of contracts/permissions.yaml with   getOrder: open (two spaces before getOrder)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:5: contracts-valid: operation getOrder: must be a mapping with allow and deny lists", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-176.5:
+  ac: AC-176.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of contracts/permissions.yaml with   deleteOrder: {allow: admin, deny: [rep]} (two spaces before deleteOrder)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:6: contracts-valid: operation deleteOrder: allow must be a list"
+      stdout_not_contains: ["operation deleteOrder: role", "operation deleteOrder: unknown role"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-176.6:
+  ac: AC-176.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of contracts/permissions.yaml with   getOrder: {allow: [admin], deny: []} (two spaces before getOrder)", "replace line 6 of contracts/permissions.yaml with   deleteOrder: {allow: [admin, rep], deny: [rep]} (two spaces before deleteOrder)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/permissions.yaml:5: contracts-valid: operation getOrder: role rep must appear in exactly one of allow and deny (found 0)"
+        - "docs/prd/orders/contracts/permissions.yaml:6: contracts-valid: operation deleteOrder: role rep must appear in exactly one of allow and deny (found 2)"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-176.7:
+  ac: AC-176.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 6 of contracts/permissions.yaml with   deleteOrder: {allow: [admin], deny: [rep, auditor]} (two spaces before deleteOrder)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:6: contracts-valid: operation deleteOrder: unknown role auditor", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-176.8:
+  known-failing: E-061
+  symptom: "the exit code is 0 and stdout is empty"
+  ac: AC-176.8
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 2 of contracts/permissions.yaml with   admin: {identity: test-admin} (two spaces before admin)", "replace line 3 of contracts/permissions.yaml with   rep: {identity: test-rep, secret: ''} (two spaces before rep)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/contracts/permissions.yaml:2: contracts-valid: role admin: missing secret"
+        - "docs/prd/orders/contracts/permissions.yaml:3: contracts-valid: role rep: missing secret"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-177.1:
+  ac: AC-177.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete lines 7 to 11 of contracts/permissions.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "row_rules", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-177.2:
+  ac: AC-177.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 7 of contracts/permissions.yaml with row_rules: {}", "delete lines 8 to 11 of contracts/permissions.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:7: contracts-valid: row_rules must be a list"
+      stdout_not_contains: "row_rules item"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-177.3:
+  ac: AC-177.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 11 of contracts/permissions.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:8: contracts-valid: row_rules item 1: missing attribute", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-177.4:
+  ac: AC-177.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append   - 3 to contracts/permissions.yaml (two spaces before the dash; it becomes line 12)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/permissions.yaml:7: contracts-valid: row_rules item 2 must be a mapping", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-178.1:
+  ac: AC-178.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/config.yaml with the lines settings: [1]"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/config.yaml:1: contracts-valid: settings must be a mapping of name to {type, default, environments, owner}"
+      stdout_not_contains: "contracts-valid: setting "
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-178.2:
+  ac: AC-178.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "append   RETRY_LIMIT: 3 to contracts/config.yaml (two spaces before RETRY_LIMIT; it becomes line 7)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/config.yaml:7: contracts-valid: setting RETRY_LIMIT: must be a mapping"
+      stdout_not_contains: "setting RETRY_LIMIT: missing"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-178.3:
+  ac: AC-178.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 6 of contracts/config.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/config.yaml:2: contracts-valid: setting IMPORT_BATCH_SIZE: missing owner", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-178.4:
+  ac: AC-178.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of contracts/config.yaml with     environments: [local, ci] (four spaces before environments)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/config.yaml:5: contracts-valid: setting IMPORT_BATCH_SIZE: environments must be a mapping", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-179.1:
+  ac: AC-179.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/data-classification.yaml with the lines tables: [x]", "append masking: {logs: a, errors: b, fixtures: c} to contracts/data-classification.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/contracts/data-classification.yaml:1: contracts-valid: tables must be a mapping"
+      stdout_not_contains: "contracts-valid: masking"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-179.2:
+  ac: AC-179.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert   refunds: 3 after line 9 of contracts/data-classification.yaml (two spaces before refunds)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/data-classification.yaml:10: contracts-valid: table refunds: must be a mapping", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-179.3:
+  ac: AC-179.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 3 of contracts/data-classification.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/data-classification.yaml:2: contracts-valid: table customers: missing retention", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-179.4:
+  ac: AC-179.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 9 of contracts/data-classification.yaml with     columns: [id, order_key] (four spaces before columns)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/data-classification.yaml:9: contracts-valid: table orders: columns must be a mapping of column to class", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-179.5:
+  ac: AC-179.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of contracts/data-classification.yaml with     columns: {id: internal, email: secret, name: pii} (four spaces before columns)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/data-classification.yaml:5: contracts-valid: customers.email: class 'secret' must be public, internal, confidential or pii", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-179.6:
+  ac: AC-179.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/data-classification.yaml with the lines tables: {}", "append masking: 4 to contracts/data-classification.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/data-classification.yaml:2: contracts-valid: masking must be a mapping with logs, errors and fixtures", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-179.7:
+  ac: AC-179.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 12 of contracts/data-classification.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/data-classification.yaml:11: contracts-valid: masking: missing errors", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-179.8:
+  known-failing: E-058
+  symptom: "the exit code is 2, stdout is empty, and the first line of stderr starts with `prd_lint: internal error in rule contracts-valid: TypeError:`, the rest of the line being Python's own wording, which differs between versions"
+  ac: AC-179.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of contracts/data-classification.yaml with     columns: {id: internal, email: [pii], name: {kind: pii}} (four spaces before columns)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/contracts/data-classification.yaml:5: contracts-valid: customers.email: class ['pii'] must be public, internal, confidential or pii"
+        - "docs/prd/orders/contracts/data-classification.yaml:5: contracts-valid: customers.name: class {'kind': 'pii'} must be public, internal, confidential or pii"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-180.1:
+  ac: AC-180.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 10 of contracts/dependencies/geocoder.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/dependencies/geocoder.yaml:1: contracts-valid: missing mock", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-180.2:
+  ac: AC-180.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 8 of contracts/dependencies/geocoder.yaml with   token: GEOCODER_API_KEY (two spaces before token)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/dependencies/geocoder.yaml:7: contracts-valid: auth must be a mapping with secret", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-180.3:
+  ac: AC-180.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 11 of contracts/dependencies/geocoder.yaml with failures: [GEOCODER_TIMEOUT]", "delete lines 12 to 15 of contracts/dependencies/geocoder.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/dependencies/geocoder.yaml:11: contracts-valid: failures must be a mapping with timeout, 4xx, 5xx and outage", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-180.4:
+  ac: AC-180.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete line 13 of contracts/dependencies/geocoder.yaml"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/dependencies/geocoder.yaml:12: contracts-valid: failures: missing 4xx", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-180.5:
+  ac: AC-180.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/dependencies/old/geocoder.yaml with the lines sends: x"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-181.1:
+  ac: AC-181.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - 'replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml, contracts/custom/a.lkml` | `python3 -c "import sys; print(*sys.argv[1:], file=sys.stderr); sys.exit(1)"` |'
+      - "write contracts/custom/b.lkml with the lines view: b"
+      - "write contracts/custom/a.lkml with the lines view: a"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: contracts/custom/a.lkml contracts/custom/b.lkml contracts/custom/sample.lkml", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-181.2:
+  ac: AC-181.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | pack |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: no named pack declares contract type lookml", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-181.3:
+  ac: AC-181.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 19 of prd.md the line - Pack: document 1.0.0 (prd-toolkit)", "replace line 80 of prd.md with | outline | `contracts/none/*.yaml` | pack |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/prd.md:81: contracts-valid: custom type outline: glob matches no file"
+      stdout_not_contains: "no named pack declares contract type outline"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-181.4:
+  ac: AC-181.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.nope` | `python3 -c \"import sys; sys.exit(1)\"` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: glob matches no file"
+      stdout_not_contains: "validator failed"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-181.5:
+  ac: AC-181.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.nope` | built-in |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "custom type lookml", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-181.6:
+  known-failing: E-063
+  symptom: "stdout holds only the line docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: exit 1"
+  ac: AC-181.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "write <tmp>/docs/prd/outside.lkml with the lines view: outside {}"
+      - "write tools/args.py with the lines import sys; sys.exit(sys.argv[1:] != ['contracts/custom/sample.lkml'])"
+      - "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml ../outside.lkml` | `python3 tools/args.py` |"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: file ../outside.lkml is outside the PRD folder"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-181.7:
+  known-failing: E-063
+  symptom: "the exit code is 0 and stdout is empty"
+  ac: AC-181.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "write <tmp>/docs/prd/outside.lkml with the lines view: outside {}"
+      - "replace line 80 of prd.md with | lookml | `<tmp>/docs/prd/outside.lkml` | `python3 -c \"import sys; sys.exit(0)\"` |"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: file <tmp>/docs/prd/outside.lkml is outside the PRD folder"
+        - "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: glob matches no file"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-182.1:
+  ac: AC-182.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `python3 -c \"import os, sys; sys.exit(0 if sys.argv[1:] == ['contracts/custom/sample.lkml'] and os.path.isfile('prd.md') else 1)\"` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.2:
+  ac: AC-182.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, 'replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `python3 -c "import sys` |']
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator does not parse: No closing quotation", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.3:
+  ac: AC-182.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `no-such-validator-xyz` |"]
+    cwd: <tmp>
+    command: LINT
+    note: no file named no-such-validator-xyz is on the runner's PATH
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator not found: no-such-validator-xyz", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.4:
+  ac: AC-182.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write tools/check.sh with the lines exit 0", "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `./tools/check.sh` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator not executable: ./tools/check.sh", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.5:
+  ac: AC-182.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `python3 -c \"import time; time.sleep(5)\"` |"]
+    cwd: <tmp>
+    command: {env: {PRD_VALIDATOR_TIMEOUT: "1"}, command: LINT}
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator timed out after 1s", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.6:
+  ac: AC-182.6
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `python3 -c \"import time; time.sleep(2)\"` |"]
+    cwd: <tmp>
+    command: {env: {PRD_VALIDATOR_TIMEOUT: "soon"}, command: LINT}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.7:
+  ac: AC-182.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `python3 -c \"import sys; print('out line'); print(' ', file=sys.stderr); print('err line', file=sys.stderr); sys.exit(2)\"` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: err line", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.8:
+  ac: AC-182.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `python3 -c \"import sys; print(); print('  '); print('bad: x'); print('second'); sys.exit(1)\"` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: bad: x", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.9:
+  ac: AC-182.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `python3 -c \"import sys; sys.exit(4)\"` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: exit 4", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-182.10:
+  known-failing: E-059
+  symptom: "the exit code is 2, stdout is empty, and the first line of stderr starts with `prd_lint: internal error in rule contracts-valid: OSError:`, the rest of the line being the system's own wording"
+  ac: AC-182.8
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write tools/check.sh with the lines exit 0", "make tools/check.sh executable", "replace line 80 of prd.md with | lookml | `contracts/custom/*.lkml` | `./tools/check.sh` |"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_contains: "docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator cannot run: ./tools/check.sh: "
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-183.1:
+  ac: AC-183.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 17 of features/import.md with Traces: `orders.order_kee` UNIQUE; fixtures orders/one_existing, customers/two_customers"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_exact_lines: ["docs/prd/orders/features/import.md:17: schema-refs: `orders.order_kee`: table orders has no column order_kee"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-183.2:
+  ac: AC-183.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "replace line 17 of features/import.md with Traces: `orders.csv`, `nosuch.thing` and `orders.order_key` UNIQUE"
+      - "append ``` to features/import.md"
+      - "append `orders.order_kee` to features/import.md"
+      - "append ``` to features/import.md"
+      - "replace line 6 of errors.md with Diagnosis: the importer read `orders.order_kee` of an empty file; AC-001.3 was right"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "schema-refs:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-183.3:
+  ac: AC-183.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "delete the file contracts/schema.sql", "replace line 17 of features/import.md with Traces: `orders.order_kee` UNIQUE; fixtures orders/one_existing, customers/two_customers"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "schema-refs:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-184.1:
+  ac: AC-184.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 17 of features/api.md with Errors: ORDER_NOT_FOUND, ORDER_LOCKED (contracts/errors.yaml)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_exact_lines: ["docs/prd/orders/features/api.md:17: error-codes: error code ORDER_LOCKED is not in contracts/errors.yaml"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-184.2:
+  ac: AC-184.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 23 of contracts/openapi.yaml with       x-error-codes: ORDER_GONE (six spaces before x-error-codes)", "replace line 44 of contracts/openapi.yaml with       x-error-codes: [FORBIDDEN, NOPE] (six spaces before x-error-codes)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/openapi.yaml:23: error-codes: error code ORDER_GONE is not in contracts/errors.yaml"
+        - "docs/prd/orders/contracts/openapi.yaml:44: error-codes: error code NOPE is not in contracts/errors.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-184.3:
+  ac: AC-184.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 14 of contracts/dependencies/geocoder.yaml with   5xx: [GEOCODER_TIMEOUT, GEOCODER_DOWN] (two spaces before 5xx)", "replace line 15 of contracts/dependencies/geocoder.yaml with   outage: GEOCODER_GONE (two spaces before outage)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_lines_in_this_relative_order:
+        - "docs/prd/orders/contracts/dependencies/geocoder.yaml:14: error-codes: error code GEOCODER_DOWN is not in contracts/errors.yaml"
+        - "docs/prd/orders/contracts/dependencies/geocoder.yaml:15: error-codes: error code GEOCODER_GONE is not in contracts/errors.yaml"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-184.4:
+  ac: AC-184.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 66 of test-cases/api.yaml with     errors: [FORBIDDEN, GHOST] (four spaces before errors)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "error-codes: error code GHOST", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-184.5:
+  ac: AC-184.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/errors.yaml with the lines - IMPORT_DUPLICATE"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "error-codes:", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-184.6:
+  known-failing: E-062
+  symptom: "the exit code is 1 and stdout holds the line docs/prd/orders/contracts/dependencies/old/legacy.yaml:1: error-codes: error code NOT_CATALOGUED is not in contracts/errors.yaml"
+  ac: AC-184.3
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "write contracts/dependencies/old/legacy.yaml with the lines failures: {timeout: NOT_CATALOGUED}"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-185.1:
+  ac: AC-185.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "append UNUSED_CODE: to contracts/errors.yaml (it becomes line 41)"
+      - "append   meaning: Nothing cites this. to contracts/errors.yaml (two spaces before meaning)"
+      - "append   when: Never. to contracts/errors.yaml (two spaces before when)"
+      - "append   status: 500 to contracts/errors.yaml (two spaces before status)"
+      - "append   message: Unused to contracts/errors.yaml (two spaces before message)"
+      - "append   log_level: error to contracts/errors.yaml (two spaces before log_level)"
+      - "append   retryable: false to contracts/errors.yaml (two spaces before retryable)"
+      - "append   metric: unused_total to contracts/errors.yaml (two spaces before metric)"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/contracts/errors.yaml:41: error-codes: error code UNUSED_CODE is catalogued but cited nowhere", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-185.2:
+  ac: AC-185.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 30 of features/api.md with Errors: -", "replace line 44 of contracts/openapi.yaml with       x-error-codes: [] (six spaces before x-error-codes)"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {stdout_not_contains: "error code FORBIDDEN is catalogued but cited nowhere", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-185.3:
+  known-failing: E-062
+  symptom: "the exit code is 0 and stdout is empty"
+  ac: AC-185.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "append UNUSED_CODE: to contracts/errors.yaml (it becomes line 41)"
+      - "append   meaning: Only a legacy file cites this. to contracts/errors.yaml (two spaces before meaning)"
+      - "append   when: Never. to contracts/errors.yaml (two spaces before when)"
+      - "append   status: 500 to contracts/errors.yaml (two spaces before status)"
+      - "append   message: Unused to contracts/errors.yaml (two spaces before message)"
+      - "append   log_level: error to contracts/errors.yaml (two spaces before log_level)"
+      - "append   retryable: false to contracts/errors.yaml (two spaces before retryable)"
+      - "append   metric: unused_total to contracts/errors.yaml (two spaces before metric)"
+      - "write contracts/dependencies/old/legacy.yaml with the lines failures: {timeout: UNUSED_CODE}"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines:
+        - "docs/prd/orders/contracts/errors.yaml:41: error-codes: error code UNUSED_CODE is catalogued but cited nowhere"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
