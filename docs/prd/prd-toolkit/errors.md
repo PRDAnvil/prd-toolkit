@@ -935,7 +935,7 @@ Recurrence of: -
 ### E-076 record never lists a UJ that a changed contract item cites
 Detected: 2026-11-23, adoption extract of change (prd-toolkit/scripts/prdlint/change.py:602 @169036a)
 Classification: code bug
-Confirmed: 2026-11-23, "Confirm the class (form)"
+Reopened: 2026-11-23, "the class was proposed and confirmed on a code reading, before any run; it is proposed again with the probe's run quoted"; was Confirmed: 2026-11-23, "Confirm the class (form)"
 Touches: FR-260
 Explanation: When a change edits a contract item that names a user journey, record leaves that journey out of the changelog row, though the code and its design say it should list it.
 Diagnosis: `_CITED_BLOCK` (prdlint/change.py:602) matches `(?:UJ|FR|NFR)-\d{3}`, three digits, but a UJ ID has two (`UJ-03`: prd-format.md decision 6, and `next_id` writes `UJ-{:02d}`). So `UJ-03` in a contract item's text never matches, and `UJ-003` matches but names no block, so the `id_ in have` filter drops it: no UJ a changed contract item cites reaches the §14 IDs cell. The function's docstring says "The UJ, FR and NFR IDs a contract item cites", and the 0.8.3 design (§4 (j)) says every other item "cites each `UJ-nnn`, `FR-nnn` and `NFR-nnn` token in its text". FR-260 covers only the FR, NFR and AC citations.
