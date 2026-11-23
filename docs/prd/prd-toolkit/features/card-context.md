@@ -141,7 +141,7 @@ Tests: T-066.1 [integration], T-066.2 [integration], T-066.3 [integration], T-06
 Traces: UJ-06; cli:prd_gates
 
 ### FR-067 Where the area and the URL show
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/gates.py:48 @430c38e
 Acceptance (EARS):
 - AC-067.1 When `prd_gates.py list <prd_dir>` is run without `--json`, the gates command shall print

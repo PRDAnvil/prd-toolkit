@@ -189,8 +189,8 @@ Tests: T-144.1 [integration], T-144.2 [integration], T-144.3 [integration], T-14
 Traces: UJ-01; cli:prd_lint; errors.md
 
 ### FR-145 Check an entry's Classification and Evidence
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/errors.py:56 @ce68b0c
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/errors.py:57 @3049c0d
 Acceptance (EARS):
 - AC-145.1 If an entry's `Classification:` value, stripped, is not empty and is none of `code bug`, `spec gap`, `invalid requirement`, `environment`, `standard`, `not a defect` and `unclassified`, the lint command shall report `error-entries` at that line with `<E-id>: Classification: '<value>' is not one of code bug, spec gap, invalid requirement, environment, standard, not a defect, unclassified`.
 - AC-145.2 If an entry's Evidence holds more than 20 lines, the lint command shall report `error-entries` at its `Evidence:` line with `<E-id>: Evidence: is <n> lines; at most 20`. The lines are the text on the `Evidence:` line when it is not empty, plus each following line that starts with two spaces, up to the first line that does not.
@@ -201,8 +201,8 @@ Tests: T-145.1 [integration], T-145.2 [integration], T-145.3 [integration], T-14
 Traces: UJ-01; cli:prd_lint; errors.md
 
 ### FR-146 Check an entry's Confirmed and Reopened lines
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/errors.py:58 @ce68b0c
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/errors.py:59 @3049c0d
 Acceptance (EARS):
 - AC-146.1 If an entry has a `Confirmed:` line whose value, stripped, is not a `YYYY-MM-DD` date, a comma, optional white space and a reply in double quotes that end the value, the lint command shall report `error-entries` at that line with `<E-id>: Confirmed: must be '<YYYY-MM-DD>, "<reply>"'`.
 - AC-146.2 If an entry has a `Confirmed:` line and its `Classification:` value is `unclassified`, empty or absent, the lint command shall report `error-entries` at the `Confirmed:` line with `<E-id>: Confirmed: on an unclassified entry`.

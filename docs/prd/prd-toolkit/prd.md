@@ -164,7 +164,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-023 | Require the mandatory files and account for the optional ones | live | features/lint-structure.md | 6.2.0 |
 | FR-024 | Check section 8 and adoption.md | verified | features/lint-structure.md |  |
 | FR-025 | Check testing.md's Harness slots | verified | features/lint-structure.md |  |
-| FR-026 | Read prose without code and errors.md quotations | approved | features/lint-structure.md |  |
+| FR-026 | Read prose without code and errors.md quotations | verified | features/lint-structure.md |  |
 | FR-027 | Report an unfilled placeholder | verified | features/lint-structure.md |  |
 | FR-028 | Report a vague word without a number | verified | features/lint-structure.md |  |
 | FR-029 | Report clarification markers left open once the PRD is in review | verified | features/lint-structure.md |  |
@@ -210,7 +210,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-064 | Write an entry's URL with prd error | verified | features/card-context.md |  |
 | FR-065 | The url part of a Target: line | verified | features/card-context.md |  |
 | FR-066 | A gate's URL | verified | features/card-context.md |  |
-| FR-067 | Where the area and the URL show | approved | features/card-context.md |  |
+| FR-067 | Where the area and the URL show | verified | features/card-context.md |  |
 | FR-068 | A standards row is never run on the vendored copy | verified | features/standards-run.md |  |
 | FR-069 | The launcher runs on a system Python when uv finds one | verified | features/launcher.md |  |
 | FR-070 | Install rewrites the toolkit's own hooks where core.hooksPath is set | verified | features/hook-shims.md |  |
@@ -289,8 +289,8 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-142 | Run only deploy-gate levels that have a Harness command | live | features/lint-registries.md | 9.4.0 |
 | FR-143 | Check each Drift row's Check | approved | features/lint-registries.md |  |
 | FR-144 | Number errors.md entries from E-001 upward | verified | features/lint-registries.md |  |
-| FR-145 | Check an entry's Classification and Evidence | approved | features/lint-registries.md |  |
-| FR-146 | Check an entry's Confirmed and Reopened lines | approved | features/lint-registries.md |  |
+| FR-145 | Check an entry's Classification and Evidence | verified | features/lint-registries.md |  |
+| FR-146 | Check an entry's Confirmed and Reopened lines | verified | features/lint-registries.md |  |
 | FR-147 | Check Detected and Recurrence of on an entry with Confirmed | live | features/lint-registries.md | 9.4.0 |
 | FR-148 | Describe each rule of the area | live | features/lint-registries.md | 9.4.0 |
 | FR-149 | Require a test case for every live acceptance criterion | live | features/lint-testcases.md | 9.5.0 |
@@ -395,10 +395,10 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-248 | §2's Principles and Getting started parts | live | features/status.md | 9.9.0 |
 | FR-249 | The areas the PRD facts list | live | features/status.md | 9.9.0 |
 | FR-250 | The other PRD facts | live | features/status.md | 9.9.0 |
-| FR-251 | Reopen a confirmed entry | approved | features/error-reopen.md |  |
-| FR-252 | Check a reopen | approved | features/error-reopen.md |  |
-| FR-253 | Propose with an explanation, as unclassified, or as not a defect | approved | features/error-reopen.md |  |
-| FR-254 | An error-class card explains the class and takes a question | approved | features/inbox-cards.md |  |
+| FR-251 | Reopen a confirmed entry | verified | features/error-reopen.md |  |
+| FR-252 | Check a reopen | verified | features/error-reopen.md |  |
+| FR-253 | Propose with an explanation, as unclassified, or as not a defect | verified | features/error-reopen.md |  |
+| FR-254 | An error-class card explains the class and takes a question | verified | features/inbox-cards.md |  |
 
 ## 12. Assumptions index
 

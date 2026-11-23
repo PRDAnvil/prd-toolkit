@@ -33,7 +33,8 @@ Words used below.
 ## Requirements
 
 ### FR-251 Reopen a confirmed entry
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errorreopen.py:22 @3710578
 Flow: 1. read the entry → 2. check that it is open and `confirmed` and that the reason can be written → 3.
       write the `Reopened:` line in place of the `Confirmed:` line → 4. print the entry's new state
 Acceptance (EARS):
@@ -74,7 +75,8 @@ Tests: T-251.1 [integration], T-251.2 [integration], T-251.3 [integration], T-25
 Traces: cli:prd_error; cli:prd_help
 
 ### FR-252 Check a reopen
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errorreopen.py:45 @3710578
 Flow: 1. `prd error check` compares each version of `errors.md` in its range with the one before it, as it
       does → 2. a `Confirmed:` line taken out by a reopen, with the `Reopened:` line that quotes it, is no
       finding → 3. an edited, deleted or unmatched `Reopened:` line is
@@ -109,7 +111,8 @@ Tests: T-252.1 [integration], T-252.2 [integration], T-252.3 [integration], T-25
 Traces: cli:prd_error
 
 ### FR-253 Propose with an explanation, as unclassified, or as not a defect
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errors.py:163 @3710578
 Flow: 1. `prd error propose` reads its flags → 2. writes the Classification, the Touches and the Diagnosis as
       before → 3. writes the `Explanation:` line when `--explanation` is given → 4. prints the entry's state
 Acceptance (EARS):

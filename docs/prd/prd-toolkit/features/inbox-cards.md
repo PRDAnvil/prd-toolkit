@@ -39,7 +39,8 @@ Tests: T-071.1 [integration], T-071.2 [integration], T-071.3 [integration], T-07
 Traces: cli:prd_gates; E-023
 
 ### FR-254 An error-class card explains the class and takes a question
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/gates.py:188 @3710578
 Flow: 1. the inbox lists an `error-class:<E-id>` gate → 2. its card holds the entry's explanation → 3. the
       owner confirms, corrects or asks a question → 4. a question is logged for `wait` and changes nothing else
 Acceptance (EARS):

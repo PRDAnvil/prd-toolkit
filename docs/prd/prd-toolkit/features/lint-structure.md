@@ -94,7 +94,7 @@ Tests: T-025.1 [integration], T-025.2 [integration], T-025.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint; testing.md Harness; the prd-tester guard reads Test roots (tester-guard area)
 
 ### FR-026 Read prose without code and errors.md quotations
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/rules/structure.py:36 @ae00c13
 Acceptance (EARS):
 - AC-026.1 The lint command's prose rules (placeholder, glossary-synonym, and the Markdown part of markers-open and assumption-indexed) shall read each Markdown file the loader reads with its fenced code blocks and inline code spans blanked, keeping every line number.
