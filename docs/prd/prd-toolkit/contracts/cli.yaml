@@ -611,6 +611,7 @@ prd_hooks:
     drift-<env>: "manual: sh .prd-toolkit/prd drift <q> --env <env> (FR-115)"
     test-deploy-<env>: "manual: export PRD_ENV=<env> TEST_ENV=<env>; <harness command>, one per level (FR-115)"
     secrets_line: "line 2 with a manual job and named secrets: # Manual jobs may need these secrets (operations.md Secrets): <names> (FR-118)"
+    runner_setup: "every job, before its own commands: each backticked text of the testing.md Harness bullet - **Runner setup.**, in order; a - run: line after setup-uv on GitHub, a before_script line after pip install uv on GitLab (FR-114, FR-116, FR-117)"
   all_exit_codes:
     0: "install, vendor and uninstall done; check found nothing; ci wrote or found an identical file; --help"
     1: "check printed a line; ci found a different file without --force; install refused on a broken block marker (FR-104, FR-108 to FR-111, FR-113)"

@@ -6,7 +6,7 @@ import re
 import shlex
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from . import change_approve, hookshims, standardsrun
@@ -510,11 +510,36 @@ GITLAB_RANGE = "$CI_MERGE_REQUEST_DIFF_BASE_SHA..HEAD"
 GITHUB_RANGE = "${{ github.event.pull_request.base.sha }}..HEAD"
 
 
+RUNNER_SETUP = re.compile(r"^- \*\*Runner setup\.\*\*")  # the testing.md Harness slot bullet (AC-114.3)
+
+
 @dataclass(frozen=True)
 class CiJob:
     name: str
     script: list[str]
     manual: bool = False  # a manual job: never part of the merge gate, started by hand
+    setup: tuple[str, ...] = ()  # the runner setup commands, run before the job's own (AC-114.3)
+
+
+def runner_setup(prd) -> tuple[str, ...]:
+    """Each backticked text of every `- **Runner setup.**` bullet of testing.md's Harness, its first line and the lines
+    indented under it, in bullet order (AC-114.3); () when there is no such bullet or it holds no backticked text."""
+    from .markdown import sections
+
+    text = prd.docs.get("testing.md")
+    if text is None:
+        return ()
+    hs = next((x for x in sections(text) if x.title.strip().lower() == "harness"), None)
+    out: list[str] = []
+    inside = False
+    for _, line in hs.body if hs else ():
+        if RUNNER_SETUP.match(line):
+            inside = True
+        elif not inside or not (line[:1].isspace() or not line.strip()):
+            inside = False
+            continue
+        out += re.findall(r"`([^`]+)`", line)
+    return tuple(out)
 
 
 def job_id(name: str) -> str:
@@ -534,7 +559,7 @@ def _dedupe(jobs: list[CiJob]) -> list[CiJob]:
             n += 1
             name = f"{base}-{n}"
         taken.add(name)
-        out.append(CiJob(name, j.script, j.manual))
+        out.append(CiJob(name, j.script, j.manual, j.setup))
     return out
 
 
@@ -556,7 +581,8 @@ def ci_jobs(prd, prd_rel: str) -> list[CiJob]:
     for level in prd.testing.levels:
         if gate_of(prd, level) == "build" and level in prd.testing.commands:
             out.append(CiJob(f"test-{level}", [prd.testing.commands[level]]))
-    return _dedupe(out)
+    setup = runner_setup(prd)
+    return _dedupe([replace(j, setup=setup) for j in out])
 
 
 def deploy_jobs(prd, prd_rel: str) -> list[CiJob]:
@@ -574,8 +600,9 @@ def deploy_jobs(prd, prd_rel: str) -> list[CiJob]:
         script = [f"export PRD_ENV={shlex.quote(env)} TEST_ENV={shlex.quote(env)}; {prd.testing.commands[lv]}" for lv in levels if lv in prd.testing.commands]
         if script:  # an empty job is invalid CI
             raw.append(CiJob(f"test-deploy-{env}", script, True))
+    setup = runner_setup(prd)
     base = ci_jobs(prd, prd_rel)
-    return _dedupe(base + raw)[len(base):]
+    return _dedupe(base + [replace(j, setup=setup) for j in raw])[len(base):]
 
 
 def _secrets_line(jobs: list[CiJob], secrets) -> list[str]:
@@ -599,7 +626,7 @@ def render_gitlab(jobs: list[CiJob], secrets=()) -> str:
             lines.append('    - if: \'$CI_PIPELINE_SOURCE == "merge_request_event"\'')
         if j.name == "prd-trace":
             lines += ["  variables:", '    GIT_DEPTH: "0"']
-        lines += ["  before_script:", f"    - {_q('pip install uv')}", "  script:"]
+        lines += ["  before_script:", f"    - {_q('pip install uv')}", *(f"    - {_q(s)}" for s in j.setup), "  script:"]
         lines += [f"    - {_q(s.replace(RANGE, GITLAB_RANGE))}" for s in j.script]
         lines.append("")
     return "\n".join(lines)
@@ -617,6 +644,7 @@ def render_github(jobs: list[CiJob], secrets=()) -> str:
             lines.append(f"    if: {_q('github.event_name == ' + chr(39) + ('workflow_dispatch' if j.manual else 'pull_request') + chr(39))}")
         lines += ["    runs-on: ubuntu-latest", "    steps:", "      - uses: actions/checkout@v4", "        with:", "          fetch-depth: 0",
                   "      - uses: astral-sh/setup-uv@v5"]
+        lines += [f"      - run: {_q(s)}" for s in j.setup]
         for s in j.script:
             lines.append(f"      - run: {_q(s.replace(RANGE, GITHUB_RANGE))}")
         lines.append("")
