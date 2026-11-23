@@ -19,7 +19,17 @@ from .contracts import custom_items, custom_types, event_names, operation_ids, p
 
 TARGET_KINDS = {"op", "table", "event", "job", "component", "page", "code"}
 
-_HEADING = re.compile(r"^#{1,6}\s+(.*?)\s*$", re.M)
+_HEADING = re.compile(r"^#{1,6}\s+(.*?)\s*$")
+
+
+def _headings(text: str) -> list[str]:
+    """Each heading's text as written, code spans included: a line is a heading only outside
+    fenced code blocks, which strip_code blanks, and its text comes from the original line."""
+    out: list[str] = []
+    for orig, stripped in zip(text.split("\n"), strip_code(text).split("\n")):
+        if _HEADING.match(stripped):
+            out.append(_HEADING.match(orig).group(1))
+    return out
 
 
 def _ref_problem(prd: Prd, ref: object) -> str | None:
@@ -32,8 +42,7 @@ def _ref_problem(prd: Prd, ref: object) -> str | None:
     if not target.is_relative_to(prd.root) or not target.is_file():
         return f"refs entry '{ref}': no file {path} in the PRD folder"
     if heading:
-        headings = _HEADING.findall(strip_code(target.read_text(encoding="utf-8")))
-        if heading not in headings:
+        if heading not in _headings(target.read_text(encoding="utf-8")):
             return f"refs entry '{ref}': {path} has no heading '{heading}'"
     return None
 
