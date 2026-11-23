@@ -65,8 +65,10 @@ The gate is the `prd-lint-exit=` value lint prints: `0` clean, `1` violations, `
    passed.
 3. **An apparent bug never becomes a requirement.** Code that contradicts its docs, its name,
    its comments, its commit messages or its siblings becomes an `E-nnn` entry in `errors.md`
-   (`Resolution: open`). No requirement text and no test-case `expect` encodes it. Only the
-   user's word turns it into intended behaviour (step 3).
+   (`Classification: unclassified`, `Resolution: open`). No requirement text and no test-case
+   `expect` encodes it. Only the user's word turns it into intended behaviour (step 3). It is a
+   hypothesis read from the code, and nothing ran: it is never written or proposed as a `code bug`.
+   Its class comes from a run, in `prd-toolkit:handling-errors` step 2.
 4. **Confirmation is the user's word, requirement by requirement.** Silence, "looks fine
    overall", the code being obvious and "the code clearly intends it" confirm nothing. Never
    write an answer the user did not give. When no answer can come (a headless run, the user
@@ -220,7 +222,7 @@ Then write what it returns, yourself:
   §11 row each (status `as-built`, Since empty).
 - Its test cases into `test-cases/<area>.yaml`, all seven elements each, none at `level: unit`;
   its contract items into the contracts.
-- Each APPARENT BUGS entry into `errors.md` as `### E-nnn`, `Resolution: open`, with the extractor's `Touches:` line (requirement IDs, or `-`) copied in after `Classification:`.
+- Each APPARENT BUGS entry into `errors.md` as `### E-nnn`, `Classification: unclassified`, `Resolution: open`, with the extractor's `Touches:` line (requirement IDs, or `-`) copied in after `Classification:`, and its Diagnosis starting `read from the code, not reproduced:`. An extractor entry that names a class is written `unclassified` all the same.
 - Each QUESTION as a §13 bullet.
 - Check every `Source:` line before you write it: open the file at that line, at that commit,
   and see the behaviour there. A Source that does not show it is dropped, and the block with it.
@@ -251,6 +253,9 @@ For each `E-nnn` of the area, ask whether it is a real bug. A real bug stays ope
 requirement it touches is *corrected*, never confirmed: its text says the intended behaviour,
 status `approved`, its test cases revised to match. Intended after all: the behaviour becomes
 requirement text on the user's word, and the entry's Resolution says who confirmed it and when.
+The answer settles intent, not the class: a real bug stays `unclassified`, and once this step
+ends, `/prd-toolkit:prd-error <E-nnn>` takes it from handling-errors step 2, where a run shows it
+and its class is proposed and confirmed.
 
 Confirmation is the user's word, requirement by requirement. One reply may answer every
 requirement, as long as it answers each one. A reply that names no ID ("looks fine", "all good", "yes") confirms nothing: ask again, ID by ID, and leave every unanswered block `as-built`.
@@ -549,8 +554,8 @@ Acceptance (EARS):
 ...
 errors.md:
 ### E-001 search_notes matches case-sensitively
-Classification: code bug
-Diagnosis: `term in t` misses "Buy Milk" for "milk"; the code's own comment calls it an apparent bug
+Classification: unclassified
+Diagnosis: read from the code, not reproduced: `term in t` misses "Buy Milk" for "milk"; the code's own comment calls it an apparent bug
 Resolution: open
 ```
 
@@ -603,6 +608,7 @@ the user.**
 | "I ran the inputs by hand and checked." | A hand run is not repeatable and cites no T-id. `adopted` needs the suite. |
 | "One pass over the whole repo is faster." | Each area needs the user's word on every requirement and its own suite. Several areas at once means confirmations nobody gave. |
 | "The fix is one line; I'll make it while I'm here." | Adoption records the system as it runs. A fix during adoption makes the suite test your change, and the change skipped the PRD. |
+| "The code plainly gets it wrong, so it's a code bug." | Reading it is a hypothesis; nothing ran. The entry is `unclassified` until handling-errors step 2's run shows it. |
 
 ## Related skills
 

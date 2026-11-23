@@ -153,7 +153,8 @@ Acceptance (EARS):
   areas as a list of strings, and `url`, the gate's URL as a string or null, both on every gate.
 - AC-067.3 The inbox's card of a gate, the object `prdlint.gates.card(gate, prd, root, rel)` returns and
   `/gates` serves for it, shall hold the gate's `areas` list and `url`, and every key it held before this
-  area with its value unchanged, so that an adoption gate's card keeps its `area`, the area's name as a
+  area with its value unchanged, but for the error-class card's `choices` and `explanation`, which
+  inbox-cards FR-254 gives, so that an adoption gate's card keeps its `area`, the area's name as a
   string, beside `areas`.
 - AC-067.4 The decision inbox page (`templates/gates/inbox.html`) shall show on each card, directly under
   its title, the line `Area: <areas>`, the card's `areas` joined by `, `, or `Area: none` when they are

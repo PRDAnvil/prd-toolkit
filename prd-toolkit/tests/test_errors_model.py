@@ -54,7 +54,7 @@ def test_entry_fields(prd):
 
 
 def test_classes():
-    assert model.CLASSES == ("code bug", "spec gap", "invalid requirement", "environment", "standard", "unclassified")
+    assert model.CLASSES == ("code bug", "spec gap", "invalid requirement", "environment", "standard", "not a defect", "unclassified")
 
 
 def test_states(prd):
@@ -116,7 +116,7 @@ def test_unknown_class(prd):
     entry(prd, **{"Classification: code bug": "Classification: typo"})
     f = [f for f in lint(prd) if f.rule == "error-entries"]
     assert [(x.message, x.line) for x in f] == [(
-        "E-002: Classification: 'typo' is not one of code bug, spec gap, invalid requirement, environment, standard, unclassified",
+        "E-002: Classification: 'typo' is not one of code bug, spec gap, invalid requirement, environment, standard, not a defect, unclassified",
         line_of(prd, "Classification: typo"))]
 
 

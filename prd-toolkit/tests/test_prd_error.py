@@ -129,8 +129,6 @@ def test_confirm_refusals(prd):
 def test_propose_refusals(prd):
     new(prd)
     with pytest.raises(ValueError):
-        errors.propose(model.load(prd), "E-002", "unclassified", "d", None)
-    with pytest.raises(ValueError):
         errors.propose(model.load(prd), "E-002", "bogus", "d", None)
     errors.propose(model.load(prd), "E-002", "code bug", "d", None)
     errors.confirm(model.load(prd), "E-002", "yes", TODAY)

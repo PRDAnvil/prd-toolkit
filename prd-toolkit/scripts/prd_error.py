@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["pyyaml>=6.0", "sqlglot>=25", "openapi-spec-validator>=0.7"]
 # ///
-"""The errors.md ledger: new, list, propose, confirm, resolve, url, check. Exit 0 done, 1 refused, 2 usage, dependency or internal error."""
+"""The errors.md ledger: new, list, propose, confirm, reopen, resolve, url, check. Exit 0 done, 1 refused, 2 usage, dependency or internal error."""
 import argparse
 import os
 import re
@@ -20,7 +20,7 @@ from prdlint import deps  # noqa: E402
 for _module, _package in (("yaml", "pyyaml"), ("sqlglot", "sqlglot"), ("openapi_spec_validator", "openapi-spec-validator")):
     deps.require(_module, _package)
 
-from prdlint import deploy, errorreplay, errors, interface, model, registry, trace  # noqa: E402
+from prdlint import deploy, errorreopen, errorreplay, errors, interface, model, registry, trace  # noqa: E402
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -48,11 +48,14 @@ def _parser() -> argparse.ArgumentParser:
     c = cmd("propose")
     c.add_argument("--class", dest="cls", required=True)
     c.add_argument("--diagnosis", required=True)
+    c.add_argument("--explanation", help="the proposed class in plain words for the owner: the line Explanation: <x>")
     c.add_argument("--recurrence")
     c.add_argument("--touches", default="")
     c = cmd("confirm")
     c.add_argument("--reply", required=True)
     c.add_argument("--class", dest="cls")
+    c = cmd("reopen")
+    c.add_argument("--reason", required=True, help="why the confirmation is taken back")
     c = cmd("resolve")
     c.add_argument("--t")
     c.add_argument("--version")
@@ -90,7 +93,9 @@ def _run(args: argparse.Namespace, prd: model.Prd, today: date) -> list[str]:
         return errors.list_lines(prd, args.open)
     if args.cmd == "propose":
         touches = errors.parse_touches(args.touches)
-        errors.propose(prd, args.eid, args.cls, args.diagnosis, args.recurrence, touches)
+        errors.propose(prd, args.eid, args.cls, args.diagnosis, args.recurrence, touches, args.explanation)
+    elif args.cmd == "reopen":  # FR-251
+        errorreopen.reopen(prd, args.eid, args.reason, today)
     elif args.cmd == "confirm":
         errors.confirm(prd, args.eid, args.reply, today, args.cls)
     elif args.cmd == "url":

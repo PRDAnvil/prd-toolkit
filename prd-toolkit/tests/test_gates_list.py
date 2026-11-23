@@ -57,7 +57,7 @@ def test_a_proposed_entry_is_a_gate_and_a_confirmed_one_is_not(repo):
     g = gs["error-class:E-003"]
     assert g["kind"] == "error-class" and g["title"] == "Importer reads the wrong key"
     assert g["question"] == "Proposed class: code bug. Confirm it, or correct it to another class."
-    assert g["evidence"] == ["T-001.3 fails: expected 1, got 0"] and g["choices"] == ["confirm", "correct"]
+    assert g["evidence"] == ["T-001.3 fails: expected 1, got 0"] and g["choices"] == ["confirm", "correct", "question"]
     assert g["source"].startswith("errors.md:") and "path" not in g and "items" not in g
 
 

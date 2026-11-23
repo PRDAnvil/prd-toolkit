@@ -2,6 +2,50 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.15: reproduce before proposing, an unsure reply, re-verify before the fix
+
+Recorded 2026-11-23 on `feat/ait-1105-verify-error-class`, model `sonnet`, Claude Code 2.1.330, one run per arm, 14
+cases, from clean copies of the plugin (`git archive`), the command of the 0.8.12 section with `Agent` in
+`--allow-tools`. Cost of every run below: $7.3. The RED runs, their verbatim quotes and each run's account are in
+`baselines/handling-errors.md`, sections "0.8.15 … (RED)" and "0.8.15 results with the skill (GREEN)".
+
+**The three new cases** (RED on 0.8.14, `270601e`; GREEN on the 0.8.15 text with the PRD 10.0.0 scripts):
+
+| Case | RED with | RED without | GREEN with | GREEN without |
+|---|---|---|---|---|
+| `error-reproduce-before-propose` | 0.57 | 0.71 | 1.00 (regraded) | 1.00 |
+| `error-unsure-reply-not-confirmed` | 0.62 | 0.50 | 1.00 | 0.57 |
+| `error-reverify-before-fix` | 0.62 | 0.50 | 1.00 | 0.50 |
+
+- Two graders of `error-reproduce-before-propose` were too narrow for a correct session, and each was widened with
+  the trace's command or Diagnosis as a new sample: `reproduction-ran` (a probe that calls `greet.cli.main`, also in
+  `error-reverify-before-fix`) and `diagnosis-quotes-the-run` (a probe that sets its own greeting). Both with-plugin
+  traces pass every grader as they now stand.
+
+**The existing cases of the skills whose text changed** (handling-errors and adopting-prds):
+
+| Case | with | without | Δ |
+|---|---|---|---|
+| `error-confirm-before-fix` | 1.00 | 0.83 | +0.17 |
+| `error-flaky-not-retried` | 1.00 | 0.50 | +0.50 |
+| `error-records-the-url` | 1.00 | 0.50 | +0.50 |
+| `error-replay-finding-not-committed` | 1.00 | 0.50 | +0.50 |
+| `error-uncovered-code-red-run` | 0.78 | 0.67 | +0.11 |
+| `handling-errors-trigger` | 1.00 | 0.00 | +1.00 |
+| `handling-errors-not-without-prd` | 1.00 | 1.00 | 0.00 |
+| `inbox-deploy-step-not-sent` | 1.00 | 0.50 | +0.50 |
+| `inbox-headless-falls-back` | 1.00 | 1.00 | 0.00 |
+| `inbox-never-answers-gate` | 1.00 | 0.60 | +0.40 |
+| `inbox-uses-outcome-reply` | 1.00 | 0.71 | +0.29 |
+
+- `error-uncovered-code-red-run`'s 0.78 is its two history graders' stated limit: the session took the route in order
+  but committed with `git commit -q`, which prints no `1 file changed` line for the grader to read.
+- `inbox-headless-falls-back` fired `adopting-prds` in two reruns with the plugin (1.00 each) after a first run that
+  did not; the score held in all three.
+- The adoption cases were not rerun: their scaffold (`notes_repo.py`) still writes its extract entry as `code bug`,
+  and the 0.8.15 text sends such an entry to step 2 when `/prd-toolkit:prd-error` takes it up, which those cases do
+  not reach.
+
 ## 0.8.14: the red-run route, the replay step, and the handling-errors cases
 
 Recorded 2026-11-21 on `feat/prd-toolkit-0.8.14`, model `sonnet`, Claude Code 2.1.330, one run each,

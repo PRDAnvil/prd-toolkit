@@ -1,0 +1,654 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's own tmp_path, the root of the scratch repository the steps
+#   build from fixture status-next/base (testing.md, Setup steps); ORDERS = <tmp>/docs/prd/orders, and a relative
+#   path in a step or an expected value is inside ORDERS unless it starts with <tmp>. "python" is the interpreter
+#   running the tests (sys.executable). ERROR = <repo>/prd-toolkit/scripts/prd_error.py,
+#   GATES = <repo>/prd-toolkit/scripts/prd_gates.py, LINT = <repo>/prd-toolkit/scripts/prd_lint.py,
+#   HELP = <repo>/prd-toolkit/scripts/prd_help.py.
+#   A run's text becomes its argument list this way: ERROR, GATES, LINT and HELP are replaced by their values, the
+#   text is split into words with Python's shlex.split (quotes group words and are removed, nothing is expanded),
+#   and a first word `python` becomes the interpreter running the tests; the words are run with no shell, from
+#   <tmp>, as a subprocess. `run_<n>` names the n-th run of a case and `each_run` every run; <today> is as
+#   testing.md (Harness, Assertions) defines it, and `files.<key>` is the text at that key of fixture
+#   status-next/files.
+#   Every run, every command of a step and the test's own git commands use the Subprocess environment (Harness)
+#   minus GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE, GIT_COMMON_DIR and PRD_PLUGINS_FILE, plus
+#   GIT_CONFIG_GLOBAL=/dev/null and GIT_CONFIG_NOSYSTEM=1, which the test sets in its own process, through pytest's
+#   monkeypatch, before its first step, so that the `git init` of step N0 inherits them too. A step's command must
+#   exit 0, and a step that does not find the line or the text it changes ends the test as an error, not a failure.
+#   Every line a step writes ends in a newline. A step that commits runs, with <tmp> as the working directory,
+#   `git add -A` and then `git commit -q` with the message it names.
+#   Steps run in the order a case lists them. N0, NE1 and NE2 are the status-next steps; the steps below are this
+#   file's own.
+#     O0  N0; then run `git config user.name Sample`, `git config user.email sample@example.com`,
+#         `git config commit.gpgsign false` and `git config core.hooksPath /dev/null`
+#     OC  NE1: errors.md is files.errors_confirmed, E-001 `confirmed` (`code bug`; its line 6 is
+#         `Confirmed: 2026-11-04, "Yes, it is a code bug."`) and E-002 `unclassified`
+#     OP  NE2: errors.md is files.errors_proposed, E-001 `proposed` (`code bug`), with no Diagnosis: line
+#     OM  write errors.md with the lines `# Error ledger`, ``, `### E-001 The importer stops at row 1000`,
+#         `Detected: 2026-11-03, a run on the October file`, `Classification: code bug`, `Touches: FR-003`,
+#         `Resolution: -`, `Recurrence of: -`, ``, `### E-002 A monthly report printed no total`,
+#         `Detected: 2026-11-05, a reader of the October report`, `Classification: unclassified`,
+#         `Touches: FR-006`, `Resolution: -`, `Recurrence of: -`, ``, `### E-003 An import printed no count`,
+#         `Detected: 2026-11-06, a run on the November file`, `Classification: code bug`,
+#         `Confirmed: 2026-11-07, "Yes."`, `Touches: FR-004`, `Resolution: not a defect: the file was empty` and
+#         `Recurrence of: -` (E-001 `proposed`, E-002 `unclassified`, E-003 resolved)
+#     OK  commit `base`; then run `git tag start`
+#     OX  run `python ERROR reopen docs/prd/orders E-001 --reason 'the run passes now'`; then commit with the
+#         two messages `docs(prd): reopen E-001` and `Refs: E-001` (`git commit -q -m … -m …`)
+#     OY  run `python ERROR confirm docs/prd/orders E-001 --reply 'Yes, a code bug after all.'`; then commit
+#         `docs(prd): confirm E-001`
+#     OZ  run `python ERROR reopen docs/prd/orders E-001 --reason 'the run passes again'`; then commit
+#         `docs(prd): reopen E-001 again`
+#     OE  in errors.md the text `"the run passes now"` becomes `"the run passed"`; then commit `edit the reopen`
+#     OH  in errors.md insert after the line `Classification: unclassified` the line
+#         `Reopened: 2026-11-06, "no reason"; was Confirmed: 2026-11-05, "yes"`; then commit `add a reopen`
+#     OW  delete from errors.md the line `Confirmed: 2026-11-04, "Yes, it is a code bug."`; then commit
+#         `drop the confirmation`
+#     OS  write <tmp>/src/importer.py with the one line `x = 1`; then commit with the two messages
+#         `Fix the importer` and `Refs: FR-003, E-001`
+#   HEAD8 is the first 8 hex digits of what `git rev-parse HEAD` prints in <tmp> after the case's last step.
+
+T-251.1:
+  ac: AC-251.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-001 --reason 'the run passes now'"
+    - "python ERROR list docs/prd/orders"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "E-001 proposed code bug\n"
+        stderr: ""
+      run_2:
+        exit: 0
+        stdout: "E-001 proposed code bug FR-003 The importer stops at row 1000\nE-002 unclassified FR-006 A monthly report printed no total\n"
+        stderr: ""
+    effects:
+    - "after run_1, errors.md is files.errors_confirmed with its line 6, `Confirmed: 2026-11-04, \"Yes, it is a code bug.\"`, replaced by the line `Reopened: <today>, \"the run passes now\"; was Confirmed: 2026-11-04, \"Yes, it is a code bug.\"`, and every other byte as it was"
+    errors: []
+    leaks: none
+
+T-251.2:
+  ac: AC-251.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-001 --reason '  the run\n   passes    now  '"
+    note: "the reason holds a line break and runs of spaces, which collapse to single spaces"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "E-001 proposed code bug\n"
+        stderr: ""
+    effects:
+    - "after run_1, line 6 of errors.md is exactly `Reopened: <today>, \"the run passes now\"; was Confirmed: 2026-11-04, \"Yes, it is a code bug.\"`, and errors.md has as many lines as files.errors_confirmed"
+    errors: []
+    leaks: none
+
+T-251.3:
+  ac: AC-251.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OM]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-009 --reason 'the run passes now'"
+    - "python ERROR reopen docs/prd/orders E-003 --reason 'the run passes now'"
+    - "python ERROR reopen docs/prd/orders E-002 --reason 'the run passes now'"
+    - "python ERROR reopen docs/prd/orders E-001 --reason 'the run passes now'"
+    note: "E-009 is no entry, E-003 is resolved, E-002 is unclassified and E-001 is proposed"
+  expect:
+    output:
+      run_1: {exit: 1, stdout: "", stderr: "refused: E-009 is not an entry\n"}
+      run_2: {exit: 1, stdout: "", stderr: "refused: E-003 is resolved\n"}
+      run_3: {exit: 1, stdout: "", stderr: "refused: E-002 is not confirmed\n"}
+      run_4: {exit: 1, stdout: "", stderr: "refused: E-001 is not confirmed\n"}
+    effects:
+    - "after each run, errors.md is byte for byte the text step OM wrote"
+    errors: []
+    leaks: none
+
+T-251.4:
+  ac: AC-251.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-001 --reason '   '"
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr: "prd_error: the reason is empty\n"}
+    effects:
+    - "after run_1, errors.md is byte for byte files.errors_confirmed"
+    errors: []
+    leaks: none
+
+T-251.5:
+  ac: AC-251.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-001 --reason '```text'"
+    - "python ERROR reopen docs/prd/orders E-001 --reason 'it passes; was Confirmed: never'"
+  expect:
+    output:
+      run_1: {exit: 1, stdout: "", stderr: "refused: --reason would open a code fence; drop it or put text before it\n"}
+      run_2: {exit: 1, stdout: "", stderr: "refused: --reason must not hold \"; was Confirmed:\"\n"}
+    effects:
+    - "after each run, errors.md is byte for byte files.errors_confirmed"
+    errors: []
+    leaks: none
+
+T-251.6:
+  ac: AC-251.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-001 --reason 'the run passes now'"
+    - "python ERROR propose docs/prd/orders E-001 --class 'code bug' --diagnosis 'the loop stops at row 1000'"
+    - "python ERROR confirm docs/prd/orders E-001 --reply 'Yes, a code bug after all.'"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+      run_2: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+      run_3: {exit: 0, stdout: "E-001 confirmed code bug\n", stderr: ""}
+    effects:
+    - "after run_2, line 6 of errors.md is `Reopened: <today>, \"the run passes now\"; was Confirmed: 2026-11-04, \"Yes, it is a code bug.\"`, as run_1 wrote it"
+    - "after run_3, the lines of E-001 in errors.md (`str.splitlines()`, from its heading to its last line that is not empty) are exactly these, in this order: `### E-001 The importer stops at row 1000`, `Detected: 2026-11-03, a run on the October file`, `Classification: code bug`, `Reopened: <today>, \"the run passes now\"; was Confirmed: 2026-11-04, \"Yes, it is a code bug.\"`, `Confirmed: <today>, \"Yes, a code bug after all.\"`, `Touches: FR-003`, `Diagnosis: the loop stops at row 1000`, `Resolution: -` and `Recurrence of: -`"
+    errors: []
+    leaks: none
+
+T-251.7:
+  ac: AC-251.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-001 --reason 'the run passes now'"
+    - "python ERROR confirm docs/prd/orders E-001 --reply 'Yes, a code bug after all.'"
+    - "python ERROR reopen docs/prd/orders E-001 --reason 'the run passes again'"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+      run_2: {exit: 0, stdout: "E-001 confirmed code bug\n", stderr: ""}
+      run_3: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+    effects:
+    - "after run_3, lines 6 and 7 of errors.md are `Reopened: <today>, \"the run passes now\"; was Confirmed: 2026-11-04, \"Yes, it is a code bug.\"` and `Reopened: <today>, \"the run passes again\"; was Confirmed: <today>, \"Yes, a code bug after all.\"`, in that order, E-001 holds no line that starts with `Confirmed:`, and every line of E-002 is as files.errors_confirmed holds it"
+    errors: []
+    leaks: none
+
+T-251.8:
+  ac: AC-251.7
+  level: integration
+  target: "cli:prd_help"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    runs:
+    - "python HELP --key kind.E --json"
+    note: "no step: the run reads the catalogue the toolkit ships, from <tmp>"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout_json_at:
+          entries.0.key: kind.E
+        stderr: ""
+      relations:
+      - "entries.0.rules in run_1's stdout, parsed as JSON, is a list of strings, and one of those strings holds both the text `Reopened: <YYYY-MM-DD>, \"<reason>\"; was Confirmed: <YYYY-MM-DD>, \"<reply>\"` and the text `prd_error.py reopen`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-251.9:
+  ac: AC-251.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR reopen docs/prd/orders E-001 --reason 'the reply was unsure: \"I guess, sure? I do not follow it.\"'"
+    - "python LINT docs/prd/orders"
+    note: "the reason quotes the owner's words, double quotes and a question mark included; the write goes through the lint guard"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+      run_2: {exit: 0, stderr: ""}
+      relations:
+      - "run_2's stdout holds no line that starts with `docs/prd/orders/errors.md:`"
+    effects:
+    - "after run_1, line 6 of errors.md is exactly `Reopened: <today>, \"the reply was unsure: \"I guess, sure? I do not follow it.\"\"; was Confirmed: 2026-11-04, \"Yes, it is a code bug.\"`"
+    errors: []
+    leaks: none
+
+T-252.1:
+  ac: AC-252.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC, OK, OX]
+    runs:
+    - "python ERROR check docs/prd/orders start..HEAD"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-252.2:
+  ac: AC-252.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC, OK, OX, OY, OZ]
+    runs:
+    - "python ERROR check docs/prd/orders start..HEAD"
+    note: "a reopen, a fresh confirmation and a second reopen, each its own commit"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-252.3:
+  ac: AC-252.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC, OK, OW]
+    runs:
+    - "python ERROR check docs/prd/orders start..HEAD"
+    note: "the Confirmed: line is deleted with no Reopened: line in its place"
+  expect:
+    output:
+      run_1: {exit: 1, stdout: "errors.md: E-001: Confirmed: changed\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-252.4:
+  ac: AC-252.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC, OK, OX, OE]
+    runs:
+    - "python ERROR check docs/prd/orders start..HEAD"
+    note: "the reopen is accepted; the later edit of its Reopened: line is not"
+  expect:
+    output:
+      run_1: {exit: 1, stdout: "errors.md: E-001: Reopened: changed\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-252.5:
+  ac: AC-252.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC, OK, OH]
+    runs:
+    - "python ERROR check docs/prd/orders start..HEAD"
+    note: "E-002 was never confirmed, so a Reopened: line added to it quotes no Confirmed: line"
+  expect:
+    output:
+      run_1: {exit: 1, stdout: "errors.md: E-002: Reopened: added without its Confirmed:\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-252.6:
+  ac: AC-252.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC, OK, OX, OS]
+    runs:
+    - "python ERROR check docs/prd/orders start..HEAD"
+    note: "the code commit cites E-001 after its reopen, when it holds no Confirmed: line"
+  expect:
+    output:
+      run_1: {exit: 1, stdout: "errors.md: E-001: commit HEAD8 changes code and cites E-001, which was not confirmed at that commit\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-253.1:
+  ac: AC-253.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OP]
+    runs:
+    - "python ERROR propose docs/prd/orders E-001 --class 'code bug' --diagnosis 'the loop stops at row 1000' --explanation 'An import of a file of 1,200 rows stored 1,000 of them.\n  FR-003 says the importer stores every new row.'"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+    effects:
+    - "after run_1, the lines of errors.md (`str.splitlines()`) are exactly these, in this order: `# Error ledger`, an empty line, `### E-001 The importer stops at row 1000`, `Detected: 2026-11-03, a run on the October file`, `Classification: code bug`, `Touches: FR-003`, `Explanation: An import of a file of 1,200 rows stored 1,000 of them. FR-003 says the importer stores every new row.`, `Diagnosis: the loop stops at row 1000`, `Resolution: -` and `Recurrence of: -`"
+    errors: []
+    leaks: none
+
+T-253.2:
+  ac: AC-253.1
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OP]
+    runs:
+    - "python ERROR propose docs/prd/orders E-001 --class 'code bug' --diagnosis 'the loop stops at row 1000' --explanation 'The first words.'"
+    - "python ERROR propose docs/prd/orders E-001 --class 'spec gap' --diagnosis 'FR-003 names no row limit' --explanation 'The second words.'"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+      run_2: {exit: 0, stdout: "E-001 proposed spec gap\n", stderr: ""}
+    effects:
+    - "after run_2, errors.md holds exactly one line that starts with `Explanation:`, `Explanation: The second words.`, on line 7, followed by `Diagnosis: FR-003 names no row limit` on line 8, and its line 5 is `Classification: spec gap`"
+    errors: []
+    leaks: none
+
+T-253.3:
+  ac: AC-253.2
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OP]
+    runs:
+    - "python ERROR propose docs/prd/orders E-001 --class 'code bug' --diagnosis 'the loop stops at row 1000' --explanation 'The first words.'"
+    - "python ERROR propose docs/prd/orders E-001 --class 'code bug' --diagnosis 'the loop stops at row 999'"
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "E-001 proposed code bug\n", stderr: ""}
+    effects:
+    - "after run_2, line 7 of errors.md is `Explanation: The first words.` and line 8 is `Diagnosis: the loop stops at row 999`"
+    errors: []
+    leaks: none
+
+T-253.4:
+  ac: AC-253.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OP]
+    runs:
+    - "python ERROR propose docs/prd/orders E-001 --class 'code bug' --diagnosis 'the loop stops at row 1000' --explanation '  '"
+    - "python ERROR propose docs/prd/orders E-001 --class 'code bug' --diagnosis 'the loop stops at row 1000' --explanation '~~~ text'"
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr: "prd_error: the explanation is empty\n"}
+      run_2: {exit: 1, stdout: "", stderr: "refused: --explanation would open a code fence; drop it or put text before it\n"}
+    effects:
+    - "after each run, errors.md is byte for byte files.errors_proposed"
+    errors: []
+    leaks: none
+
+T-253.5:
+  ac: AC-253.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OC]
+    runs:
+    - "python ERROR propose docs/prd/orders E-002 --class unclassified --diagnosis 'not reproduced: the report of 2026-10 printed the total, and the reader names no other month'"
+    - "python GATES list docs/prd/orders"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-002 unclassified\n", stderr: ""}
+      run_2: {exit: 0, stdout: "", stderr: ""}
+    effects:
+    - "after run_1, the lines of E-002 in errors.md (`str.splitlines()`, from its heading to its last line that is not empty) are exactly these, in this order: `### E-002 A monthly report printed no total`, `Detected: 2026-11-05, a reader of the October report`, `Classification: unclassified`, `Touches: FR-006`, `Diagnosis: not reproduced: the report of 2026-10 printed the total, and the reader names no other month`, `Resolution: -` and `Recurrence of: -`; the lines of E-001 are as files.errors_confirmed holds them"
+    errors: []
+    leaks: none
+
+T-253.6:
+  ac: AC-253.4
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OP]
+    runs:
+    - "python ERROR propose docs/prd/orders E-001 --class unclassified --diagnosis 'not reproduced: the October file imports whole'"
+    - "python ERROR list docs/prd/orders"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 unclassified\n", stderr: ""}
+      run_2: {exit: 0, stdout: "E-001 unclassified FR-003 The importer stops at row 1000\n", stderr: ""}
+    effects:
+    - "after run_1, line 5 of errors.md is `Classification: unclassified`, and errors.md holds no line that starts with `Confirmed:`"
+    errors: []
+    leaks: none
+
+T-253.7:
+  ac: AC-253.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OP]
+    runs:
+    - "python ERROR propose docs/prd/orders E-001 --class 'not a defect' --diagnosis 'not a defect: the October file ends at row 1000'"
+    - "python ERROR confirm docs/prd/orders E-001 --reply 'Yes, the file was short.'"
+    - "python LINT docs/prd/orders"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 proposed not a defect\n", stderr: ""}
+      run_2: {exit: 0, stdout: "E-001 confirmed not a defect\n", stderr: ""}
+      run_3: {exit: 0, stderr: ""}
+      relations:
+      - "run_3's stdout holds no line that starts with `docs/prd/orders/errors.md:`"
+    effects:
+    - "after run_2, line 5 of errors.md is `Classification: not a defect` and line 6 is `Confirmed: <today>, \"Yes, the file was short.\"`"
+    errors: []
+    leaks: none
+
+T-253.8:
+  ac: AC-253.5
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [O0, OP]
+    runs:
+    - "python ERROR confirm docs/prd/orders E-001 --reply 'It is not a defect: the file was short.' --class 'not a defect'"
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "E-001 confirmed not a defect\n", stderr: ""}
+    effects:
+    - "after run_1, line 5 of errors.md is `Classification: not a defect` and line 6 is `Confirmed: <today>, \"It is not a defect: the file was short.\"`"
+    errors: []
+    leaks: none
+
+T-253.9:
+  ac: AC-253.6
+  level: integration
+  target: "cli:prd_help"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    runs:
+    - "python HELP --key kind.E --json"
+    note: "no step: the run reads the catalogue the toolkit ships, from <tmp>"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout_json_at:
+          entries.0.key: kind.E
+        stderr: ""
+      relations:
+      - "entries.0.rules in run_1's stdout, parsed as JSON, is a list of strings, and one of those strings holds both the text `Explanation:` and the text `prd_error.py propose --explanation`"
+      - "one string of entries.0.rules holds the text `Classification:` and, after it, each of the texts `code bug`, `not a defect` and `unclassified`"
+    effects: []
+    errors: []
+    leaks: none

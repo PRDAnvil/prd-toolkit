@@ -190,7 +190,7 @@ def test_handling_errors_records_the_url_and_names_the_areas():
     assert "--evidence-file <TMP>/evidence.txt --url '<address>'; echo \"prd-error-exit=$?\"" in run
     assert "<scripts>/prd error url docs/prd/<slug> <E-nnn> '<address>'; echo \"prd-error-exit=$?\"" in run
     assert "never guess or build one" in run
-    assert "Show the user: the entry and its class; its areas" in run
+    assert "Show the user the explanation first, then: the entry and its class; its areas" in run
     assert "`prd error new … --url <address>`" in flat(ERROR_SKILL)
     assert "<scripts>/prd gates list docs/prd/<slug> --json; echo \"prd-gates-exit=$?\"" in run
     assert 'git commit -m "docs(prd): set the URL of <E-nnn>" -m "Refs: <E-nnn>"' in run

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: error-reverify-before-fix
+context:
+  scaffold_script: scaffold.sh

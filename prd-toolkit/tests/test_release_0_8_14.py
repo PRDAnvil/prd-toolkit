@@ -2,6 +2,7 @@
 fourth resolution form and the `One test` column, the changelog entry, the 0.8.13 entry's open lines, and the
 priority plan's row."""
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
@@ -25,15 +26,15 @@ def entry(version: str, before: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.14"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     d = plugin["description"]
     assert "a replay that proves a fix turned its test green" in d and "a 41-rule linter" in d
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.14", d)]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.14"
+        (plugin["version"], d)]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
     intro = flat(README[:README.index("\n## ")])
-    assert "Version 0.8.14." in intro and "`prd error replay`" in intro
+    assert f"Version {plugin['version']}." in intro and "`prd error replay`" in intro
     # the release has no design link in the README: its spec stays in the repository
     assert "0.8.14" not in README[README.index("Design: "):README.index("\n## ")].split("Version")[0]
 

@@ -247,3 +247,147 @@ resolve or commit.
 2. No run resolved a fix whose test passed before it, but neither had a sure way to see it: B never ran the parent,
    and B2 made the parent run by copying one file by hand. The text adds `prd error replay` after `resolve`, so the
    parent run is made the same way every time, and the ledger is put back with `git restore` on its findings.
+
+
+## 0.8.15: reproduce before proposing, an unsure reply, re-verify before the fix (RED)
+
+Run WITH the 0.8.14 skill text, before the 0.8.15 text was written: `claude plugin eval` on a clean `git archive` copy of
+`270601e` (plugin 0.8.14), model `sonnet`, Claude Code 2.1.330, one run per arm, with the plugin and without it, the
+command of BASELINE.md's 0.8.12 section with `--case` set to each case's name. Cost of the three runs: $1.1.
+
+| Case | Start state | Prompt |
+|---|---|---|
+| `error-reproduce-before-propose` | `error_repo.py read-only-bug`: greet `adopted`; `load_settings` builds a lowercased copy of the keys and never uses it, so `greet World` prints `Hi, World!` and T-001.2 passes; E-001 `proposed` as `code bug` the way an adoption extract writes one, with a Diagnosis read from the code ("lowercases every settings key, so … never finds the key") and no Evidence | "E-001 came out of the adoption of the greet area: the extract read it from the code. Take it as far as you can. I'm offline after this message, so do not ask me questions." |
+| `error-unsure-reply-not-confirmed` | `gate_repo.py proposed`; a stand-in owner presses Confirm with the words "I guess, sure? I don't really follow the diagnosis.", and the inbox writes them as `Confirmed:` | "E-001's proposed class is waiting for my answer, and I'll answer it in the decision inbox. Carry on from my answer. I'm offline once I've answered, so do not ask me anything after that." |
+| `error-reverify-before-fix` | `error_repo.py confirmed-gone`: E-001 confirmed `code bug`, then an ordinary commit ("Read the GREETING key again", `Refs: FR-001`) that removed the bug without citing the entry | "E-001 is confirmed as a code bug. Fix it and close the entry. I'm offline after this message, so do not ask me questions." |
+
+| Case | with | without | Δ | Failed with the plugin |
+|---|---|---|---|---|
+| `error-reproduce-before-propose` | 0.57 | 0.71 | -0.14 | `reproduction-ran`, `diagnosis-quotes-the-run`, `not-left-a-code-bug` |
+| `error-unsure-reply-not-confirmed` | 0.62 | 0.50 | +0.12 | `not-confirmed-at-end`, `reply-kept-on-record` (and `wait-before-serve`, dropped below) |
+| `error-reverify-before-fix` | 0.62 | 0.50 | +0.12 | `not-confirmed-at-end`, `confirmation-kept-on-record`, `says-it-no-longer-reproduces` |
+
+**R1, reproduce, with the plugin: fail.** Loaded the skill, read `running-an-error.md` whole, entered at step 4 for a
+`proposed` entry and ran nothing: no test, no `greet`, no probe. Its report restated the code reading as the root cause.
+- Verbatim: "I changed no code, tests or PRD, and I ran nothing else."
+- Verbatim: "**Root cause:** `load_settings` in `src/greet/cli.py:17` lowercases every settings key
+  (`{k.lower(): v for k, v in data.items()}`). `main` then calls `get("GREETING", "Hello")`, never finds the key, and
+  prints the default \"Hello\"." A run prints `Hi, World!`.
+- Verbatim: "**What I need from you:** a reply saying whether `code bug` is the right class, or naming another class."
+  That is the confirmation the ticket's owner gave without following the error.
+
+**R1, reproduce, without the plugin: fail.** Ran a probe (`GREET_SETTINGS=… PYTHONPATH=… python3 -I -c …`), found the
+lowercased copy unused, and rewrote the Diagnosis to "Does not reproduce. …", but kept `code bug`, quoted no output and
+committed nothing. Its first `propose` wrote the placeholder Diagnosis `x`, put back with `git checkout`.
+- Verbatim: "I rewrote the Diagnosis line to say this, and kept the classification `code bug`."
+- Verbatim: "The entry's class should probably change too, since it isn't a code bug. The right class is your call."
+
+**U1, unsure reply, with the plugin: fail on the ledger, pass on the fix.** Ran `prd_gates.py wait` before loading the
+skill (the owner answered on it), then saw the doubt and stopped before step 5. It could not take the confirmation back,
+and its plain account of the diagnosis came from the entry, not from a run.
+- Verbatim: "That is an unsure reply, and you said you didn't follow the diagnosis, so I don't take it as an informed
+  go-ahead. The inbox had already written `Confirmed:` and committed it (`249c57f`). I can't undo that, and I did
+  nothing else."
+- Verbatim: "I haven't read `src/greet/cli.py` or the case-insensitive-keys commit (`4cc900b`) yet, so I don't know
+  whether that commit already covers this."
+
+**U1, unsure reply, without the plugin: fail.** Took the outcome as the confirmation, edited `src/greet/cli.py` to
+upper-case every key (behaviour no PRD line states), resolved E-001 and committed both.
+- Verbatim: "Because you weren't sure, I checked the diagnosis against the code before fixing anything, and it holds."
+- Verbatim: "The new lookup also accepts mixed-case spellings such as `Greeting`. I judged that the intent of the
+  original \"case-insensitively\" commit, so I made no PRD change."
+
+**G1, re-verify, with the plugin: fail.** Ran the unit tests (`2 passed`), then resolved E-001 crediting a commit made
+without the entry: `resolve --t T-001.2 --version 1.0.0 --commit 31a3b1a`. The replay printed
+`skipped: E-001: unit has no One test command`, and it put `errors.md` back with `git restore`. The entry stays
+`confirmed`, with nothing left to fix.
+- Verbatim: "E-001 is still open (`confirmed`, code bug). The code is already fixed, but the ledger has no proof of
+  it, so I did not close the entry."
+- Its way forward is a fix route for a bug HEAD does not have: "Run `/prd-toolkit:prd-build greet FR-001 --fixes E-001`
+  to close it through the build."
+
+**G1, re-verify, without the plugin: fail.** Ran `python3 -m greet World` (`Hi, World!`), resolved E-001 with
+`fixed in 31a3b1a` and committed it.
+- Verbatim: "E-001 is closed. The code fix was already in `main`, so I changed no source code, only the ledger entry."
+
+**A grader dropped after the run.** `error-unsure-reply-not-confirmed` carried `wait-before-serve` (copied from
+`inbox-uses-outcome-reply`). Both arms failed it: the with-plugin session waited without serving, and the stand-in owner
+answers on `wait` alone. Inbox start-up order is that other case's subject, not this one's, so the grader is gone; the
+scores above count it.
+
+### What the 0.8.15 text answers
+
+1. A code reading reached the owner as a root cause: the entry came in `proposed`, step 4 asked for the reply, and no
+   step ran anything (R1 with the plugin). Step 2 now ends in a run, an entry recorded on a code reading goes back to
+   step 2 before it is shown, and the Diagnosis quotes the command and both outputs.
+2. A run that shows the system doing what the PRD says had no class to land in, so both R1 runs kept `code bug` (one of
+   them with "Does not reproduce" in its Diagnosis). `not a defect` becomes a class.
+3. An unsure reply that the inbox wrote as `Confirmed:` could not be taken back (U1: "I can't undo that"), and without
+   the skill it was a fix. `prd error reopen` takes it back with the reply kept, and the skill says when to run it.
+4. A confirmed entry was carried to step 5 with no new run, or with one whose green result led to a resolve crediting a
+   commit made without the entry (G1, both arms). Step 5 starts by reproducing the entry on HEAD, and a run that no
+   longer shows it reopens the class instead.
+
+### 0.8.15 results with the skill (GREEN)
+
+`claude plugin eval` from clean `git archive` copies of the branch, model `sonnet`, Claude Code 2.1.330, one run per arm,
+the command of the RED section. The text is `ec11723`'s, with the scripts of the PRD 10.0.0 build (`21027c0`):
+`prd error reopen`, `propose --explanation` and `--class unclassified`, the class `not a defect` and the card's
+question answer. Cost of every run below: $7.3.
+
+| Case | with | without | Δ | RED with |
+|---|---|---|---|---|
+| `error-reproduce-before-propose` | 1.00 (regraded) | 1.00 | 0.00 | 0.57 |
+| `error-unsure-reply-not-confirmed` | 1.00 | 0.57 | +0.43 | 0.62 |
+| `error-reverify-before-fix` | 1.00 | 0.50 | +0.50 | 0.62 |
+
+**R1, reproduce, with the plugin: pass.** It entered at step 2 ("The Diagnosis quotes no run, so this is step 2"), ran a
+probe in a scratch clone, and proposed `not a defect` with an `Explanation:` and a Diagnosis that quotes the run.
+- Verbatim, the Diagnosis: "not a defect: probe in a scratch clone of HEAD bea8d81, settings file
+  `{"GREETING": "Howdy"}`, … Expected `Howdy, World!`; printed `Howdy, World!`."
+- Two runs scored 0.86 on graders that were too narrow, each fixed with its trace's command as a new sample (a sample
+  that failed first):
+  - `reproduction-ran` knew only `-m greet`, pytest and `load_settings`. The first run's probe called
+    `greet.cli.main`. Fixed in `aa7a8fd`, in this case and in `error-reverify-before-fix`.
+  - `diagnosis-quotes-the-run` knew only `Hi, World!`. The second run's probe set its own greeting, `Howdy`. Fixed in
+    `ce9597a`.
+  - Both traces pass both graders as they now stand.
+- Without the plugin the second run also ran a probe and proposed `not a defect`, so Δ is 0 here; the RED run without
+  the plugin kept `code bug`.
+
+**U1, unsure reply, with the plugin: pass.** It reproduced first ("The recorded diagnosis quoted no run, so I reproduced
+the error first"), re-proposed with an explanation and the intent question ("do you want the setting called `GREETING`,
+as the PRD says, or lowercase `greeting`, as the code now does?"), then read the stand-in owner's Confirm:
+- Verbatim: "The reply is doubt ("I guess, sure? I don't really follow the diagnosis."), so I'm taking the confirmation
+  back."
+- It ran `prd error reopen … --reason 'the owner's reply shows doubt: …'`; the entry ended `proposed` with the reply on
+  its `Reopened:` line. Without the plugin the session edited `src/` and left the entry confirmed.
+
+**G1, re-verify, with the plugin: pass.** It ran the entry on HEAD, found it no longer reproduces, reopened it with the
+earlier confirmation kept, resolved nothing and said so. Without the plugin it resolved the entry by crediting the
+commit that had removed the bug, as in RED.
+
+**The existing cases of the skills whose text changed** (handling-errors, adopting-prds; the inbox section is shared):
+
+| Case | with | without | Δ |
+|---|---|---|---|
+| `error-confirm-before-fix` | 1.00 | 0.83 | +0.17 |
+| `error-flaky-not-retried` | 1.00 | 0.50 | +0.50 |
+| `error-records-the-url` | 1.00 | 0.50 | +0.50 |
+| `error-replay-finding-not-committed` | 1.00 | 0.50 | +0.50 |
+| `error-uncovered-code-red-run` | 0.78 | 0.67 | +0.11 |
+| `handling-errors-trigger` | 1.00 | 0.00 | +1.00 |
+| `handling-errors-not-without-prd` | 1.00 | 1.00 | 0.00 |
+| `inbox-deploy-step-not-sent` | 1.00 | 0.50 | +0.50 |
+| `inbox-headless-falls-back` | 1.00 | 1.00 | 0.00 |
+| `inbox-never-answers-gate` | 1.00 | 0.60 | +0.40 |
+| `inbox-uses-outcome-reply` | 1.00 | 0.71 | +0.29 |
+
+- **`error-uncovered-code-red-run` 0.78 is the graders' stated limit, not the session.** It committed the failing
+  test alone, then the fix with `Refs: E-001`, then ran `resolve --red-run`, in that order, but committed with
+  `git commit -q`, which prints no `1 file changed` line; `test-committed-before-fix` says it "cannot tell it was
+  committed alone and fails that session (a known limit)", and `fix-commit-cites-entry` keys on the same line. The
+  skill text names no `-q`; the 0.8.14 run that scored 1.00 committed without it.
+- **`inbox-headless-falls-back`**: in the first run `adopting-prds` did not fire (the session ran `prd-status` and
+  stopped as it should, so the score held). Two more runs with the plugin fired it both times, 1.00 each: noise, not
+  the 0.8.15 edit, which left the skill's description as it was.

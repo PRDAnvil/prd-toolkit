@@ -189,27 +189,28 @@ Tests: T-144.1 [integration], T-144.2 [integration], T-144.3 [integration], T-14
 Traces: UJ-01; cli:prd_lint; errors.md
 
 ### FR-145 Check an entry's Classification and Evidence
-Status: live (since 9.4.0)
-Source: prd-toolkit/scripts/prdlint/rules/errors.py:55 @6162689
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/errors.py:57 @3049c0d
 Acceptance (EARS):
-- AC-145.1 If an entry's `Classification:` value, stripped, is not empty and is none of `code bug`, `spec gap`, `invalid requirement`, `environment`, `standard` and `unclassified`, the lint command shall report `error-entries` at that line with `<E-id>: Classification: '<value>' is not one of code bug, spec gap, invalid requirement, environment, standard, unclassified`.
+- AC-145.1 If an entry's `Classification:` value, stripped, is not empty and is none of `code bug`, `spec gap`, `invalid requirement`, `environment`, `standard`, `not a defect` and `unclassified`, the lint command shall report `error-entries` at that line with `<E-id>: Classification: '<value>' is not one of code bug, spec gap, invalid requirement, environment, standard, not a defect, unclassified`.
 - AC-145.2 If an entry's Evidence holds more than 20 lines, the lint command shall report `error-entries` at its `Evidence:` line with `<E-id>: Evidence: is <n> lines; at most 20`. The lines are the text on the `Evidence:` line when it is not empty, plus each following line that starts with two spaces, up to the first line that does not.
 - AC-145.3 When an entry's Evidence holds 20 lines or fewer, the lint command shall report no Evidence finding.
 Errors: -
-Edge cases: a missing or empty `Classification:` is not reported here; on a resolved entry it is `index-consistent`'s (lint-ids FR-127) → AC-145.1; a blank line ends the Evidence → AC-145.2; the comparison is case-sensitive, so `Code bug` is reported → AC-145.1
-Tests: T-145.1 [integration], T-145.2 [integration], T-145.3 [integration], T-145.4 [integration]  (test-cases/lint-registries.yaml)
+Edge cases: a missing or empty `Classification:` is not reported here; on a resolved entry it is `index-consistent`'s (lint-ids FR-127) → AC-145.1; a blank line ends the Evidence → AC-145.2; the comparison is case-sensitive, so `Code bug` is reported → AC-145.1; `not a defect` is a class since prd-toolkit 0.8.15 (error-reopen FR-253), so `Classification: not a defect` is no finding → AC-145.1
+Tests: T-145.1 [integration], T-145.2 [integration], T-145.3 [integration], T-145.4 [integration], T-145.5 [integration]  (test-cases/lint-registries.yaml)
 Traces: UJ-01; cli:prd_lint; errors.md
 
-### FR-146 Check an entry's Confirmed line
-Status: live (since 9.4.0)
-Source: prd-toolkit/scripts/prdlint/rules/errors.py:57 @6162689
+### FR-146 Check an entry's Confirmed and Reopened lines
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/errors.py:59 @3049c0d
 Acceptance (EARS):
 - AC-146.1 If an entry has a `Confirmed:` line whose value, stripped, is not a `YYYY-MM-DD` date, a comma, optional white space and a reply in double quotes that end the value, the lint command shall report `error-entries` at that line with `<E-id>: Confirmed: must be '<YYYY-MM-DD>, "<reply>"'`.
 - AC-146.2 If an entry has a `Confirmed:` line and its `Classification:` value is `unclassified`, empty or absent, the lint command shall report `error-entries` at the `Confirmed:` line with `<E-id>: Confirmed: on an unclassified entry`.
 - AC-146.3 When an entry with a class from AC-145.1's list other than `unclassified` has a well-formed `Confirmed:` line, the lint command shall report no `Confirmed:` finding.
+- AC-146.4 If an entry has a line that starts with `Reopened:` whose value, stripped, is not a `YYYY-MM-DD` date, a comma, one space, a reason in double quotes, the text `; was Confirmed: `, a `YYYY-MM-DD` date, a comma, optional white space and a reply in double quotes that end the value, the lint command shall report `error-entries` at that line with `<E-id>: Reopened: must be '<YYYY-MM-DD>, "<reason>"; was Confirmed: <YYYY-MM-DD>, "<reply>"'`.
 Errors: -
-Edge cases: the date's digits are not checked against the calendar → AC-146.1; with two `Confirmed:` lines the last one counts (lint-cli, the loader); a malformed line on an unclassified entry gets both findings → AC-146.1, AC-146.2
-Tests: T-146.1 [integration], T-146.2 [integration], T-146.3 [integration]  (test-cases/lint-registries.yaml)
+Edge cases: the date's digits are not checked against the calendar → AC-146.1; with two `Confirmed:` lines the last one counts (lint-cli, the loader); a malformed line on an unclassified entry gets both findings → AC-146.1, AC-146.2; each malformed `Reopened:` line gets its own finding, whatever the entry's state, and a well-formed one none (error-reopen FR-251 writes them) → AC-146.4
+Tests: T-146.1 [integration], T-146.2 [integration], T-146.3 [integration], T-146.4 [integration], T-146.5 [integration]  (test-cases/lint-registries.yaml)
 Traces: UJ-01; cli:prd_lint; errors.md
 
 ### FR-147 Check Detected and Recurrence of on an entry with Confirmed

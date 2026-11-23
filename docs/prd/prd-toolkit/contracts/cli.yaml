@@ -57,7 +57,7 @@ prd_lint:
     production-gate: "operations.md, at the step: step <n> deploys <env> with no human step at or just before it (FR-141)"
     runbook-tests: "operations.md, at the Run: line: step <n>: level '<level>' is not in testing.md Levels | step <n>: level '<level>' has Gate <gate or none>; a tests step runs deploy-gate levels | step <n>: level '<level>' has no Harness command (FR-142)"
     drift-rows: "operations.md, at the row: check '<check>' is not version or config, `schema` included | a config drift row needs contracts/config.yaml (FR-143)"
-    error-entries: "errors.md: <E-id> is the first entry: <missing> <tail> | <E-id> follows <E-id>: <missing> <tail> | <E-id> follows <E-id>: entries run from E-001 upward, newest last (FR-144); <E-id>: Classification: '<value>' is not one of code bug, spec gap, invalid requirement, environment, standard, unclassified | <E-id>: Evidence: is <n> lines; at most 20 (FR-145); <E-id>: Confirmed: must be '<YYYY-MM-DD>, \"<reply>\"' | <E-id>: Confirmed: on an unclassified entry (FR-146); <E-id>: Detected: must be \"<YYYY-MM-DD>, <source>\" | <E-id>: Recurrence of: <item> is not an entry (FR-147)"
+    error-entries: "errors.md: <E-id> is the first entry: <missing> <tail> | <E-id> follows <E-id>: <missing> <tail> | <E-id> follows <E-id>: entries run from E-001 upward, newest last (FR-144); <E-id>: Classification: '<value>' is not one of code bug, spec gap, invalid requirement, environment, standard, not a defect, unclassified | <E-id>: Evidence: is <n> lines; at most 20 (FR-145); <E-id>: Confirmed: must be '<YYYY-MM-DD>, \"<reply>\"' | <E-id>: Confirmed: on an unclassified entry | <E-id>: Reopened: must be '<YYYY-MM-DD>, \"<reason>\"; was Confirmed: <YYYY-MM-DD>, \"<reply>\"' (FR-146); <E-id>: Detected: must be \"<YYYY-MM-DD>, <source>\" | <E-id>: Recurrence of: <item> is not an entry (FR-147)"
   testcases_findings:
     ac-has-test: "features/*.md or nfr.md, at the AC: <AC-id> has no test case whose ac: is <AC-id> (FR-149)"
     test-cases-consistent: "at the Tests line: the Tests line of <block-id> names no test-cases file; end it with (test-cases/<area>.yaml) | <T-id>: the named file <file> does not exist | <T-id> has no entry in <file> | <T-id> is [<level>] on the Tests line but level: <level> in <file>:<line>; at the case: <T-id> is cited by no Tests line naming <file> (FR-150)"
@@ -366,7 +366,7 @@ prd_gates:
     # Each card's keys, in order (FR-067). The gate's keys are id, kind, title, question, evidence, choices, source, then path
     # (with --worktrees, on an approval gate) and items (an adoption gate), then areas and url.
     approval: "the gate's keys, then restate, touches, bump, impact, dry_run, diff_truncated, diff, version, waiting"
-    error-class: "the gate's keys, then class, diagnosis, waiting"
+    error-class: "the gate's keys, then class, diagnosis, explanation (the entry's Explanation: text, or null; FR-254), waiting; its choices are confirm, correct, question (FR-254)"
     deploy-step: "the gate's keys, then run, step, env, actor, do, check, waiting; for a run log that cannot be read, run, unreadable, waiting"
     adoption: "the gate's keys, then area (the area's name, a string, as before), waiting"
     signoff: "the gate's keys, then tid, owner, input, expect, waiting"
@@ -387,7 +387,12 @@ prd_gates:
   # What the inbox-cards area needs: the decision inbox's listing and its answer, read in-process (FR-071).
   serve_invocation: "uv run --script prd-toolkit/scripts/prd_gates.py serve <prd_dir>; through the launcher, prd gates serve; in-process, server, token = prdlint.gates.make_inbox(prd_dir: pathlib.Path), server.server_close() releasing the inbox's lock file (FR-071)"
   listing: "the dict server.state.listing() returns and GET /gates serves: {\"prd\": <slug>, \"started\", \"worktrees\": [<group>, …], \"answers\"}; one group per worktree whose checkout holds the PRD folder, the inbox's own worktree first, then the others in git worktree list order; a group {\"path\": <the worktree's resolved absolute path>, \"branch\": <its branch, or HEAD when detached>, \"gates\": [<card>, …]}, or with \"gates\": [] and \"error\" when its PRD folder cannot be read; an error-class gate left out of a group when an earlier group holds its entry (FR-071)"
-  inbox_answer: "the pair (status, result) server.state.answer(body) returns and POST /answer serves; body {\"worktree\": <a group's path>, \"gate\": <id>, \"question\": <the card's question>, \"choice\": \"confirm\" | \"correct\", \"words\": <text>, \"class\": <class, with correct>}; 200 and {\"gate\": <id>, \"result\": {\"stdout\": [<lines>], \"exit\": 0}} when the answer ran, committed in that worktree alone (FR-071)"
+  inbox_answer: "the pair (status, result) server.state.answer(body) returns and POST /answer serves; body {\"worktree\": <a group's path>, \"gate\": <id>, \"question\": <the card's question>, \"choice\": \"confirm\" | \"correct\" | \"question\", \"words\": <text>, \"class\": <class, with correct>}; 200 and {\"gate\": <id>, \"result\": {\"stdout\": [<lines>], \"exit\": 0}} when the answer ran, committed in that worktree alone (FR-071); for question, 200 and the result {\"stdout\": [\"recorded a question for <id>\"], \"exit\": 0}, nothing written or committed, and 400 with {\"error\": \"refused: Ask a question needs your words\"} when the words are empty (FR-254)"
+  # What inbox-cards FR-254 needs: an error-class gate answered with a question, and the wait that sees it.
+  answer_invocation: "uv run --script prd-toolkit/scripts/prd_gates.py answer <prd_dir> <gate id> --reply <words> [--choice CHOICE] [--class CLASS]; through the launcher, prd gates answer; an error-class gate takes the choice confirm, correct (with --class) or question (FR-254)"
+  answer_output:
+    question: "an error-class gate answered with --choice question: errors.md left as it was, no commit, one answer-log line {\"gate\": <id>, \"choice\": \"question\", \"reply\": <words>, …}, the result {\"stdout\": [\"recorded a question for <id>\"], \"exit\": 0}, and the gate still listed (FR-254)"
+  wait_invocation: "uv run --script prd-toolkit/scripts/prd_gates.py wait <prd_dir> <gate id>; through the launcher, prd gates wait; exit 0 and one gates.outcome document {\"gate\", \"worktree\", \"choice\", \"reply\", \"by\", \"at\"} on the first answer logged after it started, a question included (FR-254)"
 prd_error:
   # Only what the card-context area needs so far; the errors area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_error.py new <prd_dir> --title T --source S [--touches IDS] [--evidence-file F] [--url ADDRESS] | url <prd_dir> <E-id> <address or -> | list <prd_dir> [--open]; through the launcher, prd error"
@@ -408,6 +413,25 @@ prd_error:
   exit_codes:
     0: "the entry written or listed"
     1: "a write refused (FR-064)"
+  # What the error-reopen area needs: reopen, propose --explanation and --class unclassified, the class not a defect,
+  # and the reopen in check (FR-251 to FR-253).
+  reopen_invocation: "uv run --script prd-toolkit/scripts/prd_error.py reopen <prd_dir> <E-id> --reason <why>; through the launcher, prd error reopen (FR-251)"
+  reopen_output:
+    reopened_line: "errors.md: Reopened: <YYYY-MM-DD>, \"<why, collapsed>\"; was Confirmed: <the Confirmed value>, in place of the entry's Confirmed: line; every other line as it was (FR-251)"
+    summary_line: "stdout: <E-id> proposed <class> (FR-251)"
+    refused: "stderr, errors.md unchanged, exit 1: refused: <E-id> is not an entry | refused: <E-id> is resolved | refused: <E-id> is not confirmed | refused: --reason would open a code fence; drop it or put text before it | refused: --reason must not hold \"; was Confirmed:\" (FR-251)"
+    empty_reason: "stderr, errors.md unchanged, exit 2: prd_error: the reason is empty (FR-251)"
+  propose_invocation: "uv run --script prd-toolkit/scripts/prd_error.py propose <prd_dir> <E-id> --class CLASS --diagnosis D [--explanation X] [--touches IDS] [--recurrence E-ID]; through the launcher, prd error propose (FR-253)"
+  propose_arguments:
+    --class CLASS: "code bug, spec gap, invalid requirement, environment, standard, not a defect or unclassified; unclassified writes no gate (FR-253)"
+    --explanation X: "write the line Explanation: <X, collapsed> in place of the entry's Explanation: line, else directly before its Diagnosis: line (FR-253)"
+  propose_output:
+    summary_line: "stdout: <E-id> proposed <class>, or <E-id> unclassified for --class unclassified (FR-253)"
+    empty_explanation: "stderr, errors.md unchanged, exit 2: prd_error: the explanation is empty (FR-253)"
+    fenced_explanation: "stderr, errors.md unchanged, exit 1: refused: --explanation would open a code fence; drop it or put text before it (FR-253)"
+  confirm_arguments:
+    --class CLASS: "a correction: code bug, spec gap, invalid requirement, environment, standard or not a defect (FR-253)"
+  check_reopen_findings: "stdout: errors.md: <E-id>: Confirmed: changed, for a Confirmed: line removed or changed with no Reopened: line that quotes it | errors.md: <E-id>: Reopened: changed | errors.md: <E-id>: Reopened: added without its Confirmed: | errors.md: <E-id>: commit <sha8> changes code and cites <E-id>, which was not confirmed at that commit (FR-252)"
   # What the error-replay area needs: the replay, resolve --red-run and the red run in check (FR-075 to FR-081).
   replay_invocation: "uv run --script prd-toolkit/scripts/prd_error.py replay <prd_dir> <E-id> [--timeout SECONDS] [--json] | replay --interface; through the launcher, prd error replay (FR-076 to FR-078)"
   replay_arguments:

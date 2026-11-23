@@ -88,12 +88,12 @@ APPARENT BUGS
 One `errors.md` entry each, numbered from E-<NEXT_E>:
   ### E-nnn <title>
   Detected: <today>, adoption extract of <AREA> (<file>:<line> @<COMMIT>)
-  Classification: code bug
+  Classification: unclassified
   Touches: FR-nnn
-  Diagnosis: what the code does, and the evidence that says it should do otherwise
+  Diagnosis: read from the code, not reproduced: what the code does, and the evidence that says it should do otherwise
   Resolution: open
   Recurrence of: -
-The `Touches:` line names the requirement IDs the bug borders, comma-separated, or `-` if there are none. The bootstrap copies it into the entry.
+The `Touches:` line names the requirement IDs the bug borders, comma-separated, or `-` if there are none. The bootstrap copies it into the entry. The class stays `unclassified`: you read the code and ran nothing, so the error is not reproduced, and its class comes from a run later.
 
 QUESTIONS
 One per line: what only the owner can say, naming the requirement it blocks. "none" if none.

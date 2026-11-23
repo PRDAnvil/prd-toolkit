@@ -4,10 +4,12 @@ import shutil
 import pytest
 from test_inbox_page import run_page
 
-CARD_E001 = {"id": "error-class:E-001", "kind": "error-class", "title": "The importer drops the last row",
+# the T-067.3 card of error-class:E-001 (its choices and explanation as inbox-cards FR-254 gives them), with two areas
+CARD_E001 = {"id": "error-class:E-001", "kind": "error-class", "title": "The importer stops at row 1000",
              "question": "Proposed class: code bug. Confirm it, or correct it to another class.", "evidence": [],
-             "choices": ["confirm", "correct"], "source": "errors.md:3", "areas": ["import", "reports"],
-             "url": "https://example.com/runs/1001", "class": "code bug", "diagnosis": "d", "waiting": False}
+             "choices": ["confirm", "correct", "question"], "source": "errors.md:3", "areas": ["import", "reports"],
+             "url": "https://example.com/runs/1001", "class": "code bug", "diagnosis": "", "explanation": None,
+             "waiting": False}
 CARD_E004 = {**CARD_E001, "id": "error-class:E-004", "title": "A crash with no requirement", "source": "errors.md:20",
              "areas": [], "url": None}
 

@@ -1347,7 +1347,7 @@ T-145.1:
   expect:
     output:
       exit: 1
-      stdout_exact_lines: ["docs/prd/orders/errors.md:5: error-entries: E-001: Classification: 'typo' is not one of code bug, spec gap, invalid requirement, environment, standard, unclassified"]
+      stdout_exact_lines: ["docs/prd/orders/errors.md:5: error-entries: E-001: Classification: 'typo' is not one of code bug, spec gap, invalid requirement, environment, standard, not a defect, unclassified"]
       stderr: ""
     effects: []
     errors: []
@@ -1409,6 +1409,22 @@ T-145.4:
     effects: []
     errors: []
     leaks: none
+T-145.5:
+  ac: AC-145.1
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 5 of errors.md with Classification: not a defect"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
 T-146.1:
   ac: AC-146.1
   level: integration
@@ -1456,6 +1472,41 @@ T-146.3:
   preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
   input:
     setup: [S0, "insert after line 5 of errors.md the line Confirmed: 2026-11-01, \"yes, a code bug\""]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-146.4:
+  ac: AC-146.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 5 of errors.md the line Reopened: 2026-11-04, the run passes now"]
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output:
+      exit: 1
+      stdout_exact_lines: ["docs/prd/orders/errors.md:6: error-entries: E-001: Reopened: must be '<YYYY-MM-DD>, \"<reason>\"; was Confirmed: <YYYY-MM-DD>, \"<reply>\"'"]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-146.5:
+  ac: AC-146.4
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert after line 5 of errors.md the line Reopened: 2026-11-04, \"the run passes now\"; was Confirmed: 2026-11-03, \"yes, a code bug\""]
     cwd: <tmp>
     command: LINT
   expect:

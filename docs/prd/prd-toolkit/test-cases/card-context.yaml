@@ -838,7 +838,7 @@ T-067.3:
     - CA1
     cwd: ORDERS
     call: "prd = prdlint.model.load(ORDERS), ORDERS a pathlib.Path (prd-toolkit/scripts on sys.path); gates = prdlint.gates.list_gates(prd, <tmp>), <tmp> a pathlib.Path: a list of Gate in list_gates' order, by kind (approval, error-class, deploy-step, adoption, signoff) and then by id; for each gate, prdlint.gates.card(gate, prd, <tmp>, \"docs/prd/orders\"), root a pathlib.Path and rel a str, as the inbox's /gates listing calls it, each returning a dict: the card"
-    note: "the keys a card held before this area keep their order and values; `areas` and `url` follow the gate's own keys (after `items` on an adoption card); the adoption card keeps `area`, the area's name"
+    note: "the keys a card held before this area keep their order and values, but for the error-class card's `choices` and `explanation` (inbox-cards FR-254); `areas` and `url` follow the gate's own keys (after `items` on an adoption card); the adoption card keeps `area`, the area's name"
   expect:
     output:
       return:
@@ -883,6 +883,7 @@ T-067.3:
           - url
           - class
           - diagnosis
+          - explanation
           - waiting
           deploy-step:
           - id
@@ -939,12 +940,14 @@ T-067.3:
             choices:
             - confirm
             - correct
+            - question
             source: "errors.md:3"
             areas:
             - import
             url: "https://example.com/runs/1001"
             class: code bug
             diagnosis: ""
+            explanation: null
             waiting: false
           "deploy-step:20261111T090000Z-all:2":
             id: "deploy-step:20261111T090000Z-all:2"

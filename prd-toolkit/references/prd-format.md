@@ -735,12 +735,14 @@ One entry per error, newest last:
 ```
 ### E-001 <title>
 Detected: <date>, <source>
-Classification: code bug | spec gap | invalid requirement | environment | standard | unclassified
+Classification: code bug | spec gap | invalid requirement | environment | standard | not a defect | unclassified
+Reopened: <YYYY-MM-DD>, "<reason>"; was Confirmed: <YYYY-MM-DD>, "<reply>"
 Confirmed: <YYYY-MM-DD>, "<the user's reply, verbatim>"
 Touches: <requirement IDs or ->
 URL: <address>
 Evidence: <a command and its output, a failing test line or a log excerpt>
   <continuation lines, indented two spaces>
+Explanation: <the proposed class in plain words for the owner>
 Diagnosis: <why>
 Resolution: <T-id> [<level>], PRD <X.Y.Z>, fixed in <commit> | fixed in <commit>, red run <test id> [<level>] | not a defect: <why>
 Recurrence of: <E-nnn or ->
@@ -750,9 +752,25 @@ Recurrence of: <E-nnn or ->
 written only by `prd_error.py confirm`. `Evidence:` (optional) holds at most 20 lines, with
 continuation lines indented two spaces, and never a secret value or data classified `confidential`
 or `pii`. `Classification:` is one of `code bug`, `spec gap`, `invalid requirement`,
-`environment`, `standard`, `unclassified`. The `error-entries` rule reports a malformed `Detected:`
-or `Confirmed:`, an unknown class, an `Evidence:` over 20 lines, a `Recurrence of:` that names no
-entry, a `Confirmed:` on an `unclassified` entry, and a malformed `URL:` (below).
+`environment`, `standard`, `not a defect`, `unclassified`. The `error-entries` rule reports a malformed
+`Detected:`, `Confirmed:` or `Reopened:`, an unknown class, an `Evidence:` over 20 lines, a
+`Recurrence of:` that names no entry, a `Confirmed:` on an `unclassified` entry, and a malformed
+`URL:` (below).
+
+`Explanation:` (optional) is the proposed class in plain words for an owner who has not read the
+code, written by `prd_error.py propose --explanation <x>` in place of the entry's `Explanation:`
+line, else directly before its `Diagnosis:` line; the entry's card in the decision inbox shows it
+first and folds the diagnosis under it. `prd_error.py propose --class unclassified` records an entry
+that did not reproduce: it stays `unclassified` and has no gate.
+
+`Reopened:` (optional, one per reopen) takes a confirmation back. `prd_error.py reopen <prd_dir>
+<E-id> --reason <why>` writes `Reopened: <today>, "<why>"; was Confirmed: <the Confirmed value>` in
+place of a `confirmed` entry's `Confirmed:` line, so the entry is `proposed` again with its class
+kept; the reason must not open a code fence or hold `; was Confirmed:`. A later
+`prd_error.py confirm` writes its `Confirmed:` line directly after the last `Reopened:` line.
+`prd_error.py check` accepts the reopen, and reports `Reopened: changed` for an earlier `Reopened:`
+line edited, moved or deleted, and `Reopened: added without its Confirmed:` for one that quotes no
+`Confirmed:` line the same write took out.
 
 Entries run from E-001 upward with no gap, newest last; lint reports a gap or an entry out of order. `Touches: -` means none.
 

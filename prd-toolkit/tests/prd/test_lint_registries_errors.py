@@ -102,7 +102,7 @@ def test_unknown_classification(case):
     """@prd T-145.1"""
     r = case.lint()
     assert_exit(r, 1)
-    assert_stdout_exact_lines(r, ["docs/prd/orders/errors.md:5: error-entries: E-001: Classification: 'typo' is not one of code bug, spec gap, invalid requirement, environment, standard, unclassified"])
+    assert_stdout_exact_lines(r, ["docs/prd/orders/errors.md:5: error-entries: E-001: Classification: 'typo' is not one of code bug, spec gap, invalid requirement, environment, standard, not a defect, unclassified"])
     assert_stderr(r, "")
 
 

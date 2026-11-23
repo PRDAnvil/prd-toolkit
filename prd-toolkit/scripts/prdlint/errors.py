@@ -5,7 +5,7 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
-from . import deploy, trace
+from . import deploy, errorreopen, trace
 from .buildcheck import _resolve, _show
 from .cardcontext import ENTRY_URL, well_formed
 from .deploy import LEDGER_PLACEHOLDER, Refused
@@ -13,7 +13,8 @@ from .markdown import tables
 from .model import CLASSES, ErrorEntry, Prd, _errors_ledger, load
 
 MAX_EVIDENCE = 20
-ORDER = ("Detected", "Classification", "Confirmed", "Touches", "Evidence", "Diagnosis", "Resolution", "Recurrence of")
+ORDER = ("Detected", "Classification", "Reopened", "Confirmed", "Touches", "Evidence", "Explanation", "Diagnosis", "Resolution",
+         "Recurrence of")
 _FIELD = re.compile(r"^(" + "|".join(ORDER) + r"):")
 _VERSION = re.compile(r"\d+\.\d+\.\d+")
 _COMMIT = re.compile(r"[0-9a-f]{7,40}")
@@ -157,12 +158,19 @@ def set_url(prd: Prd, eid: str, address: str) -> None:
     _write(prd, "\n".join(lines))
 
 
-def propose(prd: Prd, eid: str, cls: str, diagnosis: str, recurrence: str | None, touches: list[str] | None = None) -> None:
-    _check_class(cls)
+def propose(prd: Prd, eid: str, cls: str, diagnosis: str, recurrence: str | None, touches: list[str] | None = None,
+            explanation: str | None = None) -> None:
+    if cls != "unclassified":  # AC-253.4: propose takes unclassified, for an entry that did not reproduce
+        _check_class(cls)
     diagnosis = _one(diagnosis)
     if not diagnosis:
         raise ValueError("a diagnosis is required")
     _no_fence("--diagnosis", diagnosis)
+    if explanation is not None:  # AC-253.3
+        explanation = _one(explanation)
+        if not explanation:
+            raise ValueError("the explanation is empty")
+        _no_fence("--explanation", explanation)
     text = _read(prd)
     e = _entry(text, eid)
     if e.state in ("confirmed", "resolved"):
@@ -176,9 +184,25 @@ def propose(prd: Prd, eid: str, cls: str, diagnosis: str, recurrence: str | None
     if touches:
         text = _set(text, eid, "Touches", ", ".join(touches))
     text = _set(text, eid, "Diagnosis", diagnosis)
+    if explanation is not None:
+        text = _explain(text, eid, explanation)
     if recurrence is not None:
         text = _set(text, eid, "Recurrence of", recurrence)
     _write(prd, text)
+
+
+def _explain(text: str, eid: str, explanation: str) -> str:
+    """AC-253.1: `Explanation: <x>` in place of the entry's line that starts with `Explanation:`, else directly before its
+    `Diagnosis:` line."""
+    e = _entry(text, eid)
+    lines = text.split("\n")
+    span = range(e.line, e.end)  # 0-based indexes of the lines after the heading
+    at = next((i for i in span if lines[i].startswith("Explanation:")), None)
+    if at is not None:
+        lines[at] = f"Explanation: {explanation}"
+    else:
+        lines.insert(next(i for i in span if lines[i].startswith("Diagnosis:")), f"Explanation: {explanation}")
+    return "\n".join(lines)
 
 
 def confirm(prd: Prd, eid: str, reply: str, today: date, cls: str | None = None) -> None:
@@ -198,7 +222,14 @@ def confirm(prd: Prd, eid: str, reply: str, today: date, cls: str | None = None)
         raise Refused([f"{eid} is already confirmed"])
     if cls is not None:
         text = _set(text, eid, "Classification", cls)
-    _write(prd, _set(text, eid, "Confirmed", f'{today.isoformat()}, "{reply}"'))
+    value = f'{today.isoformat()}, "{reply}"'
+    e = _entry(text, eid)
+    if e.reopened and e.confirmed_raw is None:  # AC-251.6: directly after the entry's last Reopened: line
+        lines = text.split("\n")
+        lines.insert(e.reopened[-1][1], f"Confirmed: {value}")
+        _write(prd, "\n".join(lines))
+        return
+    _write(prd, _set(text, eid, "Confirmed", value))
 
 
 def resolve(prd: Prd, eid: str, *, t: str | None, level: str | None, version: str, commit: str | None,
@@ -285,11 +316,13 @@ def _structure(prev: dict[str, ErrorEntry], cur: dict[str, ErrorEntry]) -> list[
         a, b = prev[eid], cur[eid]
         if a.detected != b.detected:
             out.append((eid, "Detected: changed"))
+        reopen, reopened = errorreopen.findings(a, b)  # FR-252
         if a.confirmed_raw is not None:
             if a.classification != b.classification:
                 out.append((eid, "Classification: changed after Confirmed:"))
-            if a.confirmed_raw != b.confirmed_raw:
+            if a.confirmed_raw != b.confirmed_raw and not reopen:
                 out.append((eid, "Confirmed: changed"))
+        out += [(eid, f) for f in reopened]
     return out
 
 

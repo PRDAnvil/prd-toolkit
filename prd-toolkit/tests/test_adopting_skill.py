@@ -432,3 +432,22 @@ def test_a_fix_that_restates_the_item_is_asked_about_never_decided():
     assert ("A `fix` whose words describe the behaviour the item already states is not applied as a correction: "
             "ask the owner in the chat, for that one item, whether they meant keep it. Never decide it yourself.") in f
     assert "refuse a `fix` without words" in f
+
+
+# ---- 0.8.15: an apparent bug is a hypothesis read from the code, never a code bug before a run ----
+
+def test_0815_apparent_bugs_are_written_unclassified():
+    s = flat(SKILL)
+    assert "never written or proposed as a `code bug`" in s
+    assert ("Each APPARENT BUGS entry into `errors.md` as `### E-nnn`, `Classification: unclassified`, "
+            "`Resolution: open`") in s
+    assert "`read from the code, not reproduced:`" in s
+    e = EXTRACT.read_text(encoding="utf-8")
+    assert "  Classification: unclassified\n" in e and "Classification: code bug" not in e
+    assert "Classification: code bug" not in SKILL.read_text(encoding="utf-8")
+
+
+def test_0815_step_3_settles_intent_and_hands_the_class_to_prd_error():
+    s = flat(SKILL)
+    assert "The answer settles intent, not the class" in s
+    assert "`/prd-toolkit:prd-error <E-nnn>`" in s

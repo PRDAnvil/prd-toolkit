@@ -63,7 +63,7 @@
 // It runs before the panel's script, which reads window.PANEL_HOST once; it uses the panel's helpers (h, TOKEN, openPanel)
 // and starts once the whole page is parsed.
 const KIND_LABEL = { approval: 'Approval', 'error-class': 'Error class', 'deploy-step': 'Deploy step', signoff: 'Sign-off', adoption: 'Adoption' };
-const CLASSES = ['code bug', 'spec gap', 'invalid requirement', 'environment', 'standard'];
+const CLASSES = ['code bug', 'spec gap', 'invalid requirement', 'environment', 'standard', 'not a defect'];
 const FOLD = 5;
 const I = { doc: null, raw: '', seen: new Map(), seq: 0, first: true, drafts: new Map(), flags: new Set(), cards: new Map(),
   panelKey: null, slot: null, scrollKey: null, targetKey: null, hashSeen: '', failures: 0, stopped: false, timer: null,
@@ -379,16 +379,21 @@ function diffView(text, truncated) {
   return out;
 }
 
+// AC-254.7: an entry's explanation, the class in plain words, comes first and folds the diagnosis under it; with none,
+// the diagnosis shows as before. Ask a question sends the owner's words and settles nothing.
 function renderErrorClass(entry) {
   const g = entry.g;
-  return [
-    h('div', { class: 'gfacts' }, [fact('Proposed class', g.class || ''), fact('Diagnosis', g.diagnosis || '')].flat()),
-    answerBox(entry, {
-      prompt: 'Your words (needed to correct the class)',
-      classes: true,
-      buttons: [{ key: 'confirm', label: 'Confirm the class', primary: true }, { key: 'correct', label: 'Correct it to…', needs: true, cls: true }],
-    }),
-  ];
+  const explained = typeof g.explanation === 'string';
+  const out = explained ? [h('p', { class: 'gexplain', text: g.explanation })] : [];
+  out.push(h('div', { class: 'gfacts' }, [fact('Proposed class', g.class || ''), ...(explained ? [] : [fact('Diagnosis', g.diagnosis || '')])].flat()));
+  if (explained) out.push(h('details', { class: 'gdiff' }, h('summary', { text: 'Diagnosis' }), h('p', { text: g.diagnosis || '' })));
+  out.push(answerBox(entry, {
+    prompt: 'Your words (needed to correct the class)',
+    classes: true,
+    buttons: [{ key: 'confirm', label: 'Confirm the class', primary: true }, { key: 'correct', label: 'Correct it to…', needs: true, cls: true },
+      { key: 'question', label: 'Ask a question', needs: true }],
+  }));
+  return out;
 }
 
 function renderDeployStep(entry) {
