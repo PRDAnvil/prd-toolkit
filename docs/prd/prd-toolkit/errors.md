@@ -944,9 +944,10 @@ Recurrence of: -
 
 ### E-077 record adds a second pending row when it runs again at another level
 Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-52 (prd-toolkit/scripts/prdlint/change.py:728 @169036a)
-Classification: unclassified
+Classification: code bug
 Touches: FR-260
-Diagnosis: -
+Explanation: Recording the same change twice at two levels left two pending changelog rows, and nothing can remove the first, though the toolkit's own instructions say a rerun replaces its pending row and forbid editing it by hand. The owner said the rerun should replace it, so the code is wrong: a code bug.
+Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) changed one AC's wording in features/import.md, then ran `prd_change.py record docs/prd/orders --base HEAD --bump minor --change first` (exit 0, row `| 1.1.0 | 2026-11-23 | first; pending | FR-001, AC-001.1 |`) and `prd_change.py record docs/prd/orders --base HEAD --bump major --change second` (exit 0, row `| 2.0.0 | 2026-11-23 | second; pending | FR-001, AC-001.1 |`). §14 then holds both rows ending `; pending`, and no command removes the first. The cause: `_write_prd_md` (prdlint/change.py:710) replaces the last row only when its version equals the computed one. The changing-prds skill says to "run `record` again, which replaces its own `pending` row" and forbids hand edits of §14. The owner answered Q-52 that a rerun should replace a last row ending `; pending` whatever its version.
 Resolution: -
 Recurrence of: -
 
