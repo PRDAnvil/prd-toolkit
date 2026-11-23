@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. `/prd-toolkit:prd-pack` writes a pack from what two adopted PRDs share, and every card in the decision inbox names its area and links to where the trouble is. `prd error replay` shows whether the commit an error entry names turned its test from failing to passing, and an error in code no adopted area covers closes with that proof. Version 0.8.14.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. `/prd-toolkit:prd-pack` writes a pack from what two adopted PRDs share, and every card in the decision inbox names its area and links to where the trouble is. `prd error replay` shows whether the commit an error entry names turned its test from failing to passing, and an error in code no adopted area covers closes with that proof. A proposed error class rests on a run, the inbox's error card explains it in plain words and takes a question, and `prd error reopen` takes back a confirmation that a reply doubts or a later run shows wrong. Version 0.8.15.
 
 Design: [docs/superpowers/specs/2026-10-29-prd-toolkit-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md),
 for 0.2 [docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md](../docs/superpowers/specs/2026-10-29-prd-toolkit-0.2-design.md),
@@ -586,12 +586,18 @@ entry for each; `prd_error.py` is the only writer.
 1. **Record.** `new` appends the entry as `unclassified` with its `Detected:` line and a bounded
    `Evidence:` (20 lines at most, no secret or classified value). A build or deploy that stops on a
    failure records its entry itself.
-2. **Reproduce.** The failing test comes first; an error that does not reproduce gets a diagnosis
-   that starts `not reproduced:` and says what was tried.
+2. **Reproduce.** A code reading is not a reproduction: this step ends in a run, the failing test, the
+   command the report names, or a probe in a scratch clone, and the diagnosis quotes the command, the
+   expected output and the printed one; an error that does not reproduce gets a diagnosis that
+   starts `not reproduced:` and says what was tried, recorded with `propose --class unclassified`; it
+   opens no gate.
 3. **Propose.** `propose` writes the class (`code bug`, `spec gap`, `invalid requirement`,
-   `environment` or `standard`) and a diagnosis. Nothing is final yet.
+   `environment` or `standard`), or since 0.8.15 `not a defect`, a diagnosis and, with `--explanation`,
+   an `Explanation:` line that says in plain words what was run, what it printed, what the PRD line
+   says and why this class. Nothing is final yet.
 4. **Your confirmation.** `confirm` records your reply verbatim, in your words, and the class you
-   settle on. Only a confirmed entry can be cited by code (`Refs: E-nnn`); the commit-msg hook and
+   settle on. A reply that doubts or asks is not a confirmation; `reopen` takes back one the inbox
+   already wrote (**A class settled on a run** below). Only a confirmed entry can be cited by code (`Refs: E-nnn`); the commit-msg hook and
    `prd_error.py check` refuse a code commit that cites an unconfirmed one.
 5. **Fix.** A change goes through `/prd-toolkit:prd-change` (citing the entry), and `/prd-toolkit:prd-build --fixes E-nnn`
    builds it from the entry's failing test. The skill never edits code or tests itself, except code no
@@ -606,7 +612,8 @@ entry for each; `prd_error.py` is the only writer.
 ```
 .prd-toolkit/prd error new docs/prd/<slug> --title "<title>" --source "<where seen>" [--url <address>]
 .prd-toolkit/prd error url docs/prd/<slug> E-nnn <address>
-.prd-toolkit/prd error propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--touches FR-001,FR-002] [--recurrence E-mmm]
+.prd-toolkit/prd error propose docs/prd/<slug> E-nnn --class "<class>" --diagnosis "<root cause>" [--explanation "<plain words>"] [--touches FR-001,FR-002] [--recurrence E-mmm]
+.prd-toolkit/prd error reopen docs/prd/<slug> E-nnn --reason "<why>"
 .prd-toolkit/prd error list docs/prd/<slug> --open
 .prd-toolkit/prd error replay docs/prd/<slug> E-nnn [--timeout <seconds>] [--json]
 .prd-toolkit/prd error resolve docs/prd/<slug> E-nnn --commit <sha> --red-run <test id> --level <level>
@@ -783,6 +790,37 @@ that tags its citation `@prd T-nnn.n known-failing E-nnn`; it fails the day the 
 marker cannot outlive the defect. The trace's `known-failing-tags` rule reports a case with no tagged
 citation and a tag whose entry is resolved or unknown.
 
+**A class settled on a run (0.8.15).** A proposed class rests on a run, and a confirmation can be
+taken back when a reply doubts it or a later run shows it wrong.
+
+- `propose --explanation '<plain words>'` writes `Explanation: <the words>` directly before the
+  Diagnosis, or in place of the one there; a `propose` without it leaves the line as it was. The
+  decision inbox's card shows it first, with the Diagnosis behind a `Diagnosis` disclosure.
+- `propose --class unclassified` records an entry that did not reproduce, with its `not reproduced:`
+  diagnosis; it prints `E-nnn unclassified` and opens no `error-class` gate.
+- `not a defect` is a class: a run that shows the system doing what the PRD says is proposed as
+  `not a defect`, and a confirmed one resolves with `resolve --not-a-defect`. Lint's class list
+  holds it: `E-001: Classification: 'typo' is not one of code bug, spec gap, invalid requirement,
+  environment, standard, not a defect, unclassified`.
+- `reopen <prd_dir> E-nnn --reason '<why>'` takes back a confirmation. On a confirmed, open entry it
+  replaces the `Confirmed:` line with
+  `Reopened: 2026-11-23, "the reply was unsure"; was Confirmed: 2026-11-22, "I guess, sure?"`, keeping
+  the old line word for word, and prints `E-001 proposed code bug`. The entry is `proposed` again, so
+  no code commit may cite it until a new `confirm`, which writes its line after the last `Reopened:`
+  line; a second reopen adds a second line. It refuses an entry that is not confirmed
+  (`refused: E-001 is not confirmed`), a resolved one (`refused: E-001 is resolved`), a reason that
+  would open a code fence or holds `; was Confirmed:` (exit 1), and an empty reason
+  (`prd_error: the reason is empty`, exit 2).
+- `check` accepts a write that swaps a `Confirmed:` line for the `Reopened:` line that quotes it. It
+  still reports `Confirmed: changed` for a removal no `Reopened:` line quotes, and reports
+  `Reopened: changed` for an edited or deleted `Reopened:` line and
+  `Reopened: added without its Confirmed:` for one that quotes nothing. Lint checks the line's form
+  (`E-001: Reopened: must be '<YYYY-MM-DD>, "<reason>"; was Confirmed: <YYYY-MM-DD>, "<reply>"'`), and
+  its prose rules skip it, as they skip `Confirmed:`.
+- The skill reproduces again at the start of the fix: a confirmed entry that no longer reproduces on
+  `HEAD`, or whose run now points to another class, is reopened, never resolved by a commit made
+  without it.
+
 **A killed deploy step.** `prd_deploy.py recover` ends a step killed between its `start` and its
 result, once you have checked the environment (see Deploying); the run then fails as any failed run
 does, and the failure close records the entry.
@@ -793,6 +831,7 @@ does, and the failure close records the entry.
 - `propose`: an entry that is `confirmed` (its class is settled) or `resolved`, a
   `Recurrence of:` that is not an entry, or a `--touches` ID the PRD does not define;
 - `confirm`: an `unclassified`, already `confirmed` or `resolved` entry;
+- `reopen`: an entry that is not `confirmed`, or is resolved, or a reason that holds `; was Confirmed:`;
 - `resolve`: an entry that is not `confirmed`, or is already resolved, or a `--t` with no test case or level;
   with `--red-run`, also each refusal of **Code no area covers** above;
 - `new`, `propose`, `confirm` and `resolve`: a value that would open a code fence (an `Evidence:` line,
@@ -803,13 +842,13 @@ does, and the failure close records the entry.
   `errors.md` (`refused: the entry would fail lint: <file>:<line>: <rule>: <message>`, one per finding,
   then the hint `put quoted output in backticks`); `errors.md` is left byte-identical. Lint's prose
   rules skip `Evidence:` and `Confirmed:` lines, and `schema-refs` skips `errors.md`, so quoted output
-  belongs in `Evidence:` bare and in backticks elsewhere;
+  belongs in `Evidence:` bare and in backticks elsewhere; since 0.8.15 they skip `Reopened:` lines too;
 - any command naming an `E-nnn` that is not an entry; and `check`, whose exit 1 prints findings, one
   per line, as `errors.md: E-nnn: <finding>`, and `replay`, whose exit 1 prints its findings on stdout
   (see **Replay a fix**).
 
-Exit 2 (usage error, nothing written): an empty reply, class, diagnosis, title or source; `unclassified` as a
-class; a malformed version, T-id, run id or commit (7 to 40 lowercase hex digits); a fix without its
+Exit 2 (usage error, nothing written): an empty reply, class, diagnosis, title or source, or an empty
+reason or explanation; `unclassified` as the class of `confirm`; a malformed version, T-id, run id or commit (7 to 40 lowercase hex digits); a fix without its
 T-id, level or commit (`a fix needs a T-id, its level and a commit`); `--not-a-defect` combined with
 another resolution; `--red-run` combined with another resolution's flags, or without `--commit`
 or `--level`; an unreadable range or PRD folder.
@@ -1143,6 +1182,14 @@ a gate before it gives you the URL, so it learns of the answer whichever client 
 | `prd_hooks.py vendor` | Writes `.prd-toolkit/` as `install` does and nothing else (no hook, block or CI file); the way the repository that holds the plugin refreshes its own copy, and the one change a build's `--diff` accepts under `.prd-toolkit/` | `vendor` exits 0 and prints `vendored the toolkit into .prd-toolkit/ (version <X.Y.Z>)`; 2 from a vendored copy (`prd_hooks: vendor runs from the plugin, not from .prd-toolkit/`) or when the PRD's pack cannot be resolved |
 | `prd_deploy.py record` | Records a deploy the owner did by hand: a run log marked `by: hand` and the environment's Deployed row, left uncommitted; it runs nothing and moves no status | `record` exits 0, 1 when refused (an environment not in both Environments tables, a commit not in the repository, an empty reply), 2 on usage; it prints `run=<id>` on success |
 
+**A question on an error card (0.8.15).** An `error-class` card shows the entry's `Explanation:` first
+(its `explanation` key, null when the entry has none) and the Diagnosis behind a disclosure, and offers
+three answers: Confirm, Correct it to another class, and Ask a question. A question needs your words,
+writes nothing to `errors.md` and commits nothing; it logs one answer line with `choice` `question`,
+so the session's `wait` returns it and answers you, and the card stays until you confirm or correct.
+`prd gates answer <prd_dir> error-class:E-nnn --choice question --reply '<words>'` does the same and
+prints `recorded a question for error-class:E-nnn`.
+
 The inbox page is vendored at `.prd-toolkit/gates/inbox.html`. It passes the question it showed with
 every answer, so an answer to a gate that changed is refused. The page asks for a new list every 5
 seconds. A reply from a button ends with ` (form)` and the answer log's `by` is `form`; an answer by
@@ -1315,6 +1362,9 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
+- **0.8.15:** an error class settled on a run, explained for the owner, and taken back when wrong. An owner confirmed a `code bug` in the decision inbox without understanding the error: the class came from a reading of the code, the card showed a Diagnosis written for someone who had read it, and the Confirm button wrote `Confirmed:` with the words "I guess, sure?" beside it, which no command could take back. Now the `handling-errors` skill ends its reproduction step in a run whose command and output the diagnosis quotes, sends a proposed entry with no run behind it (an adoption extract's) back to that step, records one that does not reproduce with `prd error propose --class unclassified`, and proposes `not a defect`, a sixth class, when the run matches the PRD (see Handling errors). `prd error propose --explanation` writes an `Explanation:` line that the inbox's `error-class` card shows first, the Diagnosis behind a disclosure, and the card gains a third answer, Ask a question, which writes and commits nothing and reaches `prd gates wait` (see Decision inbox). A reply that doubts is answered, never taken as a confirmation, and `prd error reopen` swaps a `Confirmed:` line for a `Reopened:` line that keeps it word for word, so the entry is `proposed` again; `prd error check` accepts that write and reports an edited, deleted or unmatched `Reopened:` line, and lint checks its form. The fix now starts by reproducing the confirmed entry on `HEAD` and reopens it when it no longer reproduces. The `adopting-prds` skill and its extract prompt write an apparent bug as `unclassified`, its Diagnosis marked as read from the code, not reproduced. The toolkit's own PRD is 10.0.0: the new adopted area `error-reopen` (FR-251 to FR-253) and inbox-cards FR-254, written before their code, and AC-026.2, AC-145.1, AC-146.4 and AC-067.3; a major version because lint's class list, and with it the finding of an unknown class, and the error-class card's choices change. The lint rule count stays 41.
+  - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.15 plugin and commit `.prd-toolkit/`: `reopen`, `--explanation`, `--class unclassified` and the class `not a defect` run from the vendored copy, and on a copy vendored before 0.8.15 the skill still runs its reproduction step, keeps the explanation in the chat, and stops where a reopen or an `unclassified` record is needed, and says so. The generated CI file is unchanged, and a PRD needs no change. What a client may notice: lint's `Classification:` finding lists `not a defect` before `unclassified`, and an `error-class` gate's `choices` are `confirm`, `correct` and `question`, its card holding `explanation` before `waiting`.
+  - **Evals:** three new cases, `error-reproduce-before-propose`, `error-unsure-reply-not-confirmed` and `error-reverify-before-fix`, each failing on 0.8.14 with the plugin and passing on 0.8.15; the existing `error-*`, `handling-errors-*` and `inbox-*` cases were rerun on the new text (see evals/BASELINE.md).
 - **0.8.14:** a replay that proves a fix, and a close for an error no area covers. An entry closed with a line such as `T-005.3 [integration], PRD 1.0.1, fixed in 0dd4037`, and `prd error check` verified that its T-id, version and commit exist, never that the commit turned the test green. And an error in code outside every adopted Boundary could not close at all: `resolve` needs a T-id, that code has no requirement, and E-017 had stayed `confirmed` since 0.8.7 though its fix was in. Now `prd error replay` (see Handling errors) runs the entry's test through the new optional `One test` column of `testing.md` Levels (see Testing from the PRD) on the commit before the fix, where it must fail, and on the fix, where it must pass, each run in a temporary git clone it removes, so it writes nothing in the repository's git folder and also runs where that folder cannot take a new worktree, as in a sandboxed session; it prints the proof, a skip and its reason, or each finding, and with `--json` one document (`kind` `error-replay`, `interface` 1). A fourth resolution form, `fixed in <commit>, red run <test id> [<level>]`, closes a `code bug` whose fix commit changes no path an adopted area covers: `prd error resolve --red-run <test id> --level <level>` writes it only when its replay holds, and `prd error check` reads it. The `handling-errors` skill and `/prd-toolkit:prd-error` take that route (the failing test committed alone, the fix, `resolve --red-run`, `check`), the one case where the session writes a test and a fix itself, and replay every `resolve` that names a T-id before the ledger is committed. The three older forms are written, read and checked as before. Lint reports a malformed `One test` cell through `runbook-tests`. The lint rule count stays 41. The toolkit's own ledger closes E-017 and E-032 by the fourth form (E-032 was the first use of the route: the tester guard now finds a headless session's tasks folder by its session id when the hook input names no scratchpad, so the tester may read its own background run's output), E-033 with T-079.6 (the replay wrote the caller's git index when `GIT_INDEX_FILE` was set; found by review before release) and E-035 with T-079.7 (the replay made each run's tree with `git worktree add`, which a sandboxed session refuses; found by the eval runs before release). The toolkit's own PRD is 9.0.0: 8.4.0 added the area `error-replay` (UJ-07, FR-075 to FR-081), written before its code, with `format: One test column (prd-toolkit 0.8.14)` and the column on its two levels; 8.5.0 holds the fix route of E-033, a finding of its own for a One test program that cannot start, and the help catalogue's red-run form; 9.0.0, a major version because a test that relied on its tree being a linked worktree can now fail, makes each run's tree a clone (E-035); the area is verified. Conversion, which once held this number, stays in the backlog with no release (owner, 2026-11-19).
   - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.14 plugin and commit `.prd-toolkit/` before a ledger holds a fourth-form line: `replay`, `resolve --red-run` and `check` run from the vendored copy, and a copy vendored before 0.8.14 reports a red run as none of the three forms it knows (on such a copy the 0.8.14 skill stops before the route and before it resolves a fix that names a T-id, and says so). The generated CI file is unchanged, and no repository regenerates it. A PRD needs no change: it takes the `One test` column as a patch, with the section 14 row `format: One test column (prd-toolkit 0.8.14)`, only if it wants the replay, which skips the entries of a level without the column. What a client may notice: `prd error check` calls a line of no form `resolution is not one of the four forms`, where it said `three`.
   - **Known limits:**
