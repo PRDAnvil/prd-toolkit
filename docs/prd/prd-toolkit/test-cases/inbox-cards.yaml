@@ -18,8 +18,13 @@
 #   A case's `call:` runs with the case's `cwd` as the test process's working directory (monkeypatch.chdir, once the
 #   setup has made it). In an effect, "`<git command>` prints X" means the command's whole stdout is X followed by
 #   one newline, and "prints nothing" that its stdout is empty.
-#   These cases are E-023's: an error-class card showed once per worktree, and each answer was committed on each
-#   branch.
+#   The T-071 cases are E-023's: an error-class card showed once per worktree, and each answer was committed on each
+#   branch. The T-254 cases are FR-254's: the card's explanation and the question answer. A case's `runs:` are
+#   run in order, each as `command:` is, and `run_<n>` names the n-th. LOG is <tmp>/main/.git/prd-gates-log.jsonl,
+#   the answer log of the repository's git common folder; its LAST line is its last line parsed as JSON. Before
+#   the call or the first run of a T-254 case, the test keeps the text of <tmp>/main/docs/prd/orders/errors.md,
+#   the commit `git rev-parse HEAD` prints in <tmp>/main and the number of lines of LOG (0 when it does not
+#   exist); "as before" in an effect compares with those.
 
 T-071.1:
   ac: AC-071.1
@@ -169,6 +174,228 @@ T-071.5:
       exit: 0
       stdout: "error-class:E-001 The importer stops at row 1000\n"
       stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-254.1:
+  ac: AC-254.1
+  level: integration
+  target: "code:prdlint.gates.card"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    - ICE
+    cwd: "<tmp>/main"
+    call: "for P in (<tmp>/main, <tmp>/wt), each a pathlib.Path: prd = prdlint.model.load(P / \"docs/prd/orders\"); gate = the Gate of prdlint.gates.list_gates(prd, P) whose id is error-class:E-001; card = prdlint.gates.card(gate, prd, P, \"docs/prd/orders\"); the return is {main: {keys: list(card), choices: card[\"choices\"], explanation: card[\"explanation\"]}, wt: {keys: list(card), explanation: card[\"explanation\"]}}, each from its own P"
+    note: "ICE gives main's E-001 an Explanation: line, uncommitted; wt's E-001 has none"
+  expect:
+    output:
+      return:
+        main:
+          keys: [id, kind, title, question, evidence, choices, source, areas, url, class, diagnosis, explanation, waiting]
+          choices: [confirm, correct, question]
+          explanation: "An import of a file of 1,200 rows stored 1,000 of them."
+        wt:
+          keys: [id, kind, title, question, evidence, choices, source, areas, url, class, diagnosis, explanation, waiting]
+          explanation: null
+    effects: []
+    errors: []
+    leaks: none
+
+T-254.2:
+  ac: AC-254.2
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    command: python GATES list docs/prd/orders --json
+  expect:
+    output:
+      exit: 0
+      stdout_json_at:
+        gates.0.id: "error-class:E-001"
+        gates.0.choices: [confirm, correct, question]
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-254.3:
+  ac: AC-254.3
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    command: "python GATES answer docs/prd/orders error-class:E-001 --choice question --reply 'What does row 1000 mean?'"
+  expect:
+    output:
+      exit: 0
+      stdout: "recorded a question for error-class:E-001\n"
+      stderr: ""
+    effects:
+    - "<tmp>/main/docs/prd/orders/errors.md is byte-identical to its text before, `git rev-parse HEAD` in <tmp>/main prints the commit it printed before, and `git status --porcelain` in <tmp>/main prints nothing"
+    - "LOG holds one line more than before, and its LAST line has `gate` `error-class:E-001`, `choice` `question`, `reply` `What does row 1000 mean?` and `by` `cli`"
+    errors: []
+    leaks: none
+
+T-254.4:
+  ac: AC-254.3
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    call: "with one server = prdlint.gates.make_inbox(<tmp>/main/docs/prd/orders)[0]: L1 = server.state.listing(); card = the card of L1[\"worktrees\"][0] whose id is error-class:E-001; (status, result) = server.state.answer({\"worktree\": MAIN, \"gate\": \"error-class:E-001\", \"question\": card[\"question\"], \"choice\": \"question\", \"words\": \"  What does row 1000 mean?  \"}); L2 = server.state.listing(); then server.server_close(); the return is {status: status, result: result, after: GROUPS(L2)}"
+    note: "the question changes nothing, so main's group still shows the card"
+  expect:
+    output:
+      return:
+        status: 200
+        result: {gate: "error-class:E-001", result: {stdout: ["recorded a question for error-class:E-001"], exit: 0}}
+        after:
+        - {path: MAIN, branch: main, ids: ["error-class:E-001"]}
+        - {path: WT, branch: other, ids: []}
+    effects:
+    - "<tmp>/main/docs/prd/orders/errors.md is byte-identical to its text before, `git rev-parse HEAD` in <tmp>/main prints the commit it printed before, and `git status --porcelain` in <tmp>/main prints nothing"
+    - "LOG holds one line more than before, and its LAST line has `gate` `error-class:E-001`, `choice` `question`, `reply` `Ask a question: What does row 1000 mean? (form)` and `by` `form`"
+    errors: []
+    leaks: none
+
+T-254.5:
+  ac: AC-254.4
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    runs:
+    - "python GATES answer docs/prd/orders error-class:E-001 --choice question --reply 'What does row 1000 mean?'"
+    - python GATES list docs/prd/orders
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "recorded a question for error-class:E-001\n", stderr: ""}
+      run_2: {exit: 0, stdout: "error-class:E-001 The importer stops at row 1000\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-254.6:
+  ac: AC-254.5
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    runs:
+    - "python GATES wait docs/prd/orders error-class:E-001"
+    - "python GATES answer docs/prd/orders error-class:E-001 --choice question --reply 'What does row 1000 mean?'"
+    note: "run_1 is started in the background (subprocess.Popen, stdout and stderr piped); the test waits up to 30 seconds for a file to appear in <tmp>/main/.git/prd-gates-waiting/, then makes run_2 and waits up to 30 seconds for run_1 to end (testing.md Harness, Waits)"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout_json_at:
+          kind: gates.outcome
+          gate: "error-class:E-001"
+          choice: question
+          reply: What does row 1000 mean?
+          by: cli
+        stderr: ""
+      run_2: {exit: 0, stdout: "recorded a question for error-class:E-001\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-254.7:
+  ac: AC-254.6
+  level: integration
+  target: "cli:prd_gates"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - status-next/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - IC0
+    cwd: "<tmp>/main"
+    call: "with one server = prdlint.gates.make_inbox(<tmp>/main/docs/prd/orders)[0]: L1 = server.state.listing(); card = the card of L1[\"worktrees\"][0] whose id is error-class:E-001; server.state.answer({\"worktree\": MAIN, \"gate\": \"error-class:E-001\", \"question\": card[\"question\"], \"choice\": \"question\", \"words\": \"   \"}) raises prdlint.formserver.Bad, whose status and why the return is, as {status: <its status>, why: <its why>}; then server.server_close(), in a finally"
+  expect:
+    output:
+      return:
+        status: 400
+        why: "refused: Ask a question needs your words"
+    effects:
+    - "<tmp>/main/docs/prd/orders/errors.md is byte-identical to its text before, `git rev-parse HEAD` in <tmp>/main prints the commit it printed before, and `git status --porcelain` in <tmp>/main prints nothing"
+    - "LOG holds as many lines as before"
+    errors: []
+    leaks: none
+
+T-254.8:
+  ac: AC-254.7
+  level: unit
+  target: "code:templates/gates/inbox.html"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    call: "under the node harness the page's unit tests run its scripts with (tests/test_inbox_page.py), call the page's gateCard(entry, slots) for entry {key: \"k1\", gone: false, wt: {path: \"/w\", branch: \"main\"}, g: <the T-067.3 card of error-class:E-001, with choices [\"confirm\", \"correct\", \"question\"], diagnosis \"the loop stops at row 1000\" and explanation \"<b>An import</b> stored 1,000 rows.\">} and for the same entry with explanation null; each returns the card's section element"
+    note: "the page is the builder's to test"
+  expect:
+    output:
+      return: "the first section shows the text `<b>An import</b> stored 1,000 rows.` as text, before a details element whose summary reads `Diagnosis` and which holds the text `the loop stops at row 1000`; the second shows `the loop stops at row 1000` as the card showed its diagnosis before FR-254, and no details element; both hold a button `Ask a question` that sends the choice `question` with the words typed on the card; no text is set as HTML"
     effects: []
     errors: []
     leaks: none

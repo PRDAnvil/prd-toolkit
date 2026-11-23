@@ -923,6 +923,27 @@ T-026.4:
     effects: []
     errors: []
     leaks: none
+T-026.6:
+  ac: AC-026.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert Reopened: 2026-11-04, \"a purchase arrives late\"; was Confirmed: 2026-11-03, \"a purchase arrives\" before line 6 of errors.md"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+    note: "`purchase` is a banned synonym of the orders glossary; line 6 is the Reopened line, in its form"
+  expect:
+    output:
+      stdout_not_contains:
+        - "docs/prd/orders/errors.md:6: glossary-synonym"
+        - "docs/prd/orders/errors.md:6: error-entries"
+      stderr: ""
+    effects: []
+    errors: []
+    leaks: none
 T-027.1:
   ac: AC-027.1
   level: integration

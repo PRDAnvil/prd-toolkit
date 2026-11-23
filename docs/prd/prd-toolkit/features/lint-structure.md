@@ -94,15 +94,15 @@ Tests: T-025.1 [integration], T-025.2 [integration], T-025.3 [integration], T-02
 Traces: UJ-01; cli:prd_lint; testing.md Harness; the prd-tester guard reads Test roots (tester-guard area)
 
 ### FR-026 Read prose without code and errors.md quotations
-Status: live (since 6.2.0)
+Status: approved
 Source: prd-toolkit/scripts/prdlint/rules/structure.py:36 @ae00c13
 Acceptance (EARS):
 - AC-026.1 The lint command's prose rules (placeholder, glossary-synonym, and the Markdown part of markers-open and assumption-indexed) shall read each Markdown file the loader reads with its fenced code blocks and inline code spans blanked, keeping every line number.
-- AC-026.2 The prose rules shall blank, in errors.md only, each line that starts with `Evidence:` together with the two-space-indented lines that follow it, and each line that starts with `Confirmed:`.
+- AC-026.2 The prose rules shall blank, in errors.md only, each line that starts with `Evidence:` together with the two-space-indented lines that follow it, and each line that starts with `Confirmed:` or with `Reopened:`.
 - AC-026.3 The prose rules shall read every other line of errors.md, and a line that starts with `Evidence:` in any other file, as prose.
 Errors: -
-Edge cases: a fence opens and closes on a line that starts, after optional whitespace, with three backticks or three tildes; an inline code span ends on its own line; which Markdown files the loader reads (every `.md` but the root README.md and files under `contracts/fixtures/`) is lint-cli's (FR-012, FR-015)
-Tests: T-026.1 [integration], T-026.2 [integration], T-026.3 [integration], T-026.4 [integration]  (test-cases/lint-structure.yaml)
+Edge cases: a fence opens and closes on a line that starts, after optional whitespace, with three backticks or three tildes; an inline code span ends on its own line; which Markdown files the loader reads (every `.md` but the root README.md and files under `contracts/fixtures/`) is lint-cli's (FR-012, FR-015); a `Reopened:` line holds the owner's reply and the reason for taking it back, quoted, as a `Confirmed:` line does (error-reopen FR-251) → AC-026.2
+Tests: T-026.1 [integration], T-026.2 [integration], T-026.3 [integration], T-026.4 [integration], T-026.6 [integration]  (test-cases/lint-structure.yaml)
 Traces: UJ-01; cli:prd_lint; `prdlint/markdown.py` strip_code, mask_quoted
 
 ### FR-027 Report an unfilled placeholder
