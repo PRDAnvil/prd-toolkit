@@ -937,3 +937,44 @@ Explanation: What was run: in a scratch copy of this repository, two test entrie
 Diagnosis: not a defect: the run does what AC-081.3 and AC-081.4 state. Probe in a scratch clone of 932a764 (PRD 10.0.0): an environment entry (E-076 there) confirmed, then `prd error resolve docs/prd/prd-toolkit E-076 --run 45211614726 --version 10.0.0` printed `E-076 resolved environment` and wrote `Resolution: -, PRD 10.0.0, run 45211614726`; `prd error check docs/prd/prd-toolkit <base>..HEAD` printed `errors.md: E-076: run 45211614726 has no log in <clone>/.git/prd-toolkit/deploys` and exited 1. AC-081.3 expects exactly that: for an environment run `-, PRD <X.Y.Z>, run <run id>` whose run id has no deploy run log, the stdout line `errors.md: <E-id>: run <run id> has no log in <folder>`. A standard entry (E-077 there) confirmed, then `prd error resolve ... E-077 --version 10.0.0 --commit <sha>` printed `prd_error: a fix needs a T-id, its level and a commit` (exit 2), and `--commit <sha> --red-run tests/test_x.py --level unit` printed `refused: E-077 is classed standard; a red run resolves a code bug only` (exit 1), as AC-081.4 (the three older forms, a fix needing --t) and the red-run refusals of FR-080 state. error-replay definitions: the four forms are a fix with a T-id, an environment run `<T-id or ->, PRD <X.Y.Z>, run <run id>`, not a defect, and a red run; none names a forge CI run. Root cause: the PRD has no resolution form for a fix proven by a forge CI run (errors.py _ENV and _run_finished read only deploy logs, line 355). A side effect the PRD leaves open: resolve accepts any `--run` id and makes no run (AC-081.4), so it writes a line that check is bound to refuse when the id is not a deploy run.
 Resolution: T-081.23 [integration], PRD 10.2.0, fixed in 86b7dd5
 Recurrence of: -
+
+### E-076 record never lists a UJ that a changed contract item cites
+Detected: 2026-11-23, adoption extract of change (prd-toolkit/scripts/prdlint/change.py:602 @169036a)
+Classification: code bug
+Reopened: 2026-11-23, "the class was proposed and confirmed on a code reading, before any run; it is proposed again with the probe's run quoted"; was Confirmed: 2026-11-23, "Confirm the class (form)"
+Confirmed: 2026-11-23, "Code bug (Recommended)"
+Touches: FR-260
+Explanation: Run on a change that edits a contract item naming a user journey, record left that journey out of the changelog row while it listed the requirement named beside it. The code's own description and its design say the journey belongs there, so the code is wrong, not the PRD: a code bug.
+Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) added a block `### UJ-01 Import a file` to features/import.md and committed it, changed the errors.yaml message to `The import file has no header line (FR-001, UJ-01).`, and ran `prd_change.py record docs/prd/orders --base HEAD --bump patch --change 'cite a journey'`: exit 0, row `| 1.0.1 | 2026-11-23 | cite a journey; pending | FR-001 |`. FR-001 is listed and UJ-01 is not. The cause: `_CITED_BLOCK` (prdlint/change.py:602) matches `(?:UJ|FR|NFR)-\d{3}`, three digits, but a UJ ID has two (`UJ-03`: prd-format.md decision 6; `next_id` writes `UJ-{:02d}`), and `UJ-003` names no block, so the `id_ in have` filter drops it. The function's docstring says "The UJ, FR and NFR IDs a contract item cites", and the 0.8.3 design (§4 (j)) says every other item "cites each `UJ-nnn`, `FR-nnn` and `NFR-nnn` token in its text". The owner answered at confirmation that it is a bug (FR-260 corrected with AC-260.9).
+Resolution: -
+Recurrence of: -
+
+### E-077 record adds a second pending row when it runs again at another level
+Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-52 (prd-toolkit/scripts/prdlint/change.py:728 @169036a)
+Classification: code bug
+Confirmed: 2026-11-23, "Code bug (Recommended)"
+Touches: FR-260
+Explanation: Recording the same change twice at two levels left two pending changelog rows, and nothing can remove the first, though the toolkit's own instructions say a rerun replaces its pending row and forbid editing it by hand. The owner said the rerun should replace it, so the code is wrong: a code bug.
+Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) changed one AC's wording in features/import.md, then ran `prd_change.py record docs/prd/orders --base HEAD --bump minor --change first` (exit 0, row `| 1.1.0 | 2026-11-23 | first; pending | FR-001, AC-001.1 |`) and `prd_change.py record docs/prd/orders --base HEAD --bump major --change second` (exit 0, row `| 2.0.0 | 2026-11-23 | second; pending | FR-001, AC-001.1 |`). §14 then holds both rows ending `; pending`, and no command removes the first. The cause: `_write_prd_md` (prdlint/change.py:710) replaces the last row only when its version equals the computed one. The changing-prds skill says to "run `record` again, which replaces its own `pending` row" and forbids hand edits of §14. The owner answered Q-52 that a rerun should replace a last row ending `; pending` whatever its version.
+Resolution: -
+Recurrence of: -
+
+### E-078 approve takes a capitalised No dry run record for a non-unit test
+Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-55 (prd-toolkit/scripts/prdlint/change_approve.py:71 @169036a)
+Classification: code bug
+Confirmed: 2026-11-23, "Code bug (Recommended)"
+Touches: FR-262
+Explanation: The approval refused a change with an integration test and no dry run when the record said `no dry run`, but approved the same change when it said `No dry run`. The check is there to stop exactly that, and the owner said the letter case must not matter, so the code is wrong: a code bug.
+Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) recorded a change adding FR-008 with the integration case T-008.1 (row `| 1.1.0 | 2026-11-23 | Refuse an empty file; pending | FR-008, AC-008.1, T-008.1 |`), wrote a ready verdict with the folder's digest, and ran approve twice. `--dry-run 'no dry run (unit only)'`: exit 1, `refused: the change adds or revises a non-unit test (T-008.1) and has no dry-run record`. `--dry-run 'No dry run (unit only)'`: exit 0, `approved orders 1.1.0 ec7cd5f`. The cause: change_approve.py:88 tests `dry_run.strip().startswith("no dry run")`, lowercase only. AC-262.4's check exists so that a change with a non-unit test is never approved without a dry run; the owner answered Q-55 that the prefix should match in any letter case.
+Resolution: -
+Recurrence of: -
+
+### E-079 approve prints a string blockers one character at a time
+Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-56 (prd-toolkit/scripts/prdlint/change_approve.py:71 @169036a)
+Classification: code bug
+Confirmed: 2026-11-23, "Code bug (Recommended)"
+Touches: FR-262
+Explanation: A review verdict that lists its one blocker as a word rather than a list made the refusal print the word letter by letter (`l; i; n; t`) instead of `lint`. The owner said it should print the word whole, so the refusal message is wrong: a code bug.
+Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) recorded the same change as E-078's probe, wrote `.prd-review.json` as `{"digest": <the folder's digest>, "ready": false, "blockers": "lint"}` and ran `prd_change.py approve docs/prd/orders --reply approved --dry-run 'dry run T-008.1, 0 open questions'`: exit 1, `refused: the review is not ready: l; i; n; t`. With `"blockers": ["lint"]` the same run printed `refused: the review is not ready: lint`. The cause: change_approve.py:44 joins `blockers` with `"; ".join(str(b) for b in blockers)`, which walks a string one character at a time. The owner answered Q-56 that a string `blockers` should be printed whole.
+Resolution: -
+Recurrence of: -

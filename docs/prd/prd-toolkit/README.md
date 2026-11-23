@@ -19,6 +19,7 @@ Version 10.2.0 · Approved · Owner: Ivan Histand · Updated 2026-11-23
 |---|---|---|
 | build-check | adopted | [features/build-check.md](features/build-check.md) |
 | card-context | adopted | [features/card-context.md](features/card-context.md) |
+| change | adopted | [features/change.md](features/change.md) |
 | context-notes | adopted | [features/context-notes.md](features/context-notes.md) |
 | context | adopted | [features/context.md](features/context.md) |
 | error-reopen | adopted | [features/error-reopen.md](features/error-reopen.md) |

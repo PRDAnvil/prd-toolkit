@@ -101,5 +101,5 @@ Required skills:
 - `superpowers:verification-before-completion` for a claim that work is done
 - `superpowers:writing-plans` for planning a change
 
-Adopted areas: lint-cli, lint-structure, lint-ids, lint-testcases, lint-contracts, lint-registries, trace, hooks-install, context, status, build-check, help, status-next, practices, pack-authoring, card-context, standards-run, launcher, hook-shims, inbox-cards, context-notes, eval-scaffolds, tester-paths, error-replay, error-reopen
+Adopted areas: lint-cli, lint-structure, lint-ids, lint-testcases, lint-contracts, lint-registries, trace, hooks-install, context, status, build-check, change, help, status-next, practices, pack-authoring, card-context, standards-run, launcher, hook-shims, inbox-cards, context-notes, eval-scaffolds, tester-paths, error-replay, error-reopen
 <!-- prd-toolkit:end -->
