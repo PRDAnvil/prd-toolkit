@@ -978,3 +978,16 @@ Explanation: A review verdict that lists its one blocker as a word rather than a
 Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) recorded the same change as E-078's probe, wrote `.prd-review.json` as `{"digest": <the folder's digest>, "ready": false, "blockers": "lint"}` and ran `prd_change.py approve docs/prd/orders --reply approved --dry-run 'dry run T-008.1, 0 open questions'`: exit 1, `refused: the review is not ready: l; i; n; t`. With `"blockers": ["lint"]` the same run printed `refused: the review is not ready: lint`. The cause: change_approve.py:44 joins `blockers` with `"; ".join(str(b) for b in blockers)`, which walks a string one character at a time. The owner answered Q-56 that a string `blockers` should be printed whole.
 Resolution: -
 Recurrence of: -
+
+### E-080 prd error check accepts a Resolution line whose PRD version was recorded by another change
+Detected: 2026-11-23, closing E-075 (PR #54)
+Classification: unclassified
+Evidence: Seen while closing E-075 (PR #54, 2026-11-23).
+  E-075 was resolved at e211a6f as: Resolution: T-081.23 [integration], PRD 10.2.0, fixed in 86b7dd5
+  Its change was then re-recorded on top of main and approved as PRD 10.3.0 (71247f9), after the change-area adoption merged as 10.2.0 (PR #53).
+  The fixing session reported: prd error check had not flagged 10.2.0, since that version has #53's row in section 14.
+  So the Resolution line named a version recorded by another change (the change-area adoption), not the version that carried E-075's regression test.
+  The line was edited to PRD 10.3.0 by hand (2a70b7b) on the owner's choice.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
