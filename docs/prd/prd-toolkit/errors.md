@@ -956,6 +956,7 @@ Recurrence of: -
 ### E-078 approve takes a capitalised No dry run record for a non-unit test
 Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-55 (prd-toolkit/scripts/prdlint/change_approve.py:71 @169036a)
 Classification: code bug
+Confirmed: 2026-11-23, "Code bug (Recommended)"
 Touches: FR-262
 Explanation: The approval refused a change with an integration test and no dry run when the record said `no dry run`, but approved the same change when it said `No dry run`. The check is there to stop exactly that, and the owner said the letter case must not matter, so the code is wrong: a code bug.
 Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) recorded a change adding FR-008 with the integration case T-008.1 (row `| 1.1.0 | 2026-11-23 | Refuse an empty file; pending | FR-008, AC-008.1, T-008.1 |`), wrote a ready verdict with the folder's digest, and ran approve twice. `--dry-run 'no dry run (unit only)'`: exit 1, `refused: the change adds or revises a non-unit test (T-008.1) and has no dry-run record`. `--dry-run 'No dry run (unit only)'`: exit 0, `approved orders 1.1.0 ec7cd5f`. The cause: change_approve.py:88 tests `dry_run.strip().startswith("no dry run")`, lowercase only. AC-262.4's check exists so that a change with a non-unit test is never approved without a dry run; the owner answered Q-55 that the prefix should match in any letter case.
