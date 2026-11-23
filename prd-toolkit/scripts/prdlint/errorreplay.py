@@ -367,7 +367,7 @@ def _runs(repo_root: Path, rep: Replay, sha: str, commit: str, command: list[str
 def _replay_line(prd: Prd, repo_root: Path, eid: str, line: str, timeout: int | None) -> Replay:
     """Replay a resolved entry's Resolution line: the checks of AC-078.7 in order, then the runs."""
     fix, red = errors._FIX.fullmatch(line), RED_RUN.fullmatch(line)
-    if errors._ENV.fullmatch(line):
+    if errors._ENV.fullmatch(line) or errors.CI_RUN.fullmatch(line):  # a CI run is an environment run (AC-078.3)
         return Replay(eid, "skipped", reason="resolved by an environment run")
     if errors._NOT_A_DEFECT.fullmatch(line):
         return Replay(eid, "skipped", reason="resolved as not a defect")

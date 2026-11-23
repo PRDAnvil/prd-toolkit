@@ -266,6 +266,20 @@ def resolve(prd: Prd, eid: str, *, t: str | None, level: str | None, version: st
     _write(prd, _set(text, eid, "Resolution", value))
 
 
+def resolve_ci_run(prd: Prd, eid: str, url: str, version: str) -> None:
+    """`resolve --ci-run <url> --version <X.Y.Z>` (AC-081.6, AC-081.8), once its flags passed AC-081.7: write
+    `Resolution: -, PRD <X.Y.Z>, CI run <url>` on a confirmed environment or standard entry, with no run."""
+    text = _read(prd)
+    e = _entry(text, eid)
+    if e.state == "resolved":
+        raise Refused([f"{eid} is already resolved"])
+    if e.state != "confirmed":
+        raise Refused([f"{eid} is not confirmed"])
+    if e.classification not in CI_CLASSES:
+        raise Refused([f"{eid} is classed {e.classification}; a CI run resolves an environment or standard entry only"])
+    _write(prd, _set(text, eid, "Resolution", f"-, PRD {version}, CI run {url}"))
+
+
 def entry_lines(prd: Prd, eid: str) -> list[str]:
     text = _read(prd)
     e = _entry(text, eid)
@@ -289,6 +303,10 @@ def list_lines(prd: Prd, open_only: bool) -> list[str]:
 _FIX = re.compile(r"(T-\d{3}\.\d+) \[[^\]\s][^\]]*\], PRD (\d+\.\d+\.\d+), fixed in ([0-9a-f]{7,40})")
 _ENV = re.compile(r"(T-\d{3}\.\d+|-), PRD (\d+\.\d+\.\d+), run (\S+)")
 _NOT_A_DEFECT = re.compile(r"not a defect: \S.*")
+CI_URL = re.compile(r"https?://\S*")  # FR-081: the address of a forge CI run
+CI_VERSION = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
+CI_RUN = re.compile(r"-, PRD ([0-9]+\.[0-9]+\.[0-9]+), CI run (https?://\S*)")  # an environment run (E-075)
+CI_CLASSES = ("environment", "standard")
 _RANGE = re.compile(r"^([^.\s][^\s]*?)\.\.([^.\s][^\s]*)$")
 _STEP = re.compile(r"\bstep\s+(\d+)\b")
 _TOKEN = re.compile(r"[0-9A-Za-z][0-9A-Za-z._-]*")
@@ -335,6 +353,10 @@ def _resolution(prd: Prd, repo_root: Path, head: str, e: ErrorEntry, cited: dict
     fix, env, nad = _FIX.fullmatch(text), _ENV.fullmatch(text), _NOT_A_DEFECT.fullmatch(text)
     if errorreplay.RED_RUN.fullmatch(text):
         return errorreplay.check_red_run(prd, repo_root, head, e, prefix)
+    ci = CI_RUN.fullmatch(text)
+    if ci:  # AC-081.9: its class, then its version; no run, and no deploy run log read
+        found = [] if e.classification in CI_CLASSES else ["a CI run resolves an environment or standard entry only"]
+        return found + _version_findings(prd, ci.group(1), versions)
     if not (fix or env or nad):
         return ["resolution is not one of the four forms"]
     out: list[str] = []
@@ -350,11 +372,7 @@ def _resolution(prd: Prd, repo_root: Path, head: str, e: ErrorEntry, cited: dict
                 out.append(f"{tid} is cited by no test")
             if cases[tid].data.get("known-failing") == e.id or (tid, e.id) in tagged:
                 out.append(f"{tid} is still known-failing on {e.id}")
-    head_version = prd.frontmatter.get("version", "")
-    if re.fullmatch(r"\d+\.\d+\.\d+", head_version) and _ver(version) > _ver(head_version):
-        out.append(f"PRD {version} is above the PRD version {head_version}")
-    elif version not in versions:
-        out.append(f"PRD {version} has no changelog row")
+    out += _version_findings(prd, version, versions)
     if fix:
         commit = fix.group(3)
         ok = subprocess.run(["git", "merge-base", "--is-ancestor", commit + "^{commit}", head], cwd=repo_root,
@@ -364,6 +382,16 @@ def _resolution(prd: Prd, repo_root: Path, head: str, e: ErrorEntry, cited: dict
     else:
         out += _run_finished(prd, repo_root, e, env.group(3))
     return out
+
+
+def _version_findings(prd: Prd, version: str, versions: set[str]) -> list[str]:
+    """A resolution's PRD version against the PRD at head: above its version, else without a section 14 row."""
+    head_version = prd.frontmatter.get("version", "")
+    if re.fullmatch(r"\d+\.\d+\.\d+", head_version) and _ver(version) > _ver(head_version):
+        return [f"PRD {version} is above the PRD version {head_version}"]
+    if version not in versions:
+        return [f"PRD {version} has no changelog row"]
+    return []
 
 
 _RUN_NAME = re.compile(r"\d{8}T\d{6}Z-[0-9A-Za-z._-]*[0-9A-Za-z_-]")

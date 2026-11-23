@@ -744,7 +744,7 @@ Evidence: <a command and its output, a failing test line or a log excerpt>
   <continuation lines, indented two spaces>
 Explanation: <the proposed class in plain words for the owner>
 Diagnosis: <why>
-Resolution: <T-id> [<level>], PRD <X.Y.Z>, fixed in <commit> | fixed in <commit>, red run <test id> [<level>] | not a defect: <why>
+Resolution: <T-id> [<level>], PRD <X.Y.Z>, fixed in <commit> | <T-id or ->, PRD <X.Y.Z>, run <run id> | -, PRD <X.Y.Z>, CI run <url> | fixed in <commit>, red run <test id> [<level>] | not a defect: <why>
 Recurrence of: <E-nnn or ->
 ```
 
@@ -784,15 +784,25 @@ The **state** of an entry is derived from its lines and never written:
 | `resolved` | a resolution (the open/resolved rule below) |
 
 A resolution has one of four forms: `<T-id> [<level>], PRD <X.Y.Z>, fixed in <7-40 hex>` (code
-bug, spec gap, invalid requirement, standard); `<T-id or ->, PRD <X.Y.Z>, run <run id>`
-(environment); `not a defect: <why>` (any class); and a **red run**,
+bug, spec gap, invalid requirement, standard); an environment run, `<T-id or ->, PRD <X.Y.Z>,
+run <run id>` (environment), the id of a `/prd-toolkit:prd-deploy` run, or a **CI run**,
+`-, PRD <X.Y.Z>, CI run <url>` (environment, standard), the address of a green forge CI run for
+a fix that builds no T-id (a runner setting, a formatting change); `not a defect: <why>` (any
+class); and a **red run**,
 `fixed in <7-40 hex>, red run <test id> [<level>]` (code bug), for a fix whose commit changes no
 path an adopted area covers. In a red run, `<test id>` holds no white space and does not start
 with `-`, and `<level>` holds no white space and no `]`. Lint does not check a resolution's form,
 since entries resolved before 0.6 hold free text; `prd_error.py check` checks the form of each
 resolution added inside its range, and for a red run that its commit is an ancestor of the
 range's head, that the PRD has an adoption map, that no path the commit changes is covered by an
-area and that its level is a row of Levels.
+area and that its level is a row of Levels; for a CI run, that the entry is classed `environment`
+or `standard` and that its version is not above the PRD's and has a section 14 row, with no
+deploy run log read. In a CI run, `<url>` starts with `http://` or `https://` and holds no white
+space.
+
+`prd_error.py resolve <prd_dir> <E-id> --ci-run <url> --version <X.Y.Z>` writes a CI run on a
+`confirmed` `environment` or `standard` entry, and makes no run; `--ci-run` takes `--version` and
+no other resolve flag.
 
 `prd_error.py resolve <prd_dir> <E-id> --commit <sha> --red-run <test id> --level <level>` writes a
 red run on a `confirmed` `code bug` entry, for a build-gate level with a One test command, only
@@ -806,8 +816,9 @@ that cites the T-id in the resolving commit (the first commit whose `errors.md` 
 Resolution line, else `HEAD`), each tree's test roots replaced by that commit's; for a
 red run it runs the test id on each tree as committed. It prints
 `<E-id>: <T-id or test id> fails on <sha>^ and passes on <sha>` and exits 0 when the proof holds,
-a `skipped: <E-id>: <reason>` line and exit 0 for an environment run, not a defect, a deploy-gate
-level or a level with no One test command, and one finding per line and exit 1 otherwise.
+a `skipped: <E-id>: <reason>` line and exit 0 for an environment run (a CI run among them), not
+a defect, a deploy-gate level or a level with no One test command, and one finding per line and
+exit 1 otherwise.
 
 `Touches:` is optional. It lists the requirement IDs (`UJ-nn`, `FR-nnn`, `NFR-nnn`) the error
 concerns, comma-separated, and `-` means none. `index-consistent` reports a `Touches:` ID that no
