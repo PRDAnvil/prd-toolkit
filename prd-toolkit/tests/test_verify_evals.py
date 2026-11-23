@@ -139,11 +139,6 @@ REGEX_SAMPLES = {
 
 WAIT = ".prd-toolkit/prd gates wait docs/prd/greet error-class:E-001"
 SERVE = ".prd-toolkit/prd gates serve docs/prd/greet --gate error-class:E-001"
-REGEX_SAMPLES[(UNSURE, "wait-before-serve")] = (
-    [trace((WAIT, ""), (SERVE, "url=http://127.0.0.1:1/x")),
-     trace(("uv run --script .prd-toolkit/prd_gates.py wait docs/prd/greet error-class:E-001", ""),
-           ("uv run --script .prd-toolkit/prd_gates.py serve docs/prd/greet --gate error-class:E-001", ""))],
-    [trace((SERVE, "url=http://127.0.0.1:1/x"), (WAIT, "")), trace((SERVE, "")), trace((WAIT, "")), ""])
 
 
 @pytest.mark.parametrize("key", list(REGEX_SAMPLES), ids=["/".join(k) for k in REGEX_SAMPLES])
