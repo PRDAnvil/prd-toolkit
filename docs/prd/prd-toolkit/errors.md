@@ -865,6 +865,7 @@ Recurrence of: -
 ### E-071 An HTML comment inside a summary line leaves its width as spaces
 Detected: 2026-11-22, adoption extract of status (prd-toolkit/scripts/prdlint/overview.py:57 @3a70ba0)
 Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
 Touches: FR-247, FR-241
 Diagnosis: `_section2` replaces each HTML comment with spaces, to keep line numbers (overview.py:57). `summary_paragraph` then takes its lines from that text and strips only their ends. A §2 line `Intro <!-- note --> text` is summarised as `Intro`, fifteen spaces and `text`, and the README writes it that way after `> `. The docstring of `summary_paragraph` and references/prd-format.md (§2's summary is "its first run of non-blank lines once HTML comments are removed") say the comments are removed, not blanked. `first_sentence` collapses white space, so the parent's Covers cell is unaffected. FR-247's cases use comments that fill a whole line.
 Resolution: -
