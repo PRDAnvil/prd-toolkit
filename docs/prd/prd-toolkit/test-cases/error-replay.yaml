@@ -1448,6 +1448,35 @@ T-078.24:
     errors: []
     leaks: none
 
+T-078.25:
+  ac: AC-078.3
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RT, RF, REC]
+    resolution: "-, PRD 1.0.0, CI run https://ci.example.com/orders/runs/42"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR replay docs/prd/orders E-001
+    note: "a CI run is an environment run (E-075)"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "skipped: E-001: resolved by an environment run\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
 T-079.1:
   ac: AC-079.1
   level: integration
@@ -2601,6 +2630,352 @@ T-081.14:
         - "`<T-id> [<level>], PRD <X.Y.Z>, fixed in <commit>`"
         - "`<T-id or ->, PRD <X.Y.Z>, run <run id>`"
         - "`not a defect: <why>`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-081.15:
+  ac: AC-081.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RV]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/42 --version 1.0.0
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001 resolved environment\n"
+        stderr: ""
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is the text files.ledger_env with its line `Resolution: -` replaced by the line `Resolution: -, PRD 1.0.0, CI run https://ci.example.com/orders/runs/42`, every other line as it was"
+    - "`git worktree list --porcelain` in <tmp>/repo prints the same text just before and just after run_1, and <tmp>/scratch holds no entry after run_1"
+    errors: []
+    leaks: none
+
+T-081.16:
+  ac: AC-081.6
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RSD]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run http://ci.example.com/runs/7?attempt=2 --version 1.0.0
+    note: "http:// is taken as https:// is, and the address is written as given, its query included"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: "E-001 resolved standard\n"
+        stderr: ""
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is the text files.ledger_standard with its line `Resolution: -` replaced by the line `Resolution: -, PRD 1.0.0, CI run http://ci.example.com/runs/7?attempt=2`, every other line as it was"
+    errors: []
+    leaks: none
+
+T-081.17:
+  ac: AC-081.7
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RV]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/42 --version 1.0.0 --t T-006.1
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/42 --version 1.0.0 --run 20261110T090000Z-all
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/42
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr: "prd_error: --ci-run takes --version, and no --t, --commit, --run, --red-run, --level or --not-a-defect\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte files.ledger_env"
+    errors: []
+    leaks: none
+
+T-081.18:
+  ac: AC-081.7
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RV]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run ftp://ci.example.com/runs/42 --version 1.0.0
+    - python ERROR resolve docs/prd/orders E-001 --ci-run 'https://ci.example.com/runs/4 2' --version 1.0.0
+    note: "the quotes group the second run's --ci-run value, which holds a space, into one word"
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout: ""
+        stderr: "prd_error: --ci-run must start with http:// or https:// and hold no white space; got 'ftp://ci.example.com/runs/42'\n"
+      run_2:
+        exit: 2
+        stdout: ""
+        stderr: "prd_error: --ci-run must start with http:// or https:// and hold no white space; got 'https://ci.example.com/runs/4 2'\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte files.ledger_env"
+    errors: []
+    leaks: none
+
+T-081.19:
+  ac: AC-081.7
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RV]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/42 --version 1.0
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr: "prd_error: version must be X.Y.Z; got '1.0'\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte files.ledger_env"
+    errors: []
+    leaks: none
+
+T-081.20:
+  ac: AC-081.8
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RO]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/42 --version 1.0.0
+    - python ERROR resolve docs/prd/orders E-009 --ci-run https://ci.example.com/orders/runs/42 --version 1.0.0
+    note: "files.ledger_open holds E-001, a confirmed code bug, and no E-009"
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001 is classed code bug; a CI run resolves an environment or standard entry only\n"
+      run_2:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-009 is not an entry\n"
+    effects:
+    - "after each run, docs/prd/orders/errors.md is byte for byte files.ledger_open"
+    errors: []
+    leaks: none
+
+T-081.21:
+  ac: AC-081.8
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RP]
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/42 --version 1.0.0
+    note: "files.ledger_proposed's E-001 is proposed and not confirmed; the state is refused before the class"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001 is not confirmed\n"
+    effects:
+    - "after run_1, docs/prd/orders/errors.md is byte for byte files.ledger_proposed"
+    errors: []
+    leaks: none
+
+T-081.22:
+  ac: AC-081.8
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, REC]
+    resolution: "-, PRD 1.0.0, CI run https://ci.example.com/orders/runs/42"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR resolve docs/prd/orders E-001 --ci-run https://ci.example.com/orders/runs/43 --version 1.0.0
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: ""
+        stderr: "refused: E-001 is already resolved\n"
+    effects:
+    - "docs/prd/orders/errors.md holds the same bytes just before and just after run_1"
+    errors: []
+    leaks: none
+
+T-081.23:
+  ac: AC-081.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RK, REC]
+    resolution: "-, PRD 1.0.0, CI run https://ci.example.com/orders/runs/42"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "the scratch repository holds no deploy run log; an environment entry, and 1.0.0 has a changelog row"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.24:
+  ac: AC-081.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RK, RE]
+    resolution: "-, PRD 2.0.0, CI run https://ci.example.com/orders/runs/42"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "files.ledger's E-001 is a confirmed code bug; the scratch PRD's version at HEAD is 1.0.0"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: a CI run resolves an environment or standard entry only\nerrors.md: E-001: PRD 2.0.0 is above the PRD version 1.0.0\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.25:
+  ac: AC-081.9
+  level: integration
+  target: "cli:prd_error"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - error-replay/files
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [R0, RK, REC]
+    resolution: "-, PRD 0.9.0, CI run https://ci.example.com/orders/runs/42"
+    cwd: "<tmp>/repo"
+    runs:
+    - python ERROR check docs/prd/orders start..HEAD
+    note: "the scratch PRD's section 14 has the one row 1.0.0"
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout: "errors.md: E-001: PRD 0.9.0 has no changelog row\n"
+        stderr: ""
+    effects:
+    - "LEFT_AS_IT_WAS for run_1"
+    errors: []
+    leaks: none
+
+T-081.26:
+  ac: AC-081.10
+  level: integration
+  target: "cli:prd_help"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: "<tmp>"
+    runs:
+    - python HELP --key kind.E
+    note: "no step and no repository; PRD_HELP_FILE unset: the shipped catalogue"
+  expect:
+    output:
+      each_run:
+        exit: 0
+        stderr: ""
+        stdout_contains:
+        - "`-, PRD <X.Y.Z>, CI run <url>` (environment, standard)"
+        - "`<T-id or ->, PRD <X.Y.Z>, run <run id>`"
+        - "`fixed in <commit>, red run <test id> [<level>]` (code bug)"
     effects: []
     errors: []
     leaks: none

@@ -343,3 +343,42 @@ ledger_spec: |
   Diagnosis: total starts from the second value
   Resolution: -
   Recurrence of: -
+
+# The same entry, confirmed and open, classed environment (E-075: a fix proven by a CI run).
+ledger_env: |
+  # Error ledger
+
+  ### E-001 The total skips the first value
+  Detected: 2026-11-20, a run of the monthly report
+  Classification: environment
+  Confirmed: 2026-11-20, "yes, the runner"
+  Touches: -
+  Diagnosis: the runner lacks the report's locale
+  Resolution: -
+  Recurrence of: -
+
+# The same entry, confirmed and open, classed standard.
+ledger_standard: |
+  # Error ledger
+
+  ### E-001 The total skips the first value
+  Detected: 2026-11-20, a run of the monthly report
+  Classification: standard
+  Confirmed: 2026-11-20, "yes, the formatter"
+  Touches: -
+  Diagnosis: src/calc.py breaks the formatting standard
+  Resolution: -
+  Recurrence of: -
+
+# The environment entry of ledger_env, with the word RESOLUTION in place of its Resolution line, as in ledger.
+ledger_ci: |
+  # Error ledger
+
+  ### E-001 The total skips the first value
+  Detected: 2026-11-20, a run of the monthly report
+  Classification: environment
+  Confirmed: 2026-11-20, "yes, the runner"
+  Touches: -
+  Diagnosis: the runner lacks the report's locale
+  Resolution: RESOLUTION
+  Recurrence of: -

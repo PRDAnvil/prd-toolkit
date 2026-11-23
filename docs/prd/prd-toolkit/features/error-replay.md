@@ -15,14 +15,26 @@ Levels loader reads the column), `prdlint/rules/registries.py` (area `lint-regis
 (area `help`: its entry `kind.E` names the fourth form); what each edit does is stated here. The three
 older forms of a Resolution line are written, read and checked as before.
 
+An environment run may also be a **CI run**: an `environment` or `standard` entry whose fix builds no
+T-id, such as a runner setting or a formatting change, is proven by a green run of the repository's forge
+CI, not by a `/prd-toolkit:prd-deploy` run, and `prd error resolve --ci-run <url>` names that run by its
+address (E-075). The same build edits `prd_error.py` and `prdlint/errors.py` (the flag, its line and the
+check of it), `references/help.yaml` (`kind.E` names it), `references/prd-format.md` (the CI run among the
+forms) and `skills/handling-errors/running-an-error.md` (area `skills`: step 6 resolves such a fix with
+`--ci-run`); what each edit does is stated here.
+
 Words used below.
 
 - A **Resolution line** is the text after `Resolution:` in an entry, the white space around it removed. It
   has one of four forms: a **fix with a T-id**, `<T-id> [<level>], PRD <X.Y.Z>, fixed in <sha>`; an
-  **environment run**, `<T-id or ->, PRD <X.Y.Z>, run <run id>`; **not a defect**, `not a defect: <why>`;
+  **environment run**, `<T-id or ->, PRD <X.Y.Z>, run <run id>`, or a **CI run**,
+  `-, PRD <X.Y.Z>, CI run <url>`; **not a defect**, `not a defect: <why>`;
   and a **red run**, `fixed in <sha>, red run <test id> [<level>]`. In each, `<sha>` is 7 to 40 lowercase
   hex digits; in a red run, `<test id>` is one or more characters, none of them white space and the first
-  not `-`, and `<level>` is one or more characters, none of them white space or `]`. An entry whose line is
+  not `-`, and `<level>` is one or more characters, none of them white space or `]`; in a CI run, `<url>`
+  starts with `http://` or `https://` and holds no white space, the address of a forge CI run. A CI run is
+  an environment run: whatever is said below of an environment run holds for it, except where an AC names
+  the CI run. An entry whose line is
   empty, `-` or starts with `open` is open, as the format reference says.
 - An entry's **level** is the text between the brackets of its Resolution line, and its **subject** is the
   T-id of a fix with a T-id or the test id of a red run.
@@ -173,8 +185,8 @@ Tests: T-077.1 [integration], T-077.2 [integration], T-077.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-078 What the replay prints and how it exits
-Status: verified
-Source: prd-toolkit/scripts/prdlint/errorreplay.py:383 @2ea9708
+Status: approved
+Source: prd-toolkit/scripts/prdlint/errorreplay.py:407 @8eb9a3a
 Flow: 1. read the entry → 2. make the checks in order, the first that matches deciding → 3. make the runs
       → 4. print one line per finding, or the one line that the proof holds or that the entry is skipped
 Acceptance (EARS):
@@ -241,7 +253,7 @@ compared to a value → AC-078.11; a line of no form, such as free text written 
 finding, so older entries need not hold → AC-078.2; a missing argument is argparse's usage error, exit 2;
 the stderr is empty whenever the exit is 0 or 1, but for AC-078.1's line; a program that only `<sha>`
 holds cannot start on `<sha>^`, which is no fail, so the proof does not hold → AC-078.14
-Tests: T-078.1 [integration], T-078.2 [integration], T-078.3 [integration], T-078.4 [integration], T-078.5 [integration], T-078.6 [integration], T-078.7 [integration], T-078.8 [integration], T-078.9 [integration], T-078.10 [integration], T-078.11 [integration], T-078.12 [integration], T-078.13 [integration], T-078.14 [integration], T-078.15 [integration], T-078.16 [integration], T-078.17 [integration], T-078.18 [integration], T-078.19 [integration], T-078.20 [integration], T-078.21 [integration], T-078.22 [integration], T-078.23 [integration], T-078.24 [integration]  (test-cases/error-replay.yaml)
+Tests: T-078.1 [integration], T-078.2 [integration], T-078.3 [integration], T-078.4 [integration], T-078.5 [integration], T-078.6 [integration], T-078.7 [integration], T-078.8 [integration], T-078.9 [integration], T-078.10 [integration], T-078.11 [integration], T-078.12 [integration], T-078.13 [integration], T-078.14 [integration], T-078.15 [integration], T-078.16 [integration], T-078.17 [integration], T-078.18 [integration], T-078.19 [integration], T-078.20 [integration], T-078.21 [integration], T-078.22 [integration], T-078.23 [integration], T-078.24 [integration], T-078.25 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-079 The replay leaves nothing behind and writes nothing
@@ -351,10 +363,11 @@ Tests: T-080.1 [integration], T-080.2 [integration], T-080.3 [integration], T-08
 Traces: UJ-07; cli:prd_error
 
 ### FR-081 Check a red run, and the older forms as before
-Status: verified
-Source: prd-toolkit/scripts/prdlint/errors.py:299 @68d53f9
+Status: approved
+Source: prd-toolkit/scripts/prdlint/errors.py:332 @8eb9a3a
 Flow: 1. `prd error check` finds the Resolution lines added in its range → 2. a red run is checked
       against the PRD at the range's head, with no run → 3. the three older forms are checked as before
+      → 4. a CI run, which `resolve --ci-run` writes, is checked for its class and its version
 Acceptance (EARS):
 - AC-081.1 When `prd_error.py check <prd_dir> <base>..<head>` reads a red run added in its range, it shall
   make no run, and shall print `errors.md: <E-id>: commit <sha> is not an ancestor of HEAD` when `<sha>`
@@ -390,10 +403,47 @@ Acceptance (EARS):
 - AC-081.5 The help catalogue the toolkit ships shall name, in the `rules` of its entry `kind.E`, the red
   run `fixed in <commit>, red run <test id> [<level>]` (code bug) as a form of resolution, beside the other
   three.
+- AC-081.6 When `prd_error.py resolve <prd_dir> <E-id> --ci-run <url> --version <X.Y.Z>` is run on a
+  `confirmed` entry of class `environment` or `standard`, where `<url>` starts with `http://` or `https://`
+  and holds no white space and `<X.Y.Z>` is three whole numbers joined by `.`, the error command shall
+  write the line `Resolution: -, PRD <X.Y.Z>, CI run <url>` in place of the entry's `Resolution:` line
+  when it has one, leaving every other line of `errors.md` as it was; shall print the one stdout line
+  `<E-id> resolved <class>`, `<class>` being the entry's Classification; shall make no run; and shall exit
+  0.
+- AC-081.7 If `--ci-run` is given, and AC-080.2 does not apply, the error command shall print one stderr
+  line, leave `errors.md` byte for byte as it was and exit 2: when `--ci-run` is given with `--t`,
+  `--commit`, `--run`, `--not-a-defect` or `--level`, or without `--version`, the line
+  `prd_error: --ci-run takes --version, and no --t, --commit, --run, --red-run, --level or --not-a-defect`;
+  else, when `<url>` does not start with `http://` or `https://` or holds white space, the line
+  `prd_error: --ci-run must start with http:// or https:// and hold no white space; got '<url>'`; else,
+  when `<X.Y.Z>` is not three whole numbers joined by `.`, the line
+  `prd_error: version must be X.Y.Z; got '<X.Y.Z>'`, each `<…>` the value as given.
+- AC-081.8 If `resolve --ci-run` passes AC-081.7 and the entry is not an entry, is already resolved or is
+  not `confirmed`, the error command shall print the stderr line `refused: <E-id> is not an entry`,
+  `refused: <E-id> is already resolved` or `refused: <E-id> is not confirmed`, as `resolve` refuses the
+  other forms; else, if the entry's class is neither `environment` nor `standard`, the stderr line
+  `refused: <E-id> is classed <class>; a CI run resolves an environment or standard entry only`; in each
+  case it shall leave `errors.md` byte for byte as it was and exit 1.
+- AC-081.9 When `prd_error.py check <prd_dir> <base>..<head>` reads a CI run added in its range, of an
+  entry that holds a `Confirmed:` line, the check command shall make no run, and shall print, each a line
+  of stdout in this order:
+  `errors.md: <E-id>: a CI run resolves an environment or standard entry only` when the entry's class is
+  neither `environment` nor `standard`; then
+  `errors.md: <E-id>: PRD <X.Y.Z> is above the PRD version <version>` when `<X.Y.Z>` is above `<version>`,
+  the PRD's version at `<head>`, and otherwise `errors.md: <E-id>: PRD <X.Y.Z> has no changelog row` when
+  `<X.Y.Z>` has no section 14 row in the PRD at `<head>`; and it shall exit 1 when it prints a line,
+  else 0, whether or not the repository holds a deploy run log.
+- AC-081.10 The help catalogue the toolkit ships shall name, in the `rules` of its entry `kind.E`, the CI
+  run `-, PRD <X.Y.Z>, CI run <url>` (environment, standard) as a form of resolution, beside the forms
+  AC-081.5 names.
 Errors: -
 Edge cases: a red run whose `<sha>` names no commit gets the ancestor line alone, since it has no paths →
 AC-081.1; a deploy-gate level or a level with no One test command is not a check finding: `resolve`
 refuses it → AC-081.1; an older vendored copy reports a red run as none of the three forms it knows, so a
-repository re-vendors before its ledger holds one
-Tests: T-081.1 [integration], T-081.2 [integration], T-081.3 [integration], T-081.4 [integration], T-081.5 [integration], T-081.6 [integration], T-081.7 [integration], T-081.8 [integration], T-081.9 [integration], T-081.10 [integration], T-081.11 [integration], T-081.12 [integration], T-081.13 [integration], T-081.14 [integration]  (test-cases/error-replay.yaml)
+repository re-vendors before its ledger holds one; an older vendored copy reports a CI run as none of the
+four forms, so a repository re-vendors before its ledger holds one → AC-081.2; the replay skips a CI run
+as an environment run, since it is one → AC-078.3; `resolve --run` still takes any run id, and only a
+deploy run's id passes the check → AC-081.3; the forge is named by the address, so no forge list is kept
+→ AC-081.6
+Tests: T-081.1 [integration], T-081.2 [integration], T-081.3 [integration], T-081.4 [integration], T-081.5 [integration], T-081.6 [integration], T-081.7 [integration], T-081.8 [integration], T-081.9 [integration], T-081.10 [integration], T-081.11 [integration], T-081.12 [integration], T-081.13 [integration], T-081.14 [integration], T-081.15 [integration], T-081.16 [integration], T-081.17 [integration], T-081.18 [integration], T-081.19 [integration], T-081.20 [integration], T-081.21 [integration], T-081.22 [integration], T-081.23 [integration], T-081.24 [integration], T-081.25 [integration], T-081.26 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
