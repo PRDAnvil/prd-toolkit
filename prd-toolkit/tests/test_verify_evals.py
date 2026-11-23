@@ -105,7 +105,9 @@ REGEX_SAMPLES = {
         [ledger(), ledger("not a defect", RUN_DIAG), ledger(diag="the reply was Confirmed: by nobody")],
         [ledger(extra=CONFIRMED), ledger(extra='Confirmed: 2026-11-22, "yes"\n')]),
     (READ, "diagnosis-quotes-the-run"): (
-        [ledger("not a defect", RUN_DIAG), ledger("not a defect", "a run printed Hi, World! with GREETING Hi")],
+        [ledger("not a defect", RUN_DIAG), ledger("not a defect", "a run printed Hi, World! with GREETING Hi"),
+         # 0.8.15 GREEN, R1 with the plugin: the probe set its own greeting
+         ledger("not a defect", "not a defect: a probe with GREETING Howdy printed `Howdy, World!`, as AC-001.2 says")],
         [ledger(), ledger("not a defect", "the keys copy is unused, so it prints Hi"),
          ledger(extra="Evidence: Hi, World!\n")]),
     (UNSURE, "not-confirmed-at-end"): (
