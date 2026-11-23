@@ -185,7 +185,7 @@ def _approval(prd: Prd, repo_root: Path, worktrees: bool) -> list[Gate]:
 
 def _error_class(prd: Prd) -> list[Gate]:
     return [Gate(f"error-class:{e.id}", "error-class", e.title, f"Proposed class: {e.classification}. Confirm it, or correct it to another class.",
-                 [str(x) for x in e.evidence[:MAX_EVIDENCE]], ["confirm", "correct"], f"errors.md:{e.line}")
+                 [str(x) for x in e.evidence[:MAX_EVIDENCE]], ["confirm", "correct", "question"], f"errors.md:{e.line}")
             for e in prd.errors_ledger.values() if e.state == "proposed"]
 
 
@@ -421,8 +421,10 @@ def _answer_error_class(prd: Prd, gate: Gate, reply: str, choice: str | None, cl
     choice = _pick(gate, choice, "confirm")
     if choice == "correct" and not cls:
         raise Refused("--choice correct needs --class")
-    if choice == "confirm" and cls:
+    if choice in ("confirm", "question") and cls:
         raise Refused("--class goes with --choice correct")
+    if choice == "question":  # AC-254.3: a question is logged for `wait`; nothing is written or committed
+        return {"stdout": [f"recorded a question for {gate.id}"], "exit": 0}
     extra = [f"--class={cls}"] if choice == "correct" else []
     eid = gate.id.split(":", 1)[1]
     out = _run("prd_error.py", "confirm", str(prd.root), eid, f"--reply={reply}", *extra)
@@ -770,6 +772,7 @@ BUTTONS = {
     ("approval", "changes"): ("Request changes", True, {"choice": "changes"}),
     ("error-class", "confirm"): ("Confirm the class", False, {"choice": "confirm"}),
     ("error-class", "correct"): ("Correct it to {cls}", True, {"choice": "correct"}),
+    ("error-class", "question"): ("Ask a question", True, {"choice": "question"}),  # AC-254.3, AC-254.6
     ("deploy-step", "send"): (None, True, {}),
     ("signoff", "pass"): ("Pass", False, {"result": "pass"}),
     ("signoff", "fail"): ("Fail", True, {"result": "fail"}),
@@ -1001,7 +1004,7 @@ def card(gate: Gate, prd: Prd, root: Path, rel: str) -> dict:
         out.update(_approval_card(prd, root, rel))
     elif gate.kind == "error-class":
         e = prd.errors_ledger.get(key)
-        out.update({"class": e.classification, "diagnosis": e.diagnosis} if e else {})
+        out.update({"class": e.classification, "diagnosis": e.diagnosis, "explanation": e.explanation} if e else {})
     elif gate.kind == "deploy-step" and unreadable_run(gate):
         out.update({"run": unreadable_run(gate), "unreadable": True})
     elif gate.kind == "deploy-step":

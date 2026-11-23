@@ -3,6 +3,7 @@
 Detected and Recurrence of are checked only on entries that carry Confirmed: (written under 0.6's loop)."""
 import re
 
+from .. import errorreopen
 from ..cardcontext import ENTRY_URL, well_formed
 from ..findings import Finding
 from ..model import CLASSES, Prd
@@ -60,6 +61,9 @@ def error_entries(prd: Prd):
                 yield f(e.confirmed_line, "Confirmed: must be '<YYYY-MM-DD>, \"<reply>\"'")
             if e.classification in ("", "unclassified"):
                 yield f(e.confirmed_line, "Confirmed: on an unclassified entry")
+        for raw, line in e.reopened:  # AC-146.4: each malformed Reopened: line, whatever the entry's state
+            if not errorreopen.FORM.fullmatch(raw[len("Reopened:"):].strip()):
+                yield f(line, errorreopen.FORM_MESSAGE)
         if e.url is not None and not well_formed(e.url):
             yield f(e.url_line, ENTRY_URL)
         if len(e.evidence) > MAX_EVIDENCE:

@@ -347,7 +347,7 @@ def test_a_changed_question_is_refused(repo):
 
 def test_a_choice_the_gate_does_not_offer_is_refused(repo):
     add_errors(repo, entry(3, "code bug"))
-    refuse(repo / PRD, "error-class:E-003", "yes", "--choice", "approve", why="refused: error-class:E-003 offers confirm, correct, not approve")
+    refuse(repo / PRD, "error-class:E-003", "yes", "--choice", "approve", why="refused: error-class:E-003 offers confirm, correct, question, not approve")
 
 
 def test_text_mode_prints_the_owners_stdout_and_exits_with_its_code(repo):
