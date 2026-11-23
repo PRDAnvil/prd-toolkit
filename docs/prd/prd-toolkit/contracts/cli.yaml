@@ -273,16 +273,47 @@ prd_practices:
     0: "the listing, printed or empty, the JSON document, --interface or --help"
     2: "a usage error, an unsupported --json=N without --interface, a folder without prd.md, or an internal error (FR-052)"
 prd_change:
-  # Only what the practices area needs so far; the change area adds the rest when it is adopted.
-  invocation: "uv run --script prd-toolkit/scripts/prd_change.py ids next <prd_dir> <kind> [--json]; through the launcher, prd change ids next"
+  # The change area (FR-255 to FR-263); FR-054 for the S and P kinds, FR-060 for --lift.
+  invocation: "uv run --script prd-toolkit/scripts/prd_change.py {ids next <prd_dir> <kind> | digest <prd_dir> | bump <prd_dir> --base <ref> | record <prd_dir> --base <ref> --bump patch|minor|major --change <text> | pack <prd_dir> <name> <X.Y.Z> [--lift [--source SOURCE]] | approve <prd_dir> --reply <reply> --dry-run <record> [--refs <ids>]} [--json] [--interface]; through the launcher, prd change …"
   kinds: "FR, NFR, UJ, S (the next source ID, FR-054), P (the next practice ID, FR-054), AC-<nnn> or T-<nnn>"
+  arguments:
+    --base: "bump, record: the git ref the PRD folder is compared with (FR-258)"
+    --bump: "record: patch, minor, major, or needs-judgment, which is refused (FR-260)"
+    --change: "record: the §14 Change text, one line without | (FR-260)"
+    --reply: "approve: the owner's reply, verbatim (FR-262, FR-263)"
+    --dry-run: "approve: the dry-run record that replaces pending (FR-262, FR-263)"
+    --refs: "approve: the trailer's IDs, one line (FR-263)"
+    --interface: "print 1 (FR-255)"
   output:
     next_id: "stdout: the next free ID of the kind, one line (FR-054)"
     json_document: 'stdout, --json: one line, {"interface": 1, "kind": "change.ids", "next": <the ID>} (FR-054)'
     unknown_kind: "stderr: refused: unknown kind <kind>; use FR, NFR, UJ, S, P, AC-<nnn> or T-<nnn> (FR-054)"
+    usage: "stderr: usage: prd_change.py …, for no subcommand or ids without next (FR-255)"
+    refused: "stderr: refused: <reason> (FR-255)"
+    unsupported_interface: "stderr: prd_change: unsupported interface <N>; this toolkit speaks 1 (FR-255)"
+    not_a_prd: "stderr: prd_change: <message> (FR-255)"
+    internal_error: "stderr: prd_change: internal error: <type>: <message> (FR-255)"
+    json_error: 'stdout, --json on exit 2: {"interface": 1, "kind": "change.ids|change.digest|change.bump|change.record|change.pack|change.approve|change", "error": <message>} (FR-255)'
+    no_block: "stderr: refused: no block FR-<nnn> or NFR-<nnn> (FR-256)"
+    digest: 'stdout: 64 lowercase hex digits; --json {"interface": 1, "kind": "change.digest", "digest": <digest>} (FR-257)'
+    bump_item: "stdout: <level> <ID> <file>:<line> <reason>, then level <level> (FR-258, FR-259)"
+    bump_json: '{"interface": 1, "kind": "change.bump", "level", "items": [{"id", "file", "line", "change", "level", "reason"}]} (FR-258)'
+    bump_no_base: "stderr: bump: <ref> has no <PRD folder> (FR-258)"
+    bump_no_repo: "stderr: bump: <PRD folder> is not in a git repository (FR-258)"
+    record_lines: "stdout: <version>, then | <version> | <YYYY-MM-DD> | <text>; pending | <IDs> | (FR-260)"
+    record_json: '{"interface": 1, "kind": "change.record", "version", "row"} (FR-260, FR-261)'
+    record_refusals: "refused: a needs-judgment bump must be decided first | the change text must be one non-empty line without | | the diff needs <level>, not <given> | §14 has no changelog table | prd.md frontmatter has no <key>: (FR-260)"
+    record_no_version: "stderr: record: the base prd.md has no frontmatter version (FR-260)"
+    pack_refusals: "pack: <v> is not a version X.Y.Z (exit 2) | refused: no Pack: or Target: pack line names <name> | the lines naming <name> disagree on its version or source | every line naming <name> already names <X.Y.Z> | <rel> has uncommitted changes; commit or set them aside first | <the resolver's message> (FR-261)"
+    approve_line: "stdout: approved <folder name> <version> <short sha> (FR-263)"
+    approve_json: '{"interface": 1, "kind": "change.approve", "commit": <full sha>} (FR-263)'
+    approve_refusals: "refused: the owner's reply is empty | the dry-run record is pending; give the record or \"no dry run (<why>)\" | the dry-run record must be one non-empty line without | | there is no .prd-review.json; run the review first | .prd-review.json is not valid JSON | the review is not ready[: <blockers>] | the PRD changed after its review; review it again | lint exits <code>; fix it first | the change adds or revises a non-unit test (<T-ids>) and has no dry-run record | a first approval is authoring's, not a change's | the last §14 row is not recorded and pending; run record first | CLAUDE.md has uncommitted changes; commit or set them aside first | git add failed: <msg> | git commit failed: <msg> (FR-262, FR-263)"
+    approve_refs_usage: "stderr: approve: --refs must be one line (FR-263)"
+    approve_commit: "docs(prd): approve <folder name> <version>, blank, Reply: \"<reply>\", Dry run: <record>, blank, Refs: none (no behaviour change) | Refs: <refs> (FR-263)"
   exit_codes:
-    0: "the next ID printed"
-    1: "an unknown kind (FR-054)"
+    0: "done: an ID, a digest, a bump, a record, a pack move or an approval, --interface, --help"
+    1: "refused: an unknown kind (FR-054) or another refusal (FR-255)"
+    2: "a usage error, an unsupported --json=N, a folder without prd.md, a missing base, a folder in no git repository, a missing dependency, or an internal error (FR-255)"
 prd_change_pack_lift:
   # The --lift form of prd_change.py pack (pack-authoring); the version move without --lift is the change area's.
   invocation: "uv run --script prd-toolkit/scripts/prd_change.py pack <prd_dir> <name> <X.Y.Z> --lift [--source SOURCE] [--json]; through the launcher, prd change pack … --lift (FR-060)"
