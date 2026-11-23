@@ -258,10 +258,10 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-111 | Check reports stale managed blocks and CI files | live | features/hooks-install.md | 9.2.0 |
 | FR-112 | Uninstall removes only the toolkit's own hooks | approved | features/hooks-install.md |  |
 | FR-113 | CI writes the include file and refuses to overwrite a different one | approved | features/hooks-install.md |  |
-| FR-114 | The merge-gate jobs | approved | features/hooks-install.md |  |
+| FR-114 | The merge-gate jobs | verified | features/hooks-install.md |  |
 | FR-115 | The manual drift and deploy-test jobs | live | features/hooks-install.md | 9.2.0 |
-| FR-116 | The GitLab include file | approved | features/hooks-install.md |  |
-| FR-117 | The GitHub workflow file | approved | features/hooks-install.md |  |
+| FR-116 | The GitLab include file | verified | features/hooks-install.md |  |
+| FR-117 | The GitHub workflow file | verified | features/hooks-install.md |  |
 | FR-118 | The CI file names the secrets the manual jobs may need | live | features/hooks-install.md | 9.2.0 |
 | FR-119 | The dispatcher runs one script by its command name | live | features/hooks-install.md | 9.2.0 |
 | FR-120 | The dispatcher's help and version | live | features/hooks-install.md | 9.2.0 |
