@@ -879,3 +879,55 @@ Touches: FR-246
 Diagnosis: When the PRD folder is in no git checkout and `--claude-md` is not given, `main` takes the repository root from `model.repo_root(prd.root)` (prd_block.py:351), which falls back to the PRD folder itself, and writes `CLAUDE.md` there; the block names the PRD at `.` (prd_block.py:268-272). Lint then reads that `CLAUDE.md` as one of the PRD folder's files. The owner answered Q-47 that this is a defect: the command should refuse, printing `prd_block: <folder>: not inside a git checkout; name the CLAUDE.md with --claude-md`, writing nothing and exiting 2.
 Resolution: -
 Recurrence of: -
+
+### E-073 The generated CI workflow has no way to add a runner setup step before a job's command
+Detected: 2026-11-23, user report (adoption of SQLAnvil/sqlanvil, generated CI)
+Classification: unclassified
+Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), on prd-toolkit 0.8.14.
+  Every Bazel job of the first generated CI run (45205148047) failed while Bazel loaded:
+  java.io.FileNotFoundException: /home/runner/.npmrc
+  The repository's MODULE.bazel sets rules_js use_home_npmrc = True, which fails when the file is missing.
+  testing.md's Harness already named the file as a runner tool, but nothing in the generated workflow could create it.
+  prdlint/hooks.py render_github (line 608) gives every job exactly actions/checkout@v4, astral-sh/setup-uv@v5, then the command.
+  A Levels command must be one simple command, so no "touch ~/.npmrc && ...".
+  A hand edit of the workflow fails prd hooks check --ci, which compares the file byte for byte.
+  Workaround used there: a scripts/bazel-ci wrapper as the first word of every Bazel command (it creates the file, then exec bazel "$@").
+  Ask: a way for the PRD to state per-runner setup that the generator renders as steps before the command, for GitHub and GitLab alike.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
+
+### E-074 A standards row's CI command always gets the matching file paths appended, even a command that takes none
+Detected: 2026-11-23, user report (adoption of SQLAnvil/sqlanvil, generated CI)
+Classification: unclassified
+Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), on prd-toolkit 0.8.14.
+  The standards row cli/README.md -> bazel test //cli:readme_generated_test was rendered as:
+  git ls-files -z ... -- ':(glob)cli/README.md' ... | xargs -0 -r bazel test //cli:readme_generated_test
+  bazel test received ./cli/README.md and refused it (run 45207610173, job standards-3):
+  invalid target name './cli/README.md': target names may not contain '.' as a path segment
+  prdlint/standardsrun.py ci_command (line 18) always pipes the glob's files into the command through xargs.
+  Related, same run: a row that lints a whole tree (bazel run //:eslint -- '**/*.ts') gets every file appended too.
+  A row whose text says it checks "files changed on the branch" has no way to say so; the job checks every tracked file.
+  Workaround used there: the owner declined the README row (the unit level already runs that target).
+  Ask: let a row say how its command takes files: appended (today), none (run once), or changed-since-base.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
+
+### E-075 An environment or standard fix proven by a CI run has no resolution form that prd error check accepts
+Detected: 2026-11-23, user report (adoption of SQLAnvil/sqlanvil, generated CI)
+Classification: unclassified
+Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), on prd-toolkit 0.8.14.
+  Four entries of class environment (sqlanvil E-008, E-009, E-011, E-012) were fixed by PRD changes plus a new green CI run, 45211614726.
+  prd error resolve ... --run 45211614726 --version 1.0.2 accepted each one.
+  prd error check then reports, for every one of them:
+  run 45211614726 has no log in <git common dir>/prd-toolkit/deploys
+  because --run means a /prd-toolkit:prd-deploy run, not a forge CI run.
+  Same gap for class standard: sqlanvil E-010 was fixed by a .prettierignore change and a formatting-only edit, with no --fixes build and no T-id.
+  No resolution form fits it: the code-fix form needs --t, and --red-run is for code bugs.
+  Where: prdlint/errors.py line 355.
+  Workaround used there: none; the lines stand as resolve wrote them, and prd lint --ci still passes.
+  Ask: a resolution form for a fix proven by a CI run (for example --ci-run <forge run id>, with the forge named), for environment and standard entries whose fix builds no T-id.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
