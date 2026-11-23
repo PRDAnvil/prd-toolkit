@@ -5,8 +5,8 @@
 > **Status:** Approved by the owner 2026-11-22 (the decisions of §11).
 > **Extends:** `2026-11-20-prd-toolkit-0.8.14-error-replay-design.md`, whose ledger, replay and
 > fourth resolution form are unchanged.
-> **Needs:** 0.8.14 (released). The PRD change of §9 takes its version and its IDs after the
-> toolkit's PRD has merged its 9.9.0 change.
+> **Needs:** 0.8.14 (released) and the toolkit's PRD at 9.9.0. The change of §9 is PRD 10.0.0, FR-251 to
+> FR-254.
 
 ## 1. Why
 
@@ -196,8 +196,9 @@ error HEAD does not have. Whether such an entry ends `not a defect` (a commit al
 
 ## 9. The toolkit's own PRD
 
-One minor change through `/prd-toolkit:prd-change`, then `/prd-toolkit:prd-build`. The version and
-the FR numbers come from `prd change ids next` after the 9.9.0 change has merged.
+One change through `/prd-toolkit:prd-change`, then `/prd-toolkit:prd-build`: PRD 10.0.0, FR-251 to FR-254
+from `prd change ids next`. It is major, not minor: lint's class list, and with it the finding of an unknown
+class (T-145.1), and the error-class card's choices (T-067.3) change.
 
 - **A new adopted area, `error-reopen`,** Boundary `prd-toolkit/scripts/prdlint/errorreopen.py`,
   written before its code, as `error-replay` was in 0.8.14. Its requirements: `reopen` (§7), what
@@ -208,7 +209,7 @@ the FR numbers come from `prd change ids next` after the 9.9.0 change has merged
 - **lint-structure AC-026.2:** `Reopened:` joins the lines the prose rules blank.
 - **lint-registries:** `not a defect` joins AC-145.1's list; a new AC for the `Reopened:` form.
 - **help `kind.E`:** the `Explanation:` and `Reopened:` lines, and the sixth class.
-- **inbox-cards:** a new FR for the error-class card: the explanation first, the Diagnosis behind a
+- **inbox-cards:** FR-254, for the error-class card: the explanation first, the Diagnosis behind a
   disclosure, and the question answer (§6). Contract `inbox_answer` and `prd gates answer --choice`
   gain `question`. The code is `prdlint/gates.py` (`_error_class`, `card`, `BUTTONS`,
   `_answer_error_class`, `FLAGS`) and `templates/gates/inbox.html` (`renderErrorClass`).
