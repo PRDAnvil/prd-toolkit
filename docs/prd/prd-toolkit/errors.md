@@ -931,3 +931,11 @@ Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), 
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-076 record never lists a UJ that a changed contract item cites
+Detected: 2026-11-23, adoption extract of change (prd-toolkit/scripts/prdlint/change.py:602 @169036a)
+Classification: unclassified
+Touches: FR-260
+Diagnosis: -
+Resolution: -
+Recurrence of: -
