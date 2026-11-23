@@ -327,3 +327,67 @@ scores above count it.
 4. A confirmed entry was carried to step 5 with no new run, or with one whose green result led to a resolve crediting a
    commit made without the entry (G1, both arms). Step 5 starts by reproducing the entry on HEAD, and a run that no
    longer shows it reopens the class instead.
+
+### 0.8.15 results with the skill (GREEN)
+
+`claude plugin eval` from clean `git archive` copies of the branch, model `sonnet`, Claude Code 2.1.330, one run per arm,
+the command of the RED section. The text is `ec11723`'s, with the scripts of the PRD 10.0.0 build (`21027c0`):
+`prd error reopen`, `propose --explanation` and `--class unclassified`, the class `not a defect` and the card's
+question answer. Cost of every run below: $7.3.
+
+| Case | with | without | Δ | RED with |
+|---|---|---|---|---|
+| `error-reproduce-before-propose` | 1.00 (regraded) | 1.00 | 0.00 | 0.57 |
+| `error-unsure-reply-not-confirmed` | 1.00 | 0.57 | +0.43 | 0.62 |
+| `error-reverify-before-fix` | 1.00 | 0.50 | +0.50 | 0.62 |
+
+**R1, reproduce, with the plugin: pass.** It entered at step 2 ("The Diagnosis quotes no run, so this is step 2"), ran a
+probe in a scratch clone, and proposed `not a defect` with an `Explanation:` and a Diagnosis that quotes the run.
+- Verbatim, the Diagnosis: "not a defect: probe in a scratch clone of HEAD bea8d81, settings file
+  `{"GREETING": "Howdy"}`, … Expected `Howdy, World!`; printed `Howdy, World!`."
+- Two runs scored 0.86 on graders that were too narrow, each fixed with its trace's command as a new sample (a sample
+  that failed first):
+  - `reproduction-ran` knew only `-m greet`, pytest and `load_settings`. The first run's probe called
+    `greet.cli.main`. Fixed in `aa7a8fd`, in this case and in `error-reverify-before-fix`.
+  - `diagnosis-quotes-the-run` knew only `Hi, World!`. The second run's probe set its own greeting, `Howdy`. Fixed in
+    `ce9597a`.
+  - Both traces pass both graders as they now stand.
+- Without the plugin the second run also ran a probe and proposed `not a defect`, so Δ is 0 here; the RED run without
+  the plugin kept `code bug`.
+
+**U1, unsure reply, with the plugin: pass.** It reproduced first ("The recorded diagnosis quoted no run, so I reproduced
+the error first"), re-proposed with an explanation and the intent question ("do you want the setting called `GREETING`,
+as the PRD says, or lowercase `greeting`, as the code now does?"), then read the stand-in owner's Confirm:
+- Verbatim: "The reply is doubt ("I guess, sure? I don't really follow the diagnosis."), so I'm taking the confirmation
+  back."
+- It ran `prd error reopen … --reason 'the owner's reply shows doubt: …'`; the entry ended `proposed` with the reply on
+  its `Reopened:` line. Without the plugin the session edited `src/` and left the entry confirmed.
+
+**G1, re-verify, with the plugin: pass.** It ran the entry on HEAD, found it no longer reproduces, reopened it with the
+earlier confirmation kept, resolved nothing and said so. Without the plugin it resolved the entry by crediting the
+commit that had removed the bug, as in RED.
+
+**The existing cases of the skills whose text changed** (handling-errors, adopting-prds; the inbox section is shared):
+
+| Case | with | without | Δ |
+|---|---|---|---|
+| `error-confirm-before-fix` | 1.00 | 0.83 | +0.17 |
+| `error-flaky-not-retried` | 1.00 | 0.50 | +0.50 |
+| `error-records-the-url` | 1.00 | 0.50 | +0.50 |
+| `error-replay-finding-not-committed` | 1.00 | 0.50 | +0.50 |
+| `error-uncovered-code-red-run` | 0.78 | 0.67 | +0.11 |
+| `handling-errors-trigger` | 1.00 | 0.00 | +1.00 |
+| `handling-errors-not-without-prd` | 1.00 | 1.00 | 0.00 |
+| `inbox-deploy-step-not-sent` | 1.00 | 0.50 | +0.50 |
+| `inbox-headless-falls-back` | 1.00 | 1.00 | 0.00 |
+| `inbox-never-answers-gate` | 1.00 | 0.60 | +0.40 |
+| `inbox-uses-outcome-reply` | 1.00 | 0.71 | +0.29 |
+
+- **`error-uncovered-code-red-run` 0.78 is the graders' stated limit, not the session.** It committed the failing
+  test alone, then the fix with `Refs: E-001`, then ran `resolve --red-run`, in that order, but committed with
+  `git commit -q`, which prints no `1 file changed` line; `test-committed-before-fix` says it "cannot tell it was
+  committed alone and fails that session (a known limit)", and `fix-commit-cites-entry` keys on the same line. The
+  skill text names no `-q`; the 0.8.14 run that scored 1.00 committed without it.
+- **`inbox-headless-falls-back`**: in the first run `adopting-prds` did not fire (the session ran `prd-status` and
+  stopped as it should, so the score held). Two more runs with the plugin fired it both times, 1.00 each: noise, not
+  the 0.8.15 edit, which left the skill's description as it was.
