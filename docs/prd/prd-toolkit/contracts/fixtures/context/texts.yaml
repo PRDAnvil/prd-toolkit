@@ -1,0 +1,4 @@
+# Fixture context/texts: the lines context's cases write, by name. They live here because a lint of the PRD folder
+# would report them anywhere else; lint never reads fixture data.
+cxc_edge_line: "Edge cases: a file in another encoding [ASSUMPTION A-01: import files are UTF-8]"
+q_fr0010_line: "- Should FR-0010 exist?"

@@ -1,6 +1,6 @@
 ---
 prd: prd-toolkit
-version: 9.7.1
+version: 9.8.0
 status: Approved
 owner: Ivan Histand
 updated: 2026-11-22
@@ -343,6 +343,29 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-196 | Refuse --stale outside a git working tree | live | features/build-check.md | 9.7.0 |
 | FR-197 | Stop a command that runs past 120 seconds | live | features/build-check.md | 9.7.0 |
 | FR-198 | Stop when the report or SOURCES file cannot be read | live | features/build-check.md | 9.7.0 |
+| FR-199 | The context command refuses a bad command line | live | features/context.md | 9.8.0 |
+| FR-200 | The context command's interface number | live | features/context.md | 9.8.0 |
+| FR-201 | Requests the context command refuses | live | features/context.md | 9.8.0 |
+| FR-202 | The JSON error document of the context command | live | features/context.md | 9.8.0 |
+| FR-203 | The repository pack | live | features/context.md | 9.8.0 |
+| FR-204 | The Header part of an area pack | live | features/context.md | 9.8.0 |
+| FR-205 | The Stack part | live | features/context.md | 9.8.0 |
+| FR-206 | Which blocks an area pack selects | live | features/context.md | 9.8.0 |
+| FR-207 | An errors.md entry in --req | live | features/context.md | 9.8.0 |
+| FR-208 | The Requirements part | approved | features/context.md |  |
+| FR-209 | The Glossary part | approved | features/context.md |  |
+| FR-210 | The Cited part | live | features/context.md | 9.8.0 |
+| FR-211 | The Upstream contracts part | live | features/context.md | 9.8.0 |
+| FR-212 | The Known defects part | live | features/context.md | 9.8.0 |
+| FR-213 | The Open questions part | live | features/context.md | 9.8.0 |
+| FR-214 | The History part | live | features/context.md | 9.8.0 |
+| FR-215 | The Code part of the implement pack | live | features/context.md | 9.8.0 |
+| FR-216 | How a cited source line stands | live | features/context.md | 9.8.0 |
+| FR-217 | The exit code counts the blocks asked for | live | features/context.md | 9.8.0 |
+| FR-218 | The Levels part of the implement pack | live | features/context.md | 9.8.0 |
+| FR-219 | The Harness defaults and Rubric conventions parts | live | features/context.md | 9.8.0 |
+| FR-220 | The parts' order and the text pack | live | features/context.md | 9.8.0 |
+| FR-221 | The JSON context document | live | features/context.md | 9.8.0 |
 
 ## 12. Assumptions index
 
@@ -398,3 +421,4 @@ None.
 | 9.6.1 | 2026-11-22 | regression test for E-037; dry run T-079.8, 0 open questions, 0 dismissed by quote (six runs; each gap of the first five was answered by a PRD fix and its round run again) | FR-079, T-079.8 |
 | 9.7.0 | 2026-11-22 | build-check area adopted (prd_build_check.py, prdlint/buildcheck.py); suite 37 pass, T-191.3 known-failing E-066, T-193.5 known-failing E-065; testing.md gains the build-check paragraph of Setup steps and the N0X and TP0 rows of Borrowed steps and helpers; contracts/cli.yaml gains the messages of prd_build_check; E-065 and E-066 recorded open; dry run T-186.1, T-186.2, T-186.3, T-187.1, T-188.1, T-188.2, T-189.1, T-189.2, T-190.1, T-190.2, T-190.3, T-191.1, T-191.2, T-191.3, T-192.1, T-192.2, T-192.3, T-192.4, T-193.1, T-193.2, T-193.3, T-193.4, T-193.5, T-194.1, T-194.2, T-194.3, T-194.4, T-194.5, T-195.1, T-195.2, T-195.3, T-195.4, T-195.5, T-195.6, T-195.7, T-195.8, T-196.1, T-197.1, T-198.1, 0 open questions, 0 dismissed by quote (four runs; each question of the first three was answered by a PRD fix and its round run again) | FR-074, FR-186, FR-187, FR-188, FR-189, FR-190, FR-191, FR-192, FR-193, FR-194, FR-195, FR-196, FR-197, FR-198, AC-186.1, AC-186.2, AC-186.3, AC-187.1, AC-188.1, AC-188.2, AC-189.1, AC-189.2, AC-190.1, AC-190.2, AC-191.1, AC-191.2, AC-192.1, AC-192.2, AC-192.3, AC-192.4, AC-193.1, AC-193.2, AC-193.3, AC-193.4, AC-193.5, AC-194.1, AC-194.2, AC-194.3, AC-194.4, AC-194.5, AC-195.1, AC-195.2, AC-195.3, AC-195.4, AC-195.5, AC-196.1, AC-197.1, AC-198.1, T-186.1, T-186.2, T-186.3, T-187.1, T-188.1, T-188.2, T-189.1, T-189.2, T-190.1, T-190.2, T-190.3, T-191.1, T-191.2, T-191.3, T-192.1, T-192.2, T-192.3, T-192.4, T-193.1, T-193.2, T-193.3, T-193.4, T-193.5, T-194.1, T-194.2, T-194.3, T-194.4, T-194.5, T-195.1, T-195.2, T-195.3, T-195.4, T-195.5, T-195.6, T-195.7, T-195.8, T-196.1, T-197.1, T-198.1 |
 | 9.7.1 | 2026-11-22 | regression test for E-036: a replay run starts its test without the variables git rev-parse --local-env-vars lists, as AC-079.1 and AC-079.2 already require (run definition and the FR-079 edge case corrected; T-079.9 and setup step RGA); dry run T-079.9, 0 open questions, 0 dismissed by quote (two rounds: the symptom's porcelain-line match fixed after the first; the second clean) | FR-079, T-079.9 |
+| 9.8.0 | 2026-11-22 | context area adopted (prd_context.py, prdlint/context.py); suite 56 pass, T-209.2 known-failing E-067; testing.md gains the context paragraph of Setup steps and the fixture context/texts; contracts/cli.yaml gains the arguments, output, encoding and exit codes of prd_context, and prd_context_profile.header_version_line names the folder as AC-204.1 does; E-067 and E-068 recorded open; dry run T-199.1, T-199.2, T-199.3, T-199.4, T-199.5, T-199.6, T-200.1, T-200.2, T-201.1, T-201.2, T-201.3, T-201.4, T-201.5, T-201.6, T-201.7, T-202.1, T-203.1, T-203.2, T-203.3, T-204.1, T-204.2, T-205.1, T-206.1, T-206.2, T-207.1, T-208.1, T-209.1, T-209.2, T-210.1, T-210.2, T-210.3, T-210.4, T-210.5, T-210.6, T-211.1, T-211.2, T-212.1, T-213.1, T-214.1, T-215.1, T-215.2, T-215.3, T-216.1, T-216.2, T-216.3, T-216.4, T-216.5, T-217.1, T-217.2, T-218.1, T-219.1, T-219.2, T-219.3, T-220.1, T-220.2, T-221.1, T-221.2, 0 open questions, 0 dismissed by quote (six runs; each question of the first five was answered by a PRD fix and its round run again) | FR-055, FR-060, FR-072, FR-199, FR-200, FR-201, FR-202, FR-203, FR-204, FR-205, FR-206, FR-207, FR-208, FR-209, FR-210, FR-211, FR-212, FR-213, FR-214, FR-215, FR-216, FR-217, FR-218, FR-219, FR-220, FR-221, AC-199.1, AC-199.2, AC-199.3, AC-199.4, AC-199.5, AC-199.6, AC-200.1, AC-200.2, AC-201.1, AC-201.2, AC-201.3, AC-201.4, AC-201.5, AC-201.6, AC-201.7, AC-202.1, AC-203.1, AC-203.2, AC-203.3, AC-204.1, AC-204.2, AC-205.1, AC-206.1, AC-206.2, AC-207.1, AC-208.1, AC-209.1, AC-210.1, AC-210.2, AC-210.3, AC-210.4, AC-210.5, AC-210.6, AC-211.1, AC-211.2, AC-212.1, AC-213.1, AC-214.1, AC-215.1, AC-215.2, AC-215.3, AC-216.1, AC-216.2, AC-216.3, AC-216.4, AC-217.1, AC-217.2, AC-218.1, AC-219.1, AC-219.2, AC-219.3, AC-220.1, AC-220.2, AC-221.1, AC-221.2, T-199.1, T-199.2, T-199.3, T-199.4, T-199.5, T-199.6, T-200.1, T-200.2, T-201.1, T-201.2, T-201.3, T-201.4, T-201.5, T-201.6, T-201.7, T-202.1, T-203.1, T-203.2, T-203.3, T-204.1, T-204.2, T-205.1, T-206.1, T-206.2, T-207.1, T-208.1, T-209.1, T-209.2, T-210.1, T-210.2, T-210.3, T-210.4, T-210.5, T-210.6, T-211.1, T-211.2, T-212.1, T-213.1, T-214.1, T-215.1, T-215.2, T-215.3, T-216.1, T-216.2, T-216.3, T-216.4, T-216.5, T-217.1, T-217.2, T-218.1, T-219.1, T-219.2, T-219.3, T-220.1, T-220.2, T-221.1, T-221.2 |

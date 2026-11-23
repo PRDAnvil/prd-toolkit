@@ -825,3 +825,21 @@ Touches: FR-191, FR-192
 Diagnosis: plugin_dir lists the head tree with `git ls-tree -r --name-only <rev>` and splits the output at newlines (buildcheck.py:71-75). With git's default `core.quotePath`, a path that holds a byte above 0x7F (or a quote, backslash or control character) is printed C-quoted, such as `"pl\303\274gin/.claude-plugin/plugin.json"`; that name does not end in `/.claude-plugin/plugin.json`, so the plugin directory is never found, and an exact vendor refresh in such a repository gets the AC-191.1 refusal instead of the comparison of AC-192.1. The sibling reads in the same module use `-z` for this reason: `refresh_differences` (line 113) and `_case_entries` (line 267); commit 78c95a6 says `--stale` uses `ls-tree -z` so a non-ASCII name is not C-quoted away.
 Resolution: -
 Recurrence of: -
+
+### E-067 The Glossary part matches a term against the "(area: …)" label the pack adds to a block's heading
+Detected: 2026-11-22, adoption extract of context (prd-toolkit/scripts/prdlint/context.py:91 @f5d2b4c)
+Classification: code bug
+Confirmed: 2026-11-22, "Confirm the class: The Glossary part prints the glossary rows whose term appears in the selected blocks' own text, the heading as written and the block's lines, never in the (area: <name>) label the pack adds to another area's heading. (form)"
+Touches: FR-208, FR-209
+Diagnosis: `_block_text` (context.py:87-92) adds ` (area: <other>)` to the heading of a block from another area. `build_pack` (context.py:508-509) joins those labelled texts into `text`, and `_glossary` (context.py:162-163) searches `text` for each section 3 Term. A Term the label holds, such as `area` (a term in this PRD's own glossary, prd.md line 67), is therefore printed for any `--req` block of another area, whether or not the block says it. The 0.3 design (docs/superpowers/specs/2026-10-30-prd-toolkit-0.3-design.md, line 96) says the Glossary holds "the §3 rows whose Term occurs (case-insensitive, whole word) in a selected block". The label is the pack's annotation, not text of the block.
+Resolution: -
+Recurrence of: -
+
+### E-068 The decision inbox stops answering in a repository with many worktrees: each listing loads every worktree's PRD, and the page asks again every 5 seconds before the last listing ends
+Detected: 2026-11-22, adoption confirmation of context (prd-toolkit/scripts/prdlint/gates.py:1004 @ad9c628)
+Classification: code bug
+Confirmed: 2026-11-22, "confirm E-068 as a code bug"
+Touches: -
+Diagnosis: `_Inbox.listing` (gates.py:1002-1022) loads the PRD of every worktree of the repository with `model.load` and lists its gates on every `GET /gates`. With seven worktrees holding the PRD, one listing took about 60 seconds when run alone (8 to 12 seconds per worktree, most of it in the pure-Python YAML loader). The inbox page (templates/gates/inbox.html:517) calls `refresh` every 5 seconds with `setInterval`, whether or not the last `GET /gates` has returned, and the server (formserver.py:149, a ThreadingHTTPServer) starts a thread for each one, so the listings run at once and share one interpreter: none returned within 120 seconds, and an item answer sent from the form never completed. The `wait` process, polling the same gate, also kept a CPU busy. Seen on 2026-11-22 with worktrees main, adopt-context and five fix worktrees: the inbox recorded an error-class confirmation at 15:02, then a confirmation-form answer for FR-199 hung, and `/gates` timed out at 120 seconds.
+Resolution: -
+Recurrence of: -
