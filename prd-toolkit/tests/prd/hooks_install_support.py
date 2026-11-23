@@ -45,6 +45,7 @@ _DROPPED_ENV = (
 __all__ = [
     "REPO", "PLUGIN", "SCRIPTS", "HOOKS", "DISPATCH", "ORDERS_REL", "SetupError", "Result",
     "V", "SHIM", "LINE", "VENDOR", "N0E", "run", "step_run", "git", "write", "insert_after",
+    "insert_after_line_starting",
     "write_empty_no_git", "check_outside_git", "tree", "files_outside_pycache", "in_relative_order",
     "hi_tmp", "built", "given", "DEPLOY_OPS", "DEPLOY", "GH", "GL", "replace_line", "yaml_at", "file_lines",
     "write_exec", "FIXTURES",
@@ -230,6 +231,17 @@ def insert_after(path: Path, anchor: str, new: str) -> None:
     if len(hits) != 1:
         raise SetupError(f"{path}: expected one line {anchor!r}, found {len(hits)}")
     lines.insert(hits[0] + 1, new)
+    path.write_bytes("\n".join(lines).encode("utf-8"))
+
+
+def insert_after_line_starting(path: Path, prefix: str, new: list[str]) -> None:
+    """Insert the lines `new`, in order, directly after the one line that starts with `prefix`, or end the test as
+    an error when no line, or more than one, starts with it."""
+    lines = path.read_bytes().decode("utf-8").split("\n")
+    hits = [i for i, line in enumerate(lines) if line.startswith(prefix)]
+    if len(hits) != 1:
+        raise SetupError(f"{path}: expected one line starting {prefix!r}, found {len(hits)}")
+    lines[hits[0] + 1:hits[0] + 1] = new
     path.write_bytes("\n".join(lines).encode("utf-8"))
 
 
