@@ -23,20 +23,21 @@ def _ids(nums: list[int]) -> tuple[str, str]:
 
 def _sequence(prd: Prd):
     """Gap, first-entry and out-of-order findings, in ledger order, on each entry's heading."""
+    entries = list(prd.errors_ledger.values())
+    nums = [int(e.id[2:]) for e in entries]
     prev = None  # the entry just before this one
     top = 0  # the highest number so far
-    for e in prd.errors_ledger.values():
-        n = int(e.id[2:])
-        if prev is None:
-            if n > 1:
-                text, tail = _ids(list(range(1, n)))
-                yield Finding("errors.md", e.line, "error-entries", f"{e.id} is the first entry: {text} {tail}")
-        elif n <= top:
+    for i, e in enumerate(entries):
+        n = nums[i]
+        later = set(nums[i + 1:])  # a skipped number that turns up later is no gap
+        skipped = list(range(top + 1, n))
+        if prev is not None and n <= top:
             yield Finding("errors.md", e.line, "error-entries",
                           f"{e.id} follows {prev.id}: entries run from E-001 upward, newest last")
-        elif n > top + 1:
-            text, tail = _ids(list(range(top + 1, n)))
-            yield Finding("errors.md", e.line, "error-entries", f"{e.id} follows {prev.id}: {text} {tail}")
+        elif skipped and not later.intersection(skipped):
+            text, tail = _ids(skipped)
+            where = "is the first entry" if prev is None else f"follows {prev.id}"
+            yield Finding("errors.md", e.line, "error-entries", f"{e.id} {where}: {text} {tail}")
         prev, top = e, max(top, n)
 
 

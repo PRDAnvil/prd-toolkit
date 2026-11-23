@@ -494,7 +494,7 @@ Evidence: Final whole-branch review of the 0.8.14 branch, then the same probe by
   git sets GIT_INDEX_FILE to the absolute path of <repo>/.git/next-index-<pid>.lock; in a plain `git commit` it is the
   relative `.git/index`, which in a clone names the clone's own index.
 Diagnosis: Reproduced once, as the evidence shows. Two sentences of the area contradict each other, and the code follows the first. The definition of a run says it starts "with the environment the command itself has", and `_execute` in prdlint/errorreplay.py starts the test with no `env`, so the test has the variables that point git at a repository. The definitions also say "The command never writes the working tree or the index of the repository it is started in", and FR-079's edge case says a command started with `GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE` set "leaves its repository's index and working tree as they were, since no git command the replay runs has those variables". That holds for the git commands the replay itself runs (E-033) and not for a test that calls git: with `GIT_INDEX_FILE` naming the repository's index, the test's `git add -A` in its clone staged the clone's files into that index, so `git status --porcelain` no longer printed what it printed before, against AC-079.1 and AC-079.2. The edge case "a One test program that calls git finds a git checkout in its clone" fails the same way when `GIT_DIR` is set. One of the two sentences has to change: a run's environment drops the variables `git rev-parse --local-env-vars` lists, or the area says a test can reach the repository through them. The README's limits already tell the user not to start a replay from inside a git hook.
-Resolution: -
+Resolution: T-079.9 [integration], PRD 9.7.1, fixed in 15058011d931657380b57e0cf7c905f5001ab71b
 Recurrence of: -
 
 ### E-037 The replay leaves its folder behind when a test leaves a folder it cannot remove
@@ -670,7 +670,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-144
 Evidence: `_sequence` reports a gap as soon as an entry's number is more than one above the highest number so far (`n > top + 1`). It does not look ahead. With the entries in the order E-001, E-003, E-002, the rule reports at E-003 `E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git`, even though E-002 is in the file.
 Diagnosis: `_sequence` reports a gap as soon as an entry's number is more than one above the highest number so far (`n > top + 1`). It does not look ahead. With the entries in the order E-001, E-003, E-002, the rule reports at E-003 `E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git`, even though E-002 is in the file. It then reports E-002 as out of order. The message says the entry was deleted and must be restored from git, which is false for that file. The rule's own description says "put an out-of-order entry back in sequence" and treats a gap ("restore a deleted entry from git") as a separate case. prd-format.md also names the two separately ("lint reports a gap or an entry out of order"). The unit test `test_out_of_order` (prd-toolkit/tests/test_errors_model.py:160) asserts only `_ledger_findings(prd)[1:]` and skips this first finding. The same happens when the first entry is above 1 and a lower one follows (E-002, E-001 gives `E-001 is missing`). Not reproduced by a run: read from the code during the adoption extract of the area lint-registries.
-Resolution: -
+Resolution: T-144.7 [integration], PRD 9.7.0, fixed in bc52b9f2a76dc9c5eee3f6f6217f735a65d6482a
 Recurrence of: -
 
 ### E-053 drift-rows tells a schema Drift row that schema drift arrives in prd-toolkit 0.6
@@ -691,7 +691,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-162
 Evidence: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces.
 Diagnosis: `_ref_problem` collects a file's headings with `_HEADING.findall(strip_code(text))`. `strip_code` (markdown.py:9-21) blanks fenced blocks, and it also turns every inline code span into spaces. So the heading ``## The `orders` table`` is read as `The table`. The entry ``prd.md#The `orders` table`` then gets `has no heading 'The `orders` table'`, and no entry can name that heading. The reverse also happens: the heading ``## Totals `beta` `` is read as `Totals`, so an entry `#Totals` resolves to it. The docstring (testcases.py:26-27) says an entry is a PRD-folder path "optionally followed by '#' and the exact text of a heading in that file". prd-format.md ("Test cases", `refs:`) says the same. Blanking fences is needed, because a `#` line in a code block is not a heading. Blanking inline spans is not needed. Not reproduced by a run: read from the code during the adoption extract of the area lint-testcases.
-Resolution: -
+Resolution: T-162.6 [integration], PRD 9.7.0, fixed in 9038960641642100e5385ad435abbd9918434f7b
 Recurrence of: -
 
 ### E-055 judged-case passes rubric items that prd_judge.py refuses as repeats
@@ -712,7 +712,7 @@ Touches: FR-150
 Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:143-147 yields the finding inside the loop over the T-ids of the Tests line.
   In a copy of the fixture lint-cli/orders, line 8 of nfr.md replaced with `Tests: T-004.1 [system], T-004.2 [system], T-004.3 [system]`: `prd lint` exits 1 and prints `docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)` three times.
 Diagnosis: For a block whose Tests line names no test-cases file, `test_cases_consistent` yields the finding inside its loop over the T-ids of that line (testcases.py:143-147). A line that lists three T-ids gets the same message at the same line three times. The owner answered Q-27 on 2026-11-21 that such a line gets the finding once, whatever the number of T-ids on it, and AC-150.1 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-150.7 [integration], PRD 9.7.0, fixed in 854efb18ec9dd7c36ba994607e4cf79e170198e2
 Recurrence of: -
 
 ### E-057 classified-fixtures calls an address at a subdomain of a reserved example domain real-looking

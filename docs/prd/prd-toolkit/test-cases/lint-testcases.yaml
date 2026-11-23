@@ -193,8 +193,6 @@ T-150.6:
     errors: []
     leaks: none
 T-150.7:
-  known-failing: E-056
-  symptom: "stdout holds that line twice, once for each T-id of the Tests line"
   ac: AC-150.1
   level: integration
   target: cli:prd_lint
@@ -1339,8 +1337,6 @@ T-162.5:
     leaks: none
 
 T-162.6:
-  known-failing: E-054
-  symptom: "stdout holds the line docs/prd/orders/test-cases/import.yaml:4: test-refs: T-001.1: refs entry 'contracts/notes.md#The `orders` table': contracts/notes.md has no heading 'The `orders` table'"
   ac: AC-162.5
   level: integration
   target: cli:prd_lint
@@ -1360,8 +1356,6 @@ T-162.6:
     errors: []
     leaks: none
 T-162.7:
-  known-failing: E-054
-  symptom: "the exit code is 0 and stdout is empty"
   ac: AC-162.4
   level: integration
   target: cli:prd_lint
