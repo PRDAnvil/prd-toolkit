@@ -913,3 +913,21 @@ Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), 
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-075 An environment or standard fix proven by a CI run has no resolution form that prd error check accepts
+Detected: 2026-11-23, user report (adoption of SQLAnvil/sqlanvil, generated CI)
+Classification: unclassified
+Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), on prd-toolkit 0.8.14.
+  Four entries of class environment (sqlanvil E-008, E-009, E-011, E-012) were fixed by PRD changes plus a new green CI run, 45211614726.
+  prd error resolve ... --run 45211614726 --version 1.0.2 accepted each one.
+  prd error check then reports, for every one of them:
+  run 45211614726 has no log in <git common dir>/prd-toolkit/deploys
+  because --run means a /prd-toolkit:prd-deploy run, not a forge CI run.
+  Same gap for class standard: sqlanvil E-010 was fixed by a .prettierignore change and a formatting-only edit, with no --fixes build and no T-id.
+  No resolution form fits it: the code-fix form needs --t, and --red-run is for code bugs.
+  Where: prdlint/errors.py line 355.
+  Workaround used there: none; the lines stand as resolve wrote them, and prd lint --ci still passes.
+  Ask: a resolution form for a fix proven by a CI run (for example --ci-run <forge run id>, with the forge named), for environment and standard entries whose fix builds no T-id.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
