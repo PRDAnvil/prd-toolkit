@@ -1,5 +1,6 @@
-"""The error_repo eval scaffold: five start states of the greet repo (a planted bug, a failed deploy, a killed step, a
-confirmed bug in code no adopted area covers, and a confirmed bug whose fix commit its T-id's test never saw fail)."""
+"""The error_repo eval scaffold: seven start states of the greet repo (a planted bug, a failed deploy, a killed step, a
+confirmed bug in code no adopted area covers, a confirmed bug whose fix commit its T-id's test never saw fail, a
+proposed code bug read from the code that a run does not show, and a confirmed bug that HEAD no longer has)."""
 import json
 import subprocess
 import sys
@@ -10,7 +11,7 @@ import pytest
 ROOT = Path(__file__).parent.parent
 SCRIPT = ROOT / "evals/scaffolds/error_repo.py"
 PRD = "docs/prd/greet"
-STATES = ["bug", "failed-deploy", "killed-step", "uncovered-bug", "green-before-fix"]
+STATES = ["bug", "failed-deploy", "killed-step", "uncovered-bug", "green-before-fix", "read-only-bug", "confirmed-gone"]
 
 
 def build(tmp_path: Path, state: str) -> tuple[Path, str]:
@@ -145,8 +146,55 @@ def test_green_before_fix_hides_a_test_that_never_failed(tmp_path):
         git(repo, "worktree", "remove", "--force", str(wt))
 
 
-@pytest.mark.parametrize("state", ["uncovered-bug", "green-before-fix"])
+@pytest.mark.parametrize("state", ["uncovered-bug", "green-before-fix", "read-only-bug", "confirmed-gone"])
 def test_the_red_run_states_build_the_same_commits(tmp_path, state):
     a, _ = build(tmp_path / "a", state)
     b, _ = build(tmp_path / "b", state)
     assert git(a, "rev-parse", "HEAD") == git(b, "rev-parse", "HEAD")
+
+
+def greet_with_hi(repo: Path, tmp_path: Path) -> str:
+    """What `greet World` prints with a settings file holding GREETING Hi, run from the source tree."""
+    settings = tmp_path / "settings.json"
+    settings.write_text('{"GREETING": "Hi"}', encoding="utf-8")
+    r = subprocess.run([sys.executable, "-m", "greet", "World"], cwd=repo, capture_output=True, text=True,
+                       env={"PATH": "/usr/bin:/bin", "PYTHONPATH": "src", "GREET_SETTINGS": str(settings)})
+    assert r.returncode == 0, r.stdout + r.stderr
+    return r.stdout
+
+
+def unit_tests(repo: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(["uv", "run", "pytest", "-q", "tests/unit"], cwd=repo, capture_output=True, text=True)
+
+
+def test_read_only_bug_proposes_a_code_bug_from_a_code_reading_that_a_run_does_not_show(tmp_path):
+    repo, last = build(tmp_path, "read-only-bug")
+    assert last == ""
+    cli = (repo / "src/greet/cli.py").read_text(encoding="utf-8")
+    assert "{k.lower(): v for k, v in data.items()}" in cli  # reads as if keys were lowercased
+    assert 'load_settings().get("GREETING", "Hello")' in cli
+    assert greet_with_hi(repo, tmp_path) == "Hi, World!\n"  # but a run shows GREETING is read
+    r = unit_tests(repo)
+    assert r.returncode == 0 and "2 passed" in r.stdout, r.stdout + r.stderr
+    assert "| greet | adopted |" in (repo / PRD / "adoption.md").read_text(encoding="utf-8")
+    r = prd(repo, "error", "list", PRD, "--open")
+    assert r.returncode == 0 and r.stdout.startswith("E-001 proposed code bug FR-001 "), r.stdout + r.stderr
+    errors = (repo / PRD / "errors.md").read_text(encoding="utf-8")
+    assert "adoption extract of greet (src/greet/cli.py:" in errors
+    assert "Confirmed:" not in errors and "Evidence:" not in errors  # never run, never confirmed
+    assert git(repo, "log", "--format=%s", "-2").splitlines() == ["docs(prd): propose E-001", "docs(prd): record E-001"]
+
+
+def test_confirmed_gone_holds_a_confirmed_bug_that_head_no_longer_has(tmp_path):
+    repo, last = build(tmp_path, "confirmed-gone")
+    assert last == ""
+    r = prd(repo, "error", "list", PRD, "--open")
+    assert r.returncode == 0 and r.stdout.startswith("E-001 confirmed code bug FR-001 "), r.stdout + r.stderr
+    body = git(repo, "log", "-1", "--format=%B")
+    assert "E-001" not in body and "Refs: FR-001" in body  # the commit that fixed it never cites the entry
+    assert git(repo, "diff", "--name-only", "HEAD~1", "HEAD").split() == ["src/greet/cli.py"]
+    assert git(repo, "log", "--format=%s", "-4").splitlines()[1:] == [
+        "docs(prd): confirm E-001", "docs(prd): propose E-001", "docs(prd): record E-001"]
+    assert greet_with_hi(repo, tmp_path) == "Hi, World!\n"
+    r = unit_tests(repo)
+    assert r.returncode == 0 and "2 passed" in r.stdout, r.stdout + r.stderr

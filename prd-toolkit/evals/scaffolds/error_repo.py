@@ -3,7 +3,7 @@ repo of deploy_repo.py (Approved PRD at docs/prd/greet, every requirement `verif
 `.prd-toolkit/`), put into a state that has an error.
 
 Usage (from the eval workspace; never write into the plugin tree):
-    python3 -B <this file> <dst> <bug|failed-deploy|killed-step|uncovered-bug|green-before-fix>
+    python3 -B <this file> <dst> <bug|failed-deploy|killed-step|uncovered-bug|green-before-fix|read-only-bug|confirmed-gone>
 
 Every state first writes the managed CLAUDE.md block with the vendored `prd_block.py` and, when that
 leaves `CLAUDE.md` or `docs` changed, commits it (`Refs: none (no behaviour change)`), as approval does:
@@ -39,8 +39,18 @@ green-before-fix  `ready` with the same One test command, then a commit that mak
                `verified` and no `known-failing` marker exists, so nothing on HEAD looks wrong: the
                T-001.2 test passes on the fix and on its parent, which only a replay shows. E-001 stays
                `confirmed`. Last stdout line `fix=<short sha>`.
+read-only-bug  `ready` with the adoption map of `uncovered-bug` (greet `adopted`), then an ordinary commit that
+               makes `load_settings` build a lowercased copy of the keys it never uses, so the code reads as if
+               GREETING were never found while `greet World` still prints `Hi, World!` and T-001.2 passes. Then
+               E-001, written as an adoption extract writes one: Detected from the extract, `code bug`, a
+               Diagnosis read from the code (the keys are lowercased, so GREETING is never found), no Evidence
+               and no Confirmed:, each its own commit. The entry is `proposed` on a code reading no run supports.
+confirmed-gone `bug`, then E-001 recorded, proposed as `code bug` and confirmed, each its own commit, then an
+               ordinary commit ("Read the GREETING key again", `Refs: FR-001`, never E-001) that puts the key
+               back. The entry is `confirmed` and HEAD no longer has the bug: T-001.2 passes, and `greet World`
+               prints `Hi, World!`.
 
-In the last two states every ledger line is written by the vendored `prd_error.py` at a fixed date,
+In the last four states every ledger line is written by the vendored `prd_error.py` at a fixed date,
 so every commit SHA is the same on every build of the same plugin tree.
 
 The tracked tree is clean in every state. The vendored `.prd-toolkit/` comes from the plugin tree
@@ -59,7 +69,7 @@ sys.path.insert(0, str(PLUGIN / "tests"))
 import deploy_repo  # noqa: E402
 from legacy import commit, git  # noqa: E402
 
-STATES = ("bug", "failed-deploy", "killed-step", "uncovered-bug", "green-before-fix")
+STATES = ("bug", "failed-deploy", "killed-step", "uncovered-bug", "green-before-fix", "read-only-bug", "confirmed-gone")
 PRD = "docs/prd/greet"
 
 
@@ -257,12 +267,7 @@ def _one_test(repo: Path) -> None:
 
 def _uncovered_bug(repo: Path) -> None:
     _one_test(repo)
-    _replace(repo / PRD / "prd.md", "## 8. Adoption map\n\nNot applicable: new project.",
-             "## 8. Adoption map\n\nSee adoption.md.")
-    (repo / PRD / "adoption.md").write_text(ADOPTION, encoding="utf-8")
-    _tool(repo, str(repo / ".prd-toolkit/prd_block.py"), PRD)
-    commit(repo, "PRD: map the greet area as adopted\n\nRefs: none (no behaviour change)", "docs", "CLAUDE.md",
-           date="2026-01-06T12:00:00+0000")
+    _adopted(repo, "2026-01-06T12:00:00+0000")
     tool = repo / "tools/count_names.py"
     tool.parent.mkdir()
     tool.write_text(COUNT_NAMES, encoding="utf-8")
@@ -288,6 +293,53 @@ def _green_before_fix(repo: Path) -> str:
     return git(repo, "rev-parse", "--short", "HEAD").strip()
 
 
+LOADS = '    return json.loads(p.read_text(encoding="utf-8"))'
+LOADS_LOWER = ('    data = json.loads(p.read_text(encoding="utf-8"))\n'
+               '    keys = {k.lower(): v for k, v in data.items()}  # match settings keys case-insensitively\n'
+               '    return data')
+
+READ_DIAGNOSIS = (
+    "`load_settings` in src/greet/cli.py lowercases every settings key (`{k.lower(): v for k, v in data.items()}`), "
+    "so `main`'s `get(\"GREETING\", \"Hello\")` never finds the key and `greet` prints the default Hello. AC-001.2: "
+    "\"When `greet <name>` runs, it shall print `<GREETING>, <name>!`, taking GREETING from the settings file of its "
+    "install.\""
+)
+
+
+def _adopted(repo: Path, date: str) -> None:
+    """The adoption map with greet `adopted`, and the managed block that follows it, in one commit."""
+    _replace(repo / PRD / "prd.md", "## 8. Adoption map\n\nNot applicable: new project.",
+             "## 8. Adoption map\n\nSee adoption.md.")
+    (repo / PRD / "adoption.md").write_text(ADOPTION, encoding="utf-8")
+    _tool(repo, str(repo / ".prd-toolkit/prd_block.py"), PRD)
+    commit(repo, "PRD: map the greet area as adopted\n\nRefs: none (no behaviour change)", "docs", "CLAUDE.md",
+           date=date)
+
+
+def _read_only_bug(repo: Path) -> None:
+    _adopted(repo, "2026-01-06T12:00:00+0000")
+    cli = repo / "src/greet/cli.py"
+    _replace(cli, LOADS, LOADS_LOWER)
+    commit(repo, "Match settings keys case-insensitively\n\nRefs: FR-001", "src", date="2026-01-06T13:00:00+0000")
+    line = cli.read_text(encoding="utf-8").split("\n").index(LOADS_LOWER.split("\n")[1]) + 1
+    sha = git(repo, "rev-parse", "--short", "HEAD").strip()
+    if _ledger(repo, "2026-01-07", "new", PRD, "--title", "greet ignores GREETING: load_settings lowercases the keys",
+               "--source", f"adoption extract of greet (src/greet/cli.py:{line} @{sha})", "--touches", "FR-001") != "E-001":
+        sys.exit("error_repo: the entry is not E-001")
+    commit(repo, "docs(prd): record E-001\n\nRefs: E-001", f"{PRD}/errors.md", date="2026-01-07T09:00:00+0000")
+    _ledger(repo, "2026-01-07", "propose", PRD, "E-001", "--class", "code bug", "--diagnosis", READ_DIAGNOSIS,
+            "--touches", "FR-001")
+    commit(repo, "docs(prd): propose E-001\n\nRefs: E-001", f"{PRD}/errors.md", date="2026-01-07T10:00:00+0000")
+
+
+def _confirmed_gone(repo: Path) -> None:
+    _bug(repo)
+    _entry(repo, ("2026-01-07", "2026-01-07", "2026-01-08"), "greet ignores GREETING in the settings file",
+           GREET_EVIDENCE, "code bug", GREET_DIAGNOSIS, "Yes, it is a code bug.", touches="FR-001")
+    _replace(repo / "src/greet/cli.py", BAD, GOOD)
+    commit(repo, "Read the GREETING key again\n\nRefs: FR-001", "src", date="2026-01-09T12:00:00+0000")
+
+
 def main(dst: str, state: str) -> None:
     repo = Path(dst).resolve()
     deploy_repo.main(dst, "failing-check" if state == "failed-deploy" else "ready")
@@ -301,12 +353,16 @@ def main(dst: str, state: str) -> None:
         last = f"run={_killed_step(repo)}"
     elif state == "uncovered-bug":
         _uncovered_bug(repo)
+    elif state == "read-only-bug":
+        _read_only_bug(repo)
+    elif state == "confirmed-gone":
+        _confirmed_gone(repo)
     else:
         last = f"fix={_green_before_fix(repo)}"
     status = git(repo, "status", "--porcelain", "--untracked-files=no").strip()
     if status:
         sys.exit(f"error_repo: the tracked tree is not clean:\n{status}")
-    if state in ("uncovered-bug", "green-before-fix"):
+    if state in ("uncovered-bug", "green-before-fix", "read-only-bug", "confirmed-gone"):
         lint = subprocess.run(["sh", ".prd-toolkit/prd", "lint", PRD], cwd=repo, capture_output=True, text=True,
                               encoding="utf-8")
         if lint.returncode != 0:
