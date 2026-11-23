@@ -639,7 +639,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-125
 Evidence: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text.
 Diagnosis: The loader strips backticks from both ends of every section 11 cell (model.py: `c = [x.strip("`") for x in r.cells]`), but it keeps the block heading's title as written. Take a heading `### FR-005 `prd help` prints the catalogue` and a row whose Title cell holds exactly the same text. `r.title != b.title` compares `prd help` prints the catalogue` (leading backtick gone) with the heading's text, so the rule reports `index title ... differs from block title ...`. The rule's own description says it checks that the index and the block have "the same title", and here the two titles are the same. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-125.11 [integration], PRD 9.7.0, fixed in bec6d30
 Recurrence of: -
 
 ### E-050 A resolved errors.md entry with no Classification line is not reported as unclassified
@@ -712,7 +712,7 @@ Touches: FR-150
 Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:143-147 yields the finding inside the loop over the T-ids of the Tests line.
   In a copy of the fixture lint-cli/orders, line 8 of nfr.md replaced with `Tests: T-004.1 [system], T-004.2 [system], T-004.3 [system]`: `prd lint` exits 1 and prints `docs/prd/orders/nfr.md:8: test-cases-consistent: the Tests line of NFR-004 names no test-cases file; end it with (test-cases/<area>.yaml)` three times.
 Diagnosis: For a block whose Tests line names no test-cases file, `test_cases_consistent` yields the finding inside its loop over the T-ids of that line (testcases.py:143-147). A line that lists three T-ids gets the same message at the same line three times. The owner answered Q-27 on 2026-11-21 that such a line gets the finding once, whatever the number of T-ids on it, and AC-150.1 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-150.7 [integration], PRD 9.7.0, fixed in 854efb18ec9dd7c36ba994607e4cf79e170198e2
 Recurrence of: -
 
 ### E-057 classified-fixtures calls an address at a subdomain of a reserved example domain real-looking

@@ -193,8 +193,6 @@ T-150.6:
     errors: []
     leaks: none
 T-150.7:
-  known-failing: E-056
-  symptom: "stdout holds that line twice, once for each T-id of the Tests line"
   ac: AC-150.1
   level: integration
   target: cli:prd_lint

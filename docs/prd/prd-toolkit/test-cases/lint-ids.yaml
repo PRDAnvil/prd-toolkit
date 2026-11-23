@@ -607,8 +607,6 @@ T-125.10:
     errors: []
     leaks: none
 T-125.11:
-  known-failing: E-049
-  symptom: "stdout holds a line with `index-consistent: FR-002: index title` and `differs from block title`"
   ac: AC-125.4
   level: integration
   target: cli:prd_lint
