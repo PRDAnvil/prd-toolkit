@@ -870,3 +870,11 @@ Touches: FR-247, FR-241
 Diagnosis: `_section2` replaces each HTML comment with spaces, to keep line numbers (overview.py:57). `summary_paragraph` then takes its lines from that text and strips only their ends. A §2 line `Intro <!-- note --> text` is summarised as `Intro`, fifteen spaces and `text`, and the README writes it that way after `> `. The docstring of `summary_paragraph` and references/prd-format.md (§2's summary is "its first run of non-blank lines once HTML comments are removed") say the comments are removed, not blanked. `first_sentence` collapses white space, so the parent's Covers cell is unaffected. FR-247's cases use comments that fill a whole line.
 Resolution: -
 Recurrence of: -
+
+### E-072 Outside a git checkout and without --claude-md, the block command writes CLAUDE.md inside the PRD folder
+Detected: 2026-11-22, confirmation of FR-246, the owner's answer to Q-47 (prd-toolkit/scripts/prd_block.py:351 @3a70ba0)
+Classification: unclassified
+Touches: FR-246
+Diagnosis: -
+Resolution: -
+Recurrence of: -
