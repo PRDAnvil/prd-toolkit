@@ -841,7 +841,7 @@ Classification: code bug
 Confirmed: 2026-11-22, "confirm E-068 as a code bug"
 Touches: -
 Diagnosis: `_Inbox.listing` (gates.py:1002-1022) loads the PRD of every worktree of the repository with `model.load` and lists its gates on every `GET /gates`. With seven worktrees holding the PRD, one listing took about 60 seconds when run alone (8 to 12 seconds per worktree, most of it in the pure-Python YAML loader). The inbox page (templates/gates/inbox.html:517) calls `refresh` every 5 seconds with `setInterval`, whether or not the last `GET /gates` has returned, and the server (formserver.py:149, a ThreadingHTTPServer) starts a thread for each one, so the listings run at once and share one interpreter: none returned within 120 seconds, and an item answer sent from the form never completed. The `wait` process, polling the same gate, also kept a CPU busy. Seen on 2026-11-22 with worktrees main, adopt-context and five fix worktrees: the inbox recorded an error-class confirmation at 15:02, then a confirmation-form answer for FR-199 hung, and `/gates` timed out at 120 seconds.
-Resolution: -
+Resolution: fixed in de6cb39219be4b00005b8bcd9f2375b96fe6519d, red run prd-toolkit/tests/test_inbox_listing_load.py [unit]
 Recurrence of: -
 
 ### E-069 A slot value that holds a later slot's placeholder is rewritten
