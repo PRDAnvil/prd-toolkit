@@ -2,16 +2,10 @@
 (test-cases/lint-registries.yaml, T-144 to T-147)."""
 from __future__ import annotations
 
-import pytest
-
 from lint_registries_support import (  # noqa: F401  (case is a fixture)
     S0, assert_exit, assert_stderr, assert_stdout, assert_stdout_contains_line,
     assert_stdout_exact_lines, assert_stdout_not_contains, case, insert_after, replace, steps, text,
 )
-
-
-class KnownFailure(Exception):
-    """The symptom a known-failing case's `symptom:` names was seen."""
 
 
 def append_lines(rel: str, *parts):
@@ -91,14 +85,10 @@ def test_entries_in_sequence(case):
     assert_stderr(r, "")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 @steps(S0, append_lines("errors.md", T("later_entries")))
 def test_skipped_number_later_is_no_gap(case):
-    """@prd T-144.7 known-failing E-052"""
+    """@prd T-144.7"""
     r = case.lint()
-    symptom = "docs/prd/orders/errors.md:10: error-entries: E-003 follows E-001: E-002 is missing; entries are never deleted, restore it from git"
-    if symptom in r.lines:
-        raise KnownFailure(symptom)
     assert_exit(r, 1)
     assert_stdout_contains_line(r, "docs/prd/orders/errors.md:15: error-entries: E-002 follows E-003: entries run from E-001 upward, newest last")
     assert_stdout_not_contains(r, "is missing")

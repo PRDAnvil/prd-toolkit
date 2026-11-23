@@ -173,7 +173,7 @@ Tests: T-143.1 [integration], T-143.2 [integration], T-143.3 [integration], T-14
 Traces: UJ-01; cli:prd_lint; operations.md Drift; contracts/config.yaml
 
 ### FR-144 Number errors.md entries from E-001 upward
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/rules/errors.py:24 @6162689
 Flow: 1. read the entries in file order, keeping the highest number so far → 2. first entry: report the numbers below it → 3. a later entry: report one at or below the highest so far, or the numbers skipped above it
 Acceptance (EARS):
