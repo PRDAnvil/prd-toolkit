@@ -161,7 +161,10 @@ RUNS = [{"command": "uv run pytest -q tests/unit"}, {"command": "uv run --with p
         {"command": "PYTHONPATH=src GREET_SETTINGS=/t/s.json python3 -m greet World"},
         {"command": "cd /t/clone && PYTHONPATH=src python -m greet World"},
         {"command": "python3 -c \"import sys; sys.path.insert(0, 'src'); from greet.cli import load_settings; print(load_settings('/t/s.json'))\""},
-        {"command": "uv run python -m greet World"}]
+        {"command": "uv run python -m greet World"},
+        # 0.8.15 GREEN, R1 with the plugin: a probe in a scratch clone that drives main, not load_settings
+        {"command": "cd /t/e001/repo && printf '{\\\"GREETING\\\": \\\"Hi\\\"}' > ../settings.json && GREET_SETTINGS=../settings.json "
+                    "python3 -c 'import sys; sys.path.insert(0,\\\"src\\\"); from greet.cli import main; main([\\\"World\\\"])'"}]
 NOT_RUNS = [{"command": "cat src/greet/cli.py"}, {"command": "grep -n 'load_settings(' src/greet/cli.py"},
             {"command": "grep -rn pytest pyproject.toml"}, {"command": "git log --oneline -5"},
             {"command": ".prd-toolkit/prd error propose docs/prd/greet E-001 --class \"not a defect\" --diagnosis "
