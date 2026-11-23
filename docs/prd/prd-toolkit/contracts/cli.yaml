@@ -79,8 +79,12 @@ prd_publish:
   exit_codes:
     2: "missing dependency (FR-010)"
 prd_status:
-  # Only what the status-next area needs so far; the status area adds the rest when it is adopted.
   invocation: "uv run --script prd-toolkit/scripts/prd_status.py [--json] [--interface] [prd_dir]; through the launcher, prd status"
+  arguments:
+    "prd_dir": "the PRD folder; required unless --interface is given (FR-222)"
+    "--json": "print one JSON document instead of the text report; --json=1 is the same, any other --json=N is refused (FR-222, FR-041)"
+    "--interface": "print the interface number 1; the folder is not read and a --json=N is not checked (FR-222)"
+    "-h, --help": "print the help to stdout"
   encoding: "stdout and stderr are UTF-8 whatever the locale when run as a script (FR-040)"
   next_text_line: "stdout, text: <n>. <text>, one line per Next item after the line ## Next and one empty line, <n> counting from 1 (FR-040)"
   next_run_line: "stdout, text: two spaces, run: and the item's command, the line after an item that has a command (FR-040)"
@@ -105,6 +109,59 @@ prd_status:
     - build
     - adopt
     - idle
+  output:
+    parts: "stdout, text: after the Next part, ## Header, ## Requirements, ## Areas, ## Adoption map, ## Not built, ## Not verified, ## Open errors, ## Upstreams, ## Consumers, ## Change sets, ## CI, ## Deployed, ## Matrix; each the heading, one empty line and its lines, one empty line between parts (FR-223)"
+    none_line: "stdout, text: None., the one line of a part with nothing to list (FR-223)"
+    header: "PRD: <folder> / version <version or -> / status <status or -> (FR-224)"
+    requirements_line: "<area>: <status> <n>, <status> <n>, statuses sorted, areas in file order, nfr last (FR-225)"
+    areas_line: "<area>: pack <name> <version or (default)>, output language <code> (FR-226)"
+    adoption_line: "<area> | <state> | <globs joined by ', ' or -> ; or Not applicable: new project (FR-227)"
+    block_line: "<ID> <title> (<file>), in Not built (approved) and Not verified (built) (FR-228)"
+    open_error_line: "<E-id> <state>[ <class>] — <title> (FR-229)"
+    upstream_line: "<name> <version or -> at <commit or ->, needs <needs or default>, then , check: not run (git URL; run prd_links.py check) | , check: error (<message>) | , check: <verdict> <n>, ... | , check: no items | nothing when unreachable (FR-230)"
+    consumer_line: "<name> <location without backticks> (FR-230)"
+    change_set_line: "<CS-id> <status>: <prd> <state>; <prd> <state> (FR-231)"
+    ci_line: "the stale lines of prd_hooks.py check --ci (AC-111.1, AC-111.2, AC-068.5), or <folder> is not inside a git checkout (FR-232)"
+    deployed_line: "<env>: <version> at <commit>, <date> | <env>: run <run id> stopped (unfinished|failed|human) at step <N> (FR-233)"
+    matrix_line: "<ID>: <T-id> <level> <gate or -> cited|missing; ... | <ID>: no tests (FR-234)"
+    json_item: "stdout, --json: each item after the Next items is {part, id, text}, id as FR-223 gives it (FR-223, FR-041)"
+    json_error: 'stdout, --json on exit 2: one line, {"interface": 1, "kind": "status", "error": <message>} (FR-222, FR-040)'
+    interface: "stdout, --interface: 1 (FR-222)"
+    usage: "stderr: usage: prd_status.py [-h] [--json] [--interface] [prd_dir] (FR-222)"
+    unsupported_interface: "stderr, --json=N with N other than 1 and no --interface: prd_status: unsupported interface <N>; this toolkit speaks 1 (FR-222)"
+    not_a_prd: "stderr: prd_status: <resolved folder>: no prd.md (FR-222)"
+    unmigrated: "stderr: prd_status: <folder>/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\" (FR-222)"
+    internal_error: "stderr: prd_status: internal error: <exception type>: <message> (FR-040)"
+  exit_codes:
+    0: "the report, --interface or --help"
+    2: "usage error, an unsupported --json=N without --interface, a folder without prd.md, an unmigrated 0.2 PRD, or an internal error"
+prd_block:
+  invocation: "uv run --script prd-toolkit/scripts/prd_block.py [--claude-md CLAUDE_MD] [--check] prd_dir; the vendored .prd-toolkit/prd_block.py takes the same arguments"
+  arguments:
+    "prd_dir": "the PRD folder (FR-245)"
+    "--claude-md CLAUDE_MD": "write the block in this file instead of CLAUDE.md at the repository root (FR-246)"
+    "--check": "write nothing; name each stale target file (FR-240)"
+    "-h, --help": "print the help to stdout"
+  files:
+    claude_md: "CLAUDE.md at the repository root, or --claude-md: the block at the end (FR-235, FR-236, FR-237, FR-246)"
+    prd_readme: "<prd folder>/README.md: the block at the top (FR-237, FR-241)"
+    parent_readme: "<parent>/README.md, only when the parent is named prd: the block at the top (FR-237, FR-242, FR-243)"
+    markers: "<!-- prd-toolkit:start --> and <!-- prd-toolkit:end -->, whole lines outside closed code fences (FR-238)"
+  output:
+    stale: "stdout, --check: stale: <file>, one per stale target, CLAUDE.md first, then the PRD README, then the parent README (FR-240)"
+    sibling_unreadable: "stderr: prd_block: <folder name>: could not be read (<exception type>: <message>) (FR-242)"
+    more_than_one: "stderr: prd_block: <file>: more than one prd-toolkit block (FR-238)"
+    unbalanced: "stderr: prd_block: <file>: prd-toolkit start and end markers are unbalanced (FR-238)"
+    marker_in_summary: "stderr: prd_block: prd.md §2 holds a prd-toolkit marker (FR-244)"
+    not_a_prd: "stderr: prd_block: <resolved folder>: no prd.md (FR-245)"
+    unmigrated: "stderr: prd_block: <folder>/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\" (FR-245)"
+    usage: "stderr: usage: prd_block.py [-h] [--claude-md CLAUDE_MD] [--check] prd_dir, then prd_block.py: error: <argparse message> (FR-245)"
+    internal_error: "stderr: prd_block: internal error: <exception type>: <message>"
+  encoding: "stdout and stderr are UTF-8 whatever the locale when run as a script"
+  exit_codes:
+    0: "every block written or already current; --check with nothing stale; --help"
+    1: "--check found a stale or missing block (FR-240)"
+    2: "usage error, a folder without prd.md, an unmigrated 0.2 PRD, a broken marker, a marker in §2, or an internal error (FR-238, FR-244, FR-245)"
 prd_help:
   invocation: "uv run --script prd-toolkit/scripts/prd_help.py [--key KEY | --rule RULE] [--json] [--interface]; through the launcher, prd help"
   arguments:

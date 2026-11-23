@@ -843,3 +843,39 @@ Touches: -
 Diagnosis: `_Inbox.listing` (gates.py:1002-1022) loads the PRD of every worktree of the repository with `model.load` and lists its gates on every `GET /gates`. With seven worktrees holding the PRD, one listing took about 60 seconds when run alone (8 to 12 seconds per worktree, most of it in the pure-Python YAML loader). The inbox page (templates/gates/inbox.html:517) calls `refresh` every 5 seconds with `setInterval`, whether or not the last `GET /gates` has returned, and the server (formserver.py:149, a ThreadingHTTPServer) starts a thread for each one, so the listings run at once and share one interpreter: none returned within 120 seconds, and an item answer sent from the form never completed. The `wait` process, polling the same gate, also kept a CPU busy. Seen on 2026-11-22 with worktrees main, adopt-context and five fix worktrees: the inbox recorded an error-class confirmation at 15:02, then a confirmation-form answer for FR-199 hung, and `/gates` timed out at 120 seconds.
 Resolution: fixed in de6cb39219be4b00005b8bcd9f2375b96fe6519d, red run prd-toolkit/tests/test_inbox_listing_load.py [unit]
 Recurrence of: -
+
+### E-069 A slot value that holds a later slot's placeholder is rewritten
+Detected: 2026-11-22, adoption extract of status (prd-toolkit/scripts/prd_block.py:202 @3a70ba0)
+Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
+Touches: FR-241, FR-242, FR-235
+Diagnosis: `_fill` (prd_block.py:202) and `render_block` (prd_block.py:119) put the slot values into a template one slot after another, each with `str.replace` over the whole text. Text already put in is therefore searched again for every later slot. A §2 summary that holds `{{areas}}`, `{{files}}` or `{{links}}` has that text replaced in the README by the areas table, the files table or the links part. A parent row whose Covers text holds `{{homepage}}` gets the homepage URL. A section 6 Object cell holding `{{adopted_areas}}` gets the adopted areas in the CLAUDE.md block. The 0.8.4 design (docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.4-prd-readmes-design.md §3 and §4) says the summary slot is "§2's first paragraph, word for word" and Covers is "§2's first sentence". FR-241 and FR-242 are written only for values that hold no `{{…}}` text.
+Resolution: -
+Recurrence of: -
+
+### E-070 A file the block command creates is readable only by its owner
+Detected: 2026-11-22, adoption extract of status (prd-toolkit/scripts/prd_block.py:315 @3a70ba0)
+Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
+Touches: FR-237, FR-239
+Diagnosis: `_replace` writes through `tempfile.mkstemp`, which creates its file with mode 0600, and copies a mode onto it only when the target already exists (prd_block.py:319). A `CLAUDE.md`, PRD README or parent README that the command creates is therefore 0600, whatever the umask: the group and others cannot read it. The sibling writer of a committed file, `prdlint/changeset.py:_write`, gives a new file `0o666 & ~umask` for exactly this reason (commit 42df229, "keep change-set records readable and write them whole"). FR-239 covers only a file that already exists.
+Resolution: -
+Recurrence of: -
+
+### E-071 An HTML comment inside a summary line leaves its width as spaces
+Detected: 2026-11-22, adoption extract of status (prd-toolkit/scripts/prdlint/overview.py:57 @3a70ba0)
+Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
+Touches: FR-247, FR-241
+Diagnosis: `_section2` replaces each HTML comment with spaces, to keep line numbers (overview.py:57). `summary_paragraph` then takes its lines from that text and strips only their ends. A §2 line `Intro <!-- note --> text` is summarised as `Intro`, fifteen spaces and `text`, and the README writes it that way after `> `. The docstring of `summary_paragraph` and references/prd-format.md (§2's summary is "its first run of non-blank lines once HTML comments are removed") say the comments are removed, not blanked. `first_sentence` collapses white space, so the parent's Covers cell is unaffected. FR-247's cases use comments that fill a whole line.
+Resolution: -
+Recurrence of: -
+
+### E-072 Outside a git checkout and without --claude-md, the block command writes CLAUDE.md inside the PRD folder
+Detected: 2026-11-22, confirmation of FR-246, the owner's answer to Q-47 (prd-toolkit/scripts/prd_block.py:351 @3a70ba0)
+Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
+Touches: FR-246
+Diagnosis: When the PRD folder is in no git checkout and `--claude-md` is not given, `main` takes the repository root from `model.repo_root(prd.root)` (prd_block.py:351), which falls back to the PRD folder itself, and writes `CLAUDE.md` there; the block names the PRD at `.` (prd_block.py:268-272). Lint then reads that `CLAUDE.md` as one of the PRD folder's files. The owner answered Q-47 that this is a defect: the command should refuse, printing `prd_block: <folder>: not inside a git checkout; name the CLAUDE.md with --claude-md`, writing nothing and exiting 2.
+Resolution: -
+Recurrence of: -
