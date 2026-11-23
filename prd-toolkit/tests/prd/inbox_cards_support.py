@@ -12,6 +12,7 @@ not a failure.
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import subprocess
 import sys
@@ -141,7 +142,20 @@ def ICD(tmp: Path, monkeypatch) -> None:
                   "Detected: 2026-11-03, a run on the October file", "Detected: 2026-11-04, a run on the October file")
 
 
-STEPS = {"IC0": IC0, "IC2": IC2, "ICN": ICN, "ICT": ICT, "ICD": ICD}
+def ICE(tmp: Path, monkeypatch) -> None:
+    """Insert after main's line `Touches: FR-003` the line `Explanation: …`; nothing is committed."""
+    path = tmp / "main" / ORDERS_REL / "errors.md"
+    if not path.is_file():
+        raise SetupError(f"{path} does not exist")
+    lines = path.read_text(encoding="utf-8").split("\n")
+    hits = [i for i, line in enumerate(lines) if line == "Touches: FR-003"]
+    if len(hits) != 1:
+        raise SetupError(f"{path}: expected one line 'Touches: FR-003', found {len(hits)}")
+    lines.insert(hits[0] + 1, "Explanation: An import of a file of 1,200 rows stored 1,000 of them.")
+    path.write_bytes("\n".join(lines).encode("utf-8"))
+
+
+STEPS = {"IC0": IC0, "IC2": IC2, "ICN": ICN, "ICT": ICT, "ICD": ICD, "ICE": ICE}
 
 
 def build(tmp: Path, monkeypatch, *steps: str) -> None:
@@ -182,3 +196,53 @@ def groups(doc: dict) -> list[dict]:
         {"path": g["path"], "branch": g["branch"], "ids": [card["id"] for card in g["gates"]]}
         for g in doc["worktrees"]
     ]
+
+
+# -- the T-254 cases' log and "as before" (test-cases/inbox-cards.yaml, conventions) --
+
+def log_path(tmp: Path) -> Path:
+    """LOG: <tmp>/main/.git/prd-gates-log.jsonl, the answer log of the repository's git common folder."""
+    return tmp / "main" / ".git" / "prd-gates-log.jsonl"
+
+
+def log_lines(tmp: Path) -> list[str]:
+    """LOG's lines (str.splitlines()); none when it does not exist."""
+    path = log_path(tmp)
+    return path.read_bytes().decode("utf-8").splitlines() if path.is_file() else []
+
+
+def log_last(tmp: Path) -> dict:
+    """LOG's LAST line: its last line parsed as JSON."""
+    lines = log_lines(tmp)
+    assert lines, f"{log_path(tmp)} holds no line"
+    return json.loads(lines[-1])
+
+
+def head(worktree: Path) -> str:
+    """The commit `git rev-parse HEAD` prints in the worktree, less its newline."""
+    r = git(worktree, "rev-parse", "HEAD")
+    if r.exit != 0:
+        raise SetupError(f"git rev-parse HEAD in {worktree} exited {r.exit}: {r.stderr}")
+    return r.stdout.strip()
+
+
+@dataclass
+class Before:
+    """What a T-254 case keeps before its call or first run: errors.md, HEAD and LOG's line count."""
+    errors: bytes
+    head: str
+    log_count: int
+
+
+def before(tmp: Path) -> Before:
+    main = tmp / "main"
+    return Before((orders(main) / "errors.md").read_bytes(), head(main), len(log_lines(tmp)))
+
+
+def assert_nothing_written(tmp: Path, was: Before) -> None:
+    """errors.md byte-identical to before, HEAD as before, and `git status --porcelain` prints nothing."""
+    main = tmp / "main"
+    assert (orders(main) / "errors.md").read_bytes() == was.errors, "main's errors.md changed"
+    assert head(main) == was.head, "HEAD in <tmp>/main moved"
+    status = git(main, "status", "--porcelain")
+    assert status.exit == 0 and status.stdout == "", f"git status --porcelain in <tmp>/main: {status.stdout!r}"
