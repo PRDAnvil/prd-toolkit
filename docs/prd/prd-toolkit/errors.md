@@ -847,6 +847,7 @@ Recurrence of: -
 ### E-069 A slot value that holds a later slot's placeholder is rewritten
 Detected: 2026-11-22, adoption extract of status (prd-toolkit/scripts/prd_block.py:202 @3a70ba0)
 Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
 Touches: FR-241, FR-242, FR-235
 Diagnosis: `_fill` (prd_block.py:202) and `render_block` (prd_block.py:119) put the slot values into a template one slot after another, each with `str.replace` over the whole text. Text already put in is therefore searched again for every later slot. A §2 summary that holds `{{areas}}`, `{{files}}` or `{{links}}` has that text replaced in the README by the areas table, the files table or the links part. A parent row whose Covers text holds `{{homepage}}` gets the homepage URL. A section 6 Object cell holding `{{adopted_areas}}` gets the adopted areas in the CLAUDE.md block. The 0.8.4 design (docs/superpowers/specs/2026-11-04-prd-toolkit-0.8.4-prd-readmes-design.md §3 and §4) says the summary slot is "§2's first paragraph, word for word" and Covers is "§2's first sentence". FR-241 and FR-242 are written only for values that hold no `{{…}}` text.
 Resolution: -
