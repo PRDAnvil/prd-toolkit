@@ -1,0 +1,1377 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's tmp_path, the root of the scratch repository.
+#   "python" is the interpreter running the tests (sys.executable); a run has <tmp> as its working directory.
+#   CHANGE = <repo>/prd-toolkit/scripts/prd_change.py; BLOCK = <repo>/prd-toolkit/scripts/prd_block.py;
+#   HOOKS = <repo>/prd-toolkit/scripts/prd_hooks.py.
+#   Runs and steps use the Subprocess environment (Harness) minus GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE and
+#   GIT_COMMON_DIR, with PRD_PLUGINS_FILE set to fixture lint-cli/plugins_none (testing.md, the change paragraph). A relative path in a step is inside <tmp>/docs/prd/orders unless it
+#   starts with <tmp>. Every line a step writes ends in a newline.
+#   Setup steps (testing.md, Setup steps, the change paragraph, names this header as their definition), on the status-next steps' terms:
+#   G0  N0; then in <tmp>: git config user.name Sample, git config user.email sample@example.com,
+#       git config commit.gpgsign false, git config core.hooksPath /dev/null, git add -A, git commit -q -m base
+#   G0N G0 without `git config core.hooksPath /dev/null`
+#   GC  in <tmp>: git add -A, then git commit -q -m edit
+#   GQ  prd.md line 4 `status: Approved` becomes `status: In review`
+#   GA  append to features/import.md the seven lines "", "### FR-008 Refuse an empty file", "Status: approved",
+#       "Acceptance (EARS):", "- AC-008.1 If the import file is empty, the importer shall exit 2.", "Errors: -",
+#       "Tests: T-008.1 [integration]  (test-cases/import.yaml)" (the heading is line 31, the AC line 34); append
+#       to test-cases/import.yaml an empty line and, laid out line for line as the fixture's T-001.1 is (its `input` and `expect` keeping T-001.1's flow mappings), the case T-008.1 {ac: AC-008.1, level: integration,
+#       target: code:importer.import_file, environment: local, identity: none, preconditions: [],
+#       input: {content: ""}, expect: {output: {exit: 2}, effects: [], errors: [], leaks: none}}
+#   GR  run `python CHANGE record docs/prd/orders --base HEAD --bump minor --change 'Refuse an empty file'`; end
+#       the test as an error when it exits other than 0
+#   GV  run `python CHANGE digest docs/prd/orders`, take its line as <digest>, write .prd-review.json with the
+#       one line {"digest": "<digest>", "ready": true, "blockers": []}; always the last step that edits the folder
+#   GS  features/import.md line 11 `Status: built` becomes `Status: verified`
+#   GW  features/import.md line 6: "has no header line, the importer" becomes "has no header line the importer"
+#   GX  features/import.md line 6: "exit 2 with" becomes "exit 3 with"
+#   GD  features/reports.md line 18 `Status: live (since 1.0.0)` becomes `Status: removed`
+#   GG  prd.md, §3's row: "stored once per order key" becomes "stored once for each order key"
+#   GI  features/import.md: insert after line 4 the line `Source: src/importer.py:10 @abc1234`; then GQ
+#   GE  write errors.md as "# Error ledger", "", "### E-001 The importer accepts an empty file",
+#       "Detected: 2026-11-20, a user report", "Classification: code bug", "Touches: FR-001",
+#       "Diagnosis: the header check skips an empty file", "Resolution: open", "Recurrence of: -"
+#   GT  append to test-cases/import.yaml an empty line and the case T-001.2, as T-001.1 with input {content: ""}
+#   GK  contracts/errors.yaml line 5 `  message: The import file has no header line.` becomes
+#       `  message: The import file has no header line (FR-001).`
+#   GL  append to prd.md the row `| 1.1.0 | 2026-11-12 | a removal; no dry run (removal only) | FR-012, T-001.4, UJ-03 |`
+#   GM  features/import.md: insert after line 6 the line `- AC-001.2 (removed in 1.1.0) If the file is empty, the importer shall exit 2.`
+#   GP  prd.md: insert after line 13 (`- Language: Python 3.12`) the line `- Pack: service 0.9.0 (prd-toolkit)`
+#   G09 prd.md line 3 `version: 1.0.0` becomes `version: 0.9.0`, and the §14 row's first cell `1.0.0` becomes `0.9.0`; then GC
+#   GH  write <tmp>/CLAUDE.md with the line `# Notes`; then GC
+#   GN  delete prd.md's three §14 table lines (header, separator, row)
+#   R   the approval-ready state: G0, GQ, GA, GR, GV
+#   DRY = 'dry run T-008.1, 0 open questions, 0 dismissed by quote'
+
+T-255.1:
+  ac: AC-255.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs: [python CHANGE, python CHANGE ids docs/prd/orders]
+  expect:
+    output:
+      each_run: {exit: 2, stdout: "", stderr_first_line_starts: "usage: prd_change.py"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-255.2:
+  ac: AC-255.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: []
+  input: {command: python CHANGE --interface}
+  expect:
+    output: {exit: 0, stdout: "1\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-255.3:
+  ac: AC-255.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    command: python CHANGE digest docs/prd/orders --json=2
+  expect:
+    output: {exit: 2, stderr_contains_line: "prd_change: unsupported interface 2; this toolkit speaks 1"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-255.4:
+  ac: AC-255.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup: ["create the empty folder <tmp>/empty"]
+    command: python CHANGE digest empty
+  expect:
+    output: {exit: 2, stdout: "", stderr_single_line_starts: "prd_change: "}
+    effects: []
+    errors: []
+    leaks: none
+
+T-255.5:
+  ac: AC-255.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, change/texts]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    command: python CHANGE ids next docs/prd/orders texts.ac_099
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: no block FR-099 or NFR-099\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-255.6:
+  ac: AC-255.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    command: python CHANGE record docs/prd/orders --base nope --bump minor --change x --json
+  expect:
+    output:
+      exit: 2
+      stderr: "bump: nope has no docs/prd/orders\n"
+      stdout_json: {interface: 1, kind: change.record, error: "bump: nope has no docs/prd/orders"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-256.1:
+  ac: AC-256.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs: [python CHANGE ids next docs/prd/orders FR, python CHANGE ids next docs/prd/orders NFR]
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: "FR-008\n"}
+      run_2: {stdout: "NFR-008\n"}
+    effects: ["no file changes"]
+    errors: []
+    leaks: none
+
+T-256.2:
+  ac: AC-256.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    command: python CHANGE ids next docs/prd/orders UJ
+  expect:
+    output: {exit: 0, stderr: "", stdout: "UJ-01\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-256.3:
+  ac: AC-256.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, change/texts]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs: [python CHANGE ids next docs/prd/orders texts.ac_001, {setup_before: [GM], command: python CHANGE ids next docs/prd/orders texts.ac_001}]
+    note: "run_2 runs after GM marks a removed AC-001.2"
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: "AC-001.2\n"}
+      run_2: {stdout: "AC-001.3\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-256.4:
+  ac: AC-256.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, change/texts]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    command: python CHANGE ids next docs/prd/orders texts.t_005
+    note: "FR-005's Tests line and test-cases/reports.yaml hold T-005.1 and T-005.2"
+  expect:
+    output: {exit: 0, stderr: "", stdout: "T-005.3\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-256.5:
+  ac: AC-256.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, change/texts]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs: [python CHANGE ids next docs/prd/orders texts.t_099, python CHANGE ids next docs/prd/orders texts.ac_12]
+  expect:
+    output:
+      each_run: {exit: 1, stdout: ""}
+      run_1: {stderr: "refused: no block FR-099 or NFR-099\n"}
+      run_2: {stderr: texts.refused_12}
+    effects: []
+    errors: []
+    leaks: none
+
+T-256.6:
+  ac: AC-256.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    command: python CHANGE ids next docs/prd/orders FR --json
+  expect:
+    output: {exit: 0, stderr: "", stdout_json: {interface: 1, kind: change.ids, next: FR-008}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-256.7:
+  ac: AC-256.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, change/texts]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GL]
+    runs: [python CHANGE ids next docs/prd/orders texts.t_001, python CHANGE ids next docs/prd/orders FR, python CHANGE ids next docs/prd/orders UJ]
+    note: "the changelog alone names T-001.4, FR-012 and UJ-03"
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: "T-001.5\n"}
+      run_2: {stdout: "FR-013\n"}
+      run_3: {stdout: "UJ-04\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-257.1:
+  ac: AC-257.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs: [python CHANGE digest docs/prd/orders, python CHANGE digest docs/prd/orders --json]
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+    relations:
+      - "run_1's stdout is one line of 64 characters, each one of 0-9 and a-f"
+      - "run_2's stdout is the one JSON line {\"interface\": 1, \"kind\": \"change.digest\", \"digest\": D}, D being run_1's line"
+    effects: []
+    errors: []
+    leaks: none
+
+T-257.2:
+  ac: AC-257.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs:
+      - python CHANGE digest docs/prd/orders
+      - {setup_before: ["prd.md line 3 becomes `version: 9.9.9` and line 6 `updated: 2030-01-01`", GL, "FR-001's §11 Status cell becomes `built`", "write README.md with the line `hi`", "write .prd-review.json with the line `{}`", "write .notes/a.txt and __pycache__/b.txt, each with the line `x`"], command: python CHANGE digest docs/prd/orders}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+    relations: ["run_2's stdout equals run_1's stdout"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-257.3:
+  ac: AC-257.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs:
+      - python CHANGE digest docs/prd/orders
+      - {setup_before: [GX], command: python CHANGE digest docs/prd/orders}
+      - {setup_before: ["undo GX", GQ], command: python CHANGE digest docs/prd/orders}
+  expect:
+    output:
+      each_run: {exit: 0}
+    relations: ["run_2's stdout differs from run_1's", "run_3's stdout differs from run_1's and from run_2's"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-257.4:
+  ac: AC-257.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, "write <tmp>/.gitignore with the line `docs/prd/orders/notes.txt`"]
+    runs:
+      - python CHANGE digest docs/prd/orders
+      - {setup_before: ["write notes.txt with the line `x`"], command: python CHANGE digest docs/prd/orders}
+      - {setup_before: ["N0X into <tmp2>, a second folder from pytest's tmp_path_factory, outside <tmp> and every git checkout"], cwd: <tmp2>, command: python CHANGE digest docs/prd/orders}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+    relations: ["run_2's stdout differs from run_1's", "run_3's stdout equals run_1's: the same files at the same relative paths"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-258.1:
+  ac: AC-258.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GS]
+    runs: [python CHANGE bump docs/prd/orders --base HEAD, python CHANGE bump docs/prd/orders --base HEAD --json]
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: "patch FR-002 features/import.md:11 status built → verified\nlevel patch\n"}
+      run_2:
+        stdout_json: {interface: 1, kind: change.bump, level: patch, items: [{id: FR-002, file: features/import.md, line: 11, change: changed, level: patch, reason: "status built → verified"}]}
+    effects: ["git status --porcelain lists only ` M docs/prd/orders/features/import.md`"]
+    errors: []
+    leaks: none
+
+T-258.2:
+  ac: AC-258.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs:
+      - python CHANGE bump docs/prd/orders --base HEAD
+      - {setup_before: [GA, GD], command: python CHANGE bump docs/prd/orders --base HEAD}
+      - {setup_before: ["append the line `A note.` to errors.md"], command: python CHANGE bump docs/prd/orders --base HEAD}
+  expect:
+    output:
+      each_run: {exit: 0}
+      run_1: {stdout: "level patch\n"}
+      run_2: {stdout_contains_line: "level major"}
+      run_3: {stdout_contains_line: "needs judgment errors.md errors.md:1 unclassified change in errors.md"}
+    relations: ["the last stdout line of run_3 is `level needs judgment`"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-258.3:
+  ac: AC-258.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    command: python CHANGE bump docs/prd/orders --base no-such-ref
+  expect:
+    output: {exit: 2, stdout: "", stderr: "bump: no-such-ref has no docs/prd/orders\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-258.4:
+  ac: AC-258.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0X]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output: {exit: 2, stdout: "", stderr_single_line_starts: "bump: "}
+    relations: ["the run's one stderr line ends with `is not in a git repository`"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.1:
+  ac: AC-259.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GA]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output:
+      exit: 0
+      stdout_lines_in_this_relative_order:
+        - "minor FR-008 features/import.md:31 a new block or AC"
+        - "minor AC-008.1 features/import.md:34 a new block or AC"
+        - "level minor"
+      stdout_contains: ["minor T-008.1 test-cases/import.yaml:", " a new test case under a new AC"]
+    relations: ["stdout holds exactly four lines"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.2:
+  ac: AC-259.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GD]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output:
+      exit: 0
+      stdout_lines_in_this_relative_order:
+        - "major FR-007 features/reports.md:17 a removed block or AC"
+        - "major AC-007.1 features/reports.md:20 a removed block or AC"
+        - "level major"
+      stdout_contains: ["major T-007.1 test-cases/reports.yaml:"]
+    relations: ["stdout holds exactly four lines"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.3:
+  ac: AC-259.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs:
+      - {setup_before: [GX], command: python CHANGE bump docs/prd/orders --base HEAD}
+      - {setup_before: ["undo GX", GW], command: python CHANGE bump docs/prd/orders --base HEAD}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: "needs judgment AC-001.1 features/import.md:6 an AC whose text changed (not equal after lowercasing, removing punctuation and collapsing whitespace)\nlevel needs judgment\n"}
+      run_2: {stdout: "patch AC-001.1 features/import.md:6 an AC whose text is equal after that normalization, a changed title, Flow, Edge cases or glossary meaning\nlevel patch\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.4:
+  ac: AC-259.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs:
+      - {setup_before: ["test-cases/import.yaml: T-001.1's `output: {exit: 2}` becomes `output: {exit: 3}`"], command: python CHANGE bump docs/prd/orders --base HEAD}
+      - {setup_before: [GX], command: python CHANGE bump docs/prd/orders --base HEAD}
+      - {setup_before: ["undo both edits", GK], command: python CHANGE bump docs/prd/orders --base HEAD}
+  expect:
+    output:
+      each_run: {exit: 0}
+      run_1: {stdout_contains: ["needs judgment T-001.1 test-cases/import.yaml:", "a changed test case or contract item under an unchanged AC"]}
+      run_2: {stdout_contains: ["major T-001.1 test-cases/import.yaml:", "a changed test case under a changed AC"]}
+      run_3: {stdout_contains: ["needs judgment IMPORT_NO_HEADER contracts/errors.yaml:", "a changed test case or contract item under an unchanged AC"]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.5:
+  ac: AC-259.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GE, GC, GT]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+    note: "E-001 is open and touches FR-001; T-001.2 tests AC-001.1, which did not change"
+  expect:
+    output:
+      exit: 0
+      stdout_contains: ["patch T-001.2 test-cases/import.yaml:", "a new test case under an unchanged AC that cites an open errors.md entry"]
+      stdout_contains_line: "level patch"
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.6:
+  ac: AC-259.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GS]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output: {exit: 0, stdout: "patch FR-002 features/import.md:11 status built → verified\nlevel patch\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.7:
+  ac: AC-259.7
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GP, GC, "prd.md line 14 becomes `- Pack: service 1.0.0 (prd-toolkit)`"]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output:
+      exit: 0
+      stdout_contains: ["patch service prd.md:", "a changed version on a `Pack:` or `Target: pack` line, the pack's name and source unchanged"]
+    relations: ["stdout holds exactly two lines, the last `level patch`"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.8:
+  ac: AC-259.8
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GI, "prd.md line 6 becomes `updated: 2030-01-01`", GL, "write README.md with the line `hi`", "write .prd-review.json with the line `{}`"]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output: {exit: 0, stderr: "", stdout: "level patch\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.9:
+  ac: AC-259.9
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, "append the line `A note.` to errors.md", "features/import.md line 7 `Errors: IMPORT_NO_HEADER (contracts/errors.yaml)` becomes `Errors: -`", "prd.md: §4's line `The importer stores orders; the report command reads them.` becomes `The importer stores orders.`"]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output:
+      exit: 0
+      stdout_contains_line: "needs judgment errors.md errors.md:1 unclassified change in errors.md"
+      stdout_contains: ["needs judgment FR-001 features/import.md:3 unclassified change in features/import.md", "needs judgment section 4 prd.md:", "unclassified change in prd.md"]
+    relations: ["the last stdout line is `level needs judgment`"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.10:
+  ac: AC-259.10
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GG]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+  expect:
+    output:
+      exit: 0
+      stdout_contains: ["patch glossary prd.md:", "an AC whose text is equal after that normalization, a changed title, Flow, Edge cases or glossary meaning"]
+    relations: ["stdout holds exactly two lines, the last `level patch`"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-259.11:
+  ac: AC-259.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GT]
+    command: python CHANGE bump docs/prd/orders --base HEAD
+    note: "no errors.md entry"
+  expect:
+    output:
+      exit: 0
+      stdout_contains: ["needs judgment T-001.2 test-cases/import.yaml:", "any other new test case under an unchanged AC"]
+      stdout_contains_line: "level needs judgment"
+    effects: []
+    errors: []
+    leaks: none
+
+T-260.1:
+  ac: AC-260.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GA]
+    runs:
+      - python CHANGE record docs/prd/orders --base HEAD --bump minor --change 'Refuse an empty file'
+      - python CHANGE record docs/prd/orders --base HEAD --bump minor --change 'Refuse an empty file' --json
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout_exact_lines: ["1.1.0", "| 1.1.0 | <today> | Refuse an empty file; pending | FR-008, AC-008.1, T-008.1 |"]}
+      run_2: {stdout_json: {interface: 1, kind: change.record, version: 1.1.0, row: "| 1.1.0 | <today> | Refuse an empty file; pending | FR-008, AC-008.1, T-008.1 |"}}
+    effects:
+      - "prd.md line 3 is `version: 1.1.0` and line 6 `updated: <today>`"
+      - "prd.md's last line is the row run_1 printed, after `| 1.0.0 | 2026-11-01 | Initial release; no dry run (fixture) | FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-007 |`"
+      - "git diff --cached --name-only prints nothing"
+    errors: []
+    leaks: none
+
+T-260.2:
+  ac: AC-260.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs:
+      - {setup_before: [GK], command: "python CHANGE record docs/prd/orders --base HEAD --bump patch --change 'the message names FR-001'"}
+      - {setup_before: ["undo GK", "append the line `A note.` to errors.md"], command: "python CHANGE record docs/prd/orders --base HEAD --bump patch --change 'a ledger note'"}
+  expect:
+    output:
+      each_run: {exit: 0}
+      run_1: {stdout_contains_line: "| 1.0.1 | <today> | the message names FR-001; pending | FR-001 |"}
+      run_2: {stdout_contains_line: "| 1.0.1 | <today> | a ledger note; pending | - |"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-260.3:
+  ac: AC-260.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GA, GS, GD]
+    command: python CHANGE record docs/prd/orders --base HEAD --bump major --change 'three moves'
+  expect:
+    output: {exit: 0, stdout_contains_line: "2.0.0"}
+    effects:
+      - "prd.md's §11 holds `| FR-001 | Refuse a file with no header | approved | features/import.md | 1.0.0 |`"
+      - "prd.md's §11 holds `| FR-002 | Skip a duplicate order | verified | features/import.md |  |`"
+      - "prd.md's §11 holds `| FR-007 | Refuse an unknown month | removed | features/reports.md |  |`"
+      - "prd.md's §11 last row is `| FR-008 | Refuse an empty file | approved | features/import.md |  |`"
+    errors: []
+    leaks: none
+
+T-260.4:
+  ac: AC-260.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GA, GR]
+    command: python CHANGE record docs/prd/orders --base HEAD --bump minor --change 'Refuse an empty file'
+  expect:
+    output: {exit: 0}
+    effects: ["prd.md is byte-identical to the file GR left", "prd.md holds the text `; pending` once"]
+    errors: []
+    leaks: none
+
+T-260.5:
+  ac: AC-260.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GA]
+    runs:
+      - python CHANGE record docs/prd/orders --base HEAD --bump needs-judgment --change 'x | y'
+      - python CHANGE record docs/prd/orders --base HEAD --bump minor --change 'x | y'
+      - python CHANGE record docs/prd/orders --base HEAD --bump patch --change 'Refuse an empty file'
+  expect:
+    output:
+      each_run: {exit: 1, stdout: ""}
+      run_1: {stderr: "refused: a needs-judgment bump must be decided first\n"}
+      run_2: {stderr: "refused: the change text must be one non-empty line without |\n"}
+      run_3: {stderr: "refused: the diff needs minor, not patch\n"}
+    effects: ["prd.md unchanged after each run"]
+    errors: []
+    leaks: none
+
+T-260.6:
+  ac: AC-260.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GA]
+    command: python CHANGE record docs/prd/orders --base HEAD --bump huge --change x
+  expect:
+    output: {exit: 2, stderr_first_line_starts: "usage: prd_change.py"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-260.7:
+  ac: AC-260.7
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, "rewrite prd.md with every line ending in CRLF", GC, GA]
+    command: python CHANGE record docs/prd/orders --base HEAD --bump minor --change 'Refuse an empty file'
+  expect:
+    output: {exit: 0}
+    effects: ["every line of prd.md, read as bytes, ends in \\r\\n, the new §14 row included"]
+    errors: []
+    leaks: none
+
+T-260.8:
+  ac: AC-260.8
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GN]
+    command: python CHANGE record docs/prd/orders --base HEAD --bump patch --change x
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: §14 has no changelog table\n"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-260.9:
+  ac: AC-260.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GA, "git branch before", GC, GS]
+    command: python CHANGE record docs/prd/orders --base before --bump minor --change 'two moves'
+    note: "the base is a branch; the version comes from the base's prd.md"
+  expect:
+    output: {exit: 0, stdout_contains_line: "1.1.0"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-260.10:
+  ac: AC-260.9
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-076
+  symptom: "the run's second stdout line is `| 1.0.1 | <today> | cite a journey; pending | FR-001 |`"
+  input:
+    setup: [G0, "append to features/import.md the four lines \"\", `### UJ-01 Import a file`, `Status: live (since 1.0.0)` and `Flow: the user runs the importer on a file.`", GC,
+            "contracts/errors.yaml line 5 `  message: The import file has no header line.` becomes `  message: The import file has no header line (FR-001, UJ-01).`"]
+    command: python CHANGE record docs/prd/orders --base HEAD --bump patch --change 'cite a journey'
+  expect:
+    output: {exit: 0, stdout_contains_line: "| 1.0.1 | <today> | cite a journey; pending | UJ-01, FR-001 |"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-260.11:
+  ac: AC-260.10
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-077
+  symptom: "prd.md's §14 holds two rows ending `; pending`, `| 1.1.0 | <today> | first; pending | FR-001, AC-001.1 |` and `| 2.0.0 | <today> | second; pending | FR-001, AC-001.1 |`"
+  input:
+    setup: [G0, GW]
+    runs:
+      - python CHANGE record docs/prd/orders --base HEAD --bump minor --change first
+      - python CHANGE record docs/prd/orders --base HEAD --bump major --change second
+  expect:
+    output:
+      each_run: {exit: 0}
+      run_2: {stdout_contains_line: "2.0.0"}
+    effects:
+      - "prd.md holds the text `; pending` once"
+      - "prd.md's §14 last row is `| 2.0.0 | <today> | second; pending | FR-001, AC-001.1 |`, and no row of §14 has the version 1.1.0"
+    errors: []
+    leaks: none
+
+T-261.1:
+  ac: AC-261.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, lint-cli/plugins_none]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GP, GC]
+    command: python CHANGE pack docs/prd/orders service 1.0.0
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_exact_lines: ["1.0.1", "| 1.0.1 | <today> | pack service 0.9.0 → 1.0.0; pending | - |"]
+    effects:
+      - "prd.md line 14 is `- Pack: service 1.0.0 (prd-toolkit)` and line 3 `version: 1.0.1`"
+      - "git status --porcelain prints only ` M docs/prd/orders/prd.md`"
+    errors: []
+    leaks: none
+
+T-261.2:
+  ac: AC-261.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, lint-cli/plugins_none]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0]
+    runs:
+      - python CHANGE pack docs/prd/orders service 1.0
+      - python CHANGE pack docs/prd/orders service 1.0.0
+      - {setup_before: [GP, GC], command: python CHANGE pack docs/prd/orders service 0.9.0}
+      - python CHANGE pack docs/prd/orders service 2.0.0
+      - {setup_before: ["append the line `A note.` to errors.md"], command: python CHANGE pack docs/prd/orders service 1.0.0}
+  expect:
+    output:
+      run_1: {exit: 2, stderr: "pack: 1.0 is not a version X.Y.Z\n"}
+      run_2: {exit: 1, stderr: "refused: no Pack: or Target: pack line names service\n"}
+      run_3: {exit: 1, stderr: "refused: every line naming service already names 0.9.0\n"}
+      run_4: {exit: 1, stderr_single_line_starts: "refused: pack service", stderr_contains: "not found; looked in: "}
+      run_5: {exit: 1, stderr: "refused: docs/prd/orders has uncommitted changes; commit or set them aside first\n"}
+    effects: ["each of the five runs leaves every file of the PRD folder (`<tmp>/docs/prd/orders`) as it was just before that run"]
+    errors: []
+    leaks: none
+
+T-261.3:
+  ac: AC-261.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GP, "features/import.md: insert after line 1 the line `Target: pack service 0.8.0 (prd-toolkit)`", GC]
+    command: python CHANGE pack docs/prd/orders service 1.0.0
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: the lines naming service disagree on its version or source\n"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-261.4:
+  ac: AC-261.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GN, GP, GC]
+    command: python CHANGE pack docs/prd/orders service 1.0.0
+  expect:
+    output: {exit: 1, stderr: "refused: §14 has no changelog table\n"}
+    effects: ["prd.md is byte-identical to its committed text: line 14 still names service 0.9.0", "git status --porcelain prints nothing"]
+    errors: []
+    leaks: none
+
+T-262.1:
+  ac: AC-262.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    runs:
+      - python CHANGE approve docs/prd/orders --reply '  ' --dry-run DRY
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run pending
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run 'dry run T-008.1 | 0'
+  expect:
+    output:
+      each_run: {exit: 1, stdout: ""}
+      run_1: {stderr: "refused: the owner's reply is empty\n"}
+      run_2: {stderr: "refused: the dry-run record is pending; give the record or \"no dry run (<why>)\"\n"}
+      run_3: {stderr: "refused: the dry-run record must be one non-empty line without |\n"}
+    effects: ["every file under <tmp> is unchanged, .prd-review.json included; git log -1 --format=%s prints `base`"]
+    errors: []
+    leaks: none
+
+T-262.2:
+  ac: AC-262.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    runs:
+      - {setup_before: ["write .prd-review.json with the line `not json`"], command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY}
+      - {setup_before: ["write .prd-review.json with the line `{\"ready\": false, \"blockers\": [\"lint fails\", \"a question is open\"]}`"], command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY}
+      - {setup_before: ["write .prd-review.json with the line `{\"ready\": false}`"], command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY}
+      - {setup_before: ["delete .prd-review.json"], command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY}
+  expect:
+    output:
+      each_run: {exit: 1, stdout: ""}
+      run_1: {stderr: "refused: .prd-review.json is not valid JSON\n"}
+      run_2: {stderr: "refused: the review is not ready: lint fails; a question is open\n"}
+      run_3: {stderr: "refused: the review is not ready\n"}
+      run_4: {stderr: "refused: there is no .prd-review.json; run the review first\n"}
+    effects: ["prd.md unchanged after each run"]
+    errors: []
+    leaks: none
+
+T-262.3:
+  ac: AC-262.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R, "append the line `A note.` to errors.md"]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: the PRD changed after its review; review it again\n"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-262.4:
+  ac: AC-262.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GQ, GA, GR, "features/import.md line 34 `- AC-008.1 If the import file is empty, the importer shall exit 2.` becomes `- AC-008.1 The importer exits 2 on an empty file.`", GV]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+    note: "the AC is not EARS, so lint exits 1"
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: lint exits 1; fix it first\n"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-262.5:
+  ac: AC-262.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run 'no dry run (unit only)'
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: the change adds or revises a non-unit test (T-008.1) and has no dry-run record\n"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-262.6:
+  ac: AC-262.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, G09, GQ, GA, GR, GV]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+    note: "§14's rows are 0.9.0 and 0.10.0"
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: a first approval is authoring's, not a change's\n"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-262.7:
+  ac: AC-262.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GQ, GV]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run 'no dry run (status only)'
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: the last §14 row is not recorded and pending; run record first\n"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-262.8:
+  ac: AC-262.7
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GH, GQ, GA, GR, "append the line `more` to <tmp>/CLAUDE.md", GV]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: CLAUDE.md has uncommitted changes; commit or set them aside first\n"}
+    effects: ["prd.md and <tmp>/CLAUDE.md unchanged"]
+    errors: []
+    leaks: none
+
+T-262.9:
+  ac: AC-262.8
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R, "delete .prd-review.json"]
+    command: python CHANGE approve docs/prd/orders --reply '' --dry-run DRY
+    note: "two checks fail; the reply's comes first"
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: the owner's reply is empty\n"}
+    effects: ["every file under <tmp> is unchanged"]
+    errors: []
+    leaks: none
+
+T-262.10:
+  ac: AC-262.7
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GH, GQ, GA, GR, "run `python BLOCK docs/prd/orders`", GV]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+    note: "CLAUDE.md differs from HEAD's by the managed block alone"
+  expect:
+    output: {exit: 0}
+    effects: ["git show --name-only --format= HEAD lists CLAUDE.md"]
+    errors: []
+    leaks: none
+
+T-262.11:
+  ac: AC-262.9
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-078
+  symptom: "the run exits 0 and prints the one stdout line `approved orders 1.1.0 <sha>`, `<sha>` being the short SHA of the commit it made (AC-263.1)"
+  input:
+    setup: [R]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run 'No dry run (unit only)'
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: the change adds or revises a non-unit test (T-008.1) and has no dry-run record\n"}
+    effects: ["prd.md unchanged", "git log prints the one commit G0 made"]
+    errors: []
+    leaks: none
+
+T-262.12:
+  ac: AC-262.10
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-079
+  symptom: "the run's stderr is `refused: the review is not ready: l; i; n; t` and a newline"
+  input:
+    setup: [R, "write .prd-review.json with the line `{\"ready\": false, \"blockers\": \"lint\"}`"]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: the review is not ready: lint\n"}
+    effects: ["prd.md unchanged"]
+    errors: []
+    leaks: none
+
+T-263.1:
+  ac: AC-263.1
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    runs:
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+      - git rev-parse --short HEAD
+  expect:
+    output:
+      run_1: {exit: 0, stderr: ""}
+    relations: ["run_1's stdout is the one line `approved orders 1.1.0 ` followed by run_2's stdout line"]
+    effects:
+      - "prd.md line 4 is `status: Approved`"
+      - "prd.md's last line is `| 1.1.0 | <today> | Refuse an empty file; dry run T-008.1, 0 open questions, 0 dismissed by quote | FR-008, AC-008.1, T-008.1 |`"
+      - "docs/prd/orders/.prd-review.json does not exist"
+      - "git status --porcelain --untracked-files=all -- docs/prd prints nothing"
+    errors: []
+    leaks: none
+
+T-263.2:
+  ac: AC-263.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    runs:
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+      - git log -1 --format=%B
+  expect:
+    output:
+      run_1: {exit: 0}
+      run_2:
+        stdout_lines_in_this_relative_order:
+          - "docs(prd): approve orders 1.1.0"
+          - ""
+          - "Reply: \"approved\""
+          - "Dry run: dry run T-008.1, 0 open questions, 0 dismissed by quote"
+          - ""
+          - "Refs: none (no behaviour change)"
+    effects: []
+    errors: []
+    leaks: none
+
+T-263.3:
+  ac: AC-263.2
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    runs:
+      - {argv: [python, CHANGE, approve, docs/prd/orders, --reply, "yes\nRefs: FR-001", --dry-run, DRY, --refs, "FR-008, E-001"]}
+      - git log -1 --format=%B
+    note: "the --reply argument is two lines, joined by a newline"
+  expect:
+    output:
+      run_1: {exit: 0}
+      run_2:
+        stdout_lines_in_this_relative_order: ["Reply: \"yes", " Refs: FR-001\"", "Refs: FR-008, E-001"]
+        stdout_not_contains: "Refs: none (no behaviour change)"
+    effects: []
+    errors: []
+    leaks: none
+
+T-263.4:
+  ac: AC-263.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    runs:
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run DRY --json
+      - git rev-parse HEAD
+      - git show --name-only --format= HEAD
+  expect:
+    output:
+      run_1: {exit: 0}
+      run_3:
+        stdout_contains_line: "docs/prd/orders/prd.md"
+        stdout_not_contains: ".prd-review.json"
+    relations: ["run_1's stdout is the one JSON line {\"interface\": 1, \"kind\": \"change.approve\", \"commit\": C}, C being run_2's stdout line"]
+    effects: ["git diff --cached --name-only prints nothing"]
+    errors: []
+    leaks: none
+
+T-263.5:
+  ac: AC-263.3
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base, lint-cli/plugins_none]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0N]
+    runs:
+      - {setup_before: [GP, GC], command: python CHANGE pack docs/prd/orders service 1.0.0}
+      - python HOOKS install docs/prd/orders
+      - {setup_before: ["git config core.hooksPath /dev/null", GV], command: python CHANGE approve docs/prd/orders --reply approved --dry-run 'no dry run (pack version only)'}
+      - git show --name-only --format= HEAD
+  expect:
+    output:
+      each_run: {exit: 0}
+      run_4: {stdout_contains_line: ".prd-toolkit/pack-sources.json", stdout_contains: [".prd-toolkit/packs/service/pack.yaml"]}
+    effects: ["git status --porcelain --untracked-files=all -- .prd-toolkit/packs .prd-toolkit/pack-sources.json prints nothing"]
+    errors: []
+    leaks: none
+
+T-263.6:
+  ac: AC-263.4
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R]
+    argv: [python, CHANGE, approve, docs/prd/orders, --reply, approved, --dry-run, DRY, --refs, "FR-008\nE-001"]
+  expect:
+    output: {exit: 2, stdout: "", stderr: "approve: --refs must be one line\n"}
+    effects: ["every file under <tmp> is unchanged"]
+    errors: []
+    leaks: none
+
+T-263.7:
+  ac: AC-263.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [R, "write <tmp>/hooks/pre-commit, mode 0755, as the two lines `#!/bin/sh` and `echo 'hook says no' >&2; exit 1`", "git config core.hooksPath <tmp>/hooks"]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: git commit failed: hook says no\n"}
+    effects:
+      - "prd.md is byte-identical to the file R left (`status: In review`, and the last §14 row the one whose Change cell ends `; pending`)"
+      - "docs/prd/orders/.prd-review.json exists, unchanged"
+      - "git diff --cached --name-only prints nothing; git log -1 --format=%s prints `base`"
+      - "none of `<tmp>/CLAUDE.md`, `<tmp>/docs/prd/README.md` and `<tmp>/docs/prd/orders/README.md` exists, as before the run"
+    errors: []
+    leaks: none

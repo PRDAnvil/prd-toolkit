@@ -1,0 +1,9 @@
+# Fixture change/texts: the kind arguments and the line the change cases name as texts.<key>. They live here
+# because a lint of the PRD folder reads an ID-shaped word anywhere else as an ID; lint never reads fixture data.
+ac_099: "AC-099"
+ac_001: "AC-001"
+t_005: "T-005"
+t_099: "T-099"
+ac_12: "AC-12"
+t_001: "T-001"
+refused_12: "refused: no block FR-12 or NFR-12\n"

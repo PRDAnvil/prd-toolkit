@@ -19,7 +19,7 @@
 | links | not started | `prd-toolkit/scripts/prd_links.py`, `prd-toolkit/scripts/prdlint/links.py`, `prd-toolkit/scripts/prdlint/changeset.py`, `prd-toolkit/scripts/prdlint/snapshot.py`, `prd-toolkit/scripts/prdlint/citations.py`, `prd-toolkit/scripts/prdlint/rules/links.py` |
 | tester-guard | not started | `prd-toolkit/scripts/prd_tester_guard.py`, `prd-toolkit/hooks/**` |
 | gates | not started | `prd-toolkit/scripts/prd_gates.py`, `prd-toolkit/scripts/prdlint/gates.py`, `prd-toolkit/scripts/prdlint/formserver.py`, `prd-toolkit/scripts/prd_confirm.py`, `prd-toolkit/scripts/prdlint/confirm.py` |
-| change | not started | `prd-toolkit/scripts/prd_change.py`, `prd-toolkit/scripts/prdlint/change.py`, `prd-toolkit/scripts/prdlint/change_approve.py` |
+| change | adopted | `prd-toolkit/scripts/prd_change.py`, `prd-toolkit/scripts/prdlint/change.py`, `prd-toolkit/scripts/prdlint/change_approve.py` |
 | judge | not started | `prd-toolkit/scripts/prd_judge.py`, `prd-toolkit/scripts/prdlint/judge.py` |
 | packs | not started | `prd-toolkit/scripts/prdlint/packs.py`, `prd-toolkit/scripts/prdlint/languages.py`, `prd-toolkit/scripts/prdlint/rules/packs.py` |
 | skills | not started | `prd-toolkit/skills/**`, `prd-toolkit/agents/**`, `prd-toolkit/commands/**`, `prd-toolkit/references/clarify-categories.md`, `prd-toolkit/references/contract-types.md`, `prd-toolkit/references/ears.md`, `prd-toolkit/references/quality-checklist.md`, `prd-toolkit/references/test-levels.md`, `prd-toolkit/references/prd-format.md`, `prd-toolkit/templates/prd/**` |
