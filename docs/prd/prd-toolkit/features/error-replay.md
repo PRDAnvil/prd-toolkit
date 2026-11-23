@@ -185,7 +185,7 @@ Tests: T-077.1 [integration], T-077.2 [integration], T-077.3 [integration], T-07
 Traces: UJ-07; cli:prd_error
 
 ### FR-078 What the replay prints and how it exits
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/errorreplay.py:407 @8eb9a3a
 Flow: 1. read the entry → 2. make the checks in order, the first that matches deciding → 3. make the runs
       → 4. print one line per finding, or the one line that the proof holds or that the entry is skipped
@@ -363,8 +363,8 @@ Tests: T-080.1 [integration], T-080.2 [integration], T-080.3 [integration], T-08
 Traces: UJ-07; cli:prd_error
 
 ### FR-081 Check a red run, and the older forms as before
-Status: approved
-Source: prd-toolkit/scripts/prdlint/errors.py:332 @8eb9a3a
+Status: verified
+Source: prd-toolkit/scripts/prdlint/errors.py:350 @682ed48
 Flow: 1. `prd error check` finds the Resolution lines added in its range → 2. a red run is checked
       against the PRD at the range's head, with no run → 3. the three older forms are checked as before
       → 4. a CI run, which `resolve --ci-run` writes, is checked for its class and its version
