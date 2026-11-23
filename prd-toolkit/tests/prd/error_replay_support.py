@@ -478,17 +478,30 @@ class Case:
     def _step_RK(self, root: Path, resolution) -> None:
         self._tag(root, "start")
 
-    def _write_ledger(self, root: Path, resolution) -> None:
+    def _write_ledger(self, root: Path, resolution, key: str = "ledger") -> None:
         if resolution is None:
             raise SetupError("step RE needs the case's resolution")
-        text = files("ledger")
+        text = files(key)
         if text.count("RESOLUTION") != 1:
-            raise SetupError("files.ledger does not hold the word RESOLUTION once")
+            raise SetupError(f"files.{key} does not hold the word RESOLUTION once")
         _write(root / ORDERS / "errors.md", text.replace("RESOLUTION", self.expand(resolution)))
 
     def _step_RE(self, root: Path, resolution) -> None:
         self._write_ledger(root, resolution)
         self._commit(root, "resolve")
+
+    def _step_REC(self, root: Path, resolution) -> None:
+        """RE, with files.ledger_ci in place of files.ledger: the case's Resolution line on the environment entry."""
+        self._write_ledger(root, resolution, "ledger_ci")
+        self._commit(root, "resolve")
+
+    def _step_RV(self, root: Path, resolution) -> None:
+        _write(root / ORDERS / "errors.md", files("ledger_env"))
+        self._commit(root, "environment")
+
+    def _step_RSD(self, root: Path, resolution) -> None:
+        _write(root / ORDERS / "errors.md", files("ledger_standard"))
+        self._commit(root, "standard")
 
     def _step_REU(self, root: Path, resolution) -> None:
         self._write_ledger(root, resolution)
