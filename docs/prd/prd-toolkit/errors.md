@@ -883,6 +883,7 @@ Recurrence of: -
 ### E-073 The generated CI workflow has no way to add a runner setup step before a job's command
 Detected: 2026-11-23, user report (adoption of SQLAnvil/sqlanvil, generated CI)
 Classification: spec gap
+Confirmed: 2026-11-23, "Confirm the class (form)"
 Touches: FR-114, FR-116, FR-117
 Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), on prd-toolkit 0.8.14.
   Every Bazel job of the first generated CI run (45205148047) failed while Bazel loaded:
