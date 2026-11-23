@@ -949,3 +949,11 @@ Touches: FR-260
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-078 approve takes a capitalised No dry run record for a non-unit test
+Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-55 (prd-toolkit/scripts/prdlint/change_approve.py:71 @169036a)
+Classification: unclassified
+Touches: FR-262
+Diagnosis: -
+Resolution: -
+Recurrence of: -
