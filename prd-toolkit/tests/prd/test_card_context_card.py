@@ -21,7 +21,7 @@ IDS = [
 KEYS_BY_KIND = {
     "approval": BASE + ["areas", "url", "restate", "touches", "bump", "impact", "dry_run", "diff_truncated", "diff",
                         "version", "waiting"],
-    "error-class": BASE + ["areas", "url", "class", "diagnosis", "waiting"],
+    "error-class": BASE + ["areas", "url", "class", "diagnosis", "explanation", "waiting"],
     "deploy-step": BASE + ["areas", "url", "run", "step", "env", "actor", "do", "check", "waiting"],
     "adoption": BASE + ["items", "areas", "url", "area", "waiting"],
     "signoff": BASE + ["areas", "url", "tid", "owner", "input", "expect", "waiting"],
@@ -34,12 +34,13 @@ WHOLE_CARDS = {
         "title": "The importer stops at row 1000",
         "question": "Proposed class: code bug. Confirm it, or correct it to another class.",
         "evidence": [],
-        "choices": ["confirm", "correct"],
+        "choices": ["confirm", "correct", "question"],
         "source": "errors.md:3",
         "areas": ["import"],
         "url": "https://example.com/runs/1001",
         "class": "code bug",
         "diagnosis": "",
+        "explanation": None,
         "waiting": False,
     },
     "deploy-step:20261111T090000Z-all:2": {
