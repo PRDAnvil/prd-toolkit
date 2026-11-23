@@ -874,6 +874,7 @@ Recurrence of: -
 ### E-072 Outside a git checkout and without --claude-md, the block command writes CLAUDE.md inside the PRD folder
 Detected: 2026-11-22, confirmation of FR-246, the owner's answer to Q-47 (prd-toolkit/scripts/prd_block.py:351 @3a70ba0)
 Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
 Touches: FR-246
 Diagnosis: When the PRD folder is in no git checkout and `--claude-md` is not given, `main` takes the repository root from `model.repo_root(prd.root)` (prd_block.py:351), which falls back to the PRD folder itself, and writes `CLAUDE.md` there; the block names the PRD at `.` (prd_block.py:268-272). Lint then reads that `CLAUDE.md` as one of the PRD folder's files. The owner answered Q-47 that this is a defect: the command should refuse, printing `prd_block: <folder>: not inside a git checkout; name the CLAUDE.md with --claude-md`, writing nothing and exiting 2.
 Resolution: -
