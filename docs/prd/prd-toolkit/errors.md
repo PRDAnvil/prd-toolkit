@@ -962,8 +962,9 @@ Recurrence of: -
 
 ### E-079 approve prints a string blockers one character at a time
 Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-56 (prd-toolkit/scripts/prdlint/change_approve.py:71 @169036a)
-Classification: unclassified
+Classification: code bug
 Touches: FR-262
-Diagnosis: -
+Explanation: A review verdict that lists its one blocker as a word rather than a list made the refusal print the word letter by letter (`l; i; n; t`) instead of `lint`. The owner said it should print the word whole, so the refusal message is wrong: a code bug.
+Diagnosis: A probe (scratchpad probe.py, in a scratch git repository built from fixture status-next/base, running prd_change.py at 169036a) recorded the same change as E-078's probe, wrote `.prd-review.json` as `{"digest": <the folder's digest>, "ready": false, "blockers": "lint"}` and ran `prd_change.py approve docs/prd/orders --reply approved --dry-run 'dry run T-008.1, 0 open questions'`: exit 1, `refused: the review is not ready: l; i; n; t`. With `"blockers": ["lint"]` the same run printed `refused: the review is not ready: lint`. The cause: change_approve.py:44 joins `blockers` with `"; ".join(str(b) for b in blockers)`, which walks a string one character at a time. The owner answered Q-56 that a string `blockers` should be printed whole.
 Resolution: -
 Recurrence of: -
