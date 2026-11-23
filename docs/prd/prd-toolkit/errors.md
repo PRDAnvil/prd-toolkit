@@ -916,7 +916,8 @@ Recurrence of: -
 
 ### E-075 An environment or standard fix proven by a CI run has no resolution form that prd error check accepts
 Detected: 2026-11-23, user report (adoption of SQLAnvil/sqlanvil, generated CI)
-Classification: not a defect
+Classification: spec gap
+Confirmed: 2026-11-23, "spec gap, add the CI run form"
 Touches: FR-081, FR-080
 Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), on prd-toolkit 0.8.14.
   Four entries of class environment (sqlanvil E-008, E-009, E-011, E-012) were fixed by PRD changes plus a new green CI run, 45211614726.
