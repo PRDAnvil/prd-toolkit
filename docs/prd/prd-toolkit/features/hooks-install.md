@@ -375,7 +375,7 @@ Tests: T-113.1 [integration], T-113.2 [integration], T-113.3 [integration], T-11
 Traces: cli:prd_hooks; FR-068
 
 ### FR-114 The merge-gate jobs
-Status: live (since 9.2.0)
+Status: approved
 Source: prd-toolkit/scripts/prdlint/hooks.py:541 @07f77b1
   prd-toolkit/scripts/prdlint/hooks.py:520 @07f77b1
 Acceptance (EARS):
@@ -390,9 +390,14 @@ Acceptance (EARS):
 - AC-114.2 When `ci` names a job, the hooks command shall replace each character of the name other than an ASCII
   letter, a digit, `_` or `-` with `-`. A job whose name is already taken shall gain `-<n>`, `<n>` the lowest number from
   2 whose name is not yet taken, in job order.
+- AC-114.3 When the `## Harness` section of `testing.md` holds a slot bullet `- **Runner setup.**`, each backticked
+  text on that bullet (its first line and the lines indented under it), in order, shall be one setup command, and every
+  job `ci` writes, merge-gate and manual (FR-115) alike, shall run the setup commands, in that order, before its own
+  commands. Where the Harness holds no such bullet, or the bullet holds no backticked text, no job shall have a setup
+  command, and `ci` shall write the CI file it writes without the bullet.
 Errors: -
-Edge cases: a deploy-gate level gets no merge-gate job → AC-114.1; a level whose Harness command cell has no backticked command gets no job → AC-114.1
-Tests: T-114.1 [integration], T-114.2 [integration]  (test-cases/hooks-install.yaml)
+Edge cases: a deploy-gate level gets no merge-gate job → AC-114.1; a level whose Harness command cell has no backticked command gets no job → AC-114.1; two `Runner setup` bullets give their setup commands in bullet order → AC-114.3; the slot is not one of the fifteen lint checks, so lint reports nothing for it (AC-025.4) → AC-114.3
+Tests: T-114.1 [integration], T-114.2 [integration], T-114.3 [integration]  (test-cases/hooks-install.yaml)
 Traces: cli:prd_hooks; FR-068
 
 ### FR-115 The manual drift and deploy-test jobs
@@ -413,7 +418,7 @@ Tests: T-115.1 [integration]  (test-cases/hooks-install.yaml)
 Traces: cli:prd_hooks
 
 ### FR-116 The GitLab include file
-Status: live (since 9.2.0)
+Status: approved
 Source: prd-toolkit/scripts/prdlint/hooks.py:592 @07f77b1
 Acceptance (EARS):
 - AC-116.1 When `ci --gitlab` writes `.gitlab/prd-toolkit.yml`, the file shall start with the line
@@ -428,12 +433,15 @@ Acceptance (EARS):
   The file ends with one newline.
 - AC-116.2 When the GitLab file holds a manual job, that job's rules shall be the two lines `    - when: manual` and
   `  allow_failure: true` in place of the `- if:` line, and its other lines shall be as AC-116.1 says.
+- AC-116.3 When the jobs have setup commands (AC-114.3), each job of the GitLab file shall hold, directly after its
+  `    - "pip install uv"` line, one `    - <setup command>` line per setup command, in their order,
+  `<setup command>` a JSON string, and its other lines shall be as AC-116.1 and AC-116.2 say.
 Errors: -
-Tests: T-116.1 [integration], T-116.2 [integration]  (test-cases/hooks-install.yaml)
+Tests: T-116.1 [integration], T-116.2 [integration], T-116.3 [integration]  (test-cases/hooks-install.yaml)
 Traces: cli:prd_hooks
 
 ### FR-117 The GitHub workflow file
-Status: live (since 9.2.0)
+Status: approved
 Source: prd-toolkit/scripts/prdlint/hooks.py:608 @07f77b1
 Acceptance (EARS):
 - AC-117.1 When `ci --github` writes `.github/workflows/prd-toolkit.yml` with no manual job, the file shall hold:
@@ -449,8 +457,11 @@ Acceptance (EARS):
   AC-118.1's line shall follow the first line when it applies, and each job shall have, directly after its `<id>:`
   line, `    if: "github.event_name == 'workflow_dispatch'"` for a manual job and
   `    if: "github.event_name == 'pull_request'"` for a merge-gate job.
+- AC-117.3 When the jobs have setup commands (AC-114.3), each job of the GitHub file shall hold, directly after its
+  `      - uses: astral-sh/setup-uv@v5` line, one `      - run: <setup command>` line per setup command, in their
+  order, `<setup command>` a JSON string, and its other lines shall be as AC-117.1 and AC-117.2 say.
 Errors: -
-Tests: T-117.1 [integration], T-117.2 [integration]  (test-cases/hooks-install.yaml)
+Tests: T-117.1 [integration], T-117.2 [integration], T-117.3 [integration]  (test-cases/hooks-install.yaml)
 Traces: cli:prd_hooks
 
 ### FR-118 The CI file names the secrets the manual jobs may need

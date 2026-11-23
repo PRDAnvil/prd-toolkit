@@ -1687,6 +1687,55 @@ T-114.2:
     errors: []
     leaks: none
 
+T-114.3:
+  ac: AC-114.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a, then DEPLOY in <tmp>/a; N0E in <tmp>/b"
+    - "in <tmp>/a/docs/prd/orders/testing.md, insert the two lines \"- **Runner setup.** Create the file with `touch ~/.npmrc`,\" and \"  then make the cache with `mkdir -p .cache`.\" directly after the line that starts \"- **Tools on the runner.**\""
+    - "in <tmp>/b/docs/prd/orders/testing.md, insert the line \"- **Runner setup.** Not applicable: the runner needs nothing.\" directly after the line that starts \"- **Tools on the runner.**\""
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS ci --github docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS ci --github docs/prd/orders}
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - file: "<tmp>/a/.github/workflows/prd-toolkit.yml"
+      read_as_yaml:
+        "jobs keys, in order": [prd-lint, prd-trace, test-unit, test-integration, drift-production, test-deploy-staging]
+        "jobs.prd-lint.steps.2.run": "touch ~/.npmrc"
+        "jobs.prd-lint.steps.3.run": "mkdir -p .cache"
+        "jobs.prd-trace.steps.2.run": "touch ~/.npmrc"
+        "jobs.prd-trace.steps.3.run": "mkdir -p .cache"
+        "jobs.test-unit.steps.2.run": "touch ~/.npmrc"
+        "jobs.test-unit.steps.3.run": "mkdir -p .cache"
+        "jobs.test-integration.steps.2.run": "touch ~/.npmrc"
+        "jobs.test-integration.steps.3.run": "mkdir -p .cache"
+        "jobs.drift-production.steps.2.run": "touch ~/.npmrc"
+        "jobs.drift-production.steps.3.run": "mkdir -p .cache"
+        "jobs.test-deploy-staging.steps.2.run": "touch ~/.npmrc"
+        "jobs.test-deploy-staging.steps.3.run": "mkdir -p .cache"
+        "jobs.prd-lint.steps.4.run": "sh .prd-toolkit/prd lint --ci docs/prd/orders"
+        "jobs.prd-lint.steps.5.run": "sh .prd-toolkit/prd hooks check --ci docs/prd/orders"
+        "jobs.prd-lint.steps length": 6
+        "jobs.test-unit.steps.4.run": "pytest tests/unit"
+        "jobs.test-unit.steps length": 5
+        "jobs.drift-production.steps.4.run": "sh .prd-toolkit/prd drift docs/prd/orders --env production"
+        "jobs.test-deploy-staging.steps.4.run": "export PRD_ENV=staging TEST_ENV=staging; pytest tests/system"
+        "jobs.test-deploy-staging.steps length": 5
+    - file: "<tmp>/b/.github/workflows/prd-toolkit.yml"
+      lines: the lines T-117.1 expects
+    errors: []
+    leaks: none
+
 T-115.1:
   ac: AC-115.1
   level: integration
@@ -1781,6 +1830,47 @@ T-116.2:
     errors: []
     leaks: none
 
+T-116.3:
+  ac: AC-116.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - "N0E in <tmp>/a; N0E in <tmp>/b, then DEPLOY in <tmp>/b"
+    - "in each of <tmp>/a/docs/prd/orders/testing.md and <tmp>/b/docs/prd/orders/testing.md, insert the line \"- **Runner setup.** `touch ~/.npmrc`, then `mkdir -p .cache`\" directly after the line that starts \"- **Tools on the runner.**\""
+    runs:
+    - {cwd: "<tmp>/a", command: python HOOKS ci --gitlab docs/prd/orders}
+    - {cwd: "<tmp>/b", command: python HOOKS ci --gitlab docs/prd/orders}
+  expect:
+    output:
+      each_run:
+        exit: 0
+    effects:
+    - file: "<tmp>/a/.gitlab/prd-toolkit.yml"
+      lines: >-
+        the lines T-116.1 expects, with the two lines '    - "touch ~/.npmrc"' and '    - "mkdir -p .cache"', in that
+        order, inserted directly after each '    - "pip install uv"' line
+    - file: "<tmp>/b/.gitlab/prd-toolkit.yml"
+      contains_lines_in_this_order:
+      - "test-deploy-staging:"
+      - "  image: python:3.12"
+      - "  rules:"
+      - "    - when: manual"
+      - "  allow_failure: true"
+      - "  before_script:"
+      - '    - "pip install uv"'
+      - '    - "touch ~/.npmrc"'
+      - '    - "mkdir -p .cache"'
+      - "  script:"
+      - '    - "export PRD_ENV=staging TEST_ENV=staging; pytest tests/system"'
+      note: "the lines are consecutive, and they are the last lines of the file; the file holds six '    - \"pip install uv\"' lines, and each is directly followed by '    - \"touch ~/.npmrc\"' and then '    - \"mkdir -p .cache\"'"
+    errors: []
+    leaks: none
+
 T-117.1:
   ac: AC-117.1
   level: integration
@@ -1839,6 +1929,31 @@ T-117.2:
         "  test-integration:": "    if: \"github.event_name == 'pull_request'\""
         "  drift-production:": "    if: \"github.event_name == 'workflow_dispatch'\""
         "  test-deploy-staging:": "    if: \"github.event_name == 'workflow_dispatch'\""
+    errors: []
+    leaks: none
+
+T-117.3:
+  ac: AC-117.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions: [status-next/empty]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup:
+    - N0E
+    - "in docs/prd/orders/testing.md, insert the line \"- **Runner setup.** `touch ~/.npmrc`, then `mkdir -p .cache`\" directly after the line that starts \"- **Tools on the runner.**\""
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 0
+    effects:
+    - file: "<tmp>/.github/workflows/prd-toolkit.yml"
+      lines: >-
+        the lines T-117.1 expects, with the two lines '      - run: "touch ~/.npmrc"' and '      - run: "mkdir -p .cache"',
+        in that order, inserted directly after each '      - uses: astral-sh/setup-uv@v5' line
     errors: []
     leaks: none
 
