@@ -154,7 +154,7 @@ def test_procedure_commands_are_one_per_call_with_literal_paths():
 def test_free_text_goes_in_single_quotes():
     """A backtick or `$` in a title, diagnosis or reply inside double quotes runs as shell."""
     for line in bash_lines(RUN):
-        for flag in ("--title", "--source", "--diagnosis", "--reply", "--not-a-defect"):
+        for flag in ("--title", "--source", "--diagnosis", "--reply", "--not-a-defect", "--explanation", "--reason"):
             if flag in line:
                 assert f"{flag} '" in line, (flag, line)
     assert "writing each `'` in it as `'\\''`" in flat(RUN)
@@ -896,8 +896,8 @@ def test_0814_r4_a_fix_that_needs_covered_code_undoes_the_whole_route():
 def test_0814_r4_no_covered_ac_stops_with_the_class_kept():
     """R2: a confirmed class cannot change; the owner decides on a change that adds the AC."""
     six = step(6)
-    assert ("the entry stays `confirmed` with its class (no command changes a confirmed class), and the owner "
-            "decides whether a `/prd-toolkit:prd-change` adds that AC. Once that change is approved, **A code bug** "
+    assert ("the entry stays `confirmed` with its class (only `prd error reopen` changes a confirmed class, and "
+            "only on a run that shows it wrong), and the owner decides whether a `/prd-toolkit:prd-change` adds that AC. Once that change is approved, **A code bug** "
             "goes on from its regression patch.") in six
     assert "the class is the owner's question" not in six
 
@@ -910,3 +910,115 @@ def test_0814_r4_the_regression_t_id_goes_under_the_covered_ac():
 
 def test_0814_r4_the_report_names_the_reverts():
     assert "every fix commit and their reverts" in step(6).split("**Report:**", 1)[1]
+
+
+# --- 0.8.15: reproduce before proposing, explain for the owner, an unsure reply, re-verify before the fix ---
+
+def test_0815_the_classes_include_not_a_defect():
+    for path in (SKILL, RUN):
+        assert "`not a defect`" in flat(path), path.name
+    three = step(3)
+    row = three.split("| not a defect |", 1)[1].split("\n", 1)[0]
+    assert "a run with the reported input shows the system doing what the quoted PRD line says" in row
+    assert "keep the class the report claims" not in flat(RUN)
+
+
+def test_0815_description_triggers_on_doubt_and_on_an_entry_that_no_longer_reproduces():
+    d = frontmatter(SKILL)["description"]
+    assert "a reply that doubts or questions the proposed class" in d
+    assert "a confirmed entry that no longer reproduces" in d
+    assert len(SKILL.read_text(encoding="utf-8").split("---\n")[1]) <= 1024
+
+
+def test_0815_rule_10_a_claim_is_not_evidence():
+    s = flat(SKILL)
+    assert "10. **A claim is not evidence; a run is.**" in s
+    assert ("A report, the owner's \"it's a bug\", a form answer, an adoption answer and a code reading are claims, "
+            "never evidence.") in s
+    assert ("A confirmation settles the class, never that the error happens, and never makes up for a failed or "
+            "skipped run.") in s
+    assert "never proposed as `code bug`" in s
+
+
+def test_0815_rule_11_explain_for_the_owner():
+    s = flat(SKILL)
+    assert "11. **Explain for an owner who has not read the code.**" in s
+    assert "a `code bug` means the PRD is right and the code is wrong" in s
+
+
+def test_0815_rule_12_doubt_reopens_and_the_fix_reproduces_first():
+    s = flat(SKILL)
+    assert "12. **A doubtful reply is not a confirmation, and a confirmation can be taken back.**" in s
+    assert "`prd error reopen`" in s
+    assert "Step 5 starts by reproducing the entry again on HEAD" in s
+
+
+def test_0815_red_flags_quote_the_baseline():
+    s = flat(SKILL)
+    for quote in ('"I changed no code, tests or PRD, and I ran nothing else." (R1)',
+                  '"I rewrote the Diagnosis line to say this, and kept the classification `code bug`." (R1, without the skill)',
+                  '"I can\'t undo that, and I did nothing else." (U1)',
+                  '"Because you weren\'t sure, I checked the diagnosis against the code before fixing anything, and it holds." (U1, without the skill)',
+                  '"Run `/prd-toolkit:prd-build greet FR-001 --fixes E-001` to close it through the build." (G1)'):
+        assert quote in s, quote
+
+
+def test_0815_rationalizations_from_the_ticket():
+    s = flat(SKILL)
+    for excuse in ("The owner confirmed it, so I'll skip the run.", "The code obviously does X.",
+                   "Adoption found it in the code, so it's a bug.", "They clicked confirm, so they agree.",
+                   "It's confirmed; the class can't change now."):
+        assert f'| "{excuse}" |' in s, excuse
+
+
+def test_0815_step_2_ends_in_a_run():
+    two = step(2)
+    assert "A code reading is a hypothesis, not a reproduction" in two
+    assert "Step 2 ends in a run that shows the failure" in two
+    assert "a probe in a scratch clone" in two and "never the repository itself" in two
+    assert "the command, the output the quoted PRD line expects and the output it printed" in two
+    assert "--class unclassified" in two and "not reproduced:" in two
+    assert "even when the report insists" in two
+    assert "still goes to step 3, with a diagnosis that starts" not in two
+
+
+def test_0815_entries_read_from_the_code_or_reopened_enter_at_step_2():
+    t = flat(RUN)
+    enter = t.split("**Where to enter.**", 1)[1].split(" 1. **", 1)[0]
+    assert "a `proposed` entry whose Diagnosis quotes no run" in enter
+    assert "a `Reopened:` line" in enter and "at step 2" in enter
+
+
+def test_0815_step_3_writes_the_explanation_as_a_recipe():
+    three = step(3)
+    assert "--explanation '<plain words>'" in three
+    at = 0
+    for part in ("what was run", "what it printed", "what the quoted PRD line says should happen",
+                 "why this class and not the nearest other one"):
+        at = three.index(part, at)
+    assert "It names no file and no line" in three
+    assert "**When the class turns on intent.**" in three and "Do you want" in three
+
+
+def test_0815_step_4_reads_the_words_and_reopens_a_doubtful_confirm():
+    four = step(4)
+    assert "I guess, sure?" in four and "even with the inbox's Confirm button" in four
+    assert "`choice` is `question`" in four
+    assert ("<scripts>/prd error reopen docs/prd/<slug> <E-nnn> --reason '<why>'; echo \"prd-error-exit=$?\""
+            in RUN.read_text(encoding="utf-8"))
+    assert 'git commit -m "docs(prd): reopen <E-nnn>" -m "Refs: <E-nnn>"' in RUN.read_text(encoding="utf-8")
+
+
+def test_0815_step_5_reproduces_again_before_the_fix():
+    five = step(5)
+    assert five.index("**First, reproduce it again.**") < five.index("| Class | Route |")
+    assert "on the current HEAD" in five
+    assert "Never resolve it with a commit made without the entry" in five
+
+
+def test_0815_the_inbox_question_and_the_old_copy_stop():
+    t = flat(RUN)
+    assert "**A question.**" not in t  # the decision inbox section is the same in four skills
+    assert "(the card's third answer, beside confirm and correct) wrote nothing and committed nothing" in step(4)
+    assert "predates 0.8.15" in t and "`prdlint/errorreopen.py`" in t
+    assert "`reopen` printed `E-<nnn> proposed <class>`" in t

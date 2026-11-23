@@ -46,6 +46,12 @@ a red run as no form it knows: steps 1 to 4 run as written, then stop before ste
 covers** and before step 6's resolve of a fix that names a T-id, and tell the user to run
 `prd_hooks.py install docs/prd/<slug>` from the plugin (the README's form) and commit
 `.prd-toolkit/`.
+When `.prd-toolkit/` exists but holds no `prdlint/errorreopen.py` (Glob it), the vendored copy
+predates 0.8.15, which has no `prd error reopen`, no `--explanation`, no class `not a defect` and no
+`propose --class unclassified`: step 2 runs as written; a run that matches the PRD is proposed with
+the report's class and a diagnosis that starts `not a defect:`, the explanation goes in the chat
+only, and a reopen is a stop. Whenever one of them is needed, also tell the user to run
+`prd_hooks.py install docs/prd/<slug>` from the plugin and commit `.prd-toolkit/`.
 
 **One command per Bash call, with literal paths.** Each command below is its own Bash call, and
 every path, ID and SHA in it is typed out in full: paste what a command printed, never a variable
@@ -62,7 +68,7 @@ part in backticks; nothing was written. In a command, those backticks sit inside
 
 | Exit | Means | Next |
 |---|---|---|
-| 0 | done | `new` printed `E-<nnn>`; `propose`, `confirm` and `resolve` printed `E-<nnn> <state> <class>`; `url` printed `E-<nnn> <state>[ <class>]`, the class only when it is not the state; `replay` printed `<E-nnn>: <T-id or test id> fails on <sha>^ and passes on <sha>` or a `skipped:` line (step 6); `check` printed nothing: go on |
+| 0 | done | `new` printed `E-<nnn>`; `propose`, `confirm` and `resolve` printed `E-<nnn> <state> <class>`; `reopen` printed `E-<nnn> proposed <class>`; `url` printed `E-<nnn> <state>[ <class>]`, the class only when it is not the state; `replay` printed `<E-nnn>: <T-id or test id> fails on <sha>^ and passes on <sha>` or a `skipped:` line (step 6); `check` printed nothing: go on |
 | 1 | refused | each reason is a `refused:` line on stderr (`check` and `replay` print findings on stdout instead): report them, and never work around one with another command or a hand edit; on `replay` findings, step 6 puts `errors.md` back with `git restore` |
 | 2 | usage | a command you mistyped, such as `--class code-bug` (`prd_error: class must be one of …`): fix it and run it again |
 
@@ -84,7 +90,12 @@ then run, as its own call:
 
 Each line is `E-<nnn> <state> <class> <Touches> <title>`; the second word is the state. A new error
 enters at step 1. An open entry resumes at the step its state names: `unclassified` at step 2,
-`proposed` at step 4, `confirmed` at step 5. A resolved entry has nothing left but step 6's check.
+`proposed` at step 4, `confirmed` at step 5. Two `proposed` entries enter at step 2 instead, so a
+run settles their class before the owner sees it: a `proposed` entry whose Diagnosis quotes no run
+(no command and the output it printed: an adoption extract's entry, or one proposed on a code
+reading), and one that holds a `Reopened:` line. Read the entry (`prd error list` names it; Grep
+`^### <E-nnn> ` in `errors.md` with the lines after it) to tell. A resolved entry has nothing left
+but step 6's check.
 For an entry recorded before this session (a failed deploy and a stopped build record their own),
 `<start>` is the commit before the one that added it: run, as its own call,
 
@@ -138,9 +149,11 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    git add docs/prd/<slug>/errors.md
    git commit -m "docs(prd): set the URL of <E-nnn>" -m "Refs: <E-nnn>"
    ```
-2. **Reproduce.** Run the evidence and find the root cause, with `superpowers:systematic-debugging`
-   when it is in your skills list. You may read the code and its history (`git log`, `git show`):
-   you are not the black-box tester. Nothing is fixed here.
+2. **Reproduce.** A code reading is a hypothesis, not a reproduction, and so are the report, the
+   owner's word and an adoption extract's Diagnosis. Step 2 ends in a run that shows the failure, or
+   one that shows the system doing what the PRD says. Find the root cause with
+   `superpowers:systematic-debugging` when it is in your skills list. You may read the code and its
+   history (`git log`, `git show`): you are not the black-box tester. Nothing is fixed here.
    - **A failing test, or one called flaky.** Run its level's harness command from `testing.md`
      Levels, narrowed to the test's file, as its own call: at most twice, never in a loop (no
      `for`, `while`, `seq`, `--count` or rerun plugin). "At most twice" counts every run of the
@@ -157,9 +170,33 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    - **A stopped build.** Its evidence holds the failing lines; read the round records it names.
    - **A user's report.** Run the command it names once, as its own call, when that command
      changes nothing (never a deploy, a migration or a runbook step).
+   - **A report that names no command, or an entry read from the code** (an adoption extract's, or
+     one proposed on a code reading). Run the test of the AC it concerns when one exists, its
+     level's harness command narrowed to the file, as for a failing test. Otherwise write a probe in
+     a scratch clone, never the repository itself: `mktemp -d` as its own call, then `git clone -q
+     <repository root> <TMP>/repo` as its own call, and a probe (a script under `<TMP>`, or a
+     `python3 -c` one-off) that drives the code with the reported input, run once from `<TMP>/repo`,
+     as its own call. A probe never runs a deploy, a migration or a runbook step, and never writes
+     inside the repository.
 
-   An error that does not reproduce still goes to step 3, with a diagnosis that starts
-   `not reproduced:` and says what was tried; the entry then waits for the user.
+   Each run's line in step 3's `--diagnosis` holds the command, the output the quoted PRD line
+   expects and the output it printed, each in backticks. Then one of three:
+
+   - **It reproduces:** the run shows the failure. Go to step 3 with it.
+   - **It runs as the PRD says:** a run with the reported input shows the system doing what the
+     quoted PRD line says. Step 3 proposes `not a defect`, even when the report insists.
+   - **It does not reproduce, and no run shows what the PRD says either** (the report names no
+     input you can drive, or a host you cannot reach). It is not proposed as `code bug`: record what
+     was tried, its own call,
+
+     ```bash
+     <scripts>/prd error propose docs/prd/<slug> <E-nnn> --class unclassified --diagnosis 'not reproduced: <each run and what it printed>, and <what would reproduce it>' --touches <IDs>; echo "prd-error-exit=$?"
+     ```
+
+     then `git add docs/prd/<slug>/errors.md` and
+     `git commit -m "docs(prd): diagnose <E-nnn>" -m "Refs: <E-nnn>"`, each its own call. Ask the
+     reporter for what would reproduce it (the input, the host, the steps), and end the turn. The
+     entry stays `unclassified`, opens no gate and waits for that answer, which re-enters at step 2.
 3. **Propose.** Settle the class against the PRD, never against what the code does:
 
    | Class | When |
@@ -169,10 +206,10 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    | invalid requirement | the code does what an AC says, and the AC is wrong; or a test case or a contract that contradicts its own AC (the AC stands, the PRD's test case or contract is wrong) |
    | environment | the code and the PRD agree; an environment, its config or the runbook is wrong |
    | standard | the code or the PRD breaks a standard in the PRD's registries |
+   | not a defect | a run with the reported input shows the system doing what the quoted PRD line says, and the PRD is right |
 
-   When the system does what the PRD says and the PRD is right, keep the class the report claims
-   and start the diagnosis with `not a defect:`. Look for a recurrence among every entry, resolved
-   ones included:
+   A `not a defect` diagnosis starts `not a defect:`. Look for a recurrence among every entry,
+   resolved ones included:
 
    ```bash
    <scripts>/prd error list docs/prd/<slug>; echo "prd-error-exit=$?"
@@ -181,15 +218,29 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    An entry with the same `Touches:` and the same symptom is its `--recurrence`. Then:
 
    ```bash
-   <scripts>/prd error propose docs/prd/<slug> <E-nnn> --class "<class>" --diagnosis '<the root cause, with the AC quoted>' --touches <IDs> --recurrence <E-mmm>; echo "prd-error-exit=$?"
+   <scripts>/prd error propose docs/prd/<slug> <E-nnn> --class "<class>" --explanation '<plain words>' --diagnosis '<the root cause, with the AC quoted>' --touches <IDs> --recurrence <E-mmm>; echo "prd-error-exit=$?"
    ```
+
+   **The explanation** is for an owner who has not read the code. It holds four parts, in this
+   order: what was run; what it printed; what the quoted PRD line says should happen; and why this
+   class and not the nearest other one (a `code bug` means the PRD is right and the code is wrong;
+   `invalid requirement` and `spec gap` mean the PRD is wrong or silent; `not a defect` means both
+   are right). It names no file and no line: those stay in `--diagnosis`, which keeps the root
+   cause, the run's command and both outputs, and the AC quoted.
+
+   **When the class turns on intent.** When the run shows the code doing something the quoted line
+   does not say, and nothing in the PRD settles which of the two the owner wants, the explanation
+   ends with that question in plain words instead of asking to confirm a class: "Do you want
+   <the PRD line, in plain words>, or <what the code does>? The first makes it a code bug, fixed in
+   the code; the second an invalid requirement, fixed in the PRD." Propose the class the PRD line
+   gives; the owner's answer confirms it or corrects it.
 
    `--touches` takes the blocks the diagnosis names, as `FR-001,FR-002`: an entry recorded before
    diagnosis has no `Touches:` line, and the recurrence check needs it; it replaces a line already
    there, and is left out only when the diagnosis names none. Leave out `--recurrence` when there
-   is none. The class is one of five strings, exactly:
-   `code bug`, `spec gap`, `invalid requirement`, `environment`, `standard`; `code-bug` is a
-   usage error. Then, each its own call:
+   is none. The class is one of six strings, exactly:
+   `code bug`, `spec gap`, `invalid requirement`, `environment`, `standard`, `not a defect`;
+   `code-bug` is a usage error. Then, each its own call:
 
    ```bash
    git add docs/prd/<slug>/errors.md
@@ -206,11 +257,11 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    none) and `url` (the entry's, else its first area's, or null). A vendored copy that predates
    0.8.12 prints neither: name the areas of the blocks `Touches:` names instead.
 
-   Show the user: the entry and its class; its areas (`Area: <names>`, or `Area: none`) and its
-   URL, as the card shows them; the PRD line quoted verbatim (for a spec gap, the sections
-   searched and found silent; for code no adopted area covers, its own account); the evidence; the
-   root cause; the entry
-   named in `Recurrence of:`, if any; and the route step 5 takes for that class. Ask whether the
+   Show the user the explanation first, then: the entry and its class; its areas (`Area: <names>`,
+   or `Area: none`) and its URL, as the card shows them; the PRD line quoted verbatim (for a spec
+   gap, the sections searched and found silent; for code no adopted area covers, its own account);
+   the evidence; the root cause; the entry named in `Recurrence of:`, if any; and the route step 5
+   takes for that class. Ask whether the
    class is right through **The decision inbox** below, with the gate `error-class:<E-nnn>`, or
    headless or in the chat as step 4 says, and end the turn to wait for the reply.
 4. **Confirm.** Only a reply given after the proposal counts; the request that started the loop is
@@ -218,7 +269,11 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    3 says and ask the same way, with the gate `error-class:<E-nnn>`. An outcome from `wait` is the
    reply: the inbox already ran `prd_error.py confirm` with it (and `--class` for a `correct`
    choice) and committed `docs(prd): confirm <E-nnn>`. Run neither again: run `prd_error.py list
-   docs/prd/<slug> --open` for the class the entry now holds, and go to step 5 with it. In the chat,
+   docs/prd/<slug> --open` for the class the entry now holds, and go to step 5 with it, unless its
+   words show doubt (**A doubtful reply** below). An outcome whose `choice` is `question` (the
+   card's third answer, beside confirm and correct) wrote nothing and committed nothing: the entry
+   is still `proposed` and the gate still pending, and its `reply` is the owner's question. Answer
+   it in plain words and ask again from `wait`. In the chat,
    the reply is what the user wrote after seeing the proposal, in this session or in a later message
    of theirs that names the entry (by number, or as the only `proposed` one), never from an earlier
    message, a summary or your own text. "Just fix it", "it's obviously a bug", "I'm away; handle
@@ -239,6 +294,28 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    git commit -m "docs(prd): confirm <E-nnn>" -m "Refs: <E-nnn>"
    ```
 
+   **A doubtful reply.** Read the reply's words, not only its choice. A reply that asks a question
+   or shows the owner does not follow the proposal ("I guess, sure?", "I don't really follow the
+   diagnosis", "if you say so") is not a confirmation, even with the inbox's Confirm button. In the
+   chat, confirm nothing. From the inbox, the reply is already a `Confirmed:` line: take it back
+   first, its own call,
+
+   ```bash
+   <scripts>/prd error reopen docs/prd/<slug> <E-nnn> --reason '<why>'; echo "prd-error-exit=$?"
+   ```
+
+   with the reason in plain words (`the owner's reply shows doubt: <the reply>`). It keeps the reply
+   on record in a `Reopened:` line and returns the entry to `proposed`. Then, each its own call:
+
+   ```bash
+   git add docs/prd/<slug>/errors.md
+   git commit -m "docs(prd): reopen <E-nnn>" -m "Refs: <E-nnn>"
+   ```
+
+   Either way, answer the doubt in plain words: step 3's explanation again, simpler, and whatever
+   the reply asked. Then ask again, as step 3 says. With no one left to ask, the entry stays
+   `proposed`: report the explanation and the question, and end the turn.
+
    **With no one to ask, commit the proposal and stop.** A headless session, "do not ask me
    questions" or "I'm away; handle it" leaves nobody to reply: confirm nothing, fix nothing.
    Step 3's commit holds the proposal. Report the entry, its class, the quote and the route, and
@@ -249,6 +326,18 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    commit made for the entry cites it in `Refs:` beside the requirement (`Refs: FR-001, E-001`):
    each `/prd-toolkit:prd-change`'s commits, its approval commit included, and the `--fixes` build's
    removal commits; the build's other commits cite its IDs, as every build commit does.
+
+   **First, reproduce it again.** Before any change, run what the Diagnosis says reproduced it (the
+   failing test, the command, or the probe in a fresh scratch clone, as step 2 says), on the current
+   HEAD, once, as its own call. When step 2 ran it in this session and HEAD has not moved since,
+   that run stands. A `not a defect` entry has nothing to run: go to its row.
+   - It still fails as the Diagnosis says: go on with the table below.
+   - It no longer reproduces, or the run now points to another class (a not-a-defect, a spec gap):
+     stop. Change nothing outside `errors.md`. Tell the owner in plain words what you ran, what it
+     printed, and why there is nothing to fix or why the class looks wrong. Then take the class
+     back with `prd error reopen` and commit it, as step 4's **A doubtful reply** shows, with that
+     run as the reason, and return to step 3 with it. Never resolve it with a commit made without
+     the entry, and never start a fix route for an error HEAD does not have.
 
    | Class | Route |
    |---|---|
@@ -410,10 +499,11 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
 
    Nothing of the route is left for the `--fixes` build to trip on: its regression T-id's test is
    the black-box tester's. Then the entry takes **A code bug** in step 5 whole, under the AC of the
-   covered area that states the behaviour, quoted in the regression patch. When no AC of the
-   covered area states it, report that and stop: the entry stays `confirmed` with its class (no
-   command changes a confirmed class), and the owner decides whether a `/prd-toolkit:prd-change`
-   adds that AC. Once that change is approved, **A code bug** goes on from its regression patch.
+   covered area that states the behaviour, quoted in the regression patch. When no AC of the covered
+   area states it, report that and stop: the entry stays `confirmed` with its class (only `prd error
+   reopen` changes a confirmed class, and only on a run that shows it wrong), and the owner decides
+   whether a `/prd-toolkit:prd-change` adds that AC. Once that change is approved, **A code bug**
+   goes on from its regression patch.
    `refused: <level> has no One test command; …` is step 5's stop.
 
    **The replay.** After a `resolve` that names a T-id (`--t`), and before `errors.md` is

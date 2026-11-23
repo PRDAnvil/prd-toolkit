@@ -1,6 +1,6 @@
 ---
 name: handling-errors
-description: Use when something goes wrong in a repo that has a docs/prd/ folder - a bug report or an error, wrong output, a failing or flaky test, a failed or killed deploy run, a stopped build, an open errors.md entry (E-nnn), an entry's proposed class waiting for the owner's answer (its gate error-class:E-nnn, in the chat or the decision inbox, prd_gates.py), /prd-toolkit:prd-error - and when asked to just fix it, retry it, redeploy it or close an entry; prd_error.py records the error in errors.md, Claude proposes its class, the user confirms it, and the fix starts from a failing test through /prd-toolkit:prd-change and /prd-toolkit:prd-build, or with a red run for code no adopted area covers
+description: Use when something goes wrong in a repo that has a docs/prd/ folder - a bug report or an error, wrong output, a failing or flaky test, a failed or killed deploy run, a stopped build, an open errors.md entry (E-nnn), an entry's proposed class waiting for the owner's answer (its gate error-class:E-nnn, in the chat or the decision inbox, prd_gates.py), a reply that doubts or questions the proposed class, a confirmed entry that no longer reproduces, /prd-toolkit:prd-error - and when asked to just fix it, retry it, redeploy it or close an entry; prd_error.py records the error in errors.md, Claude proposes its class, the user confirms it, and the fix starts from a failing test through /prd-toolkit:prd-change and /prd-toolkit:prd-build, or with a red run for code no adopted area covers
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/handling-errors/running-an-error.md` whole before anything else
@@ -14,10 +14,12 @@ Run no command, read no code and edit no file before you have read it.
 
 **Record, diagnose, propose, then wait for the user.** Every error (a user's report, a failing test,
 a failed deploy, a stopped build) becomes an `errors.md` entry that `prd_error.py` writes. You
-reproduce it, find the root cause, propose its class with the PRD line quoted, commit the proposal
-and ask. Only a confirmed entry is fixed, only from a test that fails first, and only through
-`/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`, except code no adopted area covers
-(rule 5). The close is `prd_error.py resolve` and its replay, then `prd_error.py check` over the
+reproduce it by a run, find the root cause, propose its class with the PRD line quoted and an
+explanation the owner can judge without reading the code, commit the proposal and ask. A code
+reading is a hypothesis: the class is settled on a run, and the fix starts with another one. Only a
+confirmed entry is fixed, only from a test that fails first, and only through
+`/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`, except code no adopted area covers (rule 5).
+The close is `prd_error.py resolve` and its replay, then `prd_error.py check` over the
 whole loop.
 
 **Violating the letter of these rules is violating the spirit.** "It's obviously a bug", "just
@@ -64,10 +66,10 @@ nothing below.
 6. **Diagnose; never retry or redeploy.** A test called flaky runs at most twice, each run its own
    Bash call, never in a loop. A failed deploy is never redeployed as its fix, the deploy script is
    never run by hand, and a killed step ends only through `prd_deploy.py recover`.
-7. **Exact classes.** `code bug`, `spec gap`, `invalid requirement`, `environment` or
-   `standard`, in quotes. `code-bug` is a usage error. A `prd_judge.py` exit 2 (a judged case that
-   could not be judged: `claude` missing or signed out, two bad grader answers, or the reason its
-   hint names) is proposed as `environment`, and so is a judged test that finds no
+7. **Exact classes.** `code bug`, `spec gap`, `invalid requirement`, `environment`, `standard` or
+   `not a defect`, in quotes. `code-bug` is a usage error. A `prd_judge.py` exit 2 (a judged case
+   that could not be judged: `claude` missing or signed out, two bad grader answers, or the reason
+   its hint names) is proposed as `environment`, and so is a judged test that finds no
    `.prd-toolkit/prd` or `.prd-toolkit/prd_judge.py`; its exit 1 is a judged case failing its
    threshold, a failing test like any other.
 8. **Evidence is a file of at most 20 lines** passed as `--evidence-file`: never a secret or a
@@ -75,6 +77,25 @@ nothing below.
 9. **Commit every ledger write, and check the close.** `prd_error.py check <start>..HEAD` from
    the commit before step 1. A finding is fixed and the check rerun. A resolution whose replay
    printed findings is not a ledger write to commit: it is put back (rule 4).
+10. **A claim is not evidence; a run is.** A report, the owner's "it's a bug", a form answer, an
+    adoption answer and a code reading are claims, never evidence. The class is settled on a run
+    that shows the failure (step 2): the failing test, the command the report names, or a probe in
+    a scratch clone, with its command and output quoted in the Diagnosis. An entry that does not
+    reproduce is never proposed as `code bug`; one whose run shows the system doing what the PRD
+    says is `not a defect`, even when the report insists. A confirmation settles the class, never
+    that the error happens, and never makes up for a failed or skipped run.
+11. **Explain for an owner who has not read the code.** The proposal says what was run, what it
+    printed, what the quoted PRD line says should happen, and why this class and not the nearest
+    one: a `code bug` means the PRD is right and the code is wrong; `invalid requirement` and
+    `spec gap` mean the PRD is wrong or silent. Files and lines stay in the Diagnosis. When the
+    class turns on what the owner wants, ask that question in plain words instead of asking to
+    confirm a class.
+12. **A doubtful reply is not a confirmation, and a confirmation can be taken back.** A reply that
+    asks a question or shows the owner does not follow ("I guess, sure?", "I don't really follow")
+    is answered in plain words and asked again, even when it came with the inbox's Confirm button:
+    `prd error reopen` takes back the `Confirmed:` line the inbox wrote, keeping the reply on
+    record. Step 5 starts by reproducing the entry again on HEAD; when it no longer reproduces, or
+    the run points to another class, the fix stops and the class is reopened, never fixed.
 
 ## Red Flags - STOP
 
@@ -107,6 +128,21 @@ Quoted from baseline runs (evals/baselines/handling-errors.md), except where mar
 - A `resolve` before the fix's test passed, or `check` never run. (Spec §5.)
 - `errors.md` committed after `prd error replay` printed findings, or before it printed its result
   (a replay sent to the background or stopped counts as none). (0.8.14 spec §6.)
+- "I changed no code, tests or PRD, and I ran nothing else." (R1) Said of an entry an adoption
+  extract read from the code, before asking the owner to confirm `code bug`. A run printed
+  `Hi, World!`: there was no bug.
+- "**Root cause:** `load_settings` in `src/greet/cli.py:17` lowercases every settings key" (R1) A
+  code reading restated as the root cause, with no run behind it.
+- "I rewrote the Diagnosis line to say this, and kept the classification `code bug`." (R1, without
+  the skill) Of an entry its own run showed does not reproduce.
+- "I can't undo that, and I did nothing else." (U1) Of the owner's "I guess, sure? I don't really
+  follow the diagnosis.", which the inbox wrote as `Confirmed:`. `prd error reopen` undoes it.
+- "Because you weren't sure, I checked the diagnosis against the code before fixing anything, and it
+  holds." (U1, without the skill) Then a fix: an unsure reply taken as the go-ahead.
+- `prd error resolve … --commit 31a3b1a`, a commit made without the entry, after the tests passed
+  on HEAD. (G1, both arms)
+- "Run `/prd-toolkit:prd-build greet FR-001 --fixes E-001` to close it through the build." (G1) A
+  fix route for a bug HEAD no longer has.
 
 **All of these mean: stop, put back what you changed outside `errors.md`, and return to the step
 of `running-an-error.md` whose gate is open.**
@@ -125,6 +161,12 @@ of `running-an-error.md` whose gate is open.**
 | "I'll give them the confirm command to run." | That routes around the proposal. Show it and ask for the reply. |
 | "There's no requirement to change, so the PRD flow doesn't apply." | Code no adopted area covers has its own route: the failing test committed alone, the fix, `resolve --red-run`, `check`. A hand-written `Resolution:` line proves nothing: only `resolve --red-run` replays, and `check` runs no test, so it accepts a red run typed by hand. |
 | "It can't be fixed until the owner adopts the code or adds an AC." | The owner's decision is the `Confirmed:` line. Code outside every adopted Boundary needs no requirement: it closes with a red run. |
+| "The owner confirmed it, so I'll skip the run." | A confirmation settles the class, never that the error happens. Step 5 runs it again on HEAD before any fix. |
+| "The code obviously does X." | A code reading is a hypothesis. Run it: the failing test, the command the report names, or a probe in a scratch clone. |
+| "Adoption found it in the code, so it's a bug." | The extract read the code and ran nothing. Its entry goes through step 2 like any report, and a run settles its class. |
+| "They clicked confirm, so they agree." | Read the words, not the button. "I guess, sure?" is doubt: reopen it, answer in plain words, and ask again. |
+| "It's confirmed; the class can't change now." | `prd error reopen` takes the class back and keeps the reply on record. A run that no longer shows the error, or shows another class, is the reason to. |
+| "It doesn't reproduce, but the report says it's a bug." | Then it is not a `code bug`. Record what was tried with `--class unclassified` and ask for what would reproduce it; a run that matches the PRD is `not a defect`. |
 
 ## Related skills
 
