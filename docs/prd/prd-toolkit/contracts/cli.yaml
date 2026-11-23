@@ -485,15 +485,20 @@ prd_error:
     2: "a usage error, a --timeout that is not a whole number of at least 1, an unsupported --json=N, or an internal error (FR-078)"
     130: "SIGINT during a run, once the run's process group is killed and the folder of its clone removed (FR-079)"
   resolve_red_run_invocation: "uv run --script prd-toolkit/scripts/prd_error.py resolve <prd_dir> <E-id> --commit <sha> --red-run <test id> --level <level>; through the launcher, prd error resolve (FR-080)"
+  resolve_ci_run_invocation: "uv run --script prd-toolkit/scripts/prd_error.py resolve <prd_dir> <E-id> --ci-run <url> --version <X.Y.Z>; through the launcher, prd error resolve (FR-081)"
   resolve_arguments:
     --red-run TEST_ID: "the argument the level's One test command takes, a path or a test id; with --commit and --level only (FR-080)"
     --level LEVEL: "a build-gate level of testing.md Levels with a One test command; with --red-run only (FR-080)"
+    --ci-run URL: "the address of a green forge CI run, starting http:// or https:// with no white space; with --version only, for an environment or standard entry (FR-081)"
   resolve_output:
     resolved: "stdout, every form: <E-id> resolved <class>, the entry's Classification, which is code bug for a red run (FR-080, FR-081)"
     red_run_line: "errors.md: Resolution: fixed in <sha>, red run <test id> [<level>], in place of the entry's Resolution: line (FR-080)"
     fix_line: "errors.md, --t <T-id> --version <X.Y.Z> --commit <sha>: Resolution: <T-id> [<level>], PRD <X.Y.Z>, fixed in <sha>, <level> the level: of the T-id's test case, in place of the entry's Resolution: line; no run made (FR-081)"
     run_line: "errors.md, --t <T-id> --version <X.Y.Z> --run <run id>: Resolution: <T-id>, PRD <X.Y.Z>, run <run id>, in place of the entry's Resolution: line; no run made (FR-081)"
     not_a_defect_line: "errors.md, --not-a-defect <why>: Resolution: not a defect: <why>, in place of the entry's Resolution: line; no run made (FR-081)"
+    ci_run_line: "errors.md, --ci-run <url> --version <X.Y.Z>: Resolution: -, PRD <X.Y.Z>, CI run <url>, in place of the entry's Resolution: line; no run made (FR-081)"
+    ci_run_usage: "stderr, errors.md unchanged, exit 2: prd_error: --ci-run takes --version, and no --t, --commit, --run, --red-run, --level or --not-a-defect | prd_error: --ci-run must start with http:// or https:// and hold no white space; got '<url>' | prd_error: version must be X.Y.Z; got '<X.Y.Z>' (FR-081)"
+    ci_run_refused: "stderr, errors.md unchanged, exit 1: refused: <E-id> is not an entry | refused: <E-id> is already resolved | refused: <E-id> is not confirmed | refused: <E-id> is classed <class>; a CI run resolves an environment or standard entry only (FR-081)"
     flag_mix: "stderr: prd_error: --red-run takes --commit and --level, and no --t, --version, --run or --not-a-defect (FR-080)"
     bad_commit: "stderr: prd_error: commit must be 7 to 40 lowercase hex digits; got '<value>' (FR-080)"
     refused: "stderr, errors.md unchanged: refused: <E-id> is not an entry | refused: <E-id> is already resolved | refused: <E-id> is not confirmed | refused: <E-id> is classed <class>; a red run resolves a code bug only | refused: <level> is not a level of testing.md | refused: <level> is a deploy-gate level | refused: <level> has no One test command; add the One test column to testing.md Levels through /prd-toolkit:prd-change | refused: the test id must hold no white space and must not start with - | refused: the PRD has no adoption map, so every path is covered; resolve with a regression T-id | refused: <sha> changes <path>, which area <area> covers; resolve with a regression T-id | refused: <a replay finding>, one line per finding (FR-080)"
@@ -505,6 +510,7 @@ prd_error:
   check_findings:
     red_run: "stdout, for a red run added in the range, no run made: errors.md: <E-id>: commit <sha> is not an ancestor of HEAD | errors.md: <E-id>: the PRD has no adoption map, so every path is covered | errors.md: <E-id>: commit <sha> changes <path>, which area <area> covers | errors.md: <E-id>: <level> is not a level of testing.md (FR-081)"
     no_form: "stdout: errors.md: <E-id>: resolution is not one of the four forms (FR-081)"
+    ci_run: "stdout, for a CI run added in the range, no run made, and whether or not a deploy run log exists: errors.md: <E-id>: a CI run resolves an environment or standard entry only | errors.md: <E-id>: PRD <X.Y.Z> is above the PRD version <version> | errors.md: <E-id>: PRD <X.Y.Z> has no changelog row (FR-081)"
     older_forms: "stdout, no run made: errors.md: <E-id>: <T-id> has no test case, for a fix with a T-id whose T-id has no test case | errors.md: <E-id>: run <run id> has no log in <folder>, for an environment run with no deploy run log, <folder> the absolute path of prd-toolkit/deploys in the git common folder | nothing for not a defect, or for a fix with a T-id that passes every check AC-081.3 names (FR-081)"
   check_exit_codes:
     0: "no finding (FR-081)"

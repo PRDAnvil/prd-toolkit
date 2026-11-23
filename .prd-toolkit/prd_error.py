@@ -64,6 +64,8 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--not-a-defect", dest="not_a_defect")
     c.add_argument("--red-run", dest="red_run", help="the test id the level's One test command takes; with --commit and --level only")
     c.add_argument("--level", help="a build-gate level of testing.md Levels with a One test command; with --red-run only")
+    c.add_argument("--ci-run", dest="ci_run",
+                   help="the address of a green forge CI run, for an environment or standard entry; with --version only")
     c = cmd("url")
     c.add_argument("address", help="the entry's URL, or - to remove its URL: line")
     c = cmd("replay")
@@ -102,6 +104,8 @@ def _run(args: argparse.Namespace, prd: model.Prd, today: date) -> list[str]:
         errors.set_url(prd, args.eid, args.address)
     elif args.red_run is not None:  # FR-080: red_run_refusals has passed
         errorreplay.write_red_run(prd, args.eid, args.commit, args.red_run, args.level)
+    elif args.ci_run is not None:  # FR-081: _ci_run_usage has passed
+        errors.resolve_ci_run(prd, args.eid, args.ci_run, args.version)
     else:
         level = _level(prd, args.t) if args.t and not args.run and args.not_a_defect is None else None
         errors.resolve(prd, args.eid, t=args.t, level=level, version=args.version or "", commit=args.commit,
@@ -184,6 +188,29 @@ def _red_run_usage(args: argparse.Namespace) -> str | None:
     return None
 
 
+CI_RUN_FLAGS = "--ci-run takes --version, and no --t, --commit, --run, --red-run, --level or --not-a-defect"
+
+
+def _ci_run_usage(args: argparse.Namespace) -> str | None:
+    """AC-081.7: the flags `resolve --ci-run` takes, then its address's form, then its version's."""
+    if args.version is None or any(v is not None for v in (args.t, args.commit, args.run, args.red_run, args.level,
+                                                           args.not_a_defect)):
+        return CI_RUN_FLAGS
+    if not errors.CI_URL.fullmatch(args.ci_run):
+        return f"--ci-run must start with http:// or https:// and hold no white space; got '{args.ci_run}'"
+    if not errors.CI_VERSION.fullmatch(args.version):
+        return f"version must be X.Y.Z; got '{args.version}'"
+    return None
+
+
+def _resolve_usage(args: argparse.Namespace) -> str | None:
+    """A `resolve` usage error: AC-080.2's flag mix first, then, with --ci-run, AC-081.7, else AC-080.3."""
+    usage = _red_run_usage(args)
+    if args.ci_run is not None and usage != RED_RUN_FLAGS:
+        return _ci_run_usage(args)
+    return usage
+
+
 def _replay(argv: list[str]) -> int:
     """`replay` (FR-076 to FR-079): the proof, a skip or the findings; --json through prdlint/interface.py."""
     argv, asked = interface.split_argv(argv)
@@ -234,7 +261,7 @@ def main(argv: list[str], today: date | None = None) -> int:
     except SystemExit as e:
         return 0 if e.code in (0, None) else 2
     if args.cmd == "resolve":
-        usage = _red_run_usage(args)
+        usage = _resolve_usage(args)
         if usage:
             print(f"prd_error: {usage}", file=sys.stderr)
             return 2

@@ -459,7 +459,9 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    The resolution keeps the code-bug form (T-id, level, version, fix commit). A unit regression T-id
    carries no marker to grep, so the build's close is its only proof. A code bug fixed by **Code no
    area covers** (step 5) has no build: it resolves by the red run below once its fix commit is in.
-   An environment fix resolves on the new run that finished; not a defect resolves at once.
+   An environment fix resolves on the new run that finished, and an environment or standard fix
+   that builds no T-id (a runner setting, a formatting change) on the green forge CI run that
+   proves it; not a defect resolves at once.
    Before the resolve, Grep
    `known-failing: <E-nnn>` with the path `docs/prd/<slug>/test-cases/`, and `known-failing <E-nnn>`
    with each test root: a match means the `--fixes` build did not finish, so run it again (its
@@ -470,6 +472,7 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --run <run id> --t <T-id> --version <X.Y.Z>; echo "prd-error-exit=$?"
    <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --not-a-defect '<why>'; echo "prd-error-exit=$?"
    <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --commit <sha> --red-run <test id> --level <level>; echo "prd-error-exit=$?"
+   <scripts>/prd error resolve docs/prd/<slug> <E-nnn> --ci-run <url> --version <X.Y.Z>; echo "prd-error-exit=$?"
    ```
 
    The first is a fix (code bug, spec gap, invalid requirement, standard): the regression T-id,
@@ -505,6 +508,11 @@ and paste the first line wherever `<start>` appears: its first SHA when it holds
    whether a `/prd-toolkit:prd-change` adds that AC. Once that change is approved, **A code bug**
    goes on from its regression patch.
    `refused: <level> has no One test command; …` is step 5's stop.
+   The fifth is a CI run, for an `environment` or `standard` entry whose fix builds no T-id: the
+   address of the forge CI run that went green on the fix, and the PRD `version:` after the
+   change. It makes no run, writes `Resolution: -, PRD <X.Y.Z>, CI run <url>`, and refuses an
+   entry of any other class. A forge CI run's id never goes to `--run`: `check` reads `--run`
+   only from a `/prd-toolkit:prd-deploy` run's log, and reports any other id as having none.
 
    **The replay.** After a `resolve` that names a T-id (`--t`), and before `errors.md` is
    committed, its own call:
