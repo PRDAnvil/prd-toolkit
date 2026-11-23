@@ -45,8 +45,9 @@ Words used below.
   with the same Resolution line as `errors.md` in the working tree; when no commit does, it is `HEAD`.
   `<resolving commit>` in an output is the first 7 hex digits of its SHA.
 - A **run** starts the level's One test command with one more word appended, its argument, without a
-  shell, from the root of a clone, with the environment the command itself has, in a process group of
-  its own. A run that exits 0 **passes**; one that exits with any other code **fails**. A run still going
+  shell, from the root of a clone, with the environment the command itself has without the variables
+  `git rev-parse --local-env-vars` lists, in a process group of its own, so a test that calls git finds
+  its clone and never the repository the command is started in. A run that exits 0 **passes**; one that exits with any other code **fails**. A run still going
   when the timeout ends is killed with its process group; it **times out**, and neither passes nor fails.
   A run whose program the operating system cannot start **cannot start**, and neither passes nor fails.
 - The **timeout** of a run is the `--timeout` value when one is given, else the level's `Timeout` cell when
@@ -245,7 +246,7 @@ Traces: UJ-07; cli:prd_error
 
 ### FR-079 The replay leaves nothing behind and writes nothing
 Status: verified
-Source: prd-toolkit/scripts/prdlint/errorreplay.py:219 @2d74a6b
+Source: prd-toolkit/scripts/prdlint/errorreplay.py:224 @4b2f2f3
 Flow: 1. make a clone for each run → 2. remove its folder when the run ends → 3. remove the folder the
       clones were made in when the command ends, however it ends
 Acceptance (EARS):
@@ -279,11 +280,12 @@ write, cannot take a new worktree, and the replay holds there as it holds elsewh
 worktree → AC-079.6; `prd error resolve --red-run`, which replays, leaves nothing behind the same way →
 AC-079.2, FR-080; an internal error ends the command the same way, with exit 2; a command started with
 `GIT_INDEX_FILE`, `GIT_DIR` or `GIT_WORK_TREE` set, as git sets `GIT_INDEX_FILE` for its pre-commit and
-commit-msg hooks, leaves its repository's index and working tree as they were, since no git command the
-replay runs has those variables → AC-079.1 to AC-079.3; a test that leaves a folder of its clone without
+commit-msg hooks, leaves its repository's index and working tree as they were, since neither a git
+command the replay runs nor a run has those variables, so a test that runs `git add -A` stages its
+clone's files in its clone's index → AC-079.1 to AC-079.3; a test that leaves a folder of its clone without
 write permission (mode 0500) leaves nothing behind either, since the folder the command made is removed
 whatever a test left in it → AC-079.1 to AC-079.3
-Tests: T-079.1 [integration], T-079.2 [integration], T-079.3 [integration], T-079.4 [integration], T-079.5 [integration], T-079.6 [integration], T-079.7 [integration], T-079.8 [integration]  (test-cases/error-replay.yaml)
+Tests: T-079.1 [integration], T-079.2 [integration], T-079.3 [integration], T-079.4 [integration], T-079.5 [integration], T-079.6 [integration], T-079.7 [integration], T-079.8 [integration], T-079.9 [integration]  (test-cases/error-replay.yaml)
 Traces: UJ-07; cli:prd_error
 
 ### FR-080 Resolve a fix outside every adopted Boundary with a red run
