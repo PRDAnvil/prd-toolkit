@@ -941,3 +941,11 @@ Explanation: When a change edits a contract item that names a user journey, reco
 Diagnosis: `_CITED_BLOCK` (prdlint/change.py:602) matches `(?:UJ|FR|NFR)-\d{3}`, three digits, but a UJ ID has two (`UJ-03`: prd-format.md decision 6, and `next_id` writes `UJ-{:02d}`). So `UJ-03` in a contract item's text never matches, and `UJ-003` matches but names no block, so the `id_ in have` filter drops it: no UJ a changed contract item cites reaches the §14 IDs cell. The function's docstring says "The UJ, FR and NFR IDs a contract item cites", and the 0.8.3 design (§4 (j)) says every other item "cites each `UJ-nnn`, `FR-nnn` and `NFR-nnn` token in its text". FR-260 covers only the FR, NFR and AC citations.
 Resolution: -
 Recurrence of: -
+
+### E-077 record adds a second pending row when it runs again at another level
+Detected: 2026-11-23, adoption confirmation of change, the owner's answer to Q-52 (prd-toolkit/scripts/prdlint/change.py:728 @169036a)
+Classification: unclassified
+Touches: FR-260
+Diagnosis: -
+Resolution: -
+Recurrence of: -
