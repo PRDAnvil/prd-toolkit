@@ -856,6 +856,7 @@ Recurrence of: -
 ### E-070 A file the block command creates is readable only by its owner
 Detected: 2026-11-22, adoption extract of status (prd-toolkit/scripts/prd_block.py:315 @3a70ba0)
 Classification: code bug
+Confirmed: 2026-11-22, "code bug (Recommended)"
 Touches: FR-237, FR-239
 Diagnosis: `_replace` writes through `tempfile.mkstemp`, which creates its file with mode 0600, and copies a mode onto it only when the target already exists (prd_block.py:319). A `CLAUDE.md`, PRD README or parent README that the command creates is therefore 0600, whatever the umask: the group and others cannot read it. The sibling writer of a committed file, `prdlint/changeset.py:_write`, gives a new file `0o666 & ~umask` for exactly this reason (commit 42df229, "keep change-set records readable and write them whole"). FR-239 covers only a file that already exists.
 Resolution: -
