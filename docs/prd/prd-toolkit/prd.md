@@ -288,7 +288,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-141 | Put a human step at or just before each production environment's first step | live | features/lint-registries.md | 9.4.0 |
 | FR-142 | Run only deploy-gate levels that have a Harness command | live | features/lint-registries.md | 9.4.0 |
 | FR-143 | Check each Drift row's Check | approved | features/lint-registries.md |  |
-| FR-144 | Number errors.md entries from E-001 upward | approved | features/lint-registries.md |  |
+| FR-144 | Number errors.md entries from E-001 upward | verified | features/lint-registries.md |  |
 | FR-145 | Check an entry's Classification and Evidence | live | features/lint-registries.md | 9.4.0 |
 | FR-146 | Check an entry's Confirmed line | live | features/lint-registries.md | 9.4.0 |
 | FR-147 | Check Detected and Recurrence of on an entry with Confirmed | live | features/lint-registries.md | 9.4.0 |
