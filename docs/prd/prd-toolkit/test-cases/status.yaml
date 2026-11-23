@@ -1,0 +1,2426 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root; <tmp> is the test's tmp_path, the root of the scratch repository the steps build;
+#   RTMP is <tmp> resolved (Path.resolve()), written wherever a run prints an absolute path; ORDERS = <tmp>/docs/prd/orders.
+#   "python" is the interpreter running the tests. STATUS = <repo>/prd-toolkit/scripts/prd_status.py,
+#   BLOCK = <repo>/prd-toolkit/scripts/prd_block.py, VBLOCK = <tmp>/.prd-toolkit/prd_block.py.
+#   A run takes its working directory from the case's cwd: ORDERS for every cli:prd_status case unless the case says
+#   otherwise, and <tmp> for every cli:prd_block case unless the case says otherwise.
+#   Steps run in the order a case lists them, on the status-next steps' terms (testing.md, Setup steps): N0, N0X,
+#   NA1, NE1, NE2, NB2, NLV, NR1 to NR4 and NT1 are those steps. The steps below are this file's own. A relative path
+#   in a step is inside ORDERS unless it starts with <tmp>. Every line a step writes ends in a newline unless the
+#   step says otherwise. A step that does not find the line it edits ends the test as an error.
+#     SB0  run `python BLOCK docs/prd/orders` with <tmp> as the working directory; it must exit 0
+#     SVER in prd.md the line `version: 1.0.0` becomes `version: 1.1.0`
+#     SH0  delete the frontmatter line `status: Approved` from prd.md
+#     SU8  in prd.md the line `Not applicable: new project.` becomes the three lines `| Area | State | Boundary |`,
+#          `|---|---|---|` and `| import | adopted | `src/**` |`
+#     S8   in prd.md the line `Not applicable: new project.` becomes `See adoption.md.`; no adoption.md is written
+#     SR6  in prd.md the line `Not applicable: the fixture requires no skill.` becomes the four lines
+#          `| Object or activity | Skill | Decision |`, `|---|---|---|`,
+#          `| a code change | `superpowers:test-driven-development` | required |` and `| a review | code-review | recommended |`
+#     SP1  in prd.md insert after the line `- Language: Python 3.12` the line `- Pack: document 1.0.0 (prd-toolkit)`
+#     SS1  in prd.md the line `The orders service imports order files and prints monthly reports.` becomes the three
+#          lines `<!-- a note -->`, `The orders service imports order files. It prints` followed by three spaces,
+#          and `monthly reports.`
+#     SS2  delete from prd.md the line `The orders service imports order files and prints monthly reports.`
+#     SS3  in prd.md insert after the line `- Import a 10,000-row file in under 60 seconds.` the nine lines ``,
+#          `Principles: Keep it small.`, ``, `- **Plain.** One command, one answer.`, ``, `Getting started:`, ``,
+#          `1. Install the service.` and `2. Import a file.`
+#     SS4  in prd.md the line `The orders service imports order files and prints monthly reports.` becomes
+#          `The orders service imports order files and prints monthly reports. <!-- prd-toolkit:end -->`
+#     SS5  in prd.md insert after the line `The orders service imports order files and prints monthly reports.` the
+#          line `<!-- prd-toolkit:start -->`
+#     SS6  in prd.md the line `The orders service imports order files and prints monthly reports.` becomes
+#          `Does it import files? Yes, v1.2 does.`
+#     SN1  in nfr.md insert after line 1, `# Non-functional requirements`, the lines `` , `### NFR-008 Import speed`
+#          and `Status: verified`
+#     SZ   delete features/import.md and features/reports.md
+#     SA1  in features/reports.md insert after line 1, `# Reports`, the line `Target: output language pt-BR`
+#     SA2  after NA1: in adoption.md the line `| import | adopted | `src/import/**` |` becomes
+#          `| import | adopted | `src/import/**`, `tests/test_import.py` |` and the line
+#          `| audit | not started | `src/audit/**` |` becomes `| audit | not started |  |`
+#     SA3  after NA1: delete lines 5 to 9 of adoption.md, its five rows
+#     SM1  in features/import.md the line `Tests: T-001.1 [integration]  (test-cases/import.yaml)` becomes
+#          `Tests: T-001.1 [system]  (test-cases/import.yaml)`
+#     SU1  append to features/import.md the lines ``, `### UJ-01 An operator imports a file`, `Status: verified` and
+#          `Flow: 1. run the importer`
+#     SR7  in features/reports.md the line `Status: live (since 1.0.0)` under `### FR-007 Refuse an unknown month`
+#          becomes `Status: removed`
+#     SAB  in features/import.md the line `Status: live (since 1.0.0)` (under FR-004) becomes `Status: as-built`
+#     SE1  write errors.md with the lines `# Error ledger`, ``, `### E-001 The importer stops at row 1000`,
+#          `Detected: 2026-11-03, a run on the October file`, `Classification: code bug`, `Touches: FR-003`,
+#          `Resolution: not a defect: the file was cut short` and `Recurrence of: -` (one resolved entry)
+#     SK1  write links.md with the lines `# Links`, ``, `## Upstreams`, ``, `| Upstream | Location | Version | Commit | Needs |`,
+#          `|---|---|---|---|---|`, `| greet | `https://example.com/greet.git#docs/prd/greet` | 1.1.0 | 4f1c9a2 |  |`, ``,
+#          `## Consumers`, ``, `| Consumer | Location |`, `|---|---|` and
+#          `| dashboards | `git@example.com:org/bi.git#docs/prd/dashboards` |`
+#     SK2  write links.md as SK1 does, but with the Upstreams row `| billing | `../billing` | 1.0.0 | abc1234 | verified |`
+#          and no Consumers row (the table's two header lines only); end the test as an error when the folder
+#          <tmp>/../billing exists (a path Location is resolved against the repository root, <tmp>, as the links
+#          check resolves it)
+#     SK3  write links.md as SK2 does, but with the Upstreams row `| orders | `../billing` | 1.0.0 | abc1234 |  |`;
+#          like SK2, end the test as an error when the folder <tmp>/../billing exists
+#     SC1  write changes/CS-001.md with the lines `# CS-001 Add a flag`, ``, `Started: 2026-11-02 in orders`,
+#          `Status: running`, ``, `| Order | PRD | Location | Branch | Version | IDs | Waits for | Target | State |`,
+#          `|---|---|---|---|---|---|---|---|---|`,
+#          `| 1 | billing | `../billing` | cs-001-add-a-flag | 1.0.0 → 1.1.0 | — | — | verified | approved |`,
+#          `| 2 | orders | `.` | cs-001-add-a-flag | 1.0.0 | — | billing verified | verified | proposed |`, ``, `## Log`,
+#          `` and `- 2026-11-02 started`; and changes/CS-002.md with `# CS-002 Old`, ``, `Started: 2026-10-01 in orders`,
+#          `Status: done`, ``, the same two table header lines,
+#          `| 1 | orders | `.` | cs-002-old | 1.0.0 | — | — | verified | verified |`, ``, `## Log`, `` and `- 2026-10-01 done`
+#     SD0  append to operations.md the lines ``, `## Deployed`, ``, `| Environment | PRD version | Commit | Date | Run |` and
+#          `|---|---|---|---|---|`
+#     SD1  after SD0: append to operations.md `| production | 1.0.0 | 3f2c1a9 | 2026-11-02 | 20261102T103000Z-production |`
+#     SD2  after SD0: append to operations.md `| staging | 1.0.0 | 3f2c1a9 | 2026-11-12 | 20261112T000000Z-all |`
+#     SD3  after SD0: append to operations.md `| qa | 1.0.0 | abc1234 | 2026-11-03 | 20261103T000000Z-qa |`
+#     SG1  write <tmp>/.git/prd-toolkit/deploys/20261112T100000Z-all.jsonl with the lines
+#          `{"kind": "header", "run": "20261112T100000Z-all", "prd": "docs/prd/orders", "version": "1.0.0"}` and
+#          `{"kind": "step", "step": 1, "env": "staging", "actor": "agent", "result": "pass"}`
+#     SG2  write <tmp>/.git/prd-toolkit/deploys/20261113T090000Z-all.jsonl with the lines
+#          `{"kind": "header", "run": "20261113T090000Z-all", "prd": "docs/prd/other", "version": "1.0.0"}` and
+#          `{"kind": "step", "step": 1, "env": "staging", "actor": "agent", "result": "fail"}`
+#     SG3  write <tmp>/.gitignore with the line `CLAUDE.md`
+#     SV0  load fixture repo/vendored into <tmp>/.prd-toolkit (lint_cli_support.load_vendored), then write
+#          <tmp>/.prd-toolkit/HOMEPAGE with the line `https://example.com/toolkit`
+#     SV1  after SV0: write <tmp>/.prd-toolkit/HOMEPAGE as the one byte `\n`, and <tmp>/.claude-plugin/plugin.json with
+#          the line `{"name": "prd-toolkit", "homepage": "https://example.com/host"}`
+#     SV2  after SV0: delete <tmp>/.prd-toolkit/HOMEPAGE
+#     SB2  copy ORDERS to <tmp>/docs/prd/billing; in <tmp>/docs/prd/billing/prd.md the line `version: 1.0.0` becomes
+#          `version: 0.2.0` and the line `The orders service imports order files and prints monthly reports.` becomes
+#          `Billing sends invoices | credits. It runs nightly.`
+#     SB3  write <tmp>/docs/prd/broken/prd.md as the four bytes ff fe 80 0a (hexadecimal): not UTF-8
+#     SB4  copy ORDERS to <tmp>/docs/prd/my notes (a space in the name)
+#     SB5  write <tmp>/docs/prd/notes/a.md with the line `x` (no prd.md), and copy ORDERS/prd.md to
+#          <tmp>/docs/prd/.hidden/prd.md
+#     SQ   move the folder ORDERS to <tmp>/docs/requirements/orders
+#     SY   write <tmp>/real.md with the line `# Agents`, and create <tmp>/CLAUDE.md as a symbolic link to `real.md`
+#     SMODE write ORDERS/README.md with the line `# Mine` and set its mode to 0o640
+#     SF1  write <tmp>/CLAUDE.md with the seven lines `# Docs`, ``, "```", `<!-- prd-toolkit:start -->`, `example`,
+#          `<!-- prd-toolkit:end -->` and "```"
+#     SF2  write <tmp>/CLAUDE.md with the four lines `# D`, ``, "```" and `unclosed example`
+#     SX1  write ORDERS/README.md with the three lines `<!-- prd-toolkit:start -->`, `<!-- prd-toolkit:start -->` and
+#          `<!-- prd-toolkit:end -->`
+#     SX2  write <tmp>/CLAUDE.md with the three lines `# Mine`, `<!-- prd-toolkit:start -->` and `half`
+#     SX3  write <tmp>/CLAUDE.md with the two lines `<!-- prd-toolkit:end -->` and `<!-- prd-toolkit:start -->`
+#     SR8  as SR6, with the Object or activity cell `a change to {{adopted_areas}}` in place of `a code change`
+#     SS7  in prd.md the line `The orders service imports order files and prints monthly reports.` becomes
+#          `See {{areas}} for the areas.`
+#     SS8  in prd.md the line `The orders service imports order files and prints monthly reports.` becomes
+#          `Prints {{homepage}} as text.`
+#     SS9  in prd.md the line `The orders service imports order files and prints monthly reports.` becomes
+#          `Intro <!-- note --> text`
+#   Assertions: testing.md (Harness, Assertions) and its status paragraph (Setup steps), which defines
+#   `status_items_json`, the `{file, …}` effects and `call:`.
+#   CLAUDE_BASE, README_BASE and PARENT_V are the texts T-235.1, T-241.1 and T-242.1 give. H is the string at the
+#   key `homepage` of <repo>/prd-toolkit/.claude-plugin/plugin.json without the white space at its ends (AC-243.2;
+#   this repository's manifest is named `prd-toolkit` and holds a non-empty homepage, and a test that finds otherwise
+#   ends as an error, not a failure, since the case's precondition does not hold), and PARENT_P is PARENT_V with
+#   `https://example.com/toolkit` replaced by H.
+#   A `call:` runs in the test process with prd-toolkit/scripts on sys.path; F = prdlint.overview.facts(prdlint.model.load(ORDERS)),
+#   with ORDERS a pathlib.Path.
+
+T-222.1:
+  ac: AC-222.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    runs: ["python STATUS --interface", "python STATUS --interface --json=2"]
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "1\n", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-222.2:
+  ac: AC-222.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    runs: ["python STATUS", "python STATUS --json"]
+  expect:
+    output:
+      each_run: {exit: 2, stderr: "usage: prd_status.py [-h] [--json] [--interface] [prd_dir]\n"}
+      run_1: {stdout: ""}
+      run_2:
+        stdout_json: {"interface": 1, "kind": "status", "error": "usage: prd_status.py [-h] [--json] [--interface] [prd_dir]"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-222.3:
+  ac: AC-222.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    runs: ["python STATUS --json=2 ."]
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stderr: "prd_status: unsupported interface 2; this toolkit speaks 1\n"
+        stdout_json: {"interface": 1, "kind": "status", "error": "unsupported interface 2; this toolkit speaks 1"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-222.4:
+  ac: AC-222.4
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    cwd: "<tmp>"
+    runs: ["python STATUS <tmp>/nowhere", "python STATUS --json <tmp>/nowhere"]
+  expect:
+    output:
+      each_run: {exit: 2, stderr: "prd_status: RTMP/nowhere: no prd.md\n"}
+      run_1: {stdout: ""}
+      run_2:
+        stdout_json: {"interface": 1, "kind": "status", "error": "RTMP/nowhere: no prd.md"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-222.5:
+  ac: AC-222.5
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0, SU8]
+    runs: ["python STATUS ."]
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout: ""
+        stderr: "prd_status: RTMP/docs/prd/orders/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\"\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-223.1:
+  ac: AC-223.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    runs: ["python STATUS ."]
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+        pack_part_titles: ["## Next", "## Header", "## Requirements", "## Areas", "## Adoption map", "## Not built", "## Not verified", "## Open errors", "## Upstreams", "## Consumers", "## Change sets", "## CI", "## Deployed", "## Matrix"]
+        pack_part_lines:
+          Header: ["## Header", "", "PRD: .", "version 1.0.0", "status Approved", ""]
+          Not verified: ["## Not verified", "", "FR-002 Skip a duplicate order (features/import.md)", ""]
+          Matrix: ["## Matrix", "", "FR-001: T-001.1 integration build cited", "FR-002: T-002.1 integration build cited", "FR-003: T-003.1 integration build cited", "FR-004: T-004.1 integration build cited", "FR-005: T-005.1 integration build cited; T-005.2 judged build cited", "FR-006: T-006.1 integration build cited", "FR-007: T-007.1 integration build cited"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-223.2:
+  ac: AC-223.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    runs: ["python STATUS ."]
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines:
+          Open errors: ["## Open errors", "", "None.", ""]
+          Upstreams: ["## Upstreams", "", "None.", ""]
+          Consumers: ["## Consumers", "", "None.", ""]
+          Change sets: ["## Change sets", "", "None.", ""]
+          Deployed: ["## Deployed", "", "None.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-223.3:
+  ac: AC-223.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0, NA1, NE1, SK1, SC1, SD0, SD1]
+    runs: ["python STATUS --json ."]
+  expect:
+    output:
+      run_1:
+        exit: 0
+        status_items_json:
+          - {"part": "Header", "id": null, "text": "PRD: .\nversion 1.0.0\nstatus Approved"}
+          - {"part": "Requirements", "id": null, "text": "import: approved 1, built 1, live 1, verified 1"}
+          - {"part": "Requirements", "id": null, "text": "reports: approved 1, live 2"}
+          - {"part": "Areas", "id": "billing", "text": "billing: pack service (default), output language en"}
+          - {"part": "Areas", "id": "export", "text": "export: pack service (default), output language en"}
+          - {"part": "Areas", "id": "import", "text": "import: pack service (default), output language en"}
+          - {"part": "Areas", "id": "reports", "text": "reports: pack service (default), output language en"}
+          - {"part": "Adoption map", "id": "import", "text": "import | adopted | src/import/**"}
+          - {"part": "Adoption map", "id": "reports", "text": "reports | adopted | src/reports/**"}
+          - {"part": "Adoption map", "id": "billing", "text": "billing | extracted | src/billing/**"}
+          - {"part": "Adoption map", "id": "export", "text": "export | extracted | src/export/**"}
+          - {"part": "Adoption map", "id": "audit", "text": "audit | not started | src/audit/**"}
+          - {"part": "Not built", "id": "FR-001", "text": "FR-001 Refuse a file with no header (features/import.md)"}
+          - {"part": "Not built", "id": "FR-005", "text": "FR-005 Print the monthly report (features/reports.md)"}
+          - {"part": "Not verified", "id": "FR-002", "text": "FR-002 Skip a duplicate order (features/import.md)"}
+          - {"part": "Open errors", "id": "E-001", "text": "E-001 confirmed code bug — The importer stops at row 1000"}
+          - {"part": "Open errors", "id": "E-002", "text": "E-002 unclassified — A monthly report printed no total"}
+          - {"part": "Upstreams", "id": "greet", "text": "greet 1.1.0 at 4f1c9a2, needs default, check: not run (git URL; run prd_links.py check)"}
+          - {"part": "Consumers", "id": "dashboards", "text": "dashboards git@example.com:org/bi.git#docs/prd/dashboards"}
+          - {"part": "Change sets", "id": "CS-001", "text": "CS-001 running: billing approved; orders proposed"}
+          - {"part": "CI", "id": null, "text": "stale: CLAUDE.md; run prd_block.py docs/prd/orders"}
+          - {"part": "CI", "id": null, "text": "stale: docs/prd/orders/README.md; run prd_block.py docs/prd/orders"}
+          - {"part": "CI", "id": null, "text": "stale: docs/prd/README.md; run prd_block.py docs/prd/orders"}
+          - {"part": "Deployed", "id": "production", "text": "production: 1.0.0 at 3f2c1a9, 2026-11-02"}
+          - {"part": "Matrix", "id": "FR-001", "text": "FR-001: T-001.1 integration build cited"}
+          - {"part": "Matrix", "id": "FR-002", "text": "FR-002: T-002.1 integration build cited"}
+          - {"part": "Matrix", "id": "FR-003", "text": "FR-003: T-003.1 integration build cited"}
+          - {"part": "Matrix", "id": "FR-004", "text": "FR-004: T-004.1 integration build cited"}
+          - {"part": "Matrix", "id": "FR-005", "text": "FR-005: T-005.1 integration build cited; T-005.2 judged build cited"}
+          - {"part": "Matrix", "id": "FR-006", "text": "FR-006: T-006.1 integration build cited"}
+          - {"part": "Matrix", "id": "FR-007", "text": "FR-007: T-007.1 integration build cited"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-224.1:
+  ac: AC-224.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Header: ["## Header", "", "PRD: .", "version 1.0.0", "status Approved", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-224.2:
+  ac: AC-224.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], cwd: "<tmp>", runs: ["python STATUS docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Header: ["## Header", "", "PRD: docs/prd/orders", "version 1.0.0", "status Approved", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-224.3:
+  ac: AC-224.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], cwd: "<tmp>/tests", runs: ["python STATUS ../docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Header: ["## Header", "", "PRD: RTMP/docs/prd/orders", "version 1.0.0", "status Approved", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-224.4:
+  ac: AC-224.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SH0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Header: ["## Header", "", "PRD: .", "version 1.0.0", "status -", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-225.1:
+  ac: AC-225.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SN1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Requirements: ["## Requirements", "", "import: approved 1, built 1, live 1, verified 1", "reports: approved 1, live 2", "nfr: verified 1", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-225.2:
+  ac: AC-225.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SZ], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Requirements: ["## Requirements", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-226.1:
+  ac: AC-226.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Areas: ["## Areas", "", "import: pack service (default), output language en", "reports: pack service (default), output language en", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-226.2:
+  ac: AC-226.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SA1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Areas: ["## Areas", "", "import: pack service (default), output language en", "reports: pack service (default), output language pt-BR", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-226.3:
+  ac: AC-226.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SP1, SA1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Areas: ["## Areas", "", "import: pack document 1.0.0, output language en", "reports: pack document 1.0.0, output language pt-BR", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-226.4:
+  ac: AC-226.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SZ], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Areas: ["## Areas", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-227.1:
+  ac: AC-227.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Adoption map: ["## Adoption map", "", "Not applicable: new project", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-227.2:
+  ac: AC-227.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Adoption map: ["## Adoption map", "", "import | adopted | src/import/**", "reports | adopted | src/reports/**", "billing | extracted | src/billing/**", "export | extracted | src/export/**", "audit | not started | src/audit/**", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-227.3:
+  ac: AC-227.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1, SA2], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Adoption map: ["## Adoption map", "", "import | adopted | src/import/**, tests/test_import.py", "reports | adopted | src/reports/**", "billing | extracted | src/billing/**", "export | extracted | src/export/**", "audit | not started | -", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-227.4:
+  ac: AC-227.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1, SA3], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Adoption map: ["## Adoption map", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-228.1:
+  ac: AC-228.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Not built: ["## Not built", "", "FR-001 Refuse a file with no header (features/import.md)", "FR-005 Print the monthly report (features/reports.md)", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-228.2:
+  ac: AC-228.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NB2], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines:
+          Not built: ["## Not built", "", "FR-005 Print the monthly report (features/reports.md)", ""]
+          Not verified: ["## Not verified", "", "FR-001 Refuse a file with no header (features/import.md)", "FR-002 Skip a duplicate order (features/import.md)", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-228.3:
+  ac: AC-228.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NLV], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines:
+          Not built: ["## Not built", "", "None.", ""]
+          Not verified: ["## Not verified", "", "None.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-229.1:
+  ac: AC-229.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NE1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Open errors: ["## Open errors", "", "E-001 confirmed code bug — The importer stops at row 1000", "E-002 unclassified — A monthly report printed no total", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-229.2:
+  ac: AC-229.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NE2], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Open errors: ["## Open errors", "", "E-001 proposed code bug — The importer stops at row 1000", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-229.3:
+  ac: AC-229.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SE1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Open errors: ["## Open errors", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-230.1:
+  ac: AC-230.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines:
+          Upstreams: ["## Upstreams", "", "None.", ""]
+          Consumers: ["## Consumers", "", "None.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-230.2:
+  ac: AC-230.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0, SK1]
+    runs:
+      - {env: {XDG_CACHE_HOME: "<tmp>/cache"}, command: "python STATUS ."}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Upstreams: ["## Upstreams", "", "greet 1.1.0 at 4f1c9a2, needs default, check: not run (git URL; run prd_links.py check)", ""]}
+    effects:
+      - {file: "<tmp>/cache", absent: true}
+    errors: []
+    leaks: none
+
+T-230.3:
+  ac: AC-230.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SK2], runs: ["python STATUS ."], note: "../billing names no folder: the check reports it unreachable"}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines:
+          Upstreams: ["## Upstreams", "", "billing 1.0.0 at abc1234, needs verified", ""]
+          Consumers: ["## Consumers", "", "None.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-230.4:
+  ac: AC-230.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SK3], runs: ["python STATUS ."], note: "the row names the PRD itself, which the links check refuses"}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Upstreams: ["## Upstreams", "", "orders 1.0.0 at abc1234, needs default, check: error (a PRD cannot link to itself)", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-230.5:
+  ac: AC-230.4
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SK1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Consumers: ["## Consumers", "", "dashboards git@example.com:org/bi.git#docs/prd/dashboards", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-231.1:
+  ac: AC-231.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SC1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Change sets: ["## Change sets", "", "CS-001 running: billing approved; orders proposed", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-232.1:
+  ac: AC-232.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {CI: ["## CI", "", "stale: CLAUDE.md; run prd_block.py docs/prd/orders", "stale: docs/prd/orders/README.md; run prd_block.py docs/prd/orders", "stale: docs/prd/README.md; run prd_block.py docs/prd/orders", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-232.2:
+  ac: AC-232.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SB0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {CI: ["## CI", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-232.3:
+  ac: AC-232.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SG3], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {CI: ["## CI", "", "stale: docs/prd/orders/README.md; run prd_block.py docs/prd/orders", "stale: docs/prd/README.md; run prd_block.py docs/prd/orders", ""]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-232.4:
+  ac: AC-232.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0X], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines:
+          CI: ["## CI", "", "RTMP/docs/prd/orders is not inside a git checkout", ""]
+          Deployed: ["## Deployed", "", "None.", ""]
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.1:
+  ac: AC-233.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SD0, SD1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "production: 1.0.0 at 3f2c1a9, 2026-11-02", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.2:
+  ac: AC-233.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SD0, SD3, SD1], runs: ["python STATUS ."], note: "the qa row comes first in the table and is printed last"}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "production: 1.0.0 at 3f2c1a9, 2026-11-02", "qa: 1.0.0 at abc1234, 2026-11-03", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.3:
+  ac: AC-233.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NR1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "staging: run 20261110T090000Z-all stopped (failed) at step 1", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.4:
+  ac: AC-233.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NR2], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "staging: run 20261110T100000Z-all stopped (unfinished) at step 1", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.5:
+  ac: AC-233.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NR3], runs: ["python STATUS ."], note: "staging's only step passed, so the run finished staging"}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "production: run 20261111T090000Z-all stopped (human) at step 2", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.6:
+  ac: AC-233.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SD0, SD1, NR1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "staging: run 20261110T090000Z-all stopped (failed) at step 1", "production: 1.0.0 at 3f2c1a9, 2026-11-02", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.7:
+  ac: AC-233.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SD0, SD2, NR1], runs: ["python STATUS ."], note: "the failed run is older than the staging row's run"}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "staging: 1.0.0 at 3f2c1a9, 2026-11-12", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.8:
+  ac: AC-233.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NR1, SG1], runs: ["python STATUS ."], note: "a newer run finished staging"}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.9:
+  ac: AC-233.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NR1, NR4], runs: ["python STATUS ."], note: "the newest log cannot be read"}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "staging: run 20261110T090000Z-all stopped (failed) at step 1", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.10:
+  ac: AC-233.3
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SG2], runs: ["python STATUS ."], note: "the only log is another PRD's"}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-233.11:
+  ac: AC-233.4
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Deployed: ["## Deployed", "", "None.", ""]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-234.1:
+  ac: AC-234.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        pack_part_lines: {Matrix: ["## Matrix", "", "FR-001: T-001.1 integration build cited", "FR-002: T-002.1 integration build cited", "FR-003: T-003.1 integration build cited", "FR-004: T-004.1 integration build cited", "FR-005: T-005.1 integration build cited; T-005.2 judged build cited", "FR-006: T-006.1 integration build cited", "FR-007: T-007.1 integration build cited"]}
+    effects: []
+    errors: []
+    leaks: none
+
+T-234.2:
+  ac: AC-234.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NT1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, stdout_contains_line: "FR-002: T-002.1 integration build missing"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-234.3:
+  ac: AC-234.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SM1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, stdout_contains_line: "FR-001: T-001.1 system - cited"}
+    effects: []
+    errors: []
+    leaks: none
+
+T-234.4:
+  ac: AC-234.1
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SU1], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout_lines_in_this_relative_order: ["## Matrix", "FR-004: T-004.1 integration build cited", "UJ-01: no tests", "FR-005: T-005.1 integration build cited; T-005.2 judged build cited"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-234.5:
+  ac: AC-234.2
+  level: integration
+  target: cli:prd_status
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SZ], runs: ["python STATUS ."]}
+  expect:
+    output:
+      run_1: {exit: 0, pack_part_lines: {Matrix: ["## Matrix", "", "None."]}}
+    effects: []
+    errors: []
+    leaks: none
+
+T-235.1:
+  ac: AC-235.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+    effects:
+      - file: "<tmp>/CLAUDE.md"
+        text: |
+          <!-- prd-toolkit:start -->
+          ## Product requirements (by prd_block.py; do not edit)
+
+          The PRD at `docs/prd/orders` (version 1.0.0) is the authority.
+
+          - To learn what an area does, run `/prd-toolkit:prd-context <area>` and work from its pack; read
+            whole PRD files only to edit them. Build an approved change with
+            `/prd-toolkit:prd-build <area> <IDs>`. Code implements the PRD; it never defines behaviour the PRD
+            lacks.
+          - Every behaviour change starts with `/prd-toolkit:prd-change` (`prd-toolkit:changing-prds`), before code.
+          - Gap rule: if the PRD is silent on what you need, stop and raise it with
+            `/prd-toolkit:prd-change`. Do not guess or read the code to fill the gap.
+          - Deploy with `/prd-toolkit:prd-deploy`; never run a runbook command yourself.
+          - A bug, a failing test, an error or a failed deploy goes to `/prd-toolkit:prd-error` (skill
+            `prd-toolkit:handling-errors`) before any code changes.
+          - Commits cite IDs: `Refs: FR-012`.
+          - Install the hooks once per clone:
+            `.prd-toolkit/prd hooks install docs/prd/orders`.
+          - Lint runs inside the prd-toolkit skills; after any PRD edit, finish through
+            `/prd-toolkit:prd-change`.
+
+          Required skills:
+          - none
+
+          Adopted areas: all (new project)
+          <!-- prd-toolkit:end -->
+    errors: []
+    leaks: none
+
+T-235.2:
+  ac: AC-235.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SR6], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["Required skills:", "- `superpowers:test-driven-development` for a code change", "", "Adopted areas: all (new project)"]}
+      - "<tmp>/CLAUDE.md holds no line that holds `code-review` (the section 6 row whose Decision is `recommended`)"
+    errors: []
+    leaks: none
+
+T-235.3:
+  ac: AC-235.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["Adopted areas: import, reports", "<!-- prd-toolkit:end -->"]}
+    errors: []
+    leaks: none
+
+T-235.4:
+  ac: AC-235.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, S8], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["Adopted areas: none yet", "<!-- prd-toolkit:end -->"]}
+    errors: []
+    leaks: none
+
+T-235.5:
+  ac: AC-235.4
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-069
+  symptom: "<tmp>/CLAUDE.md holds the line ``- `superpowers:test-driven-development` for a change to all (new project)``"
+  input: {setup: [N0, SR8], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["Required skills:", "- `superpowers:test-driven-development` for a change to {{adopted_areas}}", "", "Adopted areas: all (new project)"]}
+    errors: []
+    leaks: none
+
+T-236.1:
+  ac: AC-236.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["- Every behaviour change starts with `/prd-toolkit:prd-change` (`prd-toolkit:changing-prds`), before code.", "- Gap rule: if the PRD is silent on what you need, stop and raise it with"]}
+    errors: []
+    leaks: none
+
+T-236.2:
+  ac: AC-236.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SK1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["- Every behaviour change starts with `/prd-toolkit:prd-change`, before code;", "  one to a cited item, with `/prd-toolkit:prd-change-set`.", "- Gap rule: if the PRD is silent on what you need, stop and raise it with"]}
+    errors: []
+    leaks: none
+
+T-236.3:
+  ac: AC-236.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["  lacks.", "- Every behaviour change in an adopted area starts with `/prd-toolkit:prd-change`, before code.", "- Gap rule: if the PRD is silent on what you need, stop and raise it with"]}
+    errors: []
+    leaks: none
+
+T-236.4:
+  ac: AC-236.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1, SK1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["  lacks.", "- Every behaviour change in an adopted area starts with `/prd-toolkit:prd-change`, before code; one", "  to a cited item, with `/prd-toolkit:prd-change-set`.", "- Gap rule: if the PRD is silent on what you need, stop and raise it with"]}
+    errors: []
+    leaks: none
+
+T-237.1:
+  ac: AC-237.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    files: {"<tmp>/CLAUDE.md": ""}
+    note: "CLAUDE.md exists and is empty; the two READMEs do not exist"
+    runs: ["python BLOCK docs/prd/orders"]
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", text: CLAUDE_BASE}
+      - {file: "<tmp>/docs/prd/orders/README.md", text: README_BASE}
+      - {file: "<tmp>/docs/prd/README.md", text: PARENT_P}
+    errors: []
+    leaks: none
+
+T-237.2:
+  ac: AC-237.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    files: {"<tmp>/CLAUDE.md": "# Mine\n"}
+    runs: ["python BLOCK docs/prd/orders"]
+  expect:
+    output:
+      run_1: {exit: 0, stdout: ""}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", text: "the text `# Mine`, a newline, one more newline, then CLAUDE_BASE"}
+    errors: []
+    leaks: none
+
+T-237.3:
+  ac: AC-237.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    files: {"<tmp>/CLAUDE.md": "# Mine"}
+    note: "the file's text has no newline at its end"
+    runs: ["python BLOCK docs/prd/orders"]
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", text: "the text `# Mine`, two newlines, then CLAUDE_BASE"}
+    errors: []
+    leaks: none
+
+T-237.4:
+  ac: AC-237.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    files: {"<tmp>/docs/prd/orders/README.md": "# Mine\n\nold text\n"}
+    runs: ["python BLOCK docs/prd/orders"]
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", text: "README_BASE, one newline, then `# Mine\\n\\nold text\\n` byte for byte"}
+    errors: []
+    leaks: none
+
+T-237.5:
+  ac: AC-237.4
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0]
+    files:
+      "<tmp>/CLAUDE.md": "top\r\n\n<!-- prd-toolkit:start -->\nold\n<!-- prd-toolkit:end -->\r\nafter\r\n"
+      "<tmp>/docs/prd/orders/README.md": "# Mine\n<!-- prd-toolkit:start -->\nold\n<!-- prd-toolkit:end -->"
+    runs: ["python BLOCK docs/prd/orders"]
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", text: "`top\\r\\n\\n`, CLAUDE_BASE without its final newline, then `\\r\\nafter\\r\\n`"}
+      - {file: "<tmp>/docs/prd/orders/README.md", text: "`# Mine\\n`, then README_BASE without its final newline; the file ends at the end marker"}
+    errors: []
+    leaks: none
+
+T-237.6:
+  ac: AC-237.5
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SB0], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", unchanged: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", unchanged: true}
+      - {file: "<tmp>/docs/prd/README.md", unchanged: true}
+    errors: []
+    leaks: none
+
+T-238.1:
+  ac: AC-238.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SF1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", text: "SF1's seven lines, unchanged, one empty line, then CLAUDE_BASE"}
+    errors: []
+    leaks: none
+
+T-238.2:
+  ac: AC-238.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [N0, SF2]
+    runs: ["python BLOCK docs/prd/orders", "python BLOCK docs/prd/orders", "python BLOCK docs/prd/orders --check"]
+  expect:
+    output:
+      each_run: {exit: 0}
+      run_3: {stdout: ""}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", text: "SF2's four lines, one empty line, then CLAUDE_BASE, after run_1 and unchanged by run_2"}
+    errors: []
+    leaks: none
+
+T-238.3:
+  ac: AC-238.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SX1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr: "prd_block: RTMP/docs/prd/orders/README.md: more than one prd-toolkit block\n"}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", unchanged: true}
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+      - {file: "<tmp>/docs/prd/README.md", absent: true}
+    errors: []
+    leaks: none
+
+T-238.4:
+  ac: AC-238.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SX2], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr: "prd_block: RTMP/CLAUDE.md: prd-toolkit start and end markers are unbalanced\n"}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", unchanged: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", absent: true}
+      - {file: "<tmp>/docs/prd/README.md", absent: true}
+    errors: []
+    leaks: none
+
+T-238.5:
+  ac: AC-238.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SX3], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 2, stderr: "prd_block: RTMP/CLAUDE.md: prd-toolkit start and end markers are unbalanced\n"}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", unchanged: true}
+    errors: []
+    leaks: none
+
+T-239.1:
+  ac: AC-239.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SY], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - "<tmp>/CLAUDE.md is still a symbolic link whose target is `real.md`"
+      - {file: "<tmp>/real.md", text: "`# Agents\\n`, one more newline, then CLAUDE_BASE"}
+    errors: []
+    leaks: none
+
+T-239.2:
+  ac: AC-239.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SMODE], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", text: "README_BASE, one newline, then `# Mine\\n`"}
+      - "the mode of <tmp>/docs/prd/orders/README.md (st_mode & 0o7777) is 0o640"
+    errors: []
+    leaks: none
+
+T-239.3:
+  ac: AC-239.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-070
+  symptom: "the mode of <tmp>/CLAUDE.md (st_mode & 0o7777) is 0o600"
+  input: {setup: [N0], runs: ["python BLOCK docs/prd/orders"], note: "the test sets its process umask to 0o022 (os.umask) just before the run and restores the old umask after it; <tmp>/CLAUDE.md does not exist before the run"}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - "the mode of <tmp>/CLAUDE.md (st_mode & 0o7777) is 0o644"
+    errors: []
+    leaks: none
+
+T-240.1:
+  ac: AC-240.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK docs/prd/orders --check"]}
+  expect:
+    output:
+      run_1:
+        exit: 1
+        stderr: ""
+        stdout_exact_lines: ["stale: CLAUDE.md", "stale: docs/prd/orders/README.md", "stale: docs/prd/README.md"]
+    effects:
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", absent: true}
+      - {file: "<tmp>/docs/prd/README.md", absent: true}
+    errors: []
+    leaks: none
+
+T-240.2:
+  ac: AC-240.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SB0], runs: ["python BLOCK docs/prd/orders --check"]}
+  expect:
+    output:
+      run_1: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-240.3:
+  ac: AC-240.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SB0, SVER], runs: ["python BLOCK docs/prd/orders --check"]}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_exact_lines: ["stale: CLAUDE.md", "stale: docs/prd/orders/README.md", "stale: docs/prd/README.md"]}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", unchanged: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", unchanged: true}
+      - {file: "<tmp>/docs/prd/README.md", unchanged: true}
+    errors: []
+    leaks: none
+
+T-240.4:
+  ac: AC-240.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0X], runs: ["python BLOCK docs/prd/orders --claude-md <tmp>/CLAUDE.md --check"]}
+  expect:
+    output:
+      run_1: {exit: 1, stdout_exact_lines: ["stale: CLAUDE.md", "stale: docs/prd/orders/README.md", "stale: docs/prd/README.md"]}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+    errors: []
+    leaks: none
+
+T-240.5:
+  ac: AC-240.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SX2], runs: ["python BLOCK docs/prd/orders --check"]}
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr: "prd_block: RTMP/CLAUDE.md: prd-toolkit start and end markers are unbalanced\n"}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", unchanged: true}
+    errors: []
+    leaks: none
+
+T-241.1:
+  ac: AC-241.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - file: "<tmp>/docs/prd/orders/README.md"
+        text: |
+          <!-- prd-toolkit:start -->
+          # orders — product requirements
+
+          This folder is the living PRD for **orders**: the requirements that say what it does, kept in
+          step with the code. The code implements this PRD, and a change in behaviour starts here, not in
+          the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
+
+          Version 1.0.0 · Approved · Owner: Sample Owner · Updated 2026-11-01
+
+          ## What this PRD covers
+
+          > The orders service imports order files and prints monthly reports.
+
+          ## Areas
+
+          | Area | Adoption | File |
+          |---|---|---|
+          | import | - | [features/import.md](features/import.md) |
+          | reports | - | [features/reports.md](features/reports.md) |
+
+          ## What is in this folder
+
+          | Path | Holds |
+          |---|---|
+          | `prd.md` | The overview: goals, glossary, architecture, the requirement index, open questions, changelog |
+          | `features/` | One file per area: requirements (`FR-nnn`) and their acceptance criteria (`AC-nnn.n`) |
+          | `test-cases/` | The test cases for each criterion (`T-nnn.n`), which the tests cite |
+          | `contracts/` | The interfaces the code must match: commands, configuration, schemas, APIs |
+          | `testing.md` | How the tests are run, at which level and gate |
+          | `errors.md` | The error ledger: every bug, its class and its fix (`E-nnn`) |
+          | `operations.md` | Environments and the deploy runbook |
+          | `nfr.md` | Non-functional requirements (`NFR-nnn`) |
+
+          ## Reading and changing it
+
+          - Read `prd.md`, then the area you care about. With the plugin: `/prd-toolkit:prd-status` for
+            where every requirement stands, `/prd-toolkit:prd-context <area>` for one area,
+            `/prd-toolkit:prd-publish` for a readable page.
+          - Don't edit these files by hand. A change in behaviour starts with `/prd-toolkit:prd-change` and
+            is built with `/prd-toolkit:prd-build`; a bug starts with `/prd-toolkit:prd-error`. Lint and the
+            git hooks check every commit.
+          <!-- prd-toolkit:end -->
+    errors: []
+    leaks: none
+
+T-241.2:
+  ac: AC-241.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", lines_in_order: ["## What this PRD covers", "", "> The orders service imports order files. It prints", "> monthly reports.", "", "## Areas"]}
+    errors: []
+    leaks: none
+
+T-241.3:
+  ac: AC-241.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS2], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", lines_in_order: ["## What this PRD covers", "", "_No summary yet: prd.md §2 is empty._", "", "## Areas"]}
+      - "<tmp>/docs/prd/README.md holds the line `| [orders](orders/) | 1.0.0 | Approved | - |`"
+    errors: []
+    leaks: none
+
+T-241.4:
+  ac: AC-241.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", lines_in_order: ["## Areas", "", "| Area | Adoption | File |", "|---|---|---|", "| billing | extracted | [features/billing.md](features/billing.md) |", "| export | extracted | [features/export.md](features/export.md) |", "| import | adopted | [features/import.md](features/import.md) |", "| reports | adopted | [features/reports.md](features/reports.md) |", "", "## What is in this folder"]}
+    errors: []
+    leaks: none
+
+T-241.5:
+  ac: AC-241.4
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1, SK2], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - file: "<tmp>/docs/prd/orders/README.md"
+        lines_in_order:
+          - "| Path | Holds |"
+          - "|---|---|"
+          - "| `prd.md` | The overview: goals, glossary, architecture, the requirement index, open questions, changelog |"
+          - "| `features/` | One file per area: requirements (`FR-nnn`) and their acceptance criteria (`AC-nnn.n`) |"
+          - "| `test-cases/` | The test cases for each criterion (`T-nnn.n`), which the tests cite |"
+          - "| `contracts/` | The interfaces the code must match: commands, configuration, schemas, APIs |"
+          - "| `testing.md` | How the tests are run, at which level and gate |"
+          - "| `errors.md` | The error ledger: every bug, its class and its fix (`E-nnn`) |"
+          - "| `operations.md` | Environments and the deploy runbook |"
+          - "| `nfr.md` | Non-functional requirements (`NFR-nnn`) |"
+          - "| `adoption.md` | Which areas of the existing code are under this PRD, and their state |"
+          - "| `links.md` | The PRDs whose contracts this one uses or provides |"
+          - ""
+          - "## Linked PRDs"
+    errors: []
+    leaks: none
+
+T-241.6:
+  ac: AC-241.5
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SK2], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", lines_in_order: ["| `links.md` | The PRDs whose contracts this one uses or provides |", "", "## Linked PRDs", "", "**Upstreams**", "", "- [../billing](../billing)", "", "**Consumers**", "", "- none", "", "## Reading and changing it"]}
+    errors: []
+    leaks: none
+
+T-241.7:
+  ac: AC-241.5
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SK1], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", lines_in_order: ["## Linked PRDs", "", "**Upstreams**", "", "- `https://example.com/greet.git#docs/prd/greet`", "", "**Consumers**", "", "- `git@example.com:org/bi.git#docs/prd/dashboards`", "", "## Reading and changing it"]}
+    errors: []
+    leaks: none
+
+T-241.8:
+  ac: AC-241.6
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-069
+  symptom: "the line after `## What this PRD covers` and its empty line in <tmp>/docs/prd/orders/README.md starts `> See | Area | Adoption | File |`"
+  input: {setup: [N0, SS7], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/README.md", lines_in_order: ["## What this PRD covers", "", "> See {{areas}} for the areas.", "", "## Areas"]}
+    errors: []
+    leaks: none
+
+T-242.1:
+  ac: AC-242.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input: {setup: [N0, SV0], runs: ["python VBLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0, stderr: ""}
+    effects:
+      - file: "<tmp>/docs/prd/README.md"
+        text: |
+          <!-- prd-toolkit:start -->
+          # Product requirements
+
+          Each folder here is a living PRD: the requirements for one system in this repository, kept in
+          step with its code. Code implements its PRD; a change in behaviour starts in the PRD.
+
+          | PRD | Version | Status | Covers |
+          |---|---|---|---|
+          | [orders](orders/) | 1.0.0 | Approved | The orders service imports order files and prints monthly reports. |
+
+          ## How it works
+
+          - Each area of a system has requirements (`FR-nnn`); each requirement has acceptance criteria
+            (`AC-nnn.n`), and each criterion has test cases (`T-nnn.n`).
+          - Tests cite the test cases they prove, and commits cite the requirements they implement
+            (`Refs: FR-012`), so a change can be traced from the PRD to the code and back.
+          - Bugs are recorded in each PRD's `errors.md` before they are fixed.
+          - Lint, the git hooks and CI check that the PRD, the tests and the code stay in step.
+
+          ## Getting started
+
+          - Install the prd-toolkit plugin for Claude Code: https://example.com/toolkit
+          - Once per clone: `.prd-toolkit/prd hooks install docs/prd/<slug>`
+          - Then see each PRD's README.
+          <!-- prd-toolkit:end -->
+    errors: []
+    leaks: none
+
+T-242.2:
+  ac: AC-242.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input: {setup: [N0, SV0, SB2, SB4, SB5], runs: ["python VBLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0, stderr: ""}
+    effects:
+      - file: "<tmp>/docs/prd/README.md"
+        lines_in_order:
+          - "| PRD | Version | Status | Covers |"
+          - "|---|---|---|---|"
+          - "| [billing](billing/) | 0.2.0 | Approved | Billing sends invoices \\| credits. |"
+          - "| [my notes](my%20notes/) | 1.0.0 | Approved | The orders service imports order files and prints monthly reports. |"
+          - "| [orders](orders/) | 1.0.0 | Approved | The orders service imports order files and prints monthly reports. |"
+          - ""
+          - "## How it works"
+      - "<tmp>/docs/prd/README.md holds no line that starts with `| [notes](notes/) |` and no line that holds `.hidden`"
+    errors: []
+    leaks: none
+
+T-242.3:
+  ac: AC-242.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input: {setup: [N0, SV0, SB3], runs: ["python VBLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr_single_line_starts: "prd_block: broken: could not be read (UnicodeDecodeError: "
+    effects:
+      - {file: "<tmp>/docs/prd/README.md", lines_in_order: ["|---|---|---|---|", "| broken | - | could not be read | - |", "| [orders](orders/) | 1.0.0 | Approved | The orders service imports order files and prints monthly reports. |"]}
+    errors: []
+    leaks: none
+
+T-242.4:
+  ac: AC-242.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SQ], runs: ["python BLOCK docs/requirements/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/requirements/README.md", absent: true}
+      - {file: "<tmp>/docs/requirements/orders/README.md", lines_in_order: ["the code. It is maintained with prd-toolkit, a Claude Code plugin."]}
+      - {file: "<tmp>/CLAUDE.md", lines_in_order: ["The PRD at `docs/requirements/orders` (version 1.0.0) is the authority."]}
+    errors: []
+    leaks: none
+
+T-242.5:
+  ac: AC-242.4
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  known-failing: E-069
+  symptom: "<tmp>/docs/prd/README.md holds the line `| [orders](orders/) | 1.0.0 | Approved | Prints https://example.com/toolkit as text. |`"
+  input: {setup: [N0, SV0, SS8], runs: ["python VBLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0, stderr: ""}
+    effects:
+      - {file: "<tmp>/docs/prd/README.md", lines_in_order: ["| PRD | Version | Status | Covers |", "|---|---|---|---|", "| [orders](orders/) | 1.0.0 | Approved | Prints {{homepage}} as text. |"]}
+    errors: []
+    leaks: none
+
+T-243.1:
+  ac: AC-243.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input: {setup: [N0, SV0], runs: ["python VBLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/README.md", lines_in_order: ["## Getting started", "", "- Install the prd-toolkit plugin for Claude Code: https://example.com/toolkit"]}
+    errors: []
+    leaks: none
+
+T-243.2:
+  ac: AC-243.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input: {setup: [N0, SV0, SV1], runs: ["python VBLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/README.md", lines_in_order: ["## Getting started", "", "- Install the prd-toolkit plugin for Claude Code."]}
+      - "<tmp>/docs/prd/README.md does not hold the text `https://example.com/host`"
+    errors: []
+    leaks: none
+
+T-243.3:
+  ac: AC-243.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps", "testing.md#Fixtures"]
+  input: {setup: [N0, SV0, SV2], runs: ["python VBLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/README.md", lines_in_order: ["## Getting started", "", "- Install the prd-toolkit plugin for Claude Code."]}
+    errors: []
+    leaks: none
+
+T-243.4:
+  ac: AC-243.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK docs/prd/orders"], note: "H is the manifest's homepage, read by the test before the run"}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/docs/prd/README.md", lines_in_order: ["## Getting started", "", "- Install the prd-toolkit plugin for Claude Code: H"]}
+    errors: []
+    leaks: none
+
+T-244.1:
+  ac: AC-244.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS4], runs: ["python BLOCK docs/prd/orders"]}
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr: "prd_block: prd.md §2 holds a prd-toolkit marker\n"}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", absent: true}
+      - {file: "<tmp>/docs/prd/README.md", absent: true}
+    errors: []
+    leaks: none
+
+T-244.2:
+  ac: AC-244.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS5], runs: ["python BLOCK docs/prd/orders"], note: "the marker stands alone on a line of §2, itself an HTML comment"}
+  expect:
+    output:
+      run_1: {exit: 2, stderr: "prd_block: prd.md §2 holds a prd-toolkit marker\n"}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+    errors: []
+    leaks: none
+
+T-245.1:
+  ac: AC-245.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK <tmp>/nowhere"]}
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr: "prd_block: RTMP/nowhere: no prd.md\n"}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+    errors: []
+    leaks: none
+
+T-245.2:
+  ac: AC-245.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SU8], runs: ["python BLOCK docs/prd/orders", "python BLOCK docs/prd/orders --check"]}
+  expect:
+    output:
+      each_run:
+        exit: 2
+        stdout: ""
+        stderr: "prd_block: RTMP/docs/prd/orders/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; move the table there and leave \"See adoption.md.\"\n"
+    effects:
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", absent: true}
+    errors: []
+    leaks: none
+
+T-245.3:
+  ac: AC-245.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK"]}
+  expect:
+    output:
+      run_1:
+        exit: 2
+        stdout: ""
+        stderr: "usage: prd_block.py [-h] [--claude-md CLAUDE_MD] [--check] prd_dir\nprd_block.py: error: the following arguments are required: prd_dir\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-246.1:
+  ac: AC-246.1
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], cwd: "ORDERS", runs: ["python BLOCK ."]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/CLAUDE.md", text: CLAUDE_BASE}
+      - {file: "<tmp>/docs/prd/orders/CLAUDE.md", absent: true}
+    errors: []
+    leaks: none
+
+T-246.2:
+  ac: AC-246.2
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], runs: ["python BLOCK docs/prd/orders --claude-md <tmp>/agents/AGENTS.md"]}
+  expect:
+    output:
+      run_1: {exit: 0}
+    effects:
+      - {file: "<tmp>/agents/AGENTS.md", text: CLAUDE_BASE}
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", text: README_BASE}
+    errors: []
+    leaks: none
+
+T-246.3:
+  ac: AC-246.3
+  level: integration
+  target: cli:prd_block
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-072
+  symptom: "the run exits 0 and writes <tmp>/docs/prd/orders/CLAUDE.md"
+  input: {setup: [N0X], runs: ["python BLOCK docs/prd/orders"], note: "N0X writes the fixture with no git init, so <tmp> is in no git checkout"}
+  expect:
+    output:
+      run_1: {exit: 2, stdout: "", stderr_exact_lines: ["prd_block: RTMP/docs/prd/orders: not inside a git checkout; name the CLAUDE.md with --claude-md"]}
+    effects:
+      - {file: "<tmp>/docs/prd/orders/CLAUDE.md", absent: true}
+      - {file: "<tmp>/CLAUDE.md", absent: true}
+      - {file: "<tmp>/docs/prd/orders/README.md", absent: true}
+    errors: []
+    leaks: none
+
+T-247.1:
+  ac: AC-247.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], call: "F = facts of ORDERS; the return is {summary: F.summary, first_sentence: F.first_sentence}"}
+  expect:
+    output:
+      return: {summary: "The orders service imports order files and prints monthly reports.", first_sentence: "The orders service imports order files and prints monthly reports."}
+    effects: []
+    errors: []
+    leaks: none
+
+T-247.2:
+  ac: AC-247.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS1], call: "the return is F.summary"}
+  expect:
+    output:
+      return: "The orders service imports order files. It prints\nmonthly reports."
+    effects: []
+    errors: []
+    leaks: none
+
+T-247.3:
+  ac: AC-247.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS2], call: "the return is {summary: F.summary, first_sentence: F.first_sentence}"}
+  expect:
+    output:
+      return: {summary: null, first_sentence: ""}
+    effects: []
+    errors: []
+    leaks: none
+
+T-247.4:
+  ac: AC-247.2
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS1], call: "the return is F.first_sentence"}
+  expect:
+    output:
+      return: "The orders service imports order files."
+    effects: []
+    errors: []
+    leaks: none
+
+T-247.5:
+  ac: AC-247.2
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS6], call: "the return is F.first_sentence"}
+  expect:
+    output:
+      return: "Does it import files?"
+    effects: []
+    errors: []
+    leaks: none
+
+T-247.6:
+  ac: AC-247.3
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  known-failing: E-071
+  symptom: "the return is `Intro`, fifteen spaces and `text`"
+  input: {setup: [N0, SS9], call: "the return is F.summary"}
+  expect:
+    output:
+      return: "Intro  text"
+    effects: []
+    errors: []
+    leaks: none
+
+T-248.1:
+  ac: AC-248.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, SS3], call: "the return is {principles: F.principles, getting_started: F.getting_started, summary: F.summary}"}
+  expect:
+    output:
+      return:
+        principles: "Keep it small.\n\n- **Plain.** One command, one answer."
+        getting_started: "1. Install the service.\n2. Import a file."
+        summary: "The orders service imports order files and prints monthly reports."
+    effects: []
+    errors: []
+    leaks: none
+
+T-248.2:
+  ac: AC-248.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], call: "the return is {principles: F.principles, getting_started: F.getting_started}"}
+  expect:
+    output:
+      return: {principles: null, getting_started: null}
+    effects: []
+    errors: []
+    leaks: none
+
+T-249.1:
+  ac: AC-249.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], call: "the return is [[a.name, a.file, a.adoption, list(a.counts.items())] for a in F.areas]"}
+  expect:
+    output:
+      return:
+        - ["import", "features/import.md", "-", [["live", 1], ["verified", 1], ["built", 1], ["approved", 1]]]
+        - ["reports", "features/reports.md", "-", [["live", 2], ["approved", 1]]]
+    effects: []
+    errors: []
+    leaks: none
+
+T-249.2:
+  ac: AC-249.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1, SU1, SR7, SAB], call: "the return is [[a.name, a.file, a.adoption, list(a.counts.items())] for a in F.areas]"}
+  expect:
+    output:
+      return:
+        - ["billing", "features/billing.md", "extracted", []]
+        - ["export", "features/export.md", "extracted", []]
+        - ["import", "features/import.md", "adopted", [["verified", 1], ["built", 1], ["approved", 1], ["as-built", 1]]]
+        - ["reports", "features/reports.md", "adopted", [["live", 1], ["approved", 1]]]
+    effects: []
+    errors: []
+    leaks: none
+
+T-250.1:
+  ac: AC-250.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0], call: "the return is {slug: F.slug, version: F.version, status: F.status, owner: F.owner, updated: F.updated, open_errors: F.open_errors, upstreams: F.upstreams, consumers: F.consumers, files: F.files}"}
+  expect:
+    output:
+      return:
+        slug: orders
+        version: "1.0.0"
+        status: Approved
+        owner: Sample Owner
+        updated: "2026-11-01"
+        open_errors: 0
+        upstreams: []
+        consumers: []
+        files: ["prd.md", "features/", "test-cases/", "contracts/", "testing.md", "errors.md", "operations.md", "nfr.md"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-250.2:
+  ac: AC-250.1
+  level: integration
+  target: code:prdlint.overview.facts
+  environment: local
+  identity: none
+  preconditions: [status-next/base, status-next/files]
+  refs: ["testing.md#Setup steps"]
+  input: {setup: [N0, NA1, NE1, SK1, SH0], call: "the return is {status: F.status, open_errors: F.open_errors, upstreams: F.upstreams, consumers: F.consumers, files: F.files}"}
+  expect:
+    output:
+      return:
+        status: unknown
+        open_errors: 2
+        upstreams: ["`https://example.com/greet.git#docs/prd/greet`"]
+        consumers: ["`git@example.com:org/bi.git#docs/prd/dashboards`"]
+        files: ["prd.md", "features/", "test-cases/", "contracts/", "testing.md", "errors.md", "operations.md", "nfr.md", "adoption.md", "links.md"]
+    effects: []
+    errors: []
+    leaks: none
