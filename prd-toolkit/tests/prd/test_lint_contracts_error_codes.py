@@ -96,9 +96,8 @@ def test_t184_5_catalogue_not_a_mapping_no_finding(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_t184_6_dependency_subfolder_cites_nothing(tmp_path, monkeypatch):
-    """@prd T-184.6 known-failing E-062"""
+    """@prd T-184.6"""
     p = S0(tmp_path, monkeypatch)
     p.write("contracts/dependencies/old/legacy.yaml", "failures: {timeout: NOT_CATALOGUED}")
     r = run_lint(tmp_path)
@@ -135,9 +134,8 @@ def test_t185_2_code_named_only_in_test_case_counts(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_t185_3_code_cited_only_in_subfolder_is_cited_nowhere(tmp_path, monkeypatch):
-    """@prd T-185.3 known-failing E-062"""
+    """@prd T-185.3"""
     p = S0(tmp_path, monkeypatch)
     _append_unused_code(p, "Only a legacy file cites this.")
     p.write("contracts/dependencies/old/legacy.yaml", "failures: {timeout: UNUSED_CODE}")

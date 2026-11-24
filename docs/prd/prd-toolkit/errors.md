@@ -660,7 +660,7 @@ Touches: FR-126
 Evidence: prd-toolkit/scripts/prdlint/rules/ids.py:191: `if b.status == "as-built" and not b.source:` is the whole check, so any text after `Source:` satisfies it.
   The finding's own message names the form the line is to have: `<ID> is as-built but has no 'Source: <file>:<line> @<commit>' line`.
 Diagnosis: For an `as-built` block, `index_consistent` only asks whether the block has a `Source:` line with text (ids.py:191). A line such as `Source: somewhere in the code` passes, though the message of the rule names the form `<file>:<line> @<commit>`, and the context pack and the adoption checks read a path, a line and a commit from that line. The owner answered Q-20 on 2026-11-21 that lint is to check the form, and AC-126.3 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-ids.
-Resolution: -
+Resolution: T-126.3 [integration], PRD 10.4.0, fixed in edffa43
 Recurrence of: -
 
 ### E-052 A gap finding calls an entry missing when it stands later in errors.md
@@ -723,7 +723,7 @@ Touches: FR-168
 Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:66: `return domain in _SYNTHETIC_DOMAINS or domain.endswith(_SYNTHETIC_SUFFIXES)`. The set (testcases.py:43) holds only `example.com`, `example.org` and `example.net`.
   `is_synthetic` returns False for an address at `mail.example.com` and at `sub.example.org`, and True for one at `example.com`.
 Diagnosis: `is_synthetic` counts an email as synthetic only when its domain is exactly `example.com`, `example.org` or `example.net`, or ends with `.test`, `.example` or `.invalid` (testcases.py:43-44, 66). An address at `mail.example.com` therefore counts as real-looking, and `classified-fixtures` and `sufficiency` report it, though the three domains are reserved with every name under them. The owner answered Q-31 on 2026-11-21 that an address at a subdomain of the three domains counts as synthetic, and AC-168.2 now says so; the code does not. Reproduced by calling `is_synthetic`.
-Resolution: -
+Resolution: T-168.7 [integration], PRD 10.4.0, fixed in 2515dc5
 Recurrence of: -
 
 ### E-058 A list or mapping column class crashes contracts-valid
@@ -734,7 +734,7 @@ Touches: FR-179
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:367: `if kind not in _KINDS:`, and `_KINDS` (contracts.py:105) is a set.
   In a copy of the fixture lint-cli/orders, line 5 of contracts/data-classification.yaml replaced with `    columns: {id: internal, email: [pii], name: pii}`: `prd lint` exits 2 with stderr `prd_lint: internal error in rule contracts-valid: TypeError: cannot use 'list' as a set element (unhashable type: 'list')`.
 Diagnosis: `_check_classification` tests `kind not in _KINDS`, and `_KINDS` is a set. A column class that is a YAML list or mapping (`columns: {email: [pii]}` or `{email: {a: b}}`) is unhashable, so the test raises `TypeError: unhashable type`. Nothing in the rule catches it, so `prd_lint` prints `prd_lint: internal error in rule contracts-valid: TypeError: …` and exits 2, instead of reporting `<t>.<c>: class [...] must be public, internal, confidential or pii`. Three things say this should be a finding. First, `prd-toolkit/tests/test_rules_contracts.py:146`, `test_malformed_shapes_never_crash`, asserts that malformed contract shapes give a `contracts-valid` finding and no `internal error`; its two classification inputs never put a list or mapping in the class position. Second, every sibling check in the file guards a value's type before it uses the value. Third, E-003 settled the same kind of TypeError escape as a bug. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-179.8 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-059 A validator the system cannot execute crashes contracts-valid
@@ -745,7 +745,7 @@ Touches: FR-182
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:500-508: `subprocess.run` is wrapped by handlers for `FileNotFoundError`, `PermissionError` and `subprocess.TimeoutExpired` only.
   In a copy of the fixture lint-cli/orders, with an executable `tools/check.sh` holding `exit 0` and no shebang, and the lookml row of prd.md section 7 given the Validator `tools/check.sh`: `prd lint` exits 2 with stderr `prd_lint: internal error in rule contracts-valid: OSError: [Errno 8] Exec format error: 'tools/check.sh'`.
 Diagnosis: `_check_custom` wraps `subprocess.run` but catches only `FileNotFoundError`, `PermissionError` and `TimeoutExpired`. Any other `OSError` escapes the rule, and `prd_lint` exits 2 with `prd_lint: internal error in rule contracts-valid: OSError: …`. Two examples are a validator file that has its execute bit but no shebang and is not a binary (`[Errno 8] Exec format error`), and an argument list too long for the system (E2BIG). The evidence that this should be a finding: the rule's own description says the custom type's validator "must run and pass" and tells the user to correct the Validator command. The sibling branches turn "not found" and "not executable" into findings. Commit 5a66652 decoded validator output as UTF-8 "so non-ASCII validator output under a C locale is a finding, not exit 2". Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-182.10 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-060 contracts-valid counts a field line inside a fenced code block for its event
@@ -756,7 +756,7 @@ Touches: FR-173
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:207-215: `_check_events` matches headings in the code-stripped text (`st`) but field lines in the original text (`orig.startswith(f + ":")`).
     In a copy of the fixture lint-cli/orders, line 4 of contracts/events.md replaced with three lines, a fence, `Trigger: a file arrives in the staging bucket.` and a fence: `prd lint` exits 0 and prints nothing.
 Diagnosis: `_check_events` finds headings in the code-stripped text but tests field lines against the original text (contracts.py:207-215). A `Trigger:`, `Payload:`, `Delivery:`, `Retries:` or `Failure:` line inside a fenced code block therefore counts for the event around it, though a fenced `### ` line starts no event (AC-173.3). The owner answered Q-32 on 2026-11-22 that a fenced field line counts for no event, and AC-173.3 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-173.5 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-061 contracts-valid accepts a permissions role with no secret
@@ -767,7 +767,7 @@ Touches: FR-176
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:290-292: a role is checked for `identity` only; `secret` is never read.
     In a copy of the fixture lint-cli/orders, line 2 of contracts/permissions.yaml replaced with `  admin: {identity: test-admin}` and line 3 with `  rep: {identity: test-rep, secret: ''}`: `prd lint` exits 0 and prints nothing.
 Diagnosis: `_check_permissions` checks each role for `identity` only (contracts.py:290-292). prd-format.md gives a role the shape `{identity, secret}`, and a test's credentials come from its role's `secret`. The owner answered Q-33 on 2026-11-22 that a role with no secret, or an empty one, is a finding, and AC-176.8 now says so; the code reports nothing. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-176.8 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-062 error-codes reads the failures of dependency files in subfolders of contracts/dependencies/
@@ -778,7 +778,7 @@ Touches: FR-184, FR-185
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:600-603: `error_citations` reads `failures` from every loaded YAML file whose path starts with `contracts/dependencies/`, at any depth; `contracts-valid` checks only the `.yaml` files directly in that folder (AC-180.5).
     In a copy of the fixture lint-cli/orders, with contracts/dependencies/old/legacy.yaml holding `failures:` and `  timeout: NOT_CATALOGUED`: `prd lint` exits 1 and prints `docs/prd/orders/contracts/dependencies/old/legacy.yaml:2: error-codes: error code NOT_CATALOGUED is not in contracts/errors.yaml`.
 Diagnosis: `error_citations` reads `failures` from every loaded YAML file under `contracts/dependencies/`, at any depth (contracts.py:600-603), while `contracts-valid` checks only the `.yaml` files directly in that folder (AC-180.5). A file in a subfolder therefore cites codes for `error-codes` (FR-184) and counts as a citation for FR-185, though it is no dependency file. The owner answered Q-35 on 2026-11-22 that the dependency files are the `.yaml` files directly in `contracts/dependencies/` and that `error-codes` reads failures only from those, and AC-184.3 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-184.6 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-063 A custom type's Files glob passes files outside the PRD folder to the validator
@@ -789,7 +789,7 @@ Touches: FR-181
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:450: `glob.glob(g, root_dir=prd.root, recursive=True)` keeps every match that is a file, with no check that it lies in the PRD folder.
     In a copy of the fixture lint-cli/orders, with docs/prd/outside.lkml written and the lookml row of prd.md section 7 given the Files `contracts/custom/*.lkml ../outside.lkml` and a validator that prints its arguments and exits 1: `prd lint` prints `docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: ['../outside.lkml', 'contracts/custom/sample.lkml']`. With the Files cell set to the file's absolute path, the validator receives that absolute path.
 Diagnosis: `custom_types` keeps every file a Files glob matches (contracts.py:450), so an absolute glob or one that climbs out with `..` passes files outside the PRD folder to the validator, and AC-181.1 already says a type's files are files in the PRD folder. The owner answered Q-36 on 2026-11-22 that such a match is a finding and is not passed to the validator, and AC-181.4 now says so; the code does neither. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-181.6 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-064 The prd-tester guard finds the PRD from the session's working directory, so a dispatch for a PRD in another repository may read nothing

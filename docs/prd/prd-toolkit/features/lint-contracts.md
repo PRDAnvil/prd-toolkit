@@ -48,9 +48,9 @@ Tests: T-172.1 [integration], T-172.2 [integration]  (test-cases/lint-contracts.
 Traces: UJ-01; cli:prd_lint
 
 ### FR-173 Require the five field lines of each event in events.md
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/rules/contracts.py:195 @9961c9e
-  prd-toolkit/scripts/prdlint/rules/contracts.py:538 @9961c9e
+  prd-toolkit/scripts/prdlint/rules/contracts.py:559 @be2569a
 Acceptance (EARS):
 - AC-173.1 If a section of `contracts/events.md` that starts at a `### ` heading has no line that starts, at column 0, with `Trigger:`, `Payload:`, `Delivery:`, `Retries:` or `Failure:`, the lint command shall report `contracts-valid` at the heading's line with `event '<name>' has no <field>: line`, once for each missing field, in that order. `<name>` is the heading's text after `### `, with its surrounding white space and backticks removed.
 - AC-173.2 The lint command shall end a section at the next heading of level 1, 2 or 3, or at the end of the file; a heading of level 1 or 2 starts no section.
@@ -89,7 +89,7 @@ Tests: T-175.1 [integration], T-175.2 [integration], T-175.3 [integration], T-17
 Traces: UJ-01; cli:prd_lint
 
 ### FR-176 Check the roles and operations of permissions.yaml
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/rules/contracts.py:282 @9961c9e
 Acceptance (EARS):
 - AC-176.1 If the `roles` of `contracts/permissions.yaml` is absent or not a mapping, the lint command shall report `contracts-valid` with `roles must be a mapping of role to {identity}`, at the `roles` line, or at the file's first key line when the key is absent, and shall check the operations as if no role were defined.
@@ -132,8 +132,8 @@ Tests: T-178.1 [integration], T-178.2 [integration], T-178.3 [integration], T-17
 Traces: UJ-01; cli:prd_lint
 
 ### FR-179 Check the tables and masking of data-classification.yaml
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/contracts.py:349 @9961c9e
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/contracts.py:351 @be2569a
 Acceptance (EARS):
 - AC-179.1 If the `tables` of `contracts/data-classification.yaml` is absent or not a mapping, the lint command shall report `contracts-valid` with `tables must be a mapping`, at the `tables` line, or at the file's first key line when the key is absent, and shall still check `masking`.
 - AC-179.2 If a table's value is not a mapping, the lint command shall report `contracts-valid` at the table's line with `table <table>: must be a mapping`.
@@ -163,10 +163,10 @@ Tests: T-180.1 [integration], T-180.2 [integration], T-180.3 [integration], T-18
 Traces: UJ-01; cli:prd_lint
 
 ### FR-181 Resolve each section 7 custom type to its files and validator
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/contracts.py:435 @9961c9e
-  prd-toolkit/scripts/prdlint/rules/contracts.py:414 @9961c9e
-  prd-toolkit/scripts/prdlint/rules/contracts.py:485 @9961c9e
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/contracts.py:451 @cb01a35
+  prd-toolkit/scripts/prdlint/rules/contracts.py:416 @be2569a
+  prd-toolkit/scripts/prdlint/rules/contracts.py:504 @be2569a
 Acceptance (EARS):
 - AC-181.1 Where a row of a table in section 7 of prd.md has at least three cells, and its Validator cell, with white space and backticks removed from its ends, is neither empty nor `built-in`, the lint command shall treat the row as a custom type. Its type is the first cell with backticks and white space removed from its ends. Its files are the files in the PRD folder that a glob of its Files cell matches, the cell's backticks removed and its globs split on commas and white space, `**` matching any depth, each file once, sorted.
 - AC-181.2 When a custom type's Validator cell is `pack`, the lint command shall take as its command the validator of the first resolved pack that declares the row's type with a validator other than `built-in`, the packs taken in the order the PRD names them and then the built-in service pack, with its `${PACK}` expanded; if no such pack does, it shall report `contracts-valid` at the row's line in prd.md with `custom type <type>: no named pack declares contract type <type>`.
@@ -178,9 +178,9 @@ Tests: T-181.1 [integration], T-181.2 [integration], T-181.3 [integration], T-18
 Traces: UJ-01; cli:prd_lint
 
 ### FR-182 Run each custom type's validator and report its failure
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/contracts.py:479 @9961c9e
-  prd-toolkit/scripts/prdlint/rules/contracts.py:472 @9961c9e
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/contracts.py:496 @be2569a
+  prd-toolkit/scripts/prdlint/rules/contracts.py:489 @be2569a
 Acceptance (EARS):
 - AC-182.1 When a custom type has a command and at least one file, the lint command shall run the command, split into words as a POSIX shell splits them, with the type's files appended as arguments (paths relative to the PRD folder), with no shell and with the PRD folder as working directory, and shall report no finding for the type when the command exits 0.
 - AC-182.2 If the Validator cell does not split into words (an unclosed quote), the lint command shall report `contracts-valid` at the row's line in prd.md with `custom type <type>: validator does not parse: <reason>`, `<reason>` being the splitter's message (`No closing quotation`).
@@ -209,9 +209,9 @@ Tests: T-183.1 [integration], T-183.2 [integration], T-183.3 [integration]  (tes
 Traces: UJ-01; cli:prd_lint
 
 ### FR-184 Report a cited error code the catalogue lacks
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/contracts.py:617 @9961c9e
-  prd-toolkit/scripts/prdlint/rules/contracts.py:589 @9961c9e
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/contracts.py:640 @be2569a
+  prd-toolkit/scripts/prdlint/rules/contracts.py:610 @be2569a
 Acceptance (EARS):
 - AC-184.1 Where `contracts/errors.yaml` loads as a mapping, if a code the loader reads from a block's `Errors:` line is not a key of it, the lint command shall report `error-codes` at the Errors line with `error code <code> is not in contracts/errors.yaml`.
 - AC-184.2 Where the catalogue loads as a mapping, if a string in the `x-error-codes` of an operation under `paths` or `webhooks` of `contracts/openapi.yaml` is not a key of it, the lint command shall report `error-codes` at the `x-error-codes` line with `error code <code> is not in contracts/errors.yaml`; an `x-error-codes` that is a single string counts as a list of that one code.
@@ -224,9 +224,9 @@ Tests: T-184.1 [integration], T-184.2 [integration], T-184.3 [integration], T-18
 Traces: UJ-01; cli:prd_lint
 
 ### FR-185 Report a catalogued error code cited nowhere
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/contracts.py:626 @9961c9e
-  prd-toolkit/scripts/prdlint/rules/contracts.py:607 @9961c9e
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/contracts.py:649 @be2569a
+  prd-toolkit/scripts/prdlint/rules/contracts.py:630 @be2569a
 Acceptance (EARS):
 - AC-185.1 If a key of `contracts/errors.yaml` is cited by no source of AC-184.1 to AC-184.3, and no test case's `expect.errors` (a string, or a list of strings) names it, the lint command shall report `error-codes` at the key's line with `error code <code> is catalogued but cited nowhere`.
 - AC-185.2 When a code is named only in a test case's `expect.errors`, the lint command shall report no AC-185.1 finding for it.

@@ -99,9 +99,8 @@ def test_masking_missing_errors(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_list_or_mapping_class(tmp_path, monkeypatch):
-    """@prd T-179.8 known-failing E-058"""
+    """@prd T-179.8"""
     o = S0(tmp_path, monkeypatch)
     o.replace(F, 5, "    columns: {id: internal, email: [pii], name: {kind: pii}}")
     r = run_lint(tmp_path)

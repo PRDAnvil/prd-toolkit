@@ -1975,8 +1975,6 @@ T-168.6:
     errors: []
     leaks: none
 T-168.7:
-  known-failing: E-057
-  symptom: "stdout also holds the line docs/prd/orders/test-cases/api.yaml:25: classified-fixtures: T-002.2: inline input holds the real-looking PII value 'a@mail.example.com'; use a synthetic form"
   ac: AC-168.2
   level: integration
   target: cli:prd_lint

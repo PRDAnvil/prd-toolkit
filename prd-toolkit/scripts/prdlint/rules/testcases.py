@@ -50,7 +50,7 @@ _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(\.[\w-]+)+")
 _PHONE = re.compile(r"(?<!\d)\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}(?!\d)")  # not inside a longer digit run
 _SSN = re.compile(r"(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)")
 _SYNTHETIC_DOMAINS = {"example.com", "example.org", "example.net"}
-_SYNTHETIC_SUFFIXES = (".test", ".example", ".invalid")
+_SYNTHETIC_SUFFIXES = (".example.com", ".example.org", ".example.net", ".test", ".example", ".invalid")
 _AC_NUMBER = re.compile(r"AC-(\d+)\.\d+")
 _TID_NUMBER = re.compile(r"T-(\d+)\.\d+")
 

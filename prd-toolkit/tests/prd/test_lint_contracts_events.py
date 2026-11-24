@@ -74,9 +74,8 @@ def test_fenced_heading_is_no_event(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_fenced_field_line_counts_for_no_event(tmp_path, monkeypatch):
-    """@prd T-173.5 known-failing E-060"""
+    """@prd T-173.5"""
     p = S0(tmp_path, monkeypatch)
     for line in [
         "### fenced_trigger",

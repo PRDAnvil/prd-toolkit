@@ -83,9 +83,8 @@ def test_as_built_with_source(tmp_path, monkeypatch):
     assert_stderr_empty(r)
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_as_built_malformed_source(tmp_path, monkeypatch):
-    """@prd T-126.3 known-failing E-051"""
+    """@prd T-126.3"""
     folder = S0(tmp_path, monkeypatch)
     folder.replace("prd.md", 104, "| FR-002 | Get an order | as-built | features/api.md |  |")
     folder.replace("features/api.md", 10, "Status: as-built")

@@ -74,8 +74,8 @@ Tests: T-125.1 [integration], T-125.2 [integration], T-125.3 [integration], T-12
 Traces: UJ-01; cli:prd_lint
 
 ### FR-126 Require a Source line on an as-built block
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/ids.py:191 @4465291
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/ids.py:203 @7aaa328
 Acceptance (EARS):
 - AC-126.1 If a block's status is `as-built` and it has no `Source:` field line with text, the lint command shall report `index-consistent` at the block's heading with `<ID> is as-built but has no 'Source: <file>:<line> @<commit>' line`.
 - AC-126.2 When an `as-built` block has a `Source: <file>:<line> @<commit>` line, the lint command shall report no such finding.

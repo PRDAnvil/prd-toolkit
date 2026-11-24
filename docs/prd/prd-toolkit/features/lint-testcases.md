@@ -258,9 +258,9 @@ Tests: T-167.1 [integration], T-167.2 [integration]  (test-cases/lint-testcases.
 Traces: UJ-01; cli:prd_lint
 
 ### FR-168 Tell real-looking personal data from synthetic
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/testcases.py:52 @5483ca1
-  prd-toolkit/scripts/prdlint/rules/testcases.py:62 @5483ca1
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/testcases.py:61 @1ecf483
+  prd-toolkit/scripts/prdlint/rules/testcases.py:71 @1ecf483
 Acceptance (EARS):
 - AC-168.1 The lint command shall search a text first for emails (`[\w.+-]+@[\w-]+(\.[\w-]+)+`), then for SSNs (`\d{3}-\d{2}-\d{4}`), then for phone numbers (`\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}`), and shall report the values in that order. An SSN or a phone number counts only when no digit stands directly before or after it. Each later pattern skips the text an earlier pattern matched.
 - AC-168.2 The lint command shall count an email as synthetic, and report none, when its domain (the text after its last `@`), in lower case, is `example.com`, `example.org` or `example.net`, ends with `.example.com`, `.example.org` or `.example.net`, or ends with `.test`, `.example` or `.invalid`.

@@ -6,7 +6,7 @@ from collections.abc import Iterator
 from .. import languages
 from ..findings import Finding
 from ..markdown import split_cells, strip_code
-from ..model import ADOPTION_STATES, IndexRow, Prd, ReqBlock
+from ..model import ADOPTION_STATES, IndexRow, Prd, ReqBlock, _field_lines
 from ..registry import rule
 from .structure import _hidden, _visible_prose
 
@@ -25,6 +25,8 @@ REQ_STATUSES = ("as-built", "approved", "built", "verified", "live", "removed")
 _TOKEN = re.compile(r"\b(UJ|FR|NFR|AC|T|E|A)-[0-9][0-9.]*\b")
 _REQ_ID = re.compile(r"\b(?:UJ-\d+|FR-\d+|NFR-\d+|AC-\d+\.\d+)\b")
 _E_HEADING = re.compile(r"^### (E-\d+)\b")
+# an as-built block's Source line and each continuation line: <file>:<line> @<commit> (AC-126.3)
+_SOURCE_FORM = re.compile(r".+:\d+ @[0-9a-fA-F]{7,40}")
 _UNIT = re.compile(r"\d+(\.\d+)?\s*(?:(?:ms|s|sec|seconds?|minutes?|min|h|hrs?|hours?|days?|KB|MB|GB|TB|requests?/s|req/s|requests?/min|req/min|rps|rows|users|errors?)\b|%)")
 
 
@@ -200,6 +202,8 @@ def index_consistent(prd: Prd):
     for b in prd.blocks:
         if b.status == "as-built" and not b.source:
             yield Finding(b.file, b.line, "index-consistent", f"{b.id} is as-built but has no 'Source: <file>:<line> @<commit>' line")
+        elif b.status == "as-built" and not all(_SOURCE_FORM.fullmatch(t) for _, t in _field_lines(b.lines, "Source")):
+            yield Finding(b.file, b.line, "index-consistent", f"{b.id} is as-built but its Source line is not '<file>:<line> @<commit>'")
         if b.id not in rows:
             yield Finding(b.file, b.line, "index-consistent", f"{b.id} has no row in the section 11 index")
     prd_lines = prd.docs.get("prd.md", "").split("\n")
