@@ -125,8 +125,6 @@ T-121.6:
     errors: []
     leaks: none
 T-121.7:
-  known-failing: E-047
-  symptom: "stdout holds the expected finding at docs/prd/orders/test-cases/import.yaml:1, not at line 36"
   ac: AC-121.3
   level: integration
   target: cli:prd_lint
@@ -143,8 +141,6 @@ T-121.7:
     errors: []
     leaks: none
 T-121.8:
-  known-failing: E-048
-  symptom: "stdout holds a line that starts docs/prd/orders/.notes.md: or docs/prd/orders/contracts/.draft.yaml: and holds the text of texts.span_absent"
   ac: AC-121.5
   level: integration
   target: cli:prd_lint
@@ -262,8 +258,6 @@ T-122.6:
     errors: []
     leaks: none
 T-122.7:
-  known-failing: E-046
-  symptom: "stdout holds a line that ends `id-unique: E-001 is already defined at errors.md:3`"
   ac: AC-122.1
   level: integration
   target: cli:prd_lint
@@ -722,8 +716,6 @@ T-127.3:
     errors: []
     leaks: none
 T-127.4:
-  known-failing: E-050
-  symptom: "stdout holds no index-consistent line for E-001"
   ac: AC-127.1
   level: integration
   target: cli:prd_lint
