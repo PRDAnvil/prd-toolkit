@@ -508,6 +508,8 @@ RANGE = "@RANGE@"  # the merge-base range, filled in by each renderer
 GITLAB_IMAGE = "python:3.12"
 GITLAB_RANGE = "$CI_MERGE_REQUEST_DIFF_BASE_SHA..HEAD"
 GITHUB_RANGE = "${{ github.event.pull_request.base.sha }}..HEAD"
+GITLAB_BASE = "$CI_MERGE_REQUEST_DIFF_BASE_SHA"  # the base GITLAB_RANGE starts from, for a `changed` row's job (AC-264.3)
+GITHUB_BASE = "${{ github.event.pull_request.base.sha }}"  # the base GITHUB_RANGE starts from (AC-264.3)
 
 
 RUNNER_SETUP = re.compile(r"^- \*\*Runner setup\.\*\*")  # the testing.md Harness slot bullet (AC-114.3)
@@ -519,6 +521,7 @@ class CiJob:
     script: list[str]
     manual: bool = False  # a manual job: never part of the merge gate, started by hand
     setup: tuple[str, ...] = ()  # the runner setup commands, run before the job's own (AC-114.3)
+    full_history: bool = False  # a job that reads history back to the base: GIT_DEPTH "0" on GitLab (AC-264.3)
 
 
 def runner_setup(prd) -> tuple[str, ...]:
@@ -559,7 +562,7 @@ def _dedupe(jobs: list[CiJob]) -> list[CiJob]:
             n += 1
             name = f"{base}-{n}"
         taken.add(name)
-        out.append(CiJob(name, j.script, j.manual, j.setup))
+        out.append(replace(j, name=name))
     return out
 
 
@@ -570,14 +573,15 @@ def ci_jobs(prd, prd_rel: str) -> list[CiJob]:
 
     q = shlex.quote(prd_rel)
     out = [CiJob("prd-lint", [f"sh {VENDOR_DIR}/prd lint --ci {q}", f"sh {VENDOR_DIR}/prd hooks check --ci {q}"]),
-           CiJob("prd-trace", [f"sh {VENDOR_DIR}/prd trace {q} --range {RANGE}"])]
+           CiJob("prd-trace", [f"sh {VENDOR_DIR}/prd trace {q} --range {RANGE}"], full_history=True)]
     if prd.links is not None:
         out[0].script.append(f"sh {VENDOR_DIR}/prd links check --ci {q}")
     n = 0
     for row in standards_rows(prd):
         if row.decision == "enforced" and row.command:
             n += 1
-            out.append(CiJob(f"standards-{n}", [standardsrun.ci_command(row.glob, row.command)]))
+            mode = standardsrun.run_mode(row.mode)
+            out.append(CiJob(f"standards-{n}", [standardsrun.ci_command(row.glob, row.command, mode)], full_history=mode == "changed"))
     for level in prd.testing.levels:
         if gate_of(prd, level) == "build" and level in prd.testing.commands:
             out.append(CiJob(f"test-{level}", [prd.testing.commands[level]]))
@@ -624,10 +628,10 @@ def render_gitlab(jobs: list[CiJob], secrets=()) -> str:
             lines += ["    - when: manual", "  allow_failure: true"]
         else:
             lines.append('    - if: \'$CI_PIPELINE_SOURCE == "merge_request_event"\'')
-        if j.name == "prd-trace":
+        if j.full_history:
             lines += ["  variables:", '    GIT_DEPTH: "0"']
         lines += ["  before_script:", f"    - {_q('pip install uv')}", *(f"    - {_q(s)}" for s in j.setup), "  script:"]
-        lines += [f"    - {_q(s.replace(RANGE, GITLAB_RANGE))}" for s in j.script]
+        lines += [f"    - {_q(s.replace(RANGE, GITLAB_RANGE).replace(standardsrun.BASE, GITLAB_BASE))}" for s in j.script]
         lines.append("")
     return "\n".join(lines)
 
@@ -646,7 +650,7 @@ def render_github(jobs: list[CiJob], secrets=()) -> str:
                   "      - uses: astral-sh/setup-uv@v5"]
         lines += [f"      - run: {_q(s)}" for s in j.setup]
         for s in j.script:
-            lines.append(f"      - run: {_q(s.replace(RANGE, GITHUB_RANGE))}")
+            lines.append(f"      - run: {_q(s.replace(RANGE, GITHUB_RANGE).replace(standardsrun.BASE, GITHUB_BASE))}")
         lines.append("")
     return "\n".join(lines)
 
