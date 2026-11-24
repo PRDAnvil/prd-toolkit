@@ -778,7 +778,7 @@ Touches: FR-184, FR-185
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:600-603: `error_citations` reads `failures` from every loaded YAML file whose path starts with `contracts/dependencies/`, at any depth; `contracts-valid` checks only the `.yaml` files directly in that folder (AC-180.5).
     In a copy of the fixture lint-cli/orders, with contracts/dependencies/old/legacy.yaml holding `failures:` and `  timeout: NOT_CATALOGUED`: `prd lint` exits 1 and prints `docs/prd/orders/contracts/dependencies/old/legacy.yaml:2: error-codes: error code NOT_CATALOGUED is not in contracts/errors.yaml`.
 Diagnosis: `error_citations` reads `failures` from every loaded YAML file under `contracts/dependencies/`, at any depth (contracts.py:600-603), while `contracts-valid` checks only the `.yaml` files directly in that folder (AC-180.5). A file in a subfolder therefore cites codes for `error-codes` (FR-184) and counts as a citation for FR-185, though it is no dependency file. The owner answered Q-35 on 2026-11-22 that the dependency files are the `.yaml` files directly in `contracts/dependencies/` and that `error-codes` reads failures only from those, and AC-184.3 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-184.6 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-063 A custom type's Files glob passes files outside the PRD folder to the validator
