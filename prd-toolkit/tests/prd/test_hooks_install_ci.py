@@ -9,8 +9,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import pytest
-
 from hooks_install_support import (  # noqa: F401  (hi_tmp, built: fixtures)
     N0E, ORDERS_REL, SetupError, VENDOR, built, given, hi_tmp, in_relative_order, run, step_run, write,
     write_empty_no_git,
@@ -20,10 +18,6 @@ GH_FILE = ".github/workflows/prd-toolkit.yml"
 GL_FILE = ".gitlab/prd-toolkit.yml"
 GH_WROTE = "wrote .github/workflows/prd-toolkit.yml\n"
 GL_WROTE = "wrote .gitlab/prd-toolkit.yml\ninclude: '.gitlab/prd-toolkit.yml'\n"
-
-
-class KnownFailure(Exception):
-    """The symptom a known-failing case names was seen: the expected failure, and only it."""
 
 
 # -- setups (the cases' `setup:` lists) --
@@ -132,16 +126,11 @@ def test_ci_refuses_a_vendored_copy_without_launcher(built):
     assert not (tmp / ".github").exists()
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 @given(setup_no_git)
 def test_ci_refuses_outside_a_git_checkout(built):
-    """@prd T-113.5 known-failing E-043"""
+    """@prd T-113.5"""
     tmp = built
     r = run(tmp, tmp, "python HOOKS ci --github docs/prd/orders")
-    # The case's symptom: the exit code is 0 and <tmp>/docs/prd/orders/.github/workflows/prd-toolkit.yml exists.
-    if r.exit == 0 and (tmp / ORDERS_REL / GH_FILE).exists():
-        raise KnownFailure("E-043: exit 0, and docs/prd/orders/.github/workflows/prd-toolkit.yml was written")
-
     folder = os.path.realpath(tmp) + "/docs/prd/orders"
     assert r.exit == 2, r.stdout + r.stderr
     assert r.stdout == ""

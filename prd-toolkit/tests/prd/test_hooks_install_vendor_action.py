@@ -7,8 +7,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-import pytest
-
 from hooks_install_support import (
     N0E, ORDERS_REL, V, VENDOR, built, files_outside_pycache, given, hi_tmp, insert_after, run,
     write_empty_no_git,
@@ -17,10 +15,6 @@ from hooks_install_support import (
 __all__ = ["built", "hi_tmp"]  # pytest fixtures, imported for use
 
 VENDOR_CMD = f"python HOOKS vendor {ORDERS_REL}"
-
-
-class KnownFailure(Exception):
-    """The known failure of a case's `symptom:` was seen (raised for a strict xfail with raises=KnownFailure)."""
 
 
 def _setup_107_1(tmp: Path) -> None:
@@ -100,14 +94,11 @@ def _setup_no_git(tmp: Path) -> None:
     write_empty_no_git(tmp)
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-043")
 @given(_setup_no_git)
 def test_vendor_refuses_outside_a_git_checkout(built):
-    """@prd T-107.5 known-failing E-043"""
+    """@prd T-107.5"""
     tmp = built
     r = run(tmp, tmp, VENDOR_CMD)
-    if r.exit == 0 and (tmp / ORDERS_REL / ".prd-toolkit").is_dir():
-        raise KnownFailure("E-043: exit 0 and docs/prd/orders/.prd-toolkit exists")
     assert r.exit == 2, r
     assert r.stdout == ""
     assert r.stderr == f"prd_hooks: {os.path.realpath(tmp)}/{ORDERS_REL} is not inside a git checkout\n"
