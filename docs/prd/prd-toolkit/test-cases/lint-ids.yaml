@@ -649,8 +649,6 @@ T-126.2:
     errors: []
     leaks: none
 T-126.3:
-  known-failing: E-051
-  symptom: "stdout holds no index-consistent line for FR-002"
   ac: AC-126.3
   level: integration
   target: cli:prd_lint
