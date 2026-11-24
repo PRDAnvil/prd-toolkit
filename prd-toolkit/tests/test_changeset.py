@@ -388,6 +388,20 @@ def test_stop_then_first_approval(tmp_path):
     assert refused("approve", cs, "--reply", "again").startswith("refused: CS-001 is approved")
 
 
+def test_stop_then_set_state_without_approval_is_refused(tmp_path):
+    """E-082: a stop is not an approval; with no Approval line a State is refused whatever the Status, and step 2's
+    Version and IDs can still be set."""
+    _, cs = started(tmp_path)
+    ok("stop", cs, "reports", "lint blocked")
+    before = cs.read_bytes()
+    for state in ("state=approved", "state=built"):
+        assert refused("set", cs, "transform", state) == "refused: CS-001 is not approved yet"
+    assert cs.read_bytes() == before
+    ok("set", cs, "transform", "version=1.1.0", "ids=FR-003")
+    got = record(cs)
+    assert got.status == "stopped: reports: lint blocked" and {r.state for r in got.rows} == {"proposed"}
+
+
 def test_approve_refuses_a_stopped_record_past_proposed_with_no_approval(tmp_path):
     """E-081: a stopped record with no Approval line whose row is past proposed (written before E-082's fix) takes no
     approval; the refusal names the abandon route."""
