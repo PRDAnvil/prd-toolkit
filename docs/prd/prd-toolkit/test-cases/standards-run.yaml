@@ -217,3 +217,281 @@ T-068.7:
     effects: []
     errors: []
     leaks: none
+
+# The FR-264 cases (E-074): a row's files mode, the second backticked span of its Linter command cell.
+
+T-264.1:
+  ac: AC-264.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM1
+    - SG5
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --github docs/prd/orders
+    - sh -c JOB
+    note: "JOB is texts.none_job_line, passed to sh as one argument; SG5 stages every file, so tracked Python files match the glob"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stdout: "wrote .github/workflows/prd-toolkit.yml\n"
+        stderr: ""
+      run_2:
+        exit: 0
+    effects:
+    - "<tmp>/.github/workflows/prd-toolkit.yml, read with yaml.safe_load, holds at `jobs.standards-1.steps.2.run` the string texts.none_job_line"
+    - "after run_2, <tmp>/lint.log holds exactly one line, and it is empty: the linter ran once, given no path"
+    errors: []
+    leaks: none
+
+T-264.2:
+  ac: AC-264.2
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM1
+    - SM5
+    - SG5
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --gitlab docs/prd/orders
+    - sh -c JOB
+    note: "JOB is the string at `standards-1.script.0` of <tmp>/.gitlab/prd-toolkit.yml read with yaml.safe_load, passed to sh as one argument; after SM5 no tracked file matches the row's glob"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+      run_2:
+        exit: 0
+        stdout: ""
+        stderr: ""
+    effects:
+    - "after run_2, <tmp>/lint.log does not exist: the linter never ran"
+    errors: []
+    leaks: none
+
+T-264.3:
+  ac: AC-264.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM2
+    - SC1
+    cwd: "<tmp>"
+    runs:
+    - python HOOKS ci --gitlab docs/prd/orders
+    - env: {CI_MERGE_REQUEST_DIFF_BASE_SHA: "<base>"}
+      command: sh -c JOB
+    note: "JOB is texts.changed_job_gitlab, passed to sh as one argument; <base> is the commit SC1 names. The branch modifies src/ok.py, adds src/new.py and .prd-toolkit/extra.py, and deletes src/bad.py"
+  expect:
+    output:
+      run_1:
+        exit: 0
+        stderr: ""
+      run_2:
+        exit: 0
+    effects:
+    - "<tmp>/.gitlab/prd-toolkit.yml, read with yaml.safe_load, holds at `standards-1.script.0` the string texts.changed_job_gitlab, and at `standards-1.variables.GIT_DEPTH` the string `0`"
+    - "after run_2, <tmp>/lint.log holds exactly the one line `./src/new.py ./src/ok.py`: the changed matching files, with no deleted file and no path under .prd-toolkit/"
+    errors: []
+    leaks: none
+
+T-264.4:
+  ac: AC-264.3
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM2
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+  expect:
+    output:
+      exit: 0
+      stdout: "wrote .github/workflows/prd-toolkit.yml\n"
+      stderr: ""
+    effects:
+    - "<tmp>/.github/workflows/prd-toolkit.yml, read with yaml.safe_load, holds at `jobs.standards-1.steps.2.run` the string texts.changed_job_github"
+    errors: []
+    leaks: none
+
+T-264.5:
+  ac: AC-264.1
+  level: integration
+  target: "cli:prd_hooks"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM3
+    cwd: "<tmp>"
+    command: python HOOKS ci --github docs/prd/orders
+    note: "SM3 gives the row the mode `sometimes`, which is not one of the three, so the row is run as an appended row"
+  expect:
+    output:
+      exit: 0
+      stdout: "wrote .github/workflows/prd-toolkit.yml\n"
+      stderr: ""
+    effects:
+    - "<tmp>/.github/workflows/prd-toolkit.yml, read with yaml.safe_load, holds at `jobs.standards-1.steps.2.run` the string texts.job_line"
+    errors: []
+    leaks: none
+
+T-264.6:
+  ac: AC-264.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM1
+    - SG4
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: "SG4 stages the vendored copy, src/bad.py and src/ok.py; given no path, the linter refuses none"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects:
+    - "<tmp>/lint.log holds exactly one line, and it is empty: the linter ran once, given no path"
+    errors: []
+    leaks: none
+
+T-264.7:
+  ac: AC-264.4
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM1
+    - SG3
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: "SG3 stages only the vendored copy, so no staged path is left for the row"
+  expect:
+    output:
+      exit: 0
+      stdout: ""
+      stderr: ""
+    effects:
+    - "<tmp>/lint.log does not exist: the linter never ran"
+    errors: []
+    leaks: none
+
+T-264.8:
+  ac: AC-264.5
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM4
+    - SG1
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: "SM4's linter is texts.failing_linter, run with no path; SG1 stages the vendored copy and src/ok.py"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "prd-toolkit: `python3 -c \"import sys; print('whole tree refused', file=sys.stderr); sys.exit(3)\"` failed (exit 3):\nwhole tree refused\n"
+    effects: []
+    errors: []
+    leaks: none
+
+T-264.9:
+  ac: AC-264.6
+  level: integration
+  target: "cli:prd_git_hook"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/empty
+  - standards-run/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup:
+    - SR0
+    - SM2
+    - SG4
+    cwd: "<tmp>"
+    command: python HOOK pre-commit docs/prd/orders
+    note: "SG4 stages the vendored copy, src/bad.py and src/ok.py; a changed row is given the staged paths, as an appended row is"
+  expect:
+    output:
+      exit: 1
+      stdout: ""
+      stderr: "prd-toolkit: `python3 -c \"import sys; open('lint.log', 'a').write(' '.join(sys.argv[1:]) + chr(10)); bad = [a for a in sys.argv[1:] if '.prd-toolkit/' in a or a.endswith('bad.py')]; print(*bad, file=sys.stderr); sys.exit(1 if bad else 0)\"` failed (exit 1) on src/bad.py, src/ok.py:\nsrc/bad.py\n"
+    effects:
+    - "<tmp>/lint.log holds exactly the one line `src/bad.py src/ok.py`"
+    errors: []
+    leaks: none
