@@ -23,8 +23,8 @@ Tests: T-132.1 [integration], T-132.2 [integration], T-132.3 [integration], T-13
 Traces: UJ-01; cli:prd_lint
 
 ### FR-133 Check an enforced standard's linter command
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/registries.py:87 @6162689
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/registries.py:89 @ae307f1
 Flow: 1. for a section 5 row whose Decision is `enforced`, take the first backticked span of its Linter command cell → 2. split it into words as a POSIX shell does; the first word is the command
       → 3. report a row with no command, and, outside a CI run, a command that is not on PATH
       → 4. report a files mode (FR-264) that is not one of `appended`, `none` and `changed`

@@ -17,8 +17,8 @@ the command the matching files, as FR-068 says; `none` runs it once with no file
 checks a whole tree or one target; `changed` gives it only the matching files the branch changed.
 
 ### FR-068 A standards row is never run on the vendored copy
-Status: approved
-Source: prd-toolkit/scripts/prdlint/standardsrun.py:4 @27aab93
+Status: verified
+Source: prd-toolkit/scripts/prdlint/standardsrun.py:5 @ae307f1
 Acceptance (EARS):
 - AC-068.1 When the pre-commit hook (`prd_git_hook.py pre-commit <prd_dir>`) runs an enforced section 5
   row whose files mode (FR-264) is `appended`, it shall give the row's linter every staged path that
@@ -48,7 +48,8 @@ Tests: T-068.1 [integration], T-068.2 [integration], T-068.3 [integration], T-06
 Traces: cli:prd_git_hook; cli:prd_hooks; E-025
 
 ### FR-264 A standards row says how its command takes files
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/standardsrun.py:6 @ef5b43e
 Flow: 1. read the row's files mode from the second backticked span of its Linter command cell
       → 2a. `appended` (the default): the matching files are given, as FR-068 says
         2b. `none`: the command runs once with no file, when a file matches

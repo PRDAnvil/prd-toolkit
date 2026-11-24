@@ -211,7 +211,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-065 | The url part of a Target: line | verified | features/card-context.md |  |
 | FR-066 | A gate's URL | verified | features/card-context.md |  |
 | FR-067 | Where the area and the URL show | verified | features/card-context.md |  |
-| FR-068 | A standards row is never run on the vendored copy | approved | features/standards-run.md |  |
+| FR-068 | A standards row is never run on the vendored copy | verified | features/standards-run.md |  |
 | FR-069 | The launcher runs on a system Python when uv finds one | verified | features/launcher.md |  |
 | FR-070 | Install rewrites the toolkit's own hooks where core.hooksPath is set | verified | features/hook-shims.md |  |
 | FR-071 | The inbox shows an error entry's card in the first worktree that holds it | verified | features/inbox-cards.md |  |
@@ -277,7 +277,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-130 | Write each live AC in an EARS pattern | live | features/lint-ids.md | 9.3.0 |
 | FR-131 | Give every NFR a measurable bound | live | features/lint-ids.md | 9.3.0 |
 | FR-132 | Check the Decision of each registry row | live | features/lint-registries.md | 9.4.0 |
-| FR-133 | Check an enforced standard's linter command | approved | features/lint-registries.md |  |
+| FR-133 | Check an enforced standard's linter command | verified | features/lint-registries.md |  |
 | FR-134 | Require a required skill to be installed | live | features/lint-registries.md | 9.4.0 |
 | FR-135 | Number the runbook's steps and give each its actor and environment | live | features/lint-registries.md | 9.4.0 |
 | FR-136 | Give a human step Do and Check only | live | features/lint-registries.md | 9.4.0 |
@@ -408,7 +408,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-261 | Move a PRD to a new version of its pack | live | features/change.md | 10.2.0 |
 | FR-262 | The checks before an approval | approved | features/change.md |  |
 | FR-263 | The approval commit | live | features/change.md | 10.2.0 |
-| FR-264 | A standards row says how its command takes files | approved | features/standards-run.md |  |
+| FR-264 | A standards row says how its command takes files | verified | features/standards-run.md |  |
 
 ## 12. Assumptions index
 
