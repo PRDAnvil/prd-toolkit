@@ -995,6 +995,7 @@ Recurrence of: -
 ### E-081 changeset approve refuses a record stopped before its first approval, with and without --amendment
 Detected: 2026-11-24, user report (/prd-toolkit:prd-error)
 Classification: code bug
+Confirmed: 2026-11-24, "Confirm the class (form)"
 Evidence: User report: a change set's step 2 lint was blocked in one member, and the session recorded it with `changeset stop`.
   After the blocker was fixed, the owner replied to every member's PRD diff. Then:
   changeset approve <record> --reply '<reply>'
