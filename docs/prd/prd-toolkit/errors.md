@@ -577,7 +577,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-098, FR-101, FR-107, FR-113
 Evidence: `model.repo_root` returns the PRD folder itself when git finds no checkout (model.py:1022). Install then takes the PRD folder as the top.
 Diagnosis: `model.repo_root` returns the PRD folder itself when git finds no checkout (model.py:1022). Install then takes the PRD folder as the top. It writes `<prd>/.prd-toolkit/` and `<prd>/.gitignore`, and only then fails at `git rev-parse --git-path hooks` (hooks.py:164, `check=True`). It prints `prd_hooks: internal error: CalledProcessError: …` and exits 2, leaving those files behind. `vendor` and `ci` take the same root, so they write `.prd-toolkit/` or `.github/…` inside the PRD folder and exit 0. The sibling code says this case should be refused cleanly. `check --ci` refuses outside a checkout with `prd_hooks: <path> is not inside a git checkout` and exit 2, a fix made deliberately (commit f03ca0f: "instead of passing with no CI file found"). The `InstallRefused` docstring says a refused install "vendors nothing". Commit 7fd23dc made check's hook loop tolerate a missing checkout "instead of raising". An internal error after partial writes matches none of these. Not reproduced by a run: read from the code during the adoption extract of the area hooks-install.
-Resolution: -
+Resolution: T-098.6 [integration], PRD 10.3.1, fixed in 98638f4146af4196dedbe07dba8729b06d95b020
 Recurrence of: -
 
 ### E-044 uninstall removes nothing where core.hooksPath is set, though install writes the hooks of the toolkit there
