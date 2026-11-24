@@ -734,7 +734,7 @@ Touches: FR-179
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:367: `if kind not in _KINDS:`, and `_KINDS` (contracts.py:105) is a set.
   In a copy of the fixture lint-cli/orders, line 5 of contracts/data-classification.yaml replaced with `    columns: {id: internal, email: [pii], name: pii}`: `prd lint` exits 2 with stderr `prd_lint: internal error in rule contracts-valid: TypeError: cannot use 'list' as a set element (unhashable type: 'list')`.
 Diagnosis: `_check_classification` tests `kind not in _KINDS`, and `_KINDS` is a set. A column class that is a YAML list or mapping (`columns: {email: [pii]}` or `{email: {a: b}}`) is unhashable, so the test raises `TypeError: unhashable type`. Nothing in the rule catches it, so `prd_lint` prints `prd_lint: internal error in rule contracts-valid: TypeError: …` and exits 2, instead of reporting `<t>.<c>: class [...] must be public, internal, confidential or pii`. Three things say this should be a finding. First, `prd-toolkit/tests/test_rules_contracts.py:146`, `test_malformed_shapes_never_crash`, asserts that malformed contract shapes give a `contracts-valid` finding and no `internal error`; its two classification inputs never put a list or mapping in the class position. Second, every sibling check in the file guards a value's type before it uses the value. Third, E-003 settled the same kind of TypeError escape as a bug. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-179.8 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-059 A validator the system cannot execute crashes contracts-valid
