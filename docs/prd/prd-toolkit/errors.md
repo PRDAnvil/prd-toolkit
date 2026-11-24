@@ -629,7 +629,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-121
 Evidence: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`.
 Diagnosis: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`. The owner's confirmed rule in E-011 says that a file or folder whose name starts with `.` is not part of the PRD and that no rule reads it. The sibling rules in structure.py read `_visible_prose` and skip hidden YAML sources (structure.py:54-58, 283). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-121.8 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-049 index-consistent reports matching titles as different when a title starts or ends with a code span
