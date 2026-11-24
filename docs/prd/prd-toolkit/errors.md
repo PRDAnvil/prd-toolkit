@@ -745,7 +745,7 @@ Touches: FR-182
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:500-508: `subprocess.run` is wrapped by handlers for `FileNotFoundError`, `PermissionError` and `subprocess.TimeoutExpired` only.
   In a copy of the fixture lint-cli/orders, with an executable `tools/check.sh` holding `exit 0` and no shebang, and the lookml row of prd.md section 7 given the Validator `tools/check.sh`: `prd lint` exits 2 with stderr `prd_lint: internal error in rule contracts-valid: OSError: [Errno 8] Exec format error: 'tools/check.sh'`.
 Diagnosis: `_check_custom` wraps `subprocess.run` but catches only `FileNotFoundError`, `PermissionError` and `TimeoutExpired`. Any other `OSError` escapes the rule, and `prd_lint` exits 2 with `prd_lint: internal error in rule contracts-valid: OSError: …`. Two examples are a validator file that has its execute bit but no shebang and is not a binary (`[Errno 8] Exec format error`), and an argument list too long for the system (E2BIG). The evidence that this should be a finding: the rule's own description says the custom type's validator "must run and pass" and tells the user to correct the Validator command. The sibling branches turn "not found" and "not executable" into findings. Commit 5a66652 decoded validator output as UTF-8 "so non-ASCII validator output under a C locale is a finding, not exit 2". Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-182.10 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-060 contracts-valid counts a field line inside a fenced code block for its event
