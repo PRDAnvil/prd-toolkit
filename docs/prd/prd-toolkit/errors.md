@@ -723,7 +723,7 @@ Touches: FR-168
 Evidence: prd-toolkit/scripts/prdlint/rules/testcases.py:66: `return domain in _SYNTHETIC_DOMAINS or domain.endswith(_SYNTHETIC_SUFFIXES)`. The set (testcases.py:43) holds only `example.com`, `example.org` and `example.net`.
   `is_synthetic` returns False for an address at `mail.example.com` and at `sub.example.org`, and True for one at `example.com`.
 Diagnosis: `is_synthetic` counts an email as synthetic only when its domain is exactly `example.com`, `example.org` or `example.net`, or ends with `.test`, `.example` or `.invalid` (testcases.py:43-44, 66). An address at `mail.example.com` therefore counts as real-looking, and `classified-fixtures` and `sufficiency` report it, though the three domains are reserved with every name under them. The owner answered Q-31 on 2026-11-21 that an address at a subdomain of the three domains counts as synthetic, and AC-168.2 now says so; the code does not. Reproduced by calling `is_synthetic`.
-Resolution: -
+Resolution: T-168.7 [integration], PRD 10.4.0, fixed in 2515dc5
 Recurrence of: -
 
 ### E-058 A list or mapping column class crashes contracts-valid
