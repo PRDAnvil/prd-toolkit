@@ -160,10 +160,9 @@ def test_inline_synthetic_phones(lint_case):
     })
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 @pytest.mark.parametrize("lint_case", [{"setup": [("insert_after", API, 26, T["inline_subdomains"])]}], indirect=True)
 def test_inline_subdomains_of_example(lint_case):
-    """@prd T-168.7 known-failing E-057"""
+    """@prd T-168.7"""
     run = lint_case[0]
     if contains_line(run.stdout, inline("a@mail.example.com")):
         raise KnownFailure("stdout also holds the 'a@mail.example.com' finding (E-057)")
