@@ -756,7 +756,7 @@ Touches: FR-173
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:207-215: `_check_events` matches headings in the code-stripped text (`st`) but field lines in the original text (`orig.startswith(f + ":")`).
     In a copy of the fixture lint-cli/orders, line 4 of contracts/events.md replaced with three lines, a fence, `Trigger: a file arrives in the staging bucket.` and a fence: `prd lint` exits 0 and prints nothing.
 Diagnosis: `_check_events` finds headings in the code-stripped text but tests field lines against the original text (contracts.py:207-215). A `Trigger:`, `Payload:`, `Delivery:`, `Retries:` or `Failure:` line inside a fenced code block therefore counts for the event around it, though a fenced `### ` line starts no event (AC-173.3). The owner answered Q-32 on 2026-11-22 that a fenced field line counts for no event, and AC-173.3 now says so; the code does not. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-173.5 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-061 contracts-valid accepts a permissions role with no secret
