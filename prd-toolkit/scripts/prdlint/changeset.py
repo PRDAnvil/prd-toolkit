@@ -394,15 +394,25 @@ def set_fields(record: str | Path, prd: str, assignments: list[str]) -> Path:
 
 def approve(record: str | Path, reply: str, amendment: bool = False) -> Path:
     """Quote the reply on one Approval line; every proposed row and Status become approved (so an --amendment moves a
-    running or stopped record back to approved, until the next `set` of a State)."""
+    running or stopped record back to approved, until the next `set` of a State). A record stopped before its first
+    approval, every row still proposed, takes that first approval, and the Log records that the stop was cleared."""
     reply = _text(reply, "--reply")
     path, cs = load(record)
     _open(cs)
     if amendment and not cs.approvals:
         raise Refused(f"{cs.id} has no approval to amend")
+    cleared = None
     if not amendment and cs.status != "proposed":
-        raise Refused(f"{cs.id} is {cs.status}, not proposed; a later approval is an --amendment")
+        if cs.approvals or not cs.status.startswith("stopped: "):
+            raise Refused(f"{cs.id} is {cs.status}, not proposed; a later approval is an --amendment")
+        past = next((r for r in cs.rows if r.state != "proposed"), None)
+        if past is not None:
+            raise Refused(f"{cs.id} is {cs.status} with no approval, and {past.prd} is {past.state}; "
+                          "abandon it and start a new change set")
+        cleared = cs.status.removeprefix("stopped: ").split(":", 1)[0]
     cs.approvals.append(f'{today()}, "{reply}"' + (" (amendment)" if amendment else ""))
+    if cleared is not None:
+        cs.log.append(f"{today()} {cleared} stop cleared by the first approval")
     for r in cs.rows:
         if r.state == "proposed":
             r.state = "approved"
