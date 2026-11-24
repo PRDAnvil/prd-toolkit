@@ -984,15 +984,18 @@ Recurrence of: -
 
 ### E-080 prd error check accepts a Resolution line whose PRD version was recorded by another change
 Detected: 2026-11-23, closing E-075 (PR #54)
-Classification: unclassified
+Classification: not a defect
+Confirmed: 2026-11-24, "Confirm the class (form)"
+Touches: FR-081
 Evidence: Seen while closing E-075 (PR #54, 2026-11-23).
   E-075 was resolved at e211a6f as: Resolution: T-081.23 [integration], PRD 10.2.0, fixed in 86b7dd5
   Its change was then re-recorded on top of main and approved as PRD 10.3.0 (71247f9), after the change-area adoption merged as 10.2.0 (PR #53).
   The fixing session reported: prd error check had not flagged 10.2.0, since that version has #53's row in section 14.
   So the Resolution line named a version recorded by another change (the change-area adoption), not the version that carried E-075's regression test.
   The line was edited to PRD 10.3.0 by hand (2a70b7b) on the owner's choice.
-Diagnosis: -
-Resolution: -
+Explanation: I re-ran the reported case: the check of E-075 at the point where its resolution still named PRD 10.2.0, while the PRD was at 10.3.0 and its regression test T-081.23 had been recorded by the 10.3.0 change. The check printed nothing and passed. The PRD says it should: the check accepts a fix whose version has a changelog row and is not above the PRD version, and 10.2.0 met both, because 10.2.0 is the change-area adoption that merged first. So the code and the PRD agree, which makes this not a defect as the PRD stands. The question is what you want. Do you want the check to accept any recorded version that is not above the PRD (what it does now, and what let E-044 and E-045 keep 10.3.1 today), or to require the version of the change that recorded the entry regression test whenever such a change exists (which would have refused E-075 at 10.2.0 and asked for 10.3.0)? The first keeps it not a defect, and nothing changes. The second makes it an invalid requirement: the rule in the PRD is revised first, then the check is built to match.
+Diagnosis: not a defect: run in a scratch clone at `2a70b7b^` (PRD `version: 10.3.0`; E-075 line `Resolution: T-081.23 [integration], PRD 10.2.0, fixed in 86b7dd5`): `.prd-toolkit/prd error check docs/prd/prd-toolkit e211a6f^..HEAD` printed nothing and `prd-error-exit=0`. AC-081.3 says the check shall print nothing for a fix with a T-id `whose <X.Y.Z> has a section 14 row and is not above the PRD's version at <head>`; 10.2.0 has the section 14 row of the change-area adoption (PR #53) and is below 10.3.0, so the output is the one AC-081.3 gives. The row that lists T-081.23 is 10.3.0 (E-075 change, 71247f9), but no AC asks the check to match the version to that row. The code (`_version_findings` in prdlint/errors.py) checks exactly the two conditions AC-081.3 names. If the owner wants the version tied to the change that recorded the regression T-id, AC-081.3 is too permissive and the class is invalid requirement on FR-081.
+Resolution: not a defect: AC-081.3 says check prints nothing for a fix with a T-id whose version has a section 14 row and is not above the PRD version at head; E-075 at 10.2.0 met both, and the owner confirmed that rule stands
 Recurrence of: -
 
 ### E-081 changeset approve refuses a record stopped before its first approval, with and without --amendment
