@@ -991,3 +991,17 @@ Evidence: Seen while closing E-075 (PR #54, 2026-11-23).
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-081 changeset approve refuses a record stopped before its first approval, with and without --amendment
+Detected: 2026-11-24, user report (/prd-toolkit:prd-error)
+Classification: unclassified
+Evidence: User report: a change set's step 2 lint was blocked in one member, and the session recorded it with `changeset stop`.
+  After the blocker was fixed, the owner replied to every member's PRD diff. Then:
+  changeset approve <record> --reply '<reply>'
+    refused: CS-001 is stopped: <prd>: <reason>, not proposed; a later approval is an --amendment
+  changeset approve <record> --reply '<reply>' --amendment
+    refused: CS-001 has no approval to amend
+  The only way on was to abandon the record and start a new change set with the same members (new branches, a new record, a second approval reply for the same diffs). It happened in two change sets in two repositories.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
