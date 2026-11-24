@@ -985,6 +985,7 @@ Recurrence of: -
 ### E-080 prd error check accepts a Resolution line whose PRD version was recorded by another change
 Detected: 2026-11-23, closing E-075 (PR #54)
 Classification: not a defect
+Confirmed: 2026-11-24, "Confirm the class (form)"
 Touches: FR-081
 Evidence: Seen while closing E-075 (PR #54, 2026-11-23).
   E-075 was resolved at e211a6f as: Resolution: T-081.23 [integration], PRD 10.2.0, fixed in 86b7dd5
