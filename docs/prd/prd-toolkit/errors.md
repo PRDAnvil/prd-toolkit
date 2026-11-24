@@ -1005,3 +1005,12 @@ Evidence: User report: a change set's step 2 lint was blocked in one member, and
 Diagnosis: -
 Resolution: -
 Recurrence of: -
+
+### E-082 changeset set takes a State with no Approval line once Status is stopped
+Detected: 2026-11-24, user report (/prd-toolkit:prd-error)
+Classification: unclassified
+Evidence: User report (code reading, found with the approve refusal): set_fields() refuses a State only while Status is the text `proposed`.
+  So on a record stopped before its first approval, `changeset set <record> <prd> state=approved`, or `state=built` for a row with no Waits for, is said to be accepted with no Approval line.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
