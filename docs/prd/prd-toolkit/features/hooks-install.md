@@ -42,7 +42,7 @@ Tests: T-097.1 [integration], T-097.2 [integration], T-097.3 [integration], T-09
 Traces: cli:prd_hooks
 
 ### FR-098 Install writes the vendored copy of the toolkit's files
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/hooks.py:212 @07f77b1
   prd-toolkit/scripts/prdlint/hooks.py:73 @07f77b1
 Acceptance (EARS):
@@ -231,7 +231,7 @@ Traces: cli:prd_hooks
 ### FR-107 Vendor refreshes .prd-toolkit/ and writes nothing else
 Status: verified
 Source: prd-toolkit/scripts/prdlint/hooks.py:311 @07f77b1
-  prd-toolkit/scripts/prd_hooks.py:73 @07f77b1
+  prd-toolkit/scripts/prd_hooks.py:77 @bcaad32
 Acceptance (EARS):
 - AC-107.1 When `prd_hooks.py vendor <prd_dir>` runs from the plugin in a git checkout, the hooks command shall write
   `.prd-toolkit/` byte for byte as install writes it (FR-098, FR-099) and print the one line
@@ -350,9 +350,9 @@ Tests: T-112.1 [integration], T-112.2 [integration]  (test-cases/hooks-install.y
 Traces: cli:prd_hooks; FR-070
 
 ### FR-113 CI writes the include file and refuses to overwrite a different one
-Status: approved
-Source: prd-toolkit/scripts/prdlint/hooks.py:626 @07f77b1
-  prd-toolkit/scripts/prd_hooks.py:59 @07f77b1
+Status: verified
+Source: prd-toolkit/scripts/prdlint/hooks.py:654 @bcaad32
+  prd-toolkit/scripts/prd_hooks.py:63 @bcaad32
 Acceptance (EARS):
 - AC-113.1 When `prd_hooks.py ci --github <prd_dir>` runs, the hooks command shall write
   `.github/workflows/prd-toolkit.yml` at the top with LF line ends, creating its folders, print
