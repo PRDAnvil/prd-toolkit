@@ -48,6 +48,10 @@ def main(argv: list[str]) -> int:
     except Exception as e:
         print(f"prd_hooks: internal error: {type(e).__name__}: {e}", file=sys.stderr)
         return 2
+    if args.action in ("install", "vendor", "ci") and model.git_toplevel(prd.root) is None:
+        # outside a checkout the top is unknown: refuse before anything is written
+        print(f"prd_hooks: {hooks.not_a_checkout(prd)}", file=sys.stderr)
+        return 2
     if args.action == "check" and args.ci and model.git_toplevel(prd.root) is None:
         print(f"prd_hooks: {hooks.not_a_checkout(prd)}", file=sys.stderr)
         return 2
