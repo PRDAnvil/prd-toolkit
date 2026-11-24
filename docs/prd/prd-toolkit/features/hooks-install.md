@@ -229,7 +229,7 @@ Tests: T-106.1 [integration]  (test-cases/hooks-install.yaml)
 Traces: cli:prd_hooks
 
 ### FR-107 Vendor refreshes .prd-toolkit/ and writes nothing else
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/hooks.py:311 @07f77b1
   prd-toolkit/scripts/prd_hooks.py:73 @07f77b1
 Acceptance (EARS):
