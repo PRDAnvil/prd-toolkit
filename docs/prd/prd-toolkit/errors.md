@@ -1028,6 +1028,7 @@ Recurrence of: -
 ### E-083 Every eval case on the link_repo scaffold fails in claude plugin eval with scaffold failed (exit null)
 Detected: 2026-11-24, eval runs (claude plugin eval)
 Classification: code bug
+Confirmed: 2026-11-24, "Confirm the class (form)"
 Evidence: claude plugin eval (Claude Code 2.1.331), --scaffold --runs 1, cases on evals/scaffolds/link_repo.py:
     change-set-stopped-before-approval run 1/1 [with]: score 0.00  $0.00  error: scaffold failed (exit null):
     change-set-stopped-before-approval run 1/1 [without]: score 0.00  $0.00  error: scaffold failed (exit null):
