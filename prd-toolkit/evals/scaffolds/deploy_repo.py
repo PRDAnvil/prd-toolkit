@@ -22,7 +22,15 @@ from pathlib import Path
 
 PLUGIN = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PLUGIN / "tests"))
-from legacy import commit, git  # noqa: E402
+from legacy import git  # noqa: E402
+
+
+def commit(repo: Path, message: str, *paths: str, date: str = "2026-01-04T12:00:00+0000") -> None:
+    """legacy.commit with no hook: the scaffold's own commits skip the prd hooks it installs, which only check, so a
+    build fits the eval runner's scaffold limit (E-083); the hooks stay installed for the eval session."""
+    git(repo, "add", *paths)
+    git(repo, "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m", message, date=date)
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import install_files  # noqa: E402
