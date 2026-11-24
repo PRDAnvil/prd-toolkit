@@ -23,18 +23,20 @@ Tests: T-132.1 [integration], T-132.2 [integration], T-132.3 [integration], T-13
 Traces: UJ-01; cli:prd_lint
 
 ### FR-133 Check an enforced standard's linter command
-Status: live (since 9.4.0)
+Status: approved
 Source: prd-toolkit/scripts/prdlint/rules/registries.py:87 @6162689
 Flow: 1. for a section 5 row whose Decision is `enforced`, take the first backticked span of its Linter command cell → 2. split it into words as a POSIX shell does; the first word is the command
       → 3. report a row with no command, and, outside a CI run, a command that is not on PATH
+      → 4. report a files mode (FR-264) that is not one of `appended`, `none` and `changed`
 Acceptance (EARS):
 - AC-133.1 If an `enforced` section 5 row's Linter command cell holds no backticked span, or its first backticked span holds no word, the lint command shall report `registries` at the row's line with `enforced standards row has no linter command ('<cell>'); put it in backticks`, `<cell>` being the cell stripped, in a CI run as well as outside one.
 - AC-133.2 If the first word of an `enforced` row's first backticked span (split with `shlex.split`, or on white space when the span's quotes do not balance) is not found on PATH, and the run is not a CI run, the lint command shall report `registries` at the row's line with `enforced linter command '<word>' is not on PATH`.
 - AC-133.3 While `PRD_LINT_CI` is `1` (a CI run, FR-008), the lint command shall report no `is not on PATH` finding.
 - AC-133.4 When a section 5 row's Decision is `declined` or `proposed`, the lint command shall not check its Linter command cell.
+- AC-133.5 If an `enforced` section 5 row's files mode, taken as AC-264.1 takes it, is not one of `appended`, `none` and `changed`, the lint command shall report `registries` at the row's line with `standards files mode '<mode>' is not one of appended, none, changed`, `<mode>` the mode as taken, in a CI run as well as outside one.
 Errors: -
-Edge cases: quotes group words, so `` `'no such linter' -x` `` names the command `no such linter` → AC-133.2; only the first word is looked up, so `` `uv run ruff` `` needs only `uv` → AC-133.2; a cell without backticks is reported even when its text names a command on PATH → AC-133.1; FR-008 owns how `--ci` sets `PRD_LINT_CI` (lint-cli)
-Tests: T-133.1 [integration], T-133.2 [integration], T-133.3 [integration], T-133.4 [integration], T-133.5 [integration]  (test-cases/lint-registries.yaml)
+Edge cases: quotes group words, so `` `'no such linter' -x` `` names the command `no such linter` → AC-133.2; only the first word is looked up, so `` `uv run ruff` `` needs only `uv` → AC-133.2; a cell without backticks is reported even when its text names a command on PATH → AC-133.1; FR-008 owns how `--ci` sets `PRD_LINT_CI` (lint-cli); a second span that does not start with `files:` is not a files mode and is not reported → AC-133.5
+Tests: T-133.1 [integration], T-133.2 [integration], T-133.3 [integration], T-133.4 [integration], T-133.5 [integration], T-133.6 [integration], T-133.7 [integration]  (test-cases/lint-registries.yaml)
 Traces: UJ-01; cli:prd_lint; setting PRD_LINT_CI (contracts/config.yaml)
 
 ### FR-134 Require a required skill to be installed

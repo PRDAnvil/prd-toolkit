@@ -1,6 +1,6 @@
 ---
 prd: prd-toolkit
-version: 10.3.0
+version: 10.4.0
 status: Approved
 owner: Ivan Histand
 updated: 2026-11-23
@@ -92,7 +92,7 @@ flowchart LR
 
 | Object (glob) | Linter command | Rules live in | Applies to | Decision |
 |---|---|---|---|---|
-| `prd-toolkit/**` | `npx -y @anthropic-ai/claude-code plugin validate ./prd-toolkit` | Claude Code's plugin manifest schema | code | enforced |
+| `prd-toolkit/**` | `npx -y @anthropic-ai/claude-code plugin validate ./prd-toolkit` `files: none` | Claude Code's plugin manifest schema | code | enforced |
 
 ## 6. Skills registry
 
@@ -211,7 +211,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-065 | The url part of a Target: line | verified | features/card-context.md |  |
 | FR-066 | A gate's URL | verified | features/card-context.md |  |
 | FR-067 | Where the area and the URL show | verified | features/card-context.md |  |
-| FR-068 | A standards row is never run on the vendored copy | verified | features/standards-run.md |  |
+| FR-068 | A standards row is never run on the vendored copy | approved | features/standards-run.md |  |
 | FR-069 | The launcher runs on a system Python when uv finds one | verified | features/launcher.md |  |
 | FR-070 | Install rewrites the toolkit's own hooks where core.hooksPath is set | verified | features/hook-shims.md |  |
 | FR-071 | The inbox shows an error entry's card in the first worktree that holds it | verified | features/inbox-cards.md |  |
@@ -277,7 +277,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-130 | Write each live AC in an EARS pattern | live | features/lint-ids.md | 9.3.0 |
 | FR-131 | Give every NFR a measurable bound | live | features/lint-ids.md | 9.3.0 |
 | FR-132 | Check the Decision of each registry row | live | features/lint-registries.md | 9.4.0 |
-| FR-133 | Check an enforced standard's linter command | live | features/lint-registries.md | 9.4.0 |
+| FR-133 | Check an enforced standard's linter command | approved | features/lint-registries.md |  |
 | FR-134 | Require a required skill to be installed | live | features/lint-registries.md | 9.4.0 |
 | FR-135 | Number the runbook's steps and give each its actor and environment | live | features/lint-registries.md | 9.4.0 |
 | FR-136 | Give a human step Do and Check only | live | features/lint-registries.md | 9.4.0 |
@@ -408,6 +408,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-261 | Move a PRD to a new version of its pack | live | features/change.md | 10.2.0 |
 | FR-262 | The checks before an approval | approved | features/change.md |  |
 | FR-263 | The approval commit | live | features/change.md | 10.2.0 |
+| FR-264 | A standards row says how its command takes files | approved | features/standards-run.md |  |
 
 ## 12. Assumptions index
 
@@ -469,3 +470,4 @@ None.
 | 10.1.0 | 2026-11-23 | hooks-install for E-073: a testing.md Harness slot Runner setup whose backticked commands every job ci writes runs before its own commands, as - run: lines after setup-uv on GitHub and before_script lines after pip install uv on GitLab; no slot, no change to the CI file; contracts/cli.yaml ci_jobs gains runner_setup; testing.md says how a hooks-install effect note: is asserted; dry run T-114.3, T-116.3, T-117.3, 0 open questions, 3 dismissed by quote (an earlier round's 3 gaps fixed) | FR-068, FR-070, FR-097, FR-098, FR-099, FR-100, FR-101, FR-102, FR-103, FR-104, FR-105, FR-107, FR-108, FR-109, FR-110, FR-111, FR-112, FR-113, FR-114, FR-115, FR-116, FR-117, FR-118, AC-114.3, AC-116.3, AC-117.3, T-114.3, T-116.3, T-117.3 |
 | 10.2.0 | 2026-11-23 | change area adopted (prd_change.py, prdlint/change.py and prdlint/change_approve.py, beside FR-054 and FR-060); suite 62 pass, T-260.10 known-failing E-076, T-260.11 known-failing E-077, T-262.11 known-failing E-078, T-262.12 known-failing E-079; testing.md gains the change paragraph of Setup steps, the change/texts row of Fixtures and change among the areas that borrow steps; contracts/cli.yaml gains the arguments, output and exit codes of prd_change; E-076, E-077, E-078 and E-079 recorded open; dry run T-255.1, T-255.2, T-255.3, T-255.4, T-255.5, T-255.6, T-256.1, T-256.2, T-256.3, T-256.4, T-256.5, T-256.6, T-256.7, T-257.1, T-257.2, T-257.3, T-257.4, T-258.1, T-258.2, T-258.3, T-258.4, T-259.1, T-259.2, T-259.3, T-259.4, T-259.5, T-259.6, T-259.7, T-259.8, T-259.9, T-259.10, T-259.11, T-260.1, T-260.2, T-260.3, T-260.4, T-260.5, T-260.6, T-260.7, T-260.8, T-260.9, T-260.10, T-260.11, T-261.1, T-261.2, T-261.3, T-261.4, T-262.1, T-262.2, T-262.3, T-262.4, T-262.5, T-262.6, T-262.7, T-262.8, T-262.9, T-262.10, T-262.11, T-262.12, T-263.1, T-263.2, T-263.3, T-263.4, T-263.5, T-263.6, T-263.7, 0 open questions, 0 dismissed by quote (nine rounds: six over all 66, fixing after each the gaps found in the setup steps, the run environment, the DRY and today rules, AC-261.2 and the runner tools; three over T-263.7, fixing AC-263.5 on files a failed approval created, the row wording and git's message) | FR-054, FR-255, FR-256, FR-257, FR-258, FR-259, FR-260, FR-261, FR-262, FR-263, AC-255.1, AC-255.2, AC-255.3, AC-255.4, AC-255.5, AC-255.6, AC-256.1, AC-256.2, AC-256.3, AC-256.4, AC-256.5, AC-256.6, AC-257.1, AC-257.2, AC-257.3, AC-257.4, AC-258.1, AC-258.2, AC-258.3, AC-258.4, AC-259.1, AC-259.2, AC-259.3, AC-259.4, AC-259.5, AC-259.6, AC-259.7, AC-259.8, AC-259.9, AC-259.10, AC-260.1, AC-260.2, AC-260.3, AC-260.4, AC-260.5, AC-260.6, AC-260.7, AC-260.8, AC-260.9, AC-260.10, AC-261.1, AC-261.2, AC-261.3, AC-262.1, AC-262.2, AC-262.3, AC-262.4, AC-262.5, AC-262.6, AC-262.7, AC-262.8, AC-262.9, AC-262.10, AC-263.1, AC-263.2, AC-263.3, AC-263.4, AC-263.5, T-255.1, T-255.2, T-255.3, T-255.4, T-255.5, T-255.6, T-256.1, T-256.2, T-256.3, T-256.4, T-256.5, T-256.6, T-256.7, T-257.1, T-257.2, T-257.3, T-257.4, T-258.1, T-258.2, T-258.3, T-258.4, T-259.1, T-259.2, T-259.3, T-259.4, T-259.5, T-259.6, T-259.7, T-259.8, T-259.9, T-259.10, T-259.11, T-260.1, T-260.2, T-260.3, T-260.4, T-260.5, T-260.6, T-260.7, T-260.8, T-260.9, T-260.10, T-260.11, T-261.1, T-261.2, T-261.3, T-261.4, T-262.1, T-262.2, T-262.3, T-262.4, T-262.5, T-262.6, T-262.7, T-262.8, T-262.9, T-262.10, T-262.11, T-262.12, T-263.1, T-263.2, T-263.3, T-263.4, T-263.5, T-263.6, T-263.7 |
 | 10.3.0 | 2026-11-23 | resolve --ci-run: a fix proven by a green forge CI run closes an environment or standard entry, and check accepts it (E-075); dry run T-078.25, T-081.15 to T-081.26, 0 open questions, 1 dismissed by quote | FR-063, FR-064, FR-065, FR-075, FR-076, FR-077, FR-078, FR-079, FR-080, FR-081, FR-251, FR-252, FR-253, AC-081.6, AC-081.7, AC-081.8, AC-081.9, AC-081.10, T-078.25, T-081.15, T-081.16, T-081.17, T-081.18, T-081.19, T-081.20, T-081.21, T-081.22, T-081.23, T-081.24, T-081.25, T-081.26 |
+| 10.4.0 | 2026-11-23 | a section 5 row says how its command takes files (appended, none, changed) for E-074; dry run T-264.1 to T-264.9, T-133.6, T-133.7, 0 open questions, 0 dismissed by quote | FR-068, FR-133, FR-264, AC-068.1, AC-068.4, AC-133.5, AC-264.1, AC-264.2, AC-264.3, AC-264.4, AC-264.5, AC-264.6, T-133.6, T-133.7, T-264.1, T-264.2, T-264.3, T-264.4, T-264.5, T-264.6, T-264.7, T-264.8, T-264.9 |
