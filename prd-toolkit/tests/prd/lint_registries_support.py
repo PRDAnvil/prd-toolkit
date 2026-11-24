@@ -239,6 +239,13 @@ def require_not_on_path(word: str):
     return check
 
 
+def require_on_path(word: str):
+    def check(c: Case) -> None:
+        if shutil.which(word, path=subprocess_env().get("PATH")) is None:
+            raise StepError(f"precondition: {word} is not on PATH")
+    return check
+
+
 def require_outside_git(c: Case) -> None:
     r = c.git("rev-parse", "--show-toplevel", check=False)
     if r.returncode == 0:
