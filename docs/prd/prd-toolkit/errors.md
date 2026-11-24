@@ -660,7 +660,7 @@ Touches: FR-126
 Evidence: prd-toolkit/scripts/prdlint/rules/ids.py:191: `if b.status == "as-built" and not b.source:` is the whole check, so any text after `Source:` satisfies it.
   The finding's own message names the form the line is to have: `<ID> is as-built but has no 'Source: <file>:<line> @<commit>' line`.
 Diagnosis: For an `as-built` block, `index_consistent` only asks whether the block has a `Source:` line with text (ids.py:191). A line such as `Source: somewhere in the code` passes, though the message of the rule names the form `<file>:<line> @<commit>`, and the context pack and the adoption checks read a path, a line and a commit from that line. The owner answered Q-20 on 2026-11-21 that lint is to check the form, and AC-126.3 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area lint-ids.
-Resolution: -
+Resolution: T-126.3 [integration], PRD 10.4.0, fixed in edffa43
 Recurrence of: -
 
 ### E-052 A gap finding calls an entry missing when it stands later in errors.md
