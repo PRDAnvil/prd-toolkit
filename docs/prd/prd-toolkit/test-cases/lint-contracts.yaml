@@ -369,8 +369,6 @@ T-173.4:
     errors: []
     leaks: none
 T-173.5:
-  known-failing: E-060
-  symptom: "the exit code is 0 and stdout is empty"
   ac: AC-173.3
   level: integration
   target: cli:prd_lint
@@ -702,8 +700,6 @@ T-176.7:
     errors: []
     leaks: none
 T-176.8:
-  known-failing: E-061
-  symptom: "the exit code is 0 and stdout is empty"
   ac: AC-176.8
   level: integration
   target: cli:prd_lint
@@ -981,8 +977,6 @@ T-179.7:
     errors: []
     leaks: none
 T-179.8:
-  known-failing: E-058
-  symptom: "the exit code is 2, stdout is empty, and the first line of stderr starts with `prd_lint: internal error in rule contracts-valid: TypeError:`, the rest of the line being Python's own wording, which differs between versions"
   ac: AC-179.5
   level: integration
   target: cli:prd_lint
@@ -1176,8 +1170,6 @@ T-181.5:
     errors: []
     leaks: none
 T-181.6:
-  known-failing: E-063
-  symptom: "stdout holds only the line docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: exit 1"
   ac: AC-181.4
   level: integration
   target: cli:prd_lint
@@ -1202,8 +1194,6 @@ T-181.6:
     errors: []
     leaks: none
 T-181.7:
-  known-failing: E-063
-  symptom: "the exit code is 0 and stdout is empty"
   ac: AC-181.4
   level: integration
   target: cli:prd_lint
@@ -1373,8 +1363,6 @@ T-182.9:
     errors: []
     leaks: none
 T-182.10:
-  known-failing: E-059
-  symptom: "the exit code is 2, stdout is empty, and the first line of stderr starts with `prd_lint: internal error in rule contracts-valid: OSError:`, the rest of the line being the system's own wording"
   ac: AC-182.8
   level: integration
   target: cli:prd_lint
@@ -1538,8 +1526,6 @@ T-184.5:
     errors: []
     leaks: none
 T-184.6:
-  known-failing: E-062
-  symptom: "the exit code is 1 and stdout holds the line docs/prd/orders/contracts/dependencies/old/legacy.yaml:1: error-codes: error code NOT_CATALOGUED is not in contracts/errors.yaml"
   ac: AC-184.3
   level: integration
   target: cli:prd_lint
@@ -1597,8 +1583,6 @@ T-185.2:
     errors: []
     leaks: none
 T-185.3:
-  known-failing: E-062
-  symptom: "the exit code is 0 and stdout is empty"
   ac: AC-185.1
   level: integration
   target: cli:prd_lint
