@@ -903,6 +903,7 @@ Recurrence of: -
 ### E-074 A standards row's CI command always gets the matching file paths appended, even a command that takes none
 Detected: 2026-11-23, user report (adoption of SQLAnvil/sqlanvil, generated CI)
 Classification: spec gap
+Confirmed: 2026-11-23, "Confirm the class (form)"
 Touches: FR-068, FR-114
 Evidence: Reported from the adoption of SQLAnvil/sqlanvil (PR #65, 2026-11-23), on prd-toolkit 0.8.14.
   The standards row cli/README.md -> bazel test //cli:readme_generated_test was rendered as:
