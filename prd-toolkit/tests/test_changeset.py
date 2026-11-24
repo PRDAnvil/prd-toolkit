@@ -372,6 +372,51 @@ def test_amendment_needs_an_approval(tmp_path):
     assert r.code == 2
 
 
+def test_stop_then_first_approval(tmp_path):
+    """E-081: a record stopped before its first approval, every row still proposed, takes the first approval as one
+    reply; the Log records that the stop was cleared."""
+    transform, cs = started(tmp_path)
+    ok("stop", cs, "reports", "lint blocked")
+    assert refused("approve", cs, "--reply", "x", "--amendment") == "refused: CS-001 has no approval to amend"
+    r = ok("approve", cs, "--reply", "approved")
+    assert r.out.strip() == str(cs)
+    got = record(cs)
+    assert got.status == "approved" and {r.state for r in got.rows} == {"approved"}
+    assert got.approvals == [f'{DAY}, "approved"']
+    assert got.log[-2:] == [f"{DAY} reports stopped: lint blocked", f"{DAY} reports stop cleared by the first approval"]
+    clean(transform)
+    assert refused("approve", cs, "--reply", "again").startswith("refused: CS-001 is approved")
+
+
+def test_stop_then_set_state_without_approval_is_refused(tmp_path):
+    """E-082: a stop is not an approval; with no Approval line a State is refused whatever the Status, and step 2's
+    Version and IDs can still be set."""
+    _, cs = started(tmp_path)
+    ok("stop", cs, "reports", "lint blocked")
+    before = cs.read_bytes()
+    for state in ("state=approved", "state=built"):
+        assert refused("set", cs, "transform", state) == "refused: CS-001 is not approved yet"
+    assert cs.read_bytes() == before
+    ok("set", cs, "transform", "version=1.1.0", "ids=FR-003")
+    got = record(cs)
+    assert got.status == "stopped: reports: lint blocked" and {r.state for r in got.rows} == {"proposed"}
+
+
+def test_approve_refuses_a_stopped_record_past_proposed_with_no_approval(tmp_path):
+    """E-081: a stopped record with no Approval line whose row is past proposed (written before E-082's fix) takes no
+    approval; the refusal names the abandon route."""
+    _, cs = started(tmp_path)
+    ok("stop", cs, "reports", "lint blocked")
+    text = cs.read_text(encoding="utf-8")
+    cs.write_text(text.replace("| live in staging | proposed |", "| live in staging | built |", 1), encoding="utf-8")
+    assert rows(cs)["transform"].state == "built"
+    before = cs.read_bytes()
+    assert refused("approve", cs, "--reply", "approved") == (
+        "refused: CS-001 is stopped: reports: lint blocked with no approval, and transform is built; "
+        "abandon it and start a new change set")
+    assert cs.read_bytes() == before
+
+
 def walk(cs: Path) -> None:
     ok("set", cs, "transform", "state=built")
     ok("set", cs, "transform", "state=verified")

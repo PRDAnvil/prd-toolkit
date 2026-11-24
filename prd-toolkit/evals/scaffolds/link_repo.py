@@ -2,7 +2,7 @@
 banner around the greeting of `greet`'s staging install, and `greet`, the repo of deploy_repo.py with a `cli` contract.
 
 Usage (from the eval workspace; never write into the plugin tree):
-    python3 -B <this file> <dst> <unlinked|linked|cs-running> [--upstream <path>]
+    python3 -B <this file> <dst> <unlinked|linked|cs-running|cs-stopped> [--upstream <path>]
 
 <dst> becomes the greet-client repository (so an eval session's cwd is a repository) and <path> (default
 <dst>/upstream/greet, then listed in the client's .gitignore) the greet repository. Both must be empty or absent.
@@ -25,6 +25,10 @@ cs-running  `linked`, then greet's `changeset new` writes greet/changes/CS-001.m
             records the reply "approve CS-001", greet's change is built (code and a unit test citing T-003.1) and
             moved to `verified` with `changeset set`; Status `running`, the client's row `approved`. greet's
             `check` exits 1 there (its working tree changed `cli:greet`, which the client cites); the client's 0.
+cs-stopped  `linked`, then the same `changeset new`, branches and PRD edits as `cs-running`, each PRD `In review` and
+            committed with its row's Version and IDs set, then `changeset stop` at greet-client's row (its step 2
+            lint, blocked) before any approval: Status `stopped: greet-client: …`, no Approval line, every row
+            `proposed`.
 
 Every repo gets the managed CLAUDE.md block (the vendored `prd_block.py`, `Refs: none (no behaviour change)`), as
 approval writes it, so a plain prompt routes to the skills in either repo. Every date the tools write is fixed by
@@ -42,13 +46,14 @@ sys.path.insert(0, str(PLUGIN / "tests"))
 import deploy_repo  # noqa: E402
 from legacy import commit, git  # noqa: E402
 
-STATES = ("unlinked", "linked", "cs-running")
+STATES = ("unlinked", "linked", "cs-running", "cs-stopped")
 GREET = "docs/prd/greet"
 CLIENT = "docs/prd/greet-client"
 TODAY = "2026-11-02"
 TITLE = "greet --json"
 BRANCH = "cs-001-greet-json"
 NONE = "Refs: none (no behaviour change)"
+STOP_REASON = "step 2 lint blocked: the pack had no cli contract type"
 VALIDATOR = ("uv run --with pyyaml python3 -c \"import sys,yaml; sys.exit(0 if isinstance(yaml.safe_load("
              "open('contracts/cli.yaml')), dict) else 1)\"")
 
@@ -754,15 +759,13 @@ def _link(client: Path, greet: Path) -> None:
     _claude_md(client, CLIENT, "2026-01-12T18:00:00+0000")
 
 
-def _cs_running(client: Path, greet: Path) -> None:
-    trailer = "Change-set: greet/CS-001"
-    record = f"{GREET}/changes/CS-001.md"
+def _cs_edits(client: Path, greet: Path) -> None:
+    """greet's `changeset new` (CS-001, both repos members), the branch in both, and both PRD edits, uncommitted."""
     out = _links(greet, "changeset", "new", GREET, "--title", TITLE, "--member", _relpath(client, greet))
     if not out.strip().endswith("changes/CS-001.md"):
         sys.exit(f"link_repo: changeset new wrote {out.strip()!r}, not CS-001")
     for repo in (greet, client):
         git(repo, "switch", "-q", "-c", BRANCH)
-    # both PRD changes, shown together and approved by one reply
     g = greet / GREET
     _edit(g / "features/greet.md", "Tests: T-002.1 [system], T-002.2 [smoke]  (test-cases/greet.yaml)\n",
           "Tests: T-002.1 [system], T-002.2 [smoke]  (test-cases/greet.yaml)\n" + GREET_JSON_FR)
@@ -779,6 +782,33 @@ def _cs_running(client: Path, greet: Path) -> None:
     _edit(c / "prd.md", "| FR-001 | Print a banner around the greeting | verified | features/welcome.md | 1.0.0 |",
           "| FR-001 | Print a banner around the greeting | approved | features/welcome.md | 1.1.0 |")
     _bump(client, CLIENT, "1.0.1", "1.1.0", "FR-001: read greet's output as `greet --json` (CS-001) | FR-001, T-001.1")
+
+
+def _cs_stopped(client: Path, greet: Path) -> None:
+    """Both edits committed In review, Version and IDs set, then a stop at the client's row before any approval."""
+    trailer = "Change-set: greet/CS-001"
+    record = f"{GREET}/changes/CS-001.md"
+    _cs_edits(client, greet)
+    for repo, prd in ((greet, GREET), (client, CLIENT)):
+        _edit(repo / prd / "prd.md", "\nstatus: Approved\n", "\nstatus: In review\n")
+    _links(greet, "changeset", "set", record, "greet", "version=1.1.0", "ids=FR-003")
+    commit(greet, f"PRD: greet 1.1.0 for CS-001 (in review)\n\n{NONE}\n{trailer}", GREET, date="2026-01-13T12:00:00+0000")
+    _links(greet, "changeset", "set", record, "greet-client", "version=1.1.0", "ids=FR-001")
+    commit(client, f"PRD: greet-client 1.1.0 for CS-001 (in review)\n\n{NONE}\n{trailer}", CLIENT,
+           date="2026-01-13T12:05:00+0000")
+    _links(greet, "changeset", "stop", record, "greet-client", STOP_REASON)
+    commit(greet, f"CS-001: greet-client stopped at its step 2 lint\n\n{NONE}\n{trailer}", GREET,
+           date="2026-01-13T12:10:00+0000")
+    for repo, prd, date in ((greet, GREET, "2026-01-14T19:00:00+0000"), (client, CLIENT, "2026-01-14T19:05:00+0000")):
+        _claude_md(repo, prd, date)
+
+
+def _cs_running(client: Path, greet: Path) -> None:
+    trailer = "Change-set: greet/CS-001"
+    record = f"{GREET}/changes/CS-001.md"
+    # both PRD changes, shown together and approved by one reply
+    _cs_edits(client, greet)
+    g = greet / GREET
     _links(greet, "changeset", "approve", record, "--reply", "approve CS-001")
     _links(greet, "changeset", "set", record, "greet", "version=1.1.0", "ids=FR-003")
     _links(greet, "changeset", "set", record, "greet-client", "version=1.1.0", "ids=FR-001")
@@ -818,10 +848,12 @@ def main(dst: str, state: str, upstream: str | None) -> None:
     client.mkdir(parents=True, exist_ok=True)
     _greet(greet)
     _client(client, greet)
-    if state in ("linked", "cs-running"):
+    if state in ("linked", "cs-running", "cs-stopped"):
         _link(client, greet)
     if state == "cs-running":
         _cs_running(client, greet)
+    if state == "cs-stopped":
+        _cs_stopped(client, greet)
     for repo in (client, greet):
         status = git(repo, "status", "--porcelain", "--untracked-files=no").strip()
         if status:

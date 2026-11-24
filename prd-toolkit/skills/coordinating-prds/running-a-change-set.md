@@ -88,7 +88,12 @@ is the one whose rows name this PRD. Read it whole: its `Status:` line says wher
   when every row has one, step 3, from any member's session.
 - `approved` or `running`: step 4, at the first row in Order whose State is below its Target; its
   Waits for decides whether it starts.
-- `stopped: <prd>: <reason>`: step 5, for that row; its State is where the chain stood.
+- `stopped: <prd>: <reason>` with no `Approval:` line: stopped before the one approval, every row
+  still `proposed`. Its blocker is step 2's, so enter as `proposed` does: step 2 for that row once
+  the blocker is fixed (its edit, lint and dry run again), or step 3 when every row's Version has
+  `→`. Step 3's `approve` takes the reply without `--amendment` and clears the stop.
+- `stopped: <prd>: <reason>` with an `Approval:` line: step 5, for that row; its State is where the
+  chain stood.
 - `done`: only step 6's re-lock is left, once the user has landed an upstream.
 - `abandoned`: nothing; the branches are the user's.
 
@@ -162,6 +167,13 @@ Text with no record is a new change set: step 1.
    ```bash
    <start>/.prd-toolkit/prd links changeset set <record> <prd> version=<X.Y.Z> ids=<IDs>; echo "prd-links-exit=$?"
    ```
+
+   A blocker in a member's step 2 (its lint or its dry run fails for a reason this change cannot
+   fix, such as a pack or a toolkit defect) stops the chain before the approval, with the stop of
+   step 5: `changeset stop <record> <prd> '<the blocker>'`, then the record write. Nothing is
+   approved by it, and a `set` of a State is refused until step 3's approval. Once the blocker is
+   fixed, that member's step 2 runs again, and step 3's one approval clears the stop: the Log
+   records it, and no `--amendment` is ever used for it.
 3. **One approval.** Show every member's PRD diff together and stop. For each member, each its
    own call: `git -C <root> diff <default branch>...<branch> -- docs/prd/<prd>` (the in-review
    commit against the member's default branch), with what `changing-prds` step 5 shows: the
@@ -217,9 +229,11 @@ Text with no record is a new change set: step 1.
 
    Then the record write. The stop goes on Status (`stopped: <prd>: <reason>`) and in Log, and the
    row keeps its State, so a resumed session knows where the chain stood; the rows after it wait. An
-   error goes to that member's `/prd-toolkit:prd-error` (`prd-toolkit:handling-errors`). A fix that
-   needs a PRD edit amends the change set: the member's edit through `changing-prds` steps 1 to 4,
-   its diff shown and approved alone, by a reply to that diff:
+   error goes to that member's `/prd-toolkit:prd-error` (`prd-toolkit:handling-errors`). A record
+   with no `Approval:` line was stopped before the one approval: its stop is cleared by step 3's
+   `approve`, never by an `--amendment`, which needs an approval to amend. In a record that has an
+   `Approval:` line, a fix that needs a PRD edit amends the change set: the member's edit through
+   `changing-prds` steps 1 to 4, its diff shown and approved alone, by a reply to that diff:
 
    ```bash
    <start>/.prd-toolkit/prd links changeset approve <record> --reply '<the reply, verbatim>' --amendment; echo "prd-links-exit=$?"
