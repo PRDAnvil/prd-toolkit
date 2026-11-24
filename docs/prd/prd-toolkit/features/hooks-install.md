@@ -249,7 +249,7 @@ Tests: T-107.1 [integration], T-107.2 [integration], T-107.3 [integration], T-10
 Traces: cli:prd_hooks
 
 ### FR-108 Check compares the vendored copy with the plugin
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/hooks.py:437 @07f77b1
 Acceptance (EARS):
 - AC-108.1 If `.prd-toolkit/` is absent at the top, `prd_hooks.py check <prd_dir>`, run from the plugin, shall print
@@ -335,8 +335,8 @@ Tests: T-111.1 [integration], T-111.2 [integration], T-111.3 [integration], T-11
 Traces: cli:prd_hooks; FR-068
 
 ### FR-112 Uninstall removes only the toolkit's own hooks
-Status: approved
-Source: prd-toolkit/scripts/prdlint/hooks.py:492 @07f77b1
+Status: verified
+Source: prd-toolkit/scripts/prdlint/hooks.py:494 @1f6fb0c
 Acceptance (EARS):
 - AC-112.1 When `prd_hooks.py uninstall <prd_dir>` runs where `core.hooksPath` is not set, for each of `commit-msg`
   and `pre-commit`, in that order, whose file in `<hooks>` is the toolkit's own, the hooks command shall delete the file

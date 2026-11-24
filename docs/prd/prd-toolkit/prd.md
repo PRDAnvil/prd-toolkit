@@ -252,11 +252,11 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-105 | Install names a stale CI file and never rewrites it | live | features/hooks-install.md | 9.2.0 |
 | FR-106 | Install from the vendored copy writes the hooks only | live | features/hooks-install.md | 9.2.0 |
 | FR-107 | Vendor refreshes .prd-toolkit/ and writes nothing else | verified | features/hooks-install.md |  |
-| FR-108 | Check compares the vendored copy with the plugin | approved | features/hooks-install.md |  |
+| FR-108 | Check compares the vendored copy with the plugin | verified | features/hooks-install.md |  |
 | FR-109 | Check reports a stale hook | live | features/hooks-install.md | 9.2.0 |
 | FR-110 | Check reports a stale vendored pack | live | features/hooks-install.md | 9.2.0 |
 | FR-111 | Check reports stale managed blocks and CI files | live | features/hooks-install.md | 9.2.0 |
-| FR-112 | Uninstall removes only the toolkit's own hooks | approved | features/hooks-install.md |  |
+| FR-112 | Uninstall removes only the toolkit's own hooks | verified | features/hooks-install.md |  |
 | FR-113 | CI writes the include file and refuses to overwrite a different one | verified | features/hooks-install.md |  |
 | FR-114 | The merge-gate jobs | verified | features/hooks-install.md |  |
 | FR-115 | The manual drift and deploy-test jobs | live | features/hooks-install.md | 9.2.0 |
@@ -265,13 +265,13 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-118 | The CI file names the secrets the manual jobs may need | live | features/hooks-install.md | 9.2.0 |
 | FR-119 | The dispatcher runs one script by its command name | live | features/hooks-install.md | 9.2.0 |
 | FR-120 | The dispatcher's help and version | live | features/hooks-install.md | 9.2.0 |
-| FR-121 | Check the form of every ID | approved | features/lint-ids.md |  |
-| FR-122 | Define each ID once | approved | features/lint-ids.md |  |
+| FR-121 | Check the form of every ID | verified | features/lint-ids.md |  |
+| FR-122 | Define each ID once | verified | features/lint-ids.md |  |
 | FR-123 | Mark a removal in both the index and the block | live | features/lint-ids.md | 9.3.0 |
 | FR-124 | Never cite a removed requirement or AC | live | features/lint-ids.md | 9.3.0 |
 | FR-125 | Keep the section 11 index and the blocks in step | verified | features/lint-ids.md |  |
 | FR-126 | Require a Source line on an as-built block | approved | features/lint-ids.md |  |
-| FR-127 | Check errors.md entries against the blocks | approved | features/lint-ids.md |  |
+| FR-127 | Check errors.md entries against the blocks | verified | features/lint-ids.md |  |
 | FR-128 | Require a feature file for an area past not started | live | features/lint-ids.md | 9.3.0 |
 | FR-129 | Give every FR and NFR a live acceptance criterion | live | features/lint-ids.md | 9.3.0 |
 | FR-130 | Write each live AC in an EARS pattern | live | features/lint-ids.md | 9.3.0 |

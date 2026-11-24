@@ -142,9 +142,8 @@ def test_touches_unknown_id(tmp_path, monkeypatch):
     assert_stderr_empty(r)
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_resolved_entry_without_classification(tmp_path, monkeypatch):
-    """@prd T-127.4 known-failing E-050"""
+    """@prd T-127.4"""
     folder = S0(tmp_path, monkeypatch)
     folder.delete("errors.md", 5)
     r = run_lint(tmp_path)
