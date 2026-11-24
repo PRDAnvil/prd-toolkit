@@ -252,11 +252,11 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-105 | Install names a stale CI file and never rewrites it | live | features/hooks-install.md | 9.2.0 |
 | FR-106 | Install from the vendored copy writes the hooks only | live | features/hooks-install.md | 9.2.0 |
 | FR-107 | Vendor refreshes .prd-toolkit/ and writes nothing else | verified | features/hooks-install.md |  |
-| FR-108 | Check compares the vendored copy with the plugin | approved | features/hooks-install.md |  |
+| FR-108 | Check compares the vendored copy with the plugin | verified | features/hooks-install.md |  |
 | FR-109 | Check reports a stale hook | live | features/hooks-install.md | 9.2.0 |
 | FR-110 | Check reports a stale vendored pack | live | features/hooks-install.md | 9.2.0 |
 | FR-111 | Check reports stale managed blocks and CI files | live | features/hooks-install.md | 9.2.0 |
-| FR-112 | Uninstall removes only the toolkit's own hooks | approved | features/hooks-install.md |  |
+| FR-112 | Uninstall removes only the toolkit's own hooks | verified | features/hooks-install.md |  |
 | FR-113 | CI writes the include file and refuses to overwrite a different one | verified | features/hooks-install.md |  |
 | FR-114 | The merge-gate jobs | verified | features/hooks-install.md |  |
 | FR-115 | The manual drift and deploy-test jobs | live | features/hooks-install.md | 9.2.0 |

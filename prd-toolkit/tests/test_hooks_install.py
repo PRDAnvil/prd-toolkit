@@ -179,9 +179,6 @@ def test_hookspath_set_writes_no_shim(repo, tmp_path_factory):
     lines = hooks.install(repo, PRD)
     assert list(other.iterdir()) == [] and not (repo / ".git/hooks/commit-msg").exists()
     assert sum("add this line" in x for x in lines) == 2 and any(str(other) in x for x in lines)
-    other.joinpath("commit-msg").write_text(f"#!/bin/sh\n{hooks.MARKER}\n")
-    assert hooks.uninstall(repo) and other.joinpath("commit-msg").exists()
-    assert any("core.hooksPath" in x for x in hooks.uninstall(repo))
 
 
 def test_marker_must_be_second_line(repo):

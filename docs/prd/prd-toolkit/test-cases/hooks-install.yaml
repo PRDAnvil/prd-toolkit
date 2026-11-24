@@ -1068,8 +1068,6 @@ T-108.5:
     leaks: none
 
 T-108.6:
-  known-failing: E-045
-  symptom: "the exit code is 0 and stdout is empty: neither file gets a line"
   ac: AC-108.2
   level: integration
   target: "cli:prd_hooks"
@@ -1459,8 +1457,6 @@ T-112.1:
     leaks: none
 
 T-112.2:
-  known-failing: E-044
-  symptom: "the lines of stdout (str.splitlines()) are exactly the one line `core.hooksPath is set to .git/hooks; removed nothing`, and both hook files are still there"
   ac: AC-112.2
   level: integration
   target: "cli:prd_hooks"

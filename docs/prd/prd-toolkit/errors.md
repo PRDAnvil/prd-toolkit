@@ -588,7 +588,7 @@ Touches: FR-112
 Evidence: prd-toolkit/scripts/prdlint/hooks.py:492-495: `uninstall` returns the one line `core.hooksPath is set to <value>; removed nothing` whenever `core.hooksPath` is set, before it looks at any hook file.
   Since FR-070 install writes the toolkit's own hooks into that folder, and line 2 of each shim reads `# prd-toolkit hook: written by prd_hooks.py install; removed by prd_hooks.py uninstall`.
 Diagnosis: Where `core.hooksPath` is set, `uninstall` prints `core.hooksPath is set to <value>; removed nothing` and deletes no file (hooks.py:492-495). Since FR-070 (prd-toolkit 0.8.13) install replaces the hooks of the toolkit in that folder, and each shim says on its line 2 that `prd_hooks.py uninstall` removes it, so a repository that sets `core.hooksPath` cannot remove them with the command. The owner answered Q-15 on 2026-11-21 that uninstall is to remove the toolkit's own hooks there too, and AC-112.2 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area hooks-install.
-Resolution: -
+Resolution: T-112.2 [integration], PRD 10.3.1, fixed in b0396f1e207ef73ae4f6a4fd08f525ec969ccb90
 Recurrence of: -
 
 ### E-045 check does not report a file of .prd-toolkit/ that the plugin no longer ships
@@ -599,7 +599,7 @@ Touches: FR-108
 Evidence: prd-toolkit/scripts/prdlint/hooks.py:454-458: `check` looks for a file the plugin does not ship only under the folders `prdlint`, `hooks`, `confirm`, `gates`, `judge` and `languages` of `.prd-toolkit/`.
   A file at the top of `.prd-toolkit/` (a script the plugin has retired) or under `.prd-toolkit/templates/` is never reported, and install and vendor do not delete it.
 Diagnosis: `check` reports a file the plugin does not ship only under six folders of `.prd-toolkit/` (hooks.py:454-458). A file at the top of `.prd-toolkit/`, such as a script the plugin has retired, or a file under `.prd-toolkit/templates/`, gets no line, and install and vendor leave it in place; the dispatcher can still run such a script by its command name. The owner answered Q-16 on 2026-11-21 that check is to report such a file, and AC-108.2 now says so; the code does not. Not reproduced by a run: read from the code during the adoption of the area hooks-install.
-Resolution: -
+Resolution: T-108.6 [integration], PRD 10.3.1, fixed in b0396f1e207ef73ae4f6a4fd08f525ec969ccb90
 Recurrence of: -
 
 ### E-046 id-unique counts `### E-nnn` headings inside code fences of errors.md
