@@ -789,7 +789,7 @@ Touches: FR-181
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:450: `glob.glob(g, root_dir=prd.root, recursive=True)` keeps every match that is a file, with no check that it lies in the PRD folder.
     In a copy of the fixture lint-cli/orders, with docs/prd/outside.lkml written and the lookml row of prd.md section 7 given the Files `contracts/custom/*.lkml ../outside.lkml` and a validator that prints its arguments and exits 1: `prd lint` prints `docs/prd/orders/prd.md:80: contracts-valid: custom type lookml: validator failed: ['../outside.lkml', 'contracts/custom/sample.lkml']`. With the Files cell set to the file's absolute path, the validator receives that absolute path.
 Diagnosis: `custom_types` keeps every file a Files glob matches (contracts.py:450), so an absolute glob or one that climbs out with `..` passes files outside the PRD folder to the validator, and AC-181.1 already says a type's files are files in the PRD folder. The owner answered Q-36 on 2026-11-22 that such a match is a finding and is not passed to the validator, and AC-181.4 now says so; the code does neither. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-181.6 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-064 The prd-tester guard finds the PRD from the session's working directory, so a dispatch for a PRD in another repository may read nothing
