@@ -317,19 +317,19 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-170 | Check each OpenAPI operation's PRD fields | live | features/lint-contracts.md | 9.6.0 |
 | FR-171 | Require a content example on each OpenAPI response | live | features/lint-contracts.md | 9.6.0 |
 | FR-172 | Require the asyncapi key of asyncapi.yaml | live | features/lint-contracts.md | 9.6.0 |
-| FR-173 | Require the five field lines of each event in events.md | approved | features/lint-contracts.md |  |
+| FR-173 | Require the five field lines of each event in events.md | verified | features/lint-contracts.md |  |
 | FR-174 | Check that schema.sql parses and describes every table and column | live | features/lint-contracts.md | 9.6.0 |
 | FR-175 | Check each code of the error catalogue | live | features/lint-contracts.md | 9.6.0 |
-| FR-176 | Check the roles and operations of permissions.yaml | approved | features/lint-contracts.md |  |
+| FR-176 | Check the roles and operations of permissions.yaml | verified | features/lint-contracts.md |  |
 | FR-177 | Check the row rules of permissions.yaml | live | features/lint-contracts.md | 9.6.0 |
 | FR-178 | Check the settings of config.yaml | live | features/lint-contracts.md | 9.6.0 |
-| FR-179 | Check the tables and masking of data-classification.yaml | approved | features/lint-contracts.md |  |
+| FR-179 | Check the tables and masking of data-classification.yaml | verified | features/lint-contracts.md |  |
 | FR-180 | Check the shape of each dependency file | live | features/lint-contracts.md | 9.6.0 |
-| FR-181 | Resolve each section 7 custom type to its files and validator | approved | features/lint-contracts.md |  |
-| FR-182 | Run each custom type's validator and report its failure | approved | features/lint-contracts.md |  |
+| FR-181 | Resolve each section 7 custom type to its files and validator | verified | features/lint-contracts.md |  |
+| FR-182 | Run each custom type's validator and report its failure | verified | features/lint-contracts.md |  |
 | FR-183 | Check each backticked table.column against schema.sql | live | features/lint-contracts.md | 9.6.0 |
-| FR-184 | Report a cited error code the catalogue lacks | approved | features/lint-contracts.md |  |
-| FR-185 | Report a catalogued error code cited nowhere | approved | features/lint-contracts.md |  |
+| FR-184 | Report a cited error code the catalogue lacks | verified | features/lint-contracts.md |  |
+| FR-185 | Report a catalogued error code cited nowhere | verified | features/lint-contracts.md |  |
 | FR-186 | Refuse a call that does not name exactly one check | live | features/build-check.md | 9.7.0 |
 | FR-187 | Check the three packages before anything else | live | features/build-check.md | 9.7.0 |
 | FR-188 | Stop on a PRD folder that cannot be loaded | live | features/build-check.md | 9.7.0 |
