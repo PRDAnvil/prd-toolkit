@@ -609,7 +609,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-122
 Evidence: `defined_ids` matches `^### (E-\d+)\b` against the raw lines of errors.md (ids.py:40-43), so a fenced example such as `### E-001 <title>` counts as a definition. If the ledger's real E-001 comes after it, id-unique reports it as `E-001 is already defined at errors.md:<fence line>`. prd-format.md ("errors.md") says "Headings inside code fences are not entries", and the loader's own ledger parser (model.py `_errors_ledger`) matches against `strip_code(text)` and skips fenced headings.
 Diagnosis: `defined_ids` matches `^### (E-\d+)\b` against the raw lines of errors.md (ids.py:40-43), so a fenced example such as `### E-001 <title>` counts as a definition. If the ledger's real E-001 comes after it, id-unique reports it as `E-001 is already defined at errors.md:<fence line>`. prd-format.md ("errors.md") says "Headings inside code fences are not entries", and the loader's own ledger parser (model.py `_errors_ledger`) matches against `strip_code(text)` and skips fenced headings. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-122.7 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-047 id-format reports a malformed test-case key at line 1
