@@ -339,8 +339,8 @@ def _env_order(path: Path, cs: model.ChangeSet, prd: str):
 
 
 def set_fields(record: str | Path, prd: str, assignments: list[str]) -> Path:
-    """Set Branch, Version, IDs or State of row `prd`; a State moves Status to running. A State never goes back,
-    never past the row's Target (R-F4), and never skips its Waits for."""
+    """Set Branch, Version, IDs or State of row `prd`; a State moves Status to running. A State needs an Approval line,
+    whatever the Status, never goes back, never past the row's Target (R-F4), and never skips its Waits for."""
     parsed = []
     for a in assignments:
         key, eq, value = a.partition("=")
@@ -372,7 +372,7 @@ def set_fields(record: str | Path, prd: str, assignments: list[str]) -> Path:
         elif key == "ids":
             row.ids = value
         else:
-            if cs.status == "proposed":
+            if not cs.approvals:  # a stop is not an approval (E-082)
                 raise Refused(f"{cs.id} is not approved yet")
             if rank(value) < rank(row.state):
                 raise Refused(f"{prd} cannot go back from {row.state} to {value}")
