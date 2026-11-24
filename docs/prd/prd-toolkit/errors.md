@@ -619,7 +619,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-121
 Evidence: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54).
 Diagnosis: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54). A key such as `T-12.1:` on line 40 is therefore reported at `test-cases/<area>.yaml:1`. Every other place in this file reports a test-case key at its real line (`tc.line`, ids.py:38, 157), and every other key and value in this rule is reported at its own line. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-121.7 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-048 id-format reads hidden Markdown and YAML files
