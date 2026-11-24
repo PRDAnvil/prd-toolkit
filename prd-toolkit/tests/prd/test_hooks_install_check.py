@@ -127,10 +127,9 @@ def _setup_108_6(tmp: Path) -> None:
     write(tmp / ".prd-toolkit" / "templates" / "old.md", "old\n")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-045")
 @given(_setup_108_6)
 def test_check_reports_files_the_plugin_no_longer_ships(built):
-    """@prd T-108.6 known-failing E-045"""
+    """@prd T-108.6"""
     tmp = built
     r = run(tmp, tmp, CHECK)
     if r.exit == 0 and r.stdout == "":

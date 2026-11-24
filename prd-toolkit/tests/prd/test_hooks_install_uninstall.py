@@ -55,10 +55,9 @@ def _setup_112_2(tmp: Path) -> None:
     step_run(tmp, tmp, "git config core.hooksPath .git/hooks")
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-044")
 @given(_setup_112_2)
 def test_uninstall_where_hooks_path_is_set(built):
-    """@prd T-112.2 known-failing E-044"""
+    """@prd T-112.2"""
     tmp = built
     hooks = tmp / ".git" / "hooks"
     r = run(tmp, tmp, UNINSTALL)
