@@ -1024,3 +1024,16 @@ Explanation: What was run: a probe made a three-member change set, stopped it be
 Diagnosis: Reproduced by a probe in a scratch clone at 54e28a1 (`uv run --directory prd-toolkit python <TMP>/probe.py <TMP>/repo/prd-toolkit/tests`): `changeset new` with three members, `changeset stop <record> reports 'lint blocked by a pack gap'` (exit 0), then `changeset set <record> transform state=approved` (exit 0) and `changeset set <record> transform state=built` (exit 0); the record read `Status: running`, row transform `built`, no Approval line. Expected: both refused with `refused: CS-001 is not approved yet`, the record unchanged. Root cause: `set_fields()` (prd-toolkit/scripts/prdlint/changeset.py:375) refuses a State only when `cs.status == "proposed"`; after `stop()` Status reads `stopped: …`, so the check passes with `cs.approvals` empty, and the row's own transform has no Waits for. Its account: running-a-change-set.md step 3 (`One explicit reply approves the set.` and `with no one to ask, nothing is approved and every member stays In review`), the docstring of `approve()` (`every proposed row and Status become approved`), and the refusal `is not approved yet` the same command gives before the stop. The faulty code is outside every adopted Boundary (area links, not started).
 Resolution: fixed in 2082434ca9a2c2f633d4843bbc0d2a29f53a2927, red run prd-toolkit/tests/test_changeset.py::test_stop_then_set_state_without_approval_is_refused [unit]
 Recurrence of: -
+
+### E-083 Every eval case on the link_repo scaffold fails in claude plugin eval with scaffold failed (exit null)
+Detected: 2026-11-24, eval runs (claude plugin eval)
+Classification: unclassified
+Evidence: claude plugin eval (Claude Code 2.1.331), --scaffold --runs 1, cases on evals/scaffolds/link_repo.py:
+    change-set-stopped-before-approval run 1/1 [with]: score 0.00  $0.00  error: scaffold failed (exit null):
+    change-set-stopped-before-approval run 1/1 [without]: score 0.00  $0.00  error: scaffold failed (exit null):
+    coordinating-resume-trigger  0.00  0%  1  $0.00  scaffold failed (exit null):
+  The same runner ran error-confirm-before-fix (scaffold error_repo.py) at 1.00.
+  Outside the runner the same scaffold.sh exits 0; it took 153 to 170 s while other test suites loaded the machine.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
