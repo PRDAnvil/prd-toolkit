@@ -102,9 +102,8 @@ def test_unknown_role(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_role_missing_secret(tmp_path, monkeypatch):
-    """@prd T-176.8 known-failing E-061"""
+    """@prd T-176.8"""
     o = S0(tmp_path, monkeypatch)
     o.replace(F, 2, "  admin: {identity: test-admin}")
     o.replace(F, 3, "  rep: {identity: test-rep, secret: ''}")

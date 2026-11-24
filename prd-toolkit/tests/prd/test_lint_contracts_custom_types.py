@@ -95,9 +95,8 @@ def test_t181_5_built_in_row_is_no_custom_type(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_t181_6_file_outside_prd_folder_by_dotdot(tmp_path, monkeypatch):
-    """@prd T-181.6 known-failing E-063"""
+    """@prd T-181.6"""
     p = S0(tmp_path, monkeypatch)
     outside = tmp_path / "docs" / "prd" / "outside.lkml"
     outside.parent.mkdir(parents=True, exist_ok=True)
@@ -116,9 +115,8 @@ def test_t181_6_file_outside_prd_folder_by_dotdot(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_t181_7_file_outside_prd_folder_by_absolute_glob(plain_tmp, monkeypatch):
-    """@prd T-181.7 known-failing E-063"""
+    """@prd T-181.7"""
     tmp = plain_tmp
     p = S0(tmp, monkeypatch)
     outside = tmp / "docs" / "prd" / "outside.lkml"

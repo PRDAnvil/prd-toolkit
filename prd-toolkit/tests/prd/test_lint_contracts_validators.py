@@ -134,9 +134,8 @@ def test_t182_9_failed_with_no_output_reports_exit_code(tmp_path, monkeypatch):
     assert r.stderr == ""
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure)
 def test_t182_10_validator_cannot_run(tmp_path, monkeypatch):
-    """@prd T-182.10 known-failing E-059"""
+    """@prd T-182.10"""
     p = S0(tmp_path, monkeypatch)
     p.write("tools/check.sh", "exit 0")
     p.make_executable("tools/check.sh")
