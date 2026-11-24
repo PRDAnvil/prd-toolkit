@@ -105,10 +105,9 @@ def test_trailing_dot_not_part_of_token(built):
     assert_stderr_empty(r)
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-047")
 @setup(lambda f: f.replace("test-cases/import.yaml", 36, T["key_line"]))
 def test_malformed_test_case_key_at_its_line(built):
-    """@prd T-121.7 known-failing E-047"""
+    """@prd T-121.7"""
     r = run_lint(built)
     at_line_1 = T["key_expect"].replace("test-cases/import.yaml:36:", "test-cases/import.yaml:1:", 1)
     out = r.stdout.splitlines()
@@ -123,13 +122,12 @@ def test_malformed_test_case_key_at_its_line(built):
     assert_stderr_empty(r)
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-048")
 @setup(
     lambda f: f.write(".notes.md", T["hidden_md"]),
     lambda f: f.write("contracts/.draft.yaml", T["hidden_yaml"]),
 )
 def test_hidden_files_not_read(built):
-    """@prd T-121.8 known-failing E-048"""
+    """@prd T-121.8"""
     r = run_lint(built)
     prefixes = ("docs/prd/orders/.notes.md:", "docs/prd/orders/contracts/.draft.yaml:")
     known_failure_if(
@@ -227,10 +225,9 @@ def test_fr_and_nfr_share_a_number(built):
     assert_stderr_empty(r)
 
 
-@pytest.mark.xfail(strict=True, raises=KnownFailure, reason="E-046")
 @setup(lambda f: f.append("errors.md", T["fence_lines"]))
 def test_fenced_error_heading_is_no_definition(built):
-    """@prd T-122.7 known-failing E-046"""
+    """@prd T-122.7"""
     r = run_lint(built)
     known_failure_if(
         any(line.endswith("id-unique: E-001 is already defined at errors.md:3") for line in r.stdout.splitlines()),

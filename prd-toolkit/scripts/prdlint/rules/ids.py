@@ -5,10 +5,10 @@ from collections.abc import Iterator
 
 from .. import languages
 from ..findings import Finding
-from ..markdown import split_cells
+from ..markdown import split_cells, strip_code
 from ..model import ADOPTION_STATES, IndexRow, Prd, ReqBlock
 from ..registry import rule
-from .structure import prose
+from .structure import _hidden, _visible_prose
 
 ID_PATTERNS: dict[str, re.Pattern] = {
     "UJ": re.compile(r"UJ-\d{2}"),
@@ -38,7 +38,8 @@ def defined_ids(prd: Prd) -> dict[str, list[tuple[str, int]]]:
     for tc in prd.test_cases:
         out[tc.id].append((tc.file, tc.line))
     if "errors.md" in prd.docs:
-        for n, line in enumerate(prd.docs["errors.md"].split("\n"), 1):
+        # a fenced `### E-nnn` example is no definition
+        for n, line in enumerate(strip_code(prd.docs["errors.md"]).split("\n"), 1):
             m = _E_HEADING.match(line)
             if m:
                 out[m.group(1)].append(("errors.md", n))
@@ -70,12 +71,19 @@ def id_format(prd: Prd):
             if not ID_PATTERNS[m.group(1)].fullmatch(m.group(0)):
                 yield Finding(file, n, "id-format", f"'{m.group(0)}' does not match the {m.group(1)} id format {ID_PATTERNS[m.group(1)].pattern}")
 
-    for rel, n, text in prose(prd):
+    # a hidden file or folder (a part starting with `.`) is not part of the PRD
+    for rel, n, text in _visible_prose(prd):
         yield from check(rel, n, text)
-    sources = list(prd.yaml.items()) + [(tc.file, {tc.id: tc.data}) for tc in prd.test_cases]
-    for rel, data in sources:
-        for n, text in _yaml_strings(data, 1):
-            yield from check(rel, n, text)
+    for rel, data in prd.yaml.items():
+        if not _hidden(rel):
+            for n, text in _yaml_strings(data, 1):
+                yield from check(rel, n, text)
+    for tc in prd.test_cases:
+        if not _hidden(tc.file):
+            # the key at its own line, its body from there
+            yield from check(tc.file, tc.line, tc.id)
+            for n, text in _yaml_strings(tc.data, tc.line):
+                yield from check(tc.file, n, text)
 
 
 @rule("id-unique", description="Checks that each ID is defined once (a block heading, an AC, a test-case key, an errors.md entry, an assumption row), that no key repeats in a test-cases file, and that an FR and an NFR never share a number, since they use one sequence. Renumber the later definition (`prd change ids next` gives the next free FR, NFR, UJ, AC or T number), or delete the repeated key; the first one is kept.")
@@ -183,7 +191,8 @@ def index_consistent(prd: Prd):
         if a.state in ADOPTION_STATES and a.state != "not started" and f"features/{a.area}.md" not in prd.docs:
             yield Finding("adoption.md", a.line, "index-consistent", f"adoption area '{a.area}' is {a.state} but features/{a.area}.md does not exist")
     for e in prd.errors_ledger.values():
-        if e.classification == "unclassified" and not e.open:
+        # no `Classification:` line counts as unclassified
+        if e.classification in ("", "unclassified") and not e.open:
             yield Finding("errors.md", e.line, "index-consistent", f"{e.id}: unclassified is allowed only on an open entry")
         for req, n in e.touches:
             if req not in block:

@@ -609,7 +609,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-122
 Evidence: `defined_ids` matches `^### (E-\d+)\b` against the raw lines of errors.md (ids.py:40-43), so a fenced example such as `### E-001 <title>` counts as a definition. If the ledger's real E-001 comes after it, id-unique reports it as `E-001 is already defined at errors.md:<fence line>`. prd-format.md ("errors.md") says "Headings inside code fences are not entries", and the loader's own ledger parser (model.py `_errors_ledger`) matches against `strip_code(text)` and skips fenced headings.
 Diagnosis: `defined_ids` matches `^### (E-\d+)\b` against the raw lines of errors.md (ids.py:40-43), so a fenced example such as `### E-001 <title>` counts as a definition. If the ledger's real E-001 comes after it, id-unique reports it as `E-001 is already defined at errors.md:<fence line>`. prd-format.md ("errors.md") says "Headings inside code fences are not entries", and the loader's own ledger parser (model.py `_errors_ledger`) matches against `strip_code(text)` and skips fenced headings. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-122.7 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-047 id-format reports a malformed test-case key at line 1
@@ -619,7 +619,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-121
 Evidence: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54).
 Diagnosis: For each test case, `id_format` builds a plain dict `{tc.id: tc.data}` (ids.py:74). A plain dict has no `key_lines`, so `_yaml_strings` gives the key the default line 1 (ids.py:54). A key such as `T-12.1:` on line 40 is therefore reported at `test-cases/<area>.yaml:1`. Every other place in this file reports a test-case key at its real line (`tc.line`, ids.py:38, 157), and every other key and value in this rule is reported at its own line. Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-121.7 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-048 id-format reads hidden Markdown and YAML files
@@ -629,7 +629,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-121
 Evidence: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`.
 Diagnosis: `id_format` reads `prose(prd)`, which yields every Markdown file the loader read, hidden ones included (`.notes.md`, `features/.draft.md`). It also reads `prd.yaml`, which holds hidden YAML under `contracts/`. The owner's confirmed rule in E-011 says that a file or folder whose name starts with `.` is not part of the PRD and that no rule reads it. The sibling rules in structure.py read `_visible_prose` and skip hidden YAML sources (structure.py:54-58, 283). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-121.8 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-049 index-consistent reports matching titles as different when a title starts or ends with a code span
@@ -649,7 +649,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-127
 Evidence: `index_consistent` reports only the literal `Classification: unclassified` on a resolved entry (`e.classification == "unclassified"`). A resolved entry with no `Classification:` line passes. prd-format.md's state table counts "no `Classification:`" as `unclassified`, and it says `unclassified` is allowed only on an open entry.
 Diagnosis: `index_consistent` reports only the literal `Classification: unclassified` on a resolved entry (`e.classification == "unclassified"`). A resolved entry with no `Classification:` line passes. prd-format.md's state table counts "no `Classification:`" as `unclassified`, and it says `unclassified` is allowed only on an open entry. The sibling code treats the two forms alike: `ErrorEntry.state` (model.py) and error-entries (errors.py:60, `e.classification in ("", "unclassified")`). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-127.4 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-051 index-consistent accepts any text as the Source line of an as-built block

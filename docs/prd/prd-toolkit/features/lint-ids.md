@@ -3,8 +3,8 @@
 # lint-ids: the lint rules for IDs, the index and acceptance criteria
 
 ### FR-121 Check the form of every ID
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/ids.py:66 @4465291
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/ids.py:68 @2d358d9
 Flow: 1. read every Markdown line of the PRD, code spans and fenced blocks blanked → 2. find each token of a kind (`UJ`, `FR`, `NFR`, `AC`, `T`, `E`, `A`), a dash and a digit
       → 3. fully match it against its kind's pattern → 4. do the same for every key and string value of the contract YAML files and of each test case's body
 Acceptance (EARS):
@@ -19,8 +19,8 @@ Tests: T-121.1 [integration], T-121.2 [integration], T-121.3 [integration], T-12
 Traces: UJ-01; cli:prd_lint
 
 ### FR-122 Define each ID once
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/ids.py:81 @4465291
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/ids.py:90 @2d358d9
 Flow: 1. collect every definition: block headings and their ACs, test-case keys, `### E-nnn` headings, section 12 rows → 2. report each one after the first
       → 3. group FR and NFR blocks by number and report a number both kinds use
 Acceptance (EARS):
@@ -86,8 +86,8 @@ Tests: T-126.1 [integration], T-126.2 [integration], T-126.3 [integration]  (tes
 Traces: UJ-01; cli:prd_lint
 
 ### FR-127 Check errors.md entries against the blocks
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/ids.py:184 @4465291
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/ids.py:193 @2d358d9
 Acceptance (EARS):
 - AC-127.1 If an errors.md entry is resolved and its `Classification:` value is `unclassified`, or it has no `Classification:` line, the lint command shall report `index-consistent` at the entry's heading with `<E-id>: unclassified is allowed only on an open entry`.
 - AC-127.2 When an entry whose `Classification:` value is `unclassified` is open, the lint command shall report no such finding.
