@@ -649,7 +649,7 @@ Confirmed: 2026-11-21, "Confirm the class (form)"
 Touches: FR-127
 Evidence: `index_consistent` reports only the literal `Classification: unclassified` on a resolved entry (`e.classification == "unclassified"`). A resolved entry with no `Classification:` line passes. prd-format.md's state table counts "no `Classification:`" as `unclassified`, and it says `unclassified` is allowed only on an open entry.
 Diagnosis: `index_consistent` reports only the literal `Classification: unclassified` on a resolved entry (`e.classification == "unclassified"`). A resolved entry with no `Classification:` line passes. prd-format.md's state table counts "no `Classification:`" as `unclassified`, and it says `unclassified` is allowed only on an open entry. The sibling code treats the two forms alike: `ErrorEntry.state` (model.py) and error-entries (errors.py:60, `e.classification in ("", "unclassified")`). Not reproduced by a run: read from the code during the adoption extract of the area lint-ids.
-Resolution: -
+Resolution: T-127.4 [integration], PRD 10.3.1, fixed in d98b4d711d3e15770d167ff1adc4e5bd6b6716b3
 Recurrence of: -
 
 ### E-051 index-consistent accepts any text as the Source line of an as-built block
