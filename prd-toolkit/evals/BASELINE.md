@@ -2,6 +2,39 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.16: a change set stopped before its first approval
+
+Recorded 2026-11-24 on `fix/changeset-stopped-before-approval`, model `sonnet`, Claude Code 2.1.331, one run per arm,
+the new case `change-set-stopped-before-approval` (scaffold state `cs-stopped`). Cost of every run below: $0.91.
+
+**Not run in `claude plugin eval`.** In this runner every case on `scaffolds/link_repo.py` ends `scaffold failed
+(exit null)`: the new case in both arms (twice, `-j 3` and `-j 1`) and the existing `coordinating-resume-trigger`
+(`--ablation none`). `error-confirm-before-fix`, on another scaffold, ran in the same runner at 1.00. Outside the
+runner the same scaffold builds in 41 s and closes its output, and in a kept sandbox it had made its last commit when
+it was killed. The cause is not found. So each arm ran by hand, from a clean copy of the plugin (`git archive` for
+0.8.15): the case's own `scaffold.sh` in a fresh directory, then the case prompt in one `claude -p --model sonnet
+--plugin-dir <copy>/prd-toolkit` session with the installed prd-toolkit disabled (`--settings` `enabledPlugins`
+false) and `--allowedTools Read Glob Grep Skill Agent Write Edit Bash`. The case's four graders were applied to the
+trace and the record by a script, as the runner applies them. The user's other plugins were loaded in every arm. No
+arm ran without the plugin.
+
+| Arm | Code | Skill text | `no-amendment` | `no-restart` | `first-approval` | Score | Skill fired |
+|---|---|---|---|---|---|---|---|
+| RED | 0.8.15 | 0.8.15 | fail | pass | fail | 0.33 | yes |
+| GREEN | fixed (E-081, E-082) | new | pass | pass | pass | 1.00 | yes |
+| control | fixed | 0.8.15 | pass | pass | pass | 1.00 | yes |
+
+- RED: `changeset approve … --reply 'approved, both diffs'` was refused (`…, not proposed; a later approval is an
+  --amendment`), so the session ran it again with `--amendment`, which the session's own permission classifier then
+  denied. Its report: "**Why I think the amendment is right:** the script asked for it." The record stayed
+  `stopped`.
+- GREEN and control: a plain `approve` with the reply, Status `approved`, the Log line `greet-client stop cleared by
+  the first approval`, both approval commits, and a stop before step 4's build of the other member.
+- **The control shows the case measures the code fix, not the text.** With the fix in, the old text also approves
+  first and succeeds. The text change (step 2's stop, step 5's `--amendment` only after an approval, Where to enter)
+  makes the procedure say what the script now does. No case here measures it on its own.
+- The existing change-set and coordinating cases were not rerun: all of them use `link_repo.py`.
+
 ## 0.8.15: reproduce before proposing, an unsure reply, re-verify before the fix
 
 Recorded 2026-11-23 on `feat/ait-1105-verify-error-class`, model `sonnet`, Claude Code 2.1.330, one run per arm, 14
