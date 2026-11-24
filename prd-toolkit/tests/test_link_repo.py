@@ -203,6 +203,23 @@ def test_cs_running_record_and_branches(states, tmp_path):
 
 # ---------------------------------------------------------------- refusals
 
+def test_the_scaffold_commits_run_no_hook_and_leave_the_hooks_installed(tmp_path):
+    """E-083: the runner stops a scaffold at about 120 s, and every commit through the installed prd hooks costs 1 to 3
+    s. The scaffold's own commits run no hook (git's trace2 log records each hook it starts), and both repositories
+    keep the hooks installed for the eval session."""
+    trace = tmp_path / "trace2.json"
+    r = subprocess.run([sys.executable, "-B", str(SCRIPT), str(tmp_path / "greet-client"), "unlinked"],
+                       capture_output=True, text=True, env={**os.environ, "GIT_TRACE2_EVENT": str(trace)})
+    assert r.returncode == 0, r.stdout + r.stderr
+    events = [json.loads(line) for line in trace.read_text(encoding="utf-8").splitlines() if line.strip()]
+    commits = [e for e in events if e.get("event") == "start" and "commit" in e.get("argv", [])]
+    hooks = sorted({e.get("hook_name") for e in events if e.get("event") == "child_start" and e.get("child_class") == "hook"})
+    assert commits and hooks == [], hooks
+    for repo in (tmp_path / "greet-client", tmp_path / "greet-client/upstream/greet"):
+        for hook in ("pre-commit", "commit-msg"):
+            assert "prd-toolkit hook" in (repo / ".git/hooks" / hook).read_text(encoding="utf-8"), (repo, hook)
+
+
 def test_refuses_a_non_empty_destination_and_an_unknown_state(tmp_path):
     (tmp_path / "x").mkdir()
     (tmp_path / "x/f").write_text("a")
