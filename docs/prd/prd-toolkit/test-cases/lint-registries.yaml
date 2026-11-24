@@ -219,6 +219,49 @@ T-133.5:
     effects: []
     errors: []
     leaks: none
+T-133.6:
+  ac: AC-133.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `python3 -m json.tool` `files: sometimes` | none; stand-in command for the fixture | code, schema.sql | enforced |"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - LINT --ci
+    note: E-074; python3 is on the runner's PATH (Tools on the runner), so the row's command is found
+  expect:
+    output:
+      each_run:
+        exit: 1
+        stdout_exact_lines: ["docs/prd/orders/prd.md:59: registries: standards files mode 'sometimes' is not one of appended, none, changed"]
+        stderr: ""
+    effects: []
+    errors: []
+    leaks: none
+T-133.7:
+  ac: AC-133.5
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 59 of prd.md with | `**/*.sql` | `python3 -m json.tool` `files: none` | none; stand-in command for the fixture | code, schema.sql | enforced |", "insert after line 59 of prd.md the lines | `**/*.py` | `python3 -m json.tool` `files: changed` | none | code | enforced | and | `**/*.md` | `python3 -m json.tool` `--fix` | none | docs | enforced |"]
+    cwd: <tmp>
+    runs:
+      - LINT
+      - LINT --ci
+    note: "E-074; the modes none and changed are valid, and a second span that does not start with `files:` sets no mode"
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
 T-134.1:
   ac: AC-134.1
   level: integration

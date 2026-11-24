@@ -3,7 +3,8 @@
 Everything here comes from docs/prd/prd-toolkit/testing.md (Harness, Fixtures, Setup steps, Borrowed steps and
 helpers) and the conventions at the top of test-cases/standards-run.yaml:
 
-- the standards-run Setup steps (SR0, SG1 to SG5, SO), defined here, a relative path in them taken from <tmp>;
+- the standards-run Setup steps (SR0, SG1 to SG5, SO, SM1 to SM5, SC1), defined here, a relative path in them
+  taken from <tmp>;
 - the borrowed step N0E, imported from status_next_support.py, and the fixture repo/vendored, loaded with
   lint_cli_support.load_vendored, the calls the table Borrowed steps and helpers gives;
 - the Subprocess environment of a standards-run run, which drops PRD_PLUGINS_FILE and the git variables as well;
@@ -82,10 +83,14 @@ def run(cwd: Path, script: str, *args: str) -> Result:
     return _result(proc)
 
 
-def run_sh(cwd: Path, command: str) -> Result:
-    """Run `sh -c <command>` in `cwd`, the command passed to sh as one argument (T-068.5's `sh -c JOB`)."""
+def run_sh(cwd: Path, command: str, env: dict[str, str] | None = None) -> Result:
+    """Run `sh -c <command>` in `cwd`, the command passed to sh as one argument (T-068.5's `sh -c JOB`);
+    `env` is a run's own `env` (a run written as a mapping), added for that run only."""
+    run_env = subprocess_env()
+    if env:
+        run_env.update(env)
     proc = subprocess.run(
-        ["sh", "-c", command], cwd=cwd, env=subprocess_env(), capture_output=True, timeout=RUN_TIMEOUT,
+        ["sh", "-c", command], cwd=cwd, env=run_env, capture_output=True, timeout=RUN_TIMEOUT,
     )
     return _result(proc)
 
@@ -206,8 +211,93 @@ def SO(tmp: Path) -> None:
         raise SetupError(f"SO: the job's command is {got!r}, not texts.old_job_line")
 
 
+def _git_out(tmp: Path, *args: str) -> str:
+    proc = subprocess.run(["git", *args], cwd=tmp, env=subprocess_env(), capture_output=True, timeout=RUN_TIMEOUT)
+    if proc.returncode != 0:
+        raise SetupError(f"git {' '.join(args)} exited {proc.returncode}: {proc.stderr.decode('utf-8', 'replace')}")
+    return proc.stdout.decode("utf-8")
+
+
+def _the_enforced_row(tmp: Path, row: str) -> tuple[Path, list[str], int]:
+    """The prd.md path, its lines and the index of the one line equal to `row`; SetupError unless exactly one."""
+    path = orders(tmp) / "prd.md"
+    lines = path.read_text(encoding="utf-8").split("\n")
+    hits = [i for i, line in enumerate(lines) if line == row]
+    if len(hits) != 1:
+        raise SetupError(f"{path}: expected one line {row!r}, found {len(hits)}")
+    return path, lines, hits[0]
+
+
+def _row_becomes(tmp: Path, key: str) -> None:
+    """In docs/prd/orders/prd.md, the enforced row (the third line of texts.rows) becomes texts.<key>."""
+    path, lines, i = _the_enforced_row(tmp, texts("rows")[2])
+    lines[i] = texts(key)
+    path.write_bytes("\n".join(lines).encode("utf-8"))
+
+
+def SM1(tmp: Path) -> None:
+    _row_becomes(tmp, "none_row")
+
+
+def SM2(tmp: Path) -> None:
+    _row_becomes(tmp, "changed_row")
+
+
+def SM3(tmp: Path) -> None:
+    _row_becomes(tmp, "bogus_row")
+
+
+def SM4(tmp: Path) -> None:
+    _row_becomes(tmp, "failing_none_row")
+
+
+def SM5(tmp: Path) -> None:
+    """After SM1 (which the case names before it): in the enforced row, now texts.none_row, the text
+    `` `**/*.py` `` becomes `` `**/*.rs` ``."""
+    path, lines, i = _the_enforced_row(tmp, texts("none_row"))
+    old, new = "`**/*.py`", "`**/*.rs`"
+    if lines[i].count(old) != 1:
+        raise SetupError(f"{path}: expected the text {old!r} once in the enforced row, found {lines[i].count(old)}")
+    lines[i] = lines[i].replace(old, new)
+    path.write_bytes("\n".join(lines).encode("utf-8"))
+
+
+# <base> of step SC1, by the scratch repository's root (tmp_path); read with base_of(tmp).
+_BASES: dict[Path, str] = {}
+
+_COMMIT = ("-c", "user.name=Sample", "-c", "user.email=sample@example.com", "-c", "commit.gpgsign=false",
+           "-c", "core.hooksPath=/dev/null", "commit", "-q", "-m")
+
+
+def SC1(tmp: Path) -> None:
+    _git(tmp, "add", "-A")
+    _git(tmp, *_COMMIT, "base")
+    out = _git_out(tmp, "rev-parse", "HEAD").splitlines()
+    if len(out) != 1:
+        raise SetupError(f"SC1: git rev-parse HEAD printed {len(out)} lines, not one")
+    _BASES[tmp] = out[0]
+    ok = tmp / "src/ok.py"
+    if not ok.is_file():
+        raise SetupError(f"SC1: {ok} is missing")
+    ok.write_bytes(ok.read_bytes() + b"y = 1\n")
+    _write(tmp / "src/new.py", "x = 5\n")
+    _write(tmp / ".prd-toolkit/extra.py", "x = 6\n")
+    bad = tmp / "src/bad.py"
+    if not bad.is_file():
+        raise SetupError(f"SC1: {bad} is missing")
+    bad.unlink()
+    _git(tmp, "add", "-A")
+    _git(tmp, *_COMMIT, "head")
+
+
+def base_of(tmp: Path) -> str:
+    """<base>: the commit step SC1 took, the one stdout line of `git rev-parse HEAD` after its first commit."""
+    return _BASES[tmp]
+
+
 STEPS = {
     "SR0": SR0, "SG1": SG1, "SG2": SG2, "SG3": SG3, "SG4": SG4, "SG5": SG5,
+    "SM1": SM1, "SM2": SM2, "SM3": SM3, "SM4": SM4, "SM5": SM5, "SC1": SC1,
 }
 
 

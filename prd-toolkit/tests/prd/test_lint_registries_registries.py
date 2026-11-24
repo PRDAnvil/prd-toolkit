@@ -2,7 +2,7 @@
 from lint_registries_support import (  # noqa: F401  (case is a pytest fixture)
     S0, assert_exit, assert_stderr, assert_stdout, assert_stdout_exact_lines,
     assert_stdout_not_contains, case, delete_line, git_init, insert_after, replace,
-    require_absent, require_no_skill_under, require_not_on_path, require_outside_git,
+    require_absent, require_no_skill_under, require_not_on_path, require_on_path, require_outside_git,
     require_toplevel_is_tmp, steps, write_lines,
 )
 
@@ -112,6 +112,32 @@ def test_unchecked_linter_on_declined_and_proposed(case):
     r = case.lint()
     assert_stdout_not_contains(r, "registries:")
     assert_stderr(r, "")
+
+
+@steps(S0,
+       replace("prd.md", 59, STD.format(linter="`python3 -m json.tool` `files: sometimes`", decision="enforced")),
+       require_on_path("python3"))
+def test_enforced_row_with_an_unknown_files_mode(case):
+    """@prd T-133.6"""
+    for args in ((), ("--ci",)):
+        r = case.lint(*args)
+        assert_exit(r, 1)
+        assert_stdout_exact_lines(r, ["docs/prd/orders/prd.md:59: registries: standards files mode 'sometimes' is not one of appended, none, changed"])
+        assert_stderr(r, "")
+
+
+@steps(S0,
+       replace("prd.md", 59, STD.format(linter="`python3 -m json.tool` `files: none`", decision="enforced")),
+       insert_after("prd.md", 59,
+                    "| `**/*.py` | `python3 -m json.tool` `files: changed` | none | code | enforced |",
+                    "| `**/*.md` | `python3 -m json.tool` `--fix` | none | docs | enforced |"))
+def test_enforced_rows_with_valid_files_modes_and_a_plain_second_span(case):
+    """@prd T-133.7"""
+    for args in ((), ("--ci",)):
+        r = case.lint(*args)
+        assert_exit(r, 0)
+        assert_stdout(r, "")
+        assert_stderr(r, "")
 
 
 NOT_INSTALLED = ("docs/prd/orders/prd.md:65: registries: required skill '{}' is not installed; "
