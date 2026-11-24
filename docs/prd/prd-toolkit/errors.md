@@ -1011,6 +1011,7 @@ Recurrence of: -
 ### E-082 changeset set takes a State with no Approval line once Status is stopped
 Detected: 2026-11-24, user report (/prd-toolkit:prd-error)
 Classification: code bug
+Confirmed: 2026-11-24, "Confirm the class (form)"
 Evidence: User report (code reading, found with the approve refusal): set_fields() refuses a State only while Status is the text `proposed`.
   So on a record stopped before its first approval, `changeset set <record> <prd> state=approved`, or `state=built` for a row with no Waits for, is said to be accepted with no Approval line.
 Explanation: What was run: a probe made a three-member change set, stopped it before anyone approved it, then set the first member's State to approved and then to built. What it printed: both were accepted. The record ended with that member built, Status running, and no Approval line at all. What should happen: the change-set procedure says one explicit reply approves the set and that with no one to ask nothing is approved; only the approval command moves a row out of proposed, and the same set is refused with "not approved yet" before the stop. Why a code bug: this code sits in no adopted area, so its own account stands in for an AC, and the code breaks it: a stop is not an approval. It is not a spec gap, for the same reason as E-081.
