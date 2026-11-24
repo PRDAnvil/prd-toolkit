@@ -451,11 +451,13 @@ def check(repo_root: Path, plugin_root: Path, prd=None, prd_rel: str = "") -> li
             problems.append(f"{VENDOR_DIR}/{rel} is missing")
         elif target.read_bytes() != src.read_bytes():
             problems.append(f"{VENDOR_DIR}/{rel} differs from the plugin copy")
-    for sub in ("prdlint", VENDORED_TEMPLATES, "confirm", "gates", JUDGE_DIR, LANGUAGES_DIR):
-        for f in sorted((dest / sub).rglob("*")) if (dest / sub).is_dir() else []:
-            rel = f.relative_to(dest).as_posix()
-            if f.is_file() and "__pycache__" not in f.parts and rel not in sources:
-                problems.append(f"{VENDOR_DIR}/{rel} is not in the plugin")
+    generated = {"VERSION", HOMEPAGE_FILE, PACK_SOURCES, ".gitignore"}  # install writes these; packs/ is FR-110's
+    for f in sorted(dest.rglob("*")):
+        parts = f.relative_to(dest).parts
+        rel = "/".join(parts)
+        if not f.is_file() or "__pycache__" in parts or parts[0] == PACKS_DIR or rel in generated or rel in sources:
+            continue
+        problems.append(f"{VENDOR_DIR}/{rel} is not in the plugin")
     problems += _stale_shims(repo_root, plugin_root, prd_rel)
     if prd is not None:
         problems += _stale_packs(repo_root, prd)
@@ -490,10 +492,7 @@ def _stale_shims(repo_root: Path, plugin_root: Path, prd_rel: str) -> list[str]:
 
 
 def uninstall(repo_root: Path) -> list[str]:
-    configured = _hooks_path_config(Path(repo_root))
-    if configured:
-        return [f"core.hooksPath is set to {configured}; removed nothing"]
-    hooks_dir, shown = _hooks_dir(Path(repo_root))
+    hooks_dir, shown = _hooks_dir(Path(repo_root))  # where core.hooksPath is set, the folder it names (AC-112.2)
     lines: list[str] = []
     for hook in HOOKS:
         path = hooks_dir / hook
