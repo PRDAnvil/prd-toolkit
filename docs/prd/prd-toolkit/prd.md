@@ -312,7 +312,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-165 | Prove every denial with a test case | live | features/lint-testcases.md | 9.5.0 |
 | FR-166 | Keep real-looking personal data out of classified fixture columns | live | features/lint-testcases.md | 9.5.0 |
 | FR-167 | Keep real-looking personal data out of inline test input | live | features/lint-testcases.md | 9.5.0 |
-| FR-168 | Tell real-looking personal data from synthetic | approved | features/lint-testcases.md |  |
+| FR-168 | Tell real-looking personal data from synthetic | verified | features/lint-testcases.md |  |
 | FR-169 | Describe each rule of the area | live | features/lint-testcases.md | 9.5.0 |
 | FR-170 | Check each OpenAPI operation's PRD fields | live | features/lint-contracts.md | 9.6.0 |
 | FR-171 | Require a content example on each OpenAPI response | live | features/lint-contracts.md | 9.6.0 |
