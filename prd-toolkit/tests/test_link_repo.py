@@ -203,6 +203,30 @@ def test_cs_running_record_and_branches(states, tmp_path):
 
 # ---------------------------------------------------------------- refusals
 
+def test_the_scaffold_commits_run_no_hook_and_leave_the_hooks_installed(tmp_path):
+    """E-083: the runner stops a scaffold at about 120 s, and every commit through the installed prd hooks costs 1 to 3
+    s. The commits link_repo.py and deploy_repo.py make run no hook (git's trace2 log records each hook a commit starts),
+    and both repositories keep the hooks installed for the eval session. install_files.py's own commit (area
+    eval-scaffolds) is not this scaffold's code and is left out."""
+    sys.path.insert(0, str(ROOT / "evals/scaffolds"))
+    import install_files
+
+    trace = tmp_path / "trace2.json"
+    r = subprocess.run([sys.executable, "-B", str(SCRIPT), str(tmp_path / "greet-client"), "unlinked"],
+                       capture_output=True, text=True, env={**os.environ, "GIT_TRACE2_EVENT": str(trace)})
+    assert r.returncode == 0, r.stdout + r.stderr
+    events = [json.loads(line) for line in trace.read_text(encoding="utf-8").splitlines() if line.strip()]
+    commits = {e["sid"]: e["argv"] for e in events if e.get("event") == "start" and "commit" in e.get("argv", [])}
+    ours = {sid for sid, argv in commits.items() if "-m" in argv and argv[argv.index("-m") + 1] != install_files.MESSAGE}
+    hooked = sorted({(e.get("hook_name"), commits[e["sid"]][commits[e["sid"]].index("-m") + 1].splitlines()[0])
+                     for e in events if e.get("event") == "child_start" and e.get("child_class") == "hook"
+                     and e.get("sid") in ours})
+    assert len(ours) >= 10 and hooked == [], hooked
+    for repo in (tmp_path / "greet-client", tmp_path / "greet-client/upstream/greet"):
+        for hook in ("pre-commit", "commit-msg"):
+            assert "prd-toolkit hook" in (repo / ".git/hooks" / hook).read_text(encoding="utf-8"), (repo, hook)
+
+
 def test_refuses_a_non_empty_destination_and_an_unknown_state(tmp_path):
     (tmp_path / "x").mkdir()
     (tmp_path / "x/f").write_text("a")

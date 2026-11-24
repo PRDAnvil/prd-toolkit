@@ -44,7 +44,8 @@ PLUGIN = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(PLUGIN / "tests"))
 import deploy_repo  # noqa: E402
-from legacy import commit, git  # noqa: E402
+from deploy_repo import commit  # noqa: E402  (E-083: no hook on the scaffold's commits)
+from legacy import git  # noqa: E402
 
 STATES = ("unlinked", "linked", "cs-running", "cs-stopped")
 GREET = "docs/prd/greet"

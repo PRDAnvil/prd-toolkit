@@ -2,6 +2,53 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## After 0.8.16: the `link_repo.py` cases run in the runner again (E-083)
+
+Recorded 2026-11-24 on `evals/link-repo-runner`, model `sonnet`, Claude Code 2.1.331, one run per arm, from a clean
+copy of the branch (`git archive`), the command of the 0.8.12 section with `-j 2 --keep-temp`. The cases ran in three
+invocations, one `--case` glob each (`change-set-*`, `coordinating-*`, `changing-hands-off-to-change-set`): the
+runner takes one glob and no braces. Cost of every run below: $3.13, plus $0.60 for the probes.
+
+**The cause.** `claude plugin eval` stops a case's `scaffold_script` about 120 s after it starts, and reports only
+`scaffold failed (exit null):`. Nothing documents the limit, and `case.yaml` and the CLI have no setting for it
+(`timeout_seconds` in the prompt frontmatter does not change it). Probe cases, each with the prompt "Reply with OK.":
+
+| Probe scaffold | Result |
+|---|---|
+| `sleep 60` | 1.00 |
+| `sleep 150`, `sleep 240`, `sleep 330` | `scaffold failed (exit null)` |
+| a line every 5 s, for up to 200 s | last line `tick 115`, then killed |
+
+`link_repo.py` builds near that limit. A copy of the `cs-stopped` scaffold, with each subprocess timed as it ended, took
+34 s inside the sandbox at load average 3 and passed. Outside the runner the same build took 150 to 250 s while other
+test suites loaded the machine, and every failure in the 0.8.16 section happened under such load. About 22 of its
+commits ran after `prd_hooks.py install`, so each ran the pre-commit and commit-msg hooks: a `uv run` and a lint or
+trace each time, 1.3 to 2 s at idle and more under load. The hooks write nothing. `error_repo.py` makes fewer such
+commits and fits.
+
+**The fix** (E-083, a red run): `deploy_repo.py` and `link_repo.py` make their own commits with
+`core.hooksPath=/dev/null`. The hooks stay installed for the eval session. `install_files.py`'s one commit, in the
+adopted `eval-scaffolds` area, still runs them. Every state (`unlinked`, `linked`, `cs-running`, `cs-stopped`) builds
+to the same branch SHAs, trees and file counts as before. The `cs-stopped` build went from 18.9 s to 8.9 s at load
+average 5 to 6.
+
+| Case | with | without | Δ | Last recorded (with / without) |
+|---|---|---|---|---|
+| `change-set-no-push` | 1.00 | 0.00 | +1.00 | 1.00 / 0.00 (0.7 rerun, baselines/coordinating-prds.md) |
+| `change-set-no-snapshot-edit` | 1.00 | 0.67 | +0.33 | 1.00 / 0.67 (0.7) |
+| `change-set-stopped-before-approval` | 1.00 | 1.00 | 0.00 | by hand, 0.8.16: GREEN 1.00, RED 0.33 |
+| `change-set-waits-for-upstream` | 1.00 | 1.00 | 0.00 | 1.00 / 1.00 (0.7) |
+| `coordinating-not-for-one-repo` | 1.00 | 1.00 | 0.00 | 1.00 / 1.00 (0.7) |
+| `coordinating-resume-trigger` | 1.00 | 0.00 | +1.00 | 1.00 / 0.00 (0.7) |
+| `coordinating-trigger` | 1.00 | 0.00 | +1.00 | 1.00 / 0.00 (0.7) |
+| `changing-hands-off-to-change-set` | 1.00 | 0.25 | +0.75 | 0.75 / 0.25 (0.8.13) |
+
+- No scaffold failed. The last two invocations ran at load average 5 to 18.
+- `change-set-stopped-before-approval` does not separate the arms now. Its scaffold vendors the fixed scripts, so a
+  plain `approve` succeeds with or without the skill. Its 0.8.16 control already showed that it measures the code fix.
+- The runner's limit was reported to Claude Code through `/feedback` on 2026-11-24, asking for it to be documented,
+  named in the message, and configurable.
+
 ## 0.8.16: a change set stopped before its first approval
 
 Recorded 2026-11-24 on `fix/changeset-stopped-before-approval`, model `sonnet`, Claude Code 2.1.331, one run per arm,
@@ -11,8 +58,8 @@ the new case `change-set-stopped-before-approval` (scaffold state `cs-stopped`).
 (exit null)`: the new case in both arms (twice, `-j 3` and `-j 1`) and the existing `coordinating-resume-trigger`
 (`--ablation none`). `error-confirm-before-fix`, on another scaffold, ran in the same runner at 1.00. Outside the
 runner the same scaffold builds in 41 s and closes its output, and in a kept sandbox it had made its last commit when
-it was killed. The cause is not found. So each arm ran by hand, from a clean copy of the plugin (`git archive` for
-0.8.15): the case's own `scaffold.sh` in a fresh directory, then the case prompt in one `claude -p --model sonnet
+it was killed. The cause was found later: the runner's 120 s scaffold limit (see "After 0.8.16"). So each arm ran
+by hand, from a clean copy of the plugin (`git archive` for 0.8.15): the case's own `scaffold.sh` in a fresh directory, then the case prompt in one `claude -p --model sonnet
 --plugin-dir <copy>/prd-toolkit` session with the installed prd-toolkit disabled (`--settings` `enabledPlugins`
 false) and `--allowedTools Read Glob Grep Skill Agent Write Edit Bash`. The case's four graders were applied to the
 trace and the record by a script, as the runner applies them. The user's other plugins were loaded in every arm. No
