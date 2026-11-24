@@ -767,7 +767,7 @@ Touches: FR-176
 Evidence: prd-toolkit/scripts/prdlint/rules/contracts.py:290-292: a role is checked for `identity` only; `secret` is never read.
     In a copy of the fixture lint-cli/orders, line 2 of contracts/permissions.yaml replaced with `  admin: {identity: test-admin}` and line 3 with `  rep: {identity: test-rep, secret: ''}`: `prd lint` exits 0 and prints nothing.
 Diagnosis: `_check_permissions` checks each role for `identity` only (contracts.py:290-292). prd-format.md gives a role the shape `{identity, secret}`, and a test's credentials come from its role's `secret`. The owner answered Q-33 on 2026-11-22 that a role with no secret, or an empty one, is a finding, and AC-176.8 now says so; the code reports nothing. Reproduced in a copy of the fixture lint-cli/orders.
-Resolution: -
+Resolution: T-176.8 [integration], PRD 10.4.0, fixed in cb01a35
 Recurrence of: -
 
 ### E-062 error-codes reads the failures of dependency files in subfolders of contracts/dependencies/
