@@ -280,8 +280,6 @@ T-098.5:
     leaks: none
 
 T-098.6:
-  known-failing: E-043
-  symptom: "the exit code is 2, stderr starts `prd_hooks: internal error: CalledProcessError`, and the folder <tmp>/docs/prd/orders/.prd-toolkit exists"
   ac: AC-098.6
   level: integration
   target: "cli:prd_hooks"
@@ -929,8 +927,6 @@ T-107.4:
     leaks: none
 
 T-107.5:
-  known-failing: E-043
-  symptom: "the exit code is 0 and the folder <tmp>/docs/prd/orders/.prd-toolkit exists"
   ac: AC-107.4
   level: integration
   target: "cli:prd_hooks"
@@ -1601,8 +1597,6 @@ T-113.4:
     leaks: none
 
 T-113.5:
-  known-failing: E-043
-  symptom: "the exit code is 0 and the file <tmp>/docs/prd/orders/.github/workflows/prd-toolkit.yml exists"
   ac: AC-113.5
   level: integration
   target: "cli:prd_hooks"

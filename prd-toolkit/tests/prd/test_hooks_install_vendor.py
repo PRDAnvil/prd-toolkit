@@ -6,8 +6,6 @@ import shutil
 import stat
 from pathlib import Path
 
-import pytest
-
 from hooks_install_support import (  # noqa: F401
     N0E, ORDERS_REL, PLUGIN, SCRIPTS, SetupError, V, built, files_outside_pycache, given, hi_tmp, insert_after,
     run, step_run, write, write_empty_no_git,
@@ -177,16 +175,11 @@ def test_install_writes_requirements_and_no_publish(built):
 
 
 @given(write_empty_no_git)
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_install_outside_a_git_checkout(built):
-    """@prd T-098.6 known-failing E-043"""
+    """@prd T-098.6"""
     tmp = built
     r = run(tmp, tmp, INSTALL)
     orders = tmp / ORDERS_REL
-    # The symptom of E-043, and only it, is the expected failure.
-    if (r.exit == 2 and r.stderr.startswith("prd_hooks: internal error: CalledProcessError")
-            and (orders / ".prd-toolkit").is_dir()):
-        pytest.xfail("E-043: internal error CalledProcessError, and .prd-toolkit written into the PRD folder")
     assert r.exit == 2, r
     assert r.stdout == "", r
     assert r.stderr == f"prd_hooks: {os.path.realpath(tmp)}/docs/prd/orders is not inside a git checkout\n", r
