@@ -242,7 +242,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-095 | The git hook command refuses what it cannot run, and finds the work tree | live | features/trace.md | 9.1.0 |
 | FR-096 | The hook shims skip a branch without the vendored copy | live | features/trace.md | 9.1.0 |
 | FR-097 | Refuse a malformed hooks command line | live | features/hooks-install.md | 9.2.0 |
-| FR-098 | Install writes the vendored copy of the toolkit's files | approved | features/hooks-install.md |  |
+| FR-098 | Install writes the vendored copy of the toolkit's files | verified | features/hooks-install.md |  |
 | FR-099 | Install vendors the PRD's packs and records where each came from | verified | features/hooks-install.md |  |
 | FR-100 | Install adds the judge record and the review verdict to .gitignore | live | features/hooks-install.md | 9.2.0 |
 | FR-101 | Install writes the hook shims where core.hooksPath is not set | approved | features/hooks-install.md |  |
@@ -251,13 +251,13 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-104 | Install refreshes the managed blocks and refuses a broken marker | live | features/hooks-install.md | 9.2.0 |
 | FR-105 | Install names a stale CI file and never rewrites it | live | features/hooks-install.md | 9.2.0 |
 | FR-106 | Install from the vendored copy writes the hooks only | live | features/hooks-install.md | 9.2.0 |
-| FR-107 | Vendor refreshes .prd-toolkit/ and writes nothing else | approved | features/hooks-install.md |  |
+| FR-107 | Vendor refreshes .prd-toolkit/ and writes nothing else | verified | features/hooks-install.md |  |
 | FR-108 | Check compares the vendored copy with the plugin | approved | features/hooks-install.md |  |
 | FR-109 | Check reports a stale hook | live | features/hooks-install.md | 9.2.0 |
 | FR-110 | Check reports a stale vendored pack | live | features/hooks-install.md | 9.2.0 |
 | FR-111 | Check reports stale managed blocks and CI files | live | features/hooks-install.md | 9.2.0 |
 | FR-112 | Uninstall removes only the toolkit's own hooks | approved | features/hooks-install.md |  |
-| FR-113 | CI writes the include file and refuses to overwrite a different one | approved | features/hooks-install.md |  |
+| FR-113 | CI writes the include file and refuses to overwrite a different one | verified | features/hooks-install.md |  |
 | FR-114 | The merge-gate jobs | verified | features/hooks-install.md |  |
 | FR-115 | The manual drift and deploy-test jobs | live | features/hooks-install.md | 9.2.0 |
 | FR-116 | The GitLab include file | verified | features/hooks-install.md |  |
