@@ -196,16 +196,16 @@ Tests: T-182.1 [integration], T-182.2 [integration], T-182.3 [integration], T-18
 Traces: UJ-01; cli:prd_lint
 
 ### FR-183 Check each backticked table.column against schema.sql
-Status: live (since 9.6.0)
-Source: prd-toolkit/scripts/prdlint/rules/contracts.py:555 @9961c9e
+Status: approved
+Source: prd-toolkit/scripts/prdlint/rules/contracts.py:576 @92d98fb
   prd-toolkit/scripts/prdlint/rules/contracts.py:44 @9961c9e
 Acceptance (EARS):
-- AC-183.1 Where `contracts/schema.sql` parses and holds at least one `CREATE TABLE`, if a code span on a line outside fenced code blocks of a Markdown file of the PRD folder other than errors.md holds exactly `<a>.<b>` once white space is removed from its ends (each name a letter or underscore followed by letters, digits or underscores), `<a>` is a table of schema.sql, and `<b>` is neither one of its columns, both compared as schema.sql writes them, case included, nor one of `csv`, `tsv`, `sql`, `yaml`, `yml`, `json`, `md`, `txt` and `lkml`, the lint command shall report `schema-refs` at that line with `` `<a>.<b>`: table <a> has no column <b> ``, once for each such span.
+- AC-183.1 Where `contracts/schema.sql` parses and holds at least one `CREATE TABLE`, if a code span on a line outside fenced code blocks of a Markdown file of the PRD folder other than errors.md holds exactly `<a>.<b>` once white space is removed from its ends (each name a letter or underscore followed by letters, digits or underscores), `<a>` is a table of schema.sql, and `<b>` is neither one of its columns, both compared as schema.sql writes them, case included, nor one of the file extensions `csv`, `tsv`, `sql`, `yaml`, `yml`, `json`, `md`, `txt`, `lkml`, `parquet`, `avro`, `orc`, `ndjson`, `jsonl`, `xml`, `xlsx`, `gz`, `zip`, `html`, `log`, `toml`, `ini`, `py`, `ts` and `js`, compared case included, the lint command shall report `schema-refs` at that line with `` `<a>.<b>`: table <a> has no column <b> ``, once for each such span.
 - AC-183.2 When a span's first name is not a table of schema.sql, its second name is one of the AC-183.1 file extensions, its line is in errors.md, or its line is inside a fenced code block or is a fence line, the lint command shall report no `schema-refs` finding for it.
 - AC-183.3 While `contracts/schema.sql` is absent, does not parse, or holds no `CREATE TABLE`, the lint command shall report no `schema-refs` finding.
 Errors: -
-Edge cases: a line that starts, after white space, with three backticks or three tildes opens or closes a fence, whichever kind it is → AC-183.2; the columns of several `CREATE TABLE` statements for one table are pooled → AC-183.1; prose names a table and column as schema.sql writes them, so a span in another case names no table and is not checked → AC-183.2
-Tests: T-183.1 [integration], T-183.2 [integration], T-183.3 [integration]  (test-cases/lint-contracts.yaml)
+Edge cases: a line that starts, after white space, with three backticks or three tildes opens or closes a fence, whichever kind it is → AC-183.2; the columns of several `CREATE TABLE` statements for one table are pooled → AC-183.1; prose names a table and column as schema.sql writes them, so a span in another case names no table and is not checked → AC-183.2; a file name whose stem is a table, such as `orders.parquet` beside `CREATE TABLE orders`, is a file extension span, not a column (E-084) → AC-183.2
+Tests: T-183.1 [integration], T-183.2 [integration], T-183.3 [integration], T-183.4 [integration]  (test-cases/lint-contracts.yaml)
 Traces: UJ-01; cli:prd_lint
 
 ### FR-184 Report a cited error code the catalogue lacks
