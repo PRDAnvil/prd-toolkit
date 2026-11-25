@@ -11,6 +11,9 @@ SECTIONS = ("Stack", "Architecture", "Components", "Requirements to code", "Stan
             "Uncovered code")
 _PRD_SECTION = {"Stack": 1, "Architecture": 4, "Standards": 5, "Skills": 6}  # copied line for line (AC-265.2)
 _FEATURES = re.compile(r"features/[^/]+\.md")
+_ASSUMPTION = re.compile(r"\s*\[ASSUMPTION [^\]]*\]")  # on one line: the first `]` after it ends it (AC-265.2)
+_CI_FILES = (".github/workflows/prd-toolkit.yml", ".gitlab/prd-toolkit.yml")  # the generated CI files (AC-266.4)
+_DEFAULT_TEST_ROOTS = ["tests/"]
 
 
 def _git(top: Path, *args: str) -> subprocess.CompletedProcess:
@@ -106,16 +109,24 @@ def section_body(prd: model.Prd, number: int) -> list[str]:
     return body
 
 
+def _copied_body(prd: model.Prd, number: int) -> list[str]:
+    """A `prd.md` section's body, each assumption marker removed with the white space directly before it
+    (AC-265.2)."""
+    return [_ASSUMPTION.sub("", line) for line in section_body(prd, number)]
+
+
 def _status_word(b: model.ReqBlock) -> str:
     value = next((t for _, t in model._field_lines(b.lines, "Status")[:1]), "")
     return value.split()[0] if value.split() else ""
 
 
-def _source(b: model.ReqBlock) -> str | None:
-    """The block's `Source:` value, the white space around it removed and each continuation line joined to it by
-    one space; None when the block has no `Source:` line."""
+def _source_refs(b: model.ReqBlock) -> list[str] | None:
+    """The block's Source refs: its `Source:` value and each continuation line split at every comma, each part with
+    the white space around it removed, the empty parts left out (AC-266.3); None when it has no `Source:` line."""
     lines = model._field_lines(b.lines, "Source")
-    return " ".join(t for _, t in lines) if lines else None
+    if not lines:
+        return None
+    return [p.strip() for _, t in lines for p in t.split(",") if p.strip()]
 
 
 def _requirements(prd: model.Prd, rel: str) -> str:
@@ -150,13 +161,19 @@ def _at_head(source: str, files: set[str], counts: dict[str, int]) -> str:
     return "yes" if counts[path] >= int(number.group(0)) else "no"
 
 
+def _refs_at_head(refs: list[str], files: set[str], counts: dict[str, int]) -> str:
+    """`yes` when every one of the Source refs holds at HEAD, else `no` (AC-266.3)."""
+    return "yes" if all(_at_head(r, files, counts) == "yes" for r in refs) else "no"
+
+
 def _requirements_to_code(prd: model.Prd, top: Path, files: list[str], sha7: str) -> tuple[str, list[str]]:
     order = _features(prd) + (["nfr.md"] if "nfr.md" in prd.docs else [])
-    sourced = [(b, s) for rel in order for b in prd.blocks if b.file == rel and (s := _source(b)) is not None]
+    sourced = [(b, s) for rel in order for b in prd.blocks if b.file == rel and (s := _source_refs(b)) is not None]
     at = set(files)
-    counts = _line_counts(top, sorted({p for _, s in sourced if (p := s.partition(":")[0]) in at}))
+    counts = _line_counts(top, sorted({p for _, refs in sourced for r in refs if (p := r.partition(":")[0]) in at}))
     body = ["| ID | Status | Source | At HEAD |", "|---|---|---|---|"]
-    body += [f"| {b.id} | {_status_word(b)} | {s} | {_at_head(s, at, counts)} |" for b, s in sourced]
+    body += [f"| {b.id} | {_status_word(b)} | {', '.join(refs)} | {_refs_at_head(refs, at, counts)} |"
+             for b, refs in sourced]
     if not sourced:
         body = ["No requirement block has a Source: line."]
     return f"From: the Source: lines of the requirement blocks, checked at {sha7}.", body
@@ -180,7 +197,10 @@ def _uncovered(prd: model.Prd, files: list[str], folder: str, sha7: str) -> tupl
     if prd.adoption is None:
         return "From: prd.md section 8.", ["No adoption map: every path outside the PRD folder and .prd-toolkit/ is covered."]
     globs = [g for row in prd.adoption for g in row.boundary]
+    roots = [r if r.endswith("/") else f"{r}/" for r in (prd.testing.harness.test_roots or _DEFAULT_TEST_ROOTS)]
+    # a path lies under a root when it starts with it, a `/` added to a root that does not end in one (AC-266.4)
     left = sorted(f for f in files if not f.startswith(f"{folder}/") and not f.startswith(".prd-toolkit/")
+                  and not any(f.startswith(r) for r in roots) and f not in _CI_FILES
                   and not any(matches(f, g) for g in globs))
     body = [f"- `{f}`" for f in left] or ["Every file is in an area's Boundary."]
     return f"From: the files at {sha7} that no Boundary glob of {model.ADOPTION_FILE} matches.", body
@@ -195,7 +215,7 @@ def view(prd: model.Prd, top: Path, sha: str) -> str:
         folder = prd.root.as_posix()
     files = files_at_head(top)
     parts: dict[str, tuple[str, list[str]]] = {
-        name: (f"From: prd.md section {n}.", section_body(prd, n)) for name, n in _PRD_SECTION.items()}
+        name: (f"From: prd.md section {n}.", _copied_body(prd, n)) for name, n in _PRD_SECTION.items()}
     parts["Components"] = _components(prd, files, sha7)
     parts["Requirements to code"] = _requirements_to_code(prd, top, files, sha7)
     parts["Contracts"] = _contracts(prd)
