@@ -1039,3 +1039,21 @@ Explanation: What was run: four tiny eval cases whose scaffold only sleeps (60, 
 Diagnosis: Runs in claude plugin eval (Claude Code 2.1.331, `--scaffold --runs 1 --ablation none`): sleep probes printed `probe-sleep-60 … 1.00`, `probe-sleep-150 … scaffold failed (exit null)`, the same for 240 and 330; a ticker scaffold logged its last line `tick 115` (one line every 5 s, so the kill came between 115 and 120 s). Expected: a scaffold runs to its end. A timed copy of the cs-stopped scaffold (subprocess.run wrapped, each call logged as it ends) printed `end 34.3s` inside the sandbox with load average about 3 and passed; outside the runner the same scaffold.sh took 153 to 170 s while other suites loaded the machine, and in a kept sandbox of a failed run the client's last commit (`Update the CLAUDE.md block`) was HEAD when it was killed. Root cause: evals/scaffolds/link_repo.py (with deploy_repo.py) builds two repositories with about 22 `legacy.commit` calls made after `prd_hooks.py install`, so each runs the pre-commit and commit-msg hooks (`.prd-toolkit/prd git-hook`, a `uv run` and a lint or trace, 1.3 to 2 s quiet, more under load), plus `uv run --script` per tool call; the hooks write nothing (prdlint/githook.py only checks), and tests/test_link_repo.py already runs lint and trace on every state. Its account: link_repo.py's docstring (`Build the start repos for the coordinating-prds (0.7) baselines, evals and proof`) and the eight cases whose scaffold.sh calls it. The faulty code is outside every adopted Boundary (eval-scaffolds covers only evals/scaffolds/install_files.py).
 Resolution: fixed in abc4f811604bde1c6f721e17f1cdac82d3bcf983, red run prd-toolkit/tests/test_link_repo.py::test_the_scaffold_commits_run_no_hook_and_leave_the_hooks_installed [unit]
 Recurrence of: -
+
+### E-084 schema-refs reads a backticked file name like `actions.parquet` as table.column
+Detected: 2026-11-25, user report (/prd-toolkit:prd-error), GitHub issue #65
+Classification: unclassified
+Touches: FR-183
+URL: https://github.com/PRDAnvil/prd-toolkit/issues/65
+Evidence: GitHub issue PRDAnvil/prd-toolkit#65, found with prd-toolkit 0.8.16 on the SQLAnvil engine PRD (docs/prd/sqlanvil 2.1.0):
+  Once a PRD has contracts/schema.sql, schema-refs reads any backticked <word>.<word> span as table.column.
+  It skips a span whose second part is a file extension, but _FILE_EXTENSIONS in scripts/prdlint/rules/contracts.py
+  is a fixed set (csv, tsv, sql, yaml, yml, json, md, txt, lkml) that leaves out common data-file formats.
+  features/artifacts.md:18: schema-refs: `actions.parquet`: table actions has no column parquet
+  features/artifacts.md:139: schema-refs: `dependencies.parquet`: table dependencies has no column parquet
+  prd.md:66: schema-refs: `columns.parquet`: table columns has no column parquet
+  Repro: schema.sql has CREATE TABLE actions (...); a prose line holds `actions.parquet`; prd lint exits 1.
+  Suggested: add parquet, avro, orc, ndjson, jsonl, xml, xlsx, gz, zip, html, log, toml, ini, py, ts, js, or let a PRD extend the list.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
