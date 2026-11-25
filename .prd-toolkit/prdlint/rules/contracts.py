@@ -568,7 +568,11 @@ def contracts_valid(prd: Prd):
 
 _FENCE = re.compile(r"^\s*(```|~~~)")
 _SPAN = re.compile(r"(`+)(.+?)\1")
-_FILE_EXTENSIONS = {"csv", "tsv", "sql", "yaml", "yml", "json", "md", "txt", "lkml"}
+_FILE_EXTENSIONS = {
+    "csv", "tsv", "sql", "yaml", "yml", "json", "md", "txt", "lkml",
+    "parquet", "avro", "orc", "ndjson", "jsonl", "xml", "xlsx", "gz", "zip",
+    "html", "log", "toml", "ini", "py", "ts", "js",
+}
 _QUALIFIED = re.compile(r"([A-Za-z_]\w*)\.([A-Za-z_]\w*)")
 
 

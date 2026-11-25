@@ -159,6 +159,22 @@ def run_lint(tmp: Path, env: dict[str, str] | None = None) -> subprocess.Complet
     )
 
 
+def run_lint_bytes(tmp: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
+    """LINT as run_lint runs it, with stdout and stderr captured as bytes, never in text mode
+    (testing.md, Assertions). A test decodes stdout as UTF-8 for its line assertions and
+    compares stderr with the expected text encoded as UTF-8.
+    """
+    run_env = lint_env()
+    if env:
+        run_env.update(env)
+    return subprocess.run(
+        [sys.executable, str(LINT_SCRIPT), PRD_REL],
+        cwd=tmp,
+        env=run_env,
+        capture_output=True,
+    )
+
+
 # -- assertions (testing.md, Assertions) ------------------------------------
 def _as_list(value) -> list[str]:
     return [value] if isinstance(value, str) else list(value)

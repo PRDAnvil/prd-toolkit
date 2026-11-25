@@ -1,9 +1,9 @@
 ---
 prd: prd-toolkit
-version: 10.4.0
+version: 11.0.0
 status: Approved
 owner: Ivan Histand
-updated: 2026-11-24
+updated: 2026-11-25
 ---
 
 <!-- Format: references/prd-format.md, "prd.md sections". -->
@@ -327,7 +327,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-180 | Check the shape of each dependency file | live | features/lint-contracts.md | 9.6.0 |
 | FR-181 | Resolve each section 7 custom type to its files and validator | verified | features/lint-contracts.md |  |
 | FR-182 | Run each custom type's validator and report its failure | verified | features/lint-contracts.md |  |
-| FR-183 | Check each backticked table.column against schema.sql | live | features/lint-contracts.md | 9.6.0 |
+| FR-183 | Check each backticked table.column against schema.sql | verified | features/lint-contracts.md |  |
 | FR-184 | Report a cited error code the catalogue lacks | verified | features/lint-contracts.md |  |
 | FR-185 | Report a catalogued error code cited nowhere | verified | features/lint-contracts.md |  |
 | FR-186 | Refuse a call that does not name exactly one check | live | features/build-check.md | 9.7.0 |
@@ -472,3 +472,4 @@ None.
 | 10.3.0 | 2026-11-23 | resolve --ci-run: a fix proven by a green forge CI run closes an environment or standard entry, and check accepts it (E-075); dry run T-078.25, T-081.15 to T-081.26, 0 open questions, 1 dismissed by quote | FR-063, FR-064, FR-065, FR-075, FR-076, FR-077, FR-078, FR-079, FR-080, FR-081, FR-251, FR-252, FR-253, AC-081.6, AC-081.7, AC-081.8, AC-081.9, AC-081.10, T-078.25, T-081.15, T-081.16, T-081.17, T-081.18, T-081.19, T-081.20, T-081.21, T-081.22, T-081.23, T-081.24, T-081.25, T-081.26 |
 | 10.3.1 | 2026-11-23 | regression test for E-043; no dry run (status only; T-107.5 already carries known-failing E-043) | FR-107 |
 | 10.4.0 | 2026-11-24 | a section 5 row says how its command takes files (appended, none, changed) for E-074; dry run T-264.1 to T-264.9, T-133.6, T-133.7, 0 open questions, 0 dismissed by quote | FR-068, FR-133, FR-264, AC-068.1, AC-068.4, AC-133.5, AC-264.1, AC-264.2, AC-264.3, AC-264.4, AC-264.5, AC-264.6, T-133.6, T-133.7, T-264.1, T-264.2, T-264.3, T-264.4, T-264.5, T-264.6, T-264.7, T-264.8, T-264.9 |
+| 11.0.0 | 2026-11-25 | schema-refs skips sixteen more file extensions (parquet, avro, orc, ndjson, jsonl, xml, xlsx, gz, zip, html, log, toml, ini, py, ts, js) for E-084; dry run T-183.4, 0 open questions, 0 dismissed by quote | FR-183, AC-183.1, T-183.4 |

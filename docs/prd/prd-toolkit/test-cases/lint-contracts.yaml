@@ -1435,6 +1435,24 @@ T-183.3:
     effects: []
     errors: []
     leaks: none
+T-183.4:
+  ac: AC-183.2
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup:
+      - S0
+      - "replace line 17 of features/import.md with Traces: `orders.parquet`, `orders.avro`, `orders.orc`, `orders.ndjson`, `orders.jsonl`, `orders.xml`, `orders.xlsx`, `orders.gz`, `orders.zip`, `orders.html`, `orders.log`, `orders.toml`, `orders.ini`, `orders.py`, `orders.ts`, `orders.js` and `orders.order_kee` UNIQUE"
+    cwd: <tmp>
+    command: LINT
+  expect:
+    output: {exit: 1, stdout_exact_lines: ["docs/prd/orders/features/import.md:17: schema-refs: `orders.order_kee`: table orders has no column order_kee"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
 T-184.1:
   ac: AC-184.1
   level: integration
