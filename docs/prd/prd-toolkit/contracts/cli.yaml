@@ -650,7 +650,7 @@ prd_hooks:
 prd_dispatch:
   # The dispatcher the launcher runs (FR-069); hooks-install, FR-119 and FR-120.
   invocation: "python prd-toolkit/scripts/prd_dispatch.py <command> [arguments] | -h | --help | --version; through the launcher, prd <command> [arguments]"
-  commands: [block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace]
+  commands: [block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace, trd]
   script: "prd_<command with - written as _>.py beside the dispatcher (FR-119)"
   plugin_only: [publish]
   output:

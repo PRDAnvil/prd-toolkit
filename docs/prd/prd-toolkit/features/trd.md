@@ -9,7 +9,8 @@ say, and the same commit and the same PRD folder always give the same bytes, so 
 is to learn which of its parts people want to keep by hand: such a part becomes a managed document only by a
 later change to this PRD, and anything the black-box tester needs stays in the PRD whatever that change
 decides. Its modules are `prd-toolkit/scripts/prd_trd.py` and `prd-toolkit/scripts/prdlint/trd.py`; the
-launcher runs it as `prd trd`, as it runs every script. A slash command, an HTML page, a record of design
+launcher runs it as `prd trd` (hooks-install AC-119.1), and install vendors `prd_trd.py` into `.prd-toolkit/`
+(AC-098.1), so a target repository runs it as `.prd-toolkit/prd trd`. A slash command, an HTML page, a record of design
 decisions and any check of what the view says are out of scope.
 
 Words used below.
