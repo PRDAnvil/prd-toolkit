@@ -1042,7 +1042,7 @@ Recurrence of: -
 
 ### E-084 schema-refs reads a backticked file name like `actions.parquet` as table.column
 Detected: 2026-11-25, user report (/prd-toolkit:prd-error), GitHub issue #65
-Classification: unclassified
+Classification: invalid requirement
 Touches: FR-183
 URL: https://github.com/PRDAnvil/prd-toolkit/issues/65
 Evidence: GitHub issue PRDAnvil/prd-toolkit#65, found with prd-toolkit 0.8.16 on the SQLAnvil engine PRD (docs/prd/sqlanvil 2.1.0):
@@ -1054,6 +1054,7 @@ Evidence: GitHub issue PRDAnvil/prd-toolkit#65, found with prd-toolkit 0.8.16 on
   prd.md:66: schema-refs: `columns.parquet`: table columns has no column parquet
   Repro: schema.sql has CREATE TABLE actions (...); a prose line holds `actions.parquet`; prd lint exits 1.
   Suggested: add parquet, avro, orc, ndjson, jsonl, xml, xlsx, gz, zip, html, log, toml, ini, py, ts, js, or let a PRD extend the list.
-Diagnosis: -
+Explanation: I built a small PRD whose schema declares a table named orders, wrote a line citing `orders.parquet`, `orders.jsonl` and `orders.csv`, and ran the lint. It flagged the first two as missing columns (exit 1) and let `orders.csv` through. That is exactly what the requirement says: it names nine file extensions to skip (csv, tsv, sql, yaml, yml, json, md, txt, lkml) and checks everything else as a column. So the code is right by the PRD; the list in the PRD is too short, and any PRD that names data files like parquet or jsonl trips over it. That makes it an invalid requirement (the PRD is wrong) rather than a code bug (the code disobeying a correct PRD) or not a defect (both right). Do you want the fixed list made longer (the issue suggests parquet, avro, orc, ndjson, jsonl, xml, xlsx, gz, zip, html, log, toml, ini, py, ts, js), or do you want a PRD to be able to add its own extensions? The first is a small change to the list; the second adds a new setting.
+Diagnosis: Probe in a scratch clone at e66be0d: the lint-cli/orders fixture with line 17 of features/import.md replaced by a Traces line citing `orders.parquet`, `orders.jsonl` and `orders.csv`, run as `.prd-toolkit/prd lint docs/prd/orders`. Expected (issue #65): no schema-refs finding for a file name. Printed: `exit 1`, `docs/prd/orders/features/import.md:17: schema-refs: `orders.parquet`: table orders has no column parquet` and the same line for `orders.jsonl`; `orders.csv` passed. Root cause: `_FILE_EXTENSIONS` in prd-toolkit/scripts/prdlint/rules/contracts.py:571 holds exactly the nine names AC-183.1 lists. AC-183.1: “nor one of `csv`, `tsv`, `sql`, `yaml`, `yml`, `json`, `md`, `txt` and `lkml`, the lint command shall report `schema-refs`”. The code matches the AC; the AC's list is too short.
 Resolution: -
 Recurrence of: -
