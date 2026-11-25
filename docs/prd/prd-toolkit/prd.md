@@ -1,6 +1,6 @@
 ---
 prd: prd-toolkit
-version: 11.0.0
+version: 11.1.0
 status: Approved
 owner: Ivan Histand
 updated: 2026-11-25
@@ -409,6 +409,9 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-262 | The checks before an approval | approved | features/change.md |  |
 | FR-263 | The approval commit | live | features/change.md | 10.2.0 |
 | FR-264 | A standards row says how its command takes files | verified | features/standards-run.md |  |
+| FR-265 | Print the technical view | approved | features/trd.md |  |
+| FR-266 | Map the areas and the requirements to the code | approved | features/trd.md |  |
+| FR-267 | Keep the view out of the PRD | approved | features/trd.md |  |
 
 ## 12. Assumptions index
 
@@ -473,3 +476,4 @@ None.
 | 10.3.1 | 2026-11-23 | regression test for E-043; no dry run (status only; T-107.5 already carries known-failing E-043) | FR-107 |
 | 10.4.0 | 2026-11-24 | a section 5 row says how its command takes files (appended, none, changed) for E-074; dry run T-264.1 to T-264.9, T-133.6, T-133.7, 0 open questions, 0 dismissed by quote | FR-068, FR-133, FR-264, AC-068.1, AC-068.4, AC-133.5, AC-264.1, AC-264.2, AC-264.3, AC-264.4, AC-264.5, AC-264.6, T-133.6, T-133.7, T-264.1, T-264.2, T-264.3, T-264.4, T-264.5, T-264.6, T-264.7, T-264.8, T-264.9 |
 | 11.0.0 | 2026-11-25 | schema-refs skips sixteen more file extensions (parquet, avro, orc, ndjson, jsonl, xml, xlsx, gz, zip, html, log, toml, ini, py, ts, js) for E-084; dry run T-183.4, 0 open questions, 0 dismissed by quote | FR-183, AC-183.1, T-183.4 |
+| 11.1.0 | 2026-11-25 | a new adopted area written before its code: trd (prd trd prints the technical view, a generated Markdown document that sets the PRD stack, architecture, standards, skills and contract types beside each area files and requirements, each Source: line checked at HEAD and the files no area covers; it is never part of the PRD, never checked and never read by the black-box tester, and --out is refused inside the PRD folder and .prd-toolkit/); contracts/cli.yaml gains prd_trd, testing.md the trd paragraph and the borrowed-steps entry, adoption.md the row; minor because nothing existing changes; dry run T-265.1, T-265.2, T-265.3, T-265.4, T-265.5, T-266.1, T-266.2, T-266.3, T-266.4, T-267.1, T-267.2, T-267.3, 0 open questions, 1 dismissed by quote (two rounds: 3 wording gaps fixed after the first, over all 12: the no-date check of T-265.4, prd.md unchanged in T-267.1 and the git status order in T-267.3; the second, over the 3 T-ids they touch, clean) | FR-265, FR-266, FR-267, AC-265.1, AC-265.2, AC-265.3, AC-265.4, AC-265.5, AC-266.1, AC-266.2, AC-266.3, AC-266.4, AC-267.1, AC-267.2, AC-267.3, T-265.1, T-265.2, T-265.3, T-265.4, T-265.5, T-266.1, T-266.2, T-266.3, T-266.4, T-267.1, T-267.2, T-267.3 |

@@ -759,3 +759,22 @@ prd_context:
     0: "pack printed with no stale Code item of a counted block; --interface; --help (FR-217, FR-200, FR-199)"
     1: "pack printed with a stale Code item of a counted block (FR-217)"
     2: "usage or input error, nothing on stdout (with --json, the error document) (FR-199, FR-200, FR-201, FR-202)"
+prd_trd:
+  # The technical view (area trd): an output, never part of the PRD; nothing checks it (FR-265 to FR-267).
+  invocation: "uv run --script prd-toolkit/scripts/prd_trd.py <prd_dir> [--out FILE]; through the launcher, prd trd"
+  arguments:
+    prd_dir: "the PRD folder, in a git work tree with a commit (FR-265, FR-267)"
+    --out FILE: "write the view to FILE in place of stdout, creating the file but not its folder; refused inside the PRD folder or .prd-toolkit/ (FR-265, FR-267)"
+    "-h, --help": "print the help to stdout"
+  output:
+    view: "stdout, no --out: # Technical view: <prd> <version>, an empty line, the Generated line, then the sections Stack, Architecture, Components, Requirements to code, Standards, Skills, Contracts and Uncovered code, each ## <section>, its From: line and its body (FR-265, FR-266)"
+    wrote: "stdout, --out: wrote <file>, <file> as the argument gives it (FR-265)"
+    refused_out: "stderr, exit 1, no file written: refused: --out must lie outside the PRD folder and .prd-toolkit/ (FR-267)"
+    not_a_prd: "stderr, exit 2: prd_trd: <resolved folder>: no prd.md (FR-267)"
+    no_work_tree: "stderr, exit 2: prd_trd: <resolved folder> is not in a git work tree (FR-267)"
+    no_commit: "stderr, exit 2: prd_trd: the repository has no commit (FR-267)"
+    cannot_write: "stderr, exit 2: prd_trd: cannot write <file>: <reason> (FR-267)"
+  exit_codes:
+    0: "the view printed or written, or --help (FR-265)"
+    1: "an --out path refused (FR-267)"
+    2: "no prd.md, no git work tree, no commit, an --out file that cannot be written, or a usage error (FR-267)"
