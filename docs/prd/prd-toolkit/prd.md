@@ -242,7 +242,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-095 | The git hook command refuses what it cannot run, and finds the work tree | live | features/trace.md | 9.1.0 |
 | FR-096 | The hook shims skip a branch without the vendored copy | live | features/trace.md | 9.1.0 |
 | FR-097 | Refuse a malformed hooks command line | live | features/hooks-install.md | 9.2.0 |
-| FR-098 | Install writes the vendored copy of the toolkit's files | approved | features/hooks-install.md |  |
+| FR-098 | Install writes the vendored copy of the toolkit's files | verified | features/hooks-install.md |  |
 | FR-099 | Install vendors the PRD's packs and records where each came from | verified | features/hooks-install.md |  |
 | FR-100 | Install adds the judge record and the review verdict to .gitignore | live | features/hooks-install.md | 9.2.0 |
 | FR-101 | Install writes the hook shims where core.hooksPath is not set | approved | features/hooks-install.md |  |
@@ -263,8 +263,8 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-116 | The GitLab include file | verified | features/hooks-install.md |  |
 | FR-117 | The GitHub workflow file | verified | features/hooks-install.md |  |
 | FR-118 | The CI file names the secrets the manual jobs may need | live | features/hooks-install.md | 9.2.0 |
-| FR-119 | The dispatcher runs one script by its command name | approved | features/hooks-install.md |  |
-| FR-120 | The dispatcher's help and version | approved | features/hooks-install.md |  |
+| FR-119 | The dispatcher runs one script by its command name | verified | features/hooks-install.md |  |
+| FR-120 | The dispatcher's help and version | verified | features/hooks-install.md |  |
 | FR-121 | Check the form of every ID | verified | features/lint-ids.md |  |
 | FR-122 | Define each ID once | verified | features/lint-ids.md |  |
 | FR-123 | Mark a removal in both the index and the block | live | features/lint-ids.md | 9.3.0 |
@@ -409,9 +409,9 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-262 | The checks before an approval | approved | features/change.md |  |
 | FR-263 | The approval commit | live | features/change.md | 10.2.0 |
 | FR-264 | A standards row says how its command takes files | verified | features/standards-run.md |  |
-| FR-265 | Print the technical view | approved | features/trd.md |  |
-| FR-266 | Map the areas and the requirements to the code | approved | features/trd.md |  |
-| FR-267 | Keep the view out of the PRD | approved | features/trd.md |  |
+| FR-265 | Print the technical view | verified | features/trd.md |  |
+| FR-266 | Map the areas and the requirements to the code | verified | features/trd.md |  |
+| FR-267 | Keep the view out of the PRD | verified | features/trd.md |  |
 
 ## 12. Assumptions index
 

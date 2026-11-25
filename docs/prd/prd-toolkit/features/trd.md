@@ -29,7 +29,8 @@ Words used below.
 - A block's **status word** is the first word of its `Status:` value, so `live (since 1.0.0)` is `live`.
 
 ### FR-265 Print the technical view
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/trd.py:189 @37949c3
 Flow: 1. find the repository and HEAD → 2. read the PRD folder → 3. build the header and the eight sections →
       4. print them, or write them to the `--out` file
 Acceptance (EARS):
@@ -65,7 +66,8 @@ Tests: T-265.1 [integration], T-265.2 [integration], T-265.3 [integration], T-26
 Traces: cli:prd_trd
 
 ### FR-266 Map the areas and the requirements to the code
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prdlint/trd.py:130 @37949c3
 Flow: 1. read the adoption map, the features files and each block's `Source:` line → 2. list the files at HEAD →
       3. count each area's files, check each `Source:` path and list the files no area covers
 Acceptance (EARS):
@@ -108,7 +110,8 @@ Tests: T-266.1 [integration], T-266.2 [integration], T-266.3 [integration], T-26
 Traces: cli:prd_trd
 
 ### FR-267 Keep the view out of the PRD
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_trd.py:29 @37949c3
 Flow: 1. check the PRD folder and the repository → 2. check the `--out` path → 3. print or write the view,
       changing nothing else
 Acceptance (EARS):

@@ -42,7 +42,7 @@ Tests: T-097.1 [integration], T-097.2 [integration], T-097.3 [integration], T-09
 Traces: cli:prd_hooks
 
 ### FR-098 Install writes the vendored copy of the toolkit's files
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/hooks.py:212 @07f77b1
   prd-toolkit/scripts/prdlint/hooks.py:73 @07f77b1
 Acceptance (EARS):
@@ -480,8 +480,8 @@ Tests: T-118.1 [integration], T-118.2 [integration]  (test-cases/hooks-install.y
 Traces: cli:prd_hooks
 
 ### FR-119 The dispatcher runs one script by its command name
-Status: approved
-Source: prd-toolkit/scripts/prd_dispatch.py:47 @07f77b1
+Status: verified
+Source: prd-toolkit/scripts/prd_dispatch.py:48 @0ff7b2f
 Acceptance (EARS):
 - AC-119.1 When `prd_dispatch.py <command> [arguments]` runs with one of the commands `block`, `build-check`, `change`,
   `confirm`, `context`, `deploy`, `drift`, `error`, `gates`, `git-hook`, `help`, `hooks`, `judge`, `links`, `lint`,
@@ -502,9 +502,9 @@ Tests: T-119.1 [integration], T-119.2 [integration], T-119.3 [integration], T-11
 Traces: cli:prd_dispatch; cli:prd_launcher
 
 ### FR-120 The dispatcher's help and version
-Status: approved
-Source: prd-toolkit/scripts/prd_dispatch.py:37 @07f77b1
-  prd-toolkit/scripts/prd_dispatch.py:30 @07f77b1
+Status: verified
+Source: prd-toolkit/scripts/prd_dispatch.py:38 @0ff7b2f
+  prd-toolkit/scripts/prd_dispatch.py:31 @0ff7b2f
 Acceptance (EARS):
 - AC-120.1 When `prd_dispatch.py` runs with no argument, or with `-h` or `--help` first, it shall print on stdout the
   line `usage: prd <command> [arguments]`. One line shall follow for each command of AC-119.1 whose script is in the
