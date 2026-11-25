@@ -1043,6 +1043,7 @@ Recurrence of: -
 ### E-084 schema-refs reads a backticked file name like `actions.parquet` as table.column
 Detected: 2026-11-25, user report (/prd-toolkit:prd-error), GitHub issue #65
 Classification: invalid requirement
+Confirmed: 2026-11-25, "Confirm the class (form)"
 Touches: FR-183
 URL: https://github.com/PRDAnvil/prd-toolkit/issues/65
 Evidence: GitHub issue PRDAnvil/prd-toolkit#65, found with prd-toolkit 0.8.16 on the SQLAnvil engine PRD (docs/prd/sqlanvil 2.1.0):
