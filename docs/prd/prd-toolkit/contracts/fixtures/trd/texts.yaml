@@ -1,0 +1,6 @@
+# Fixture trd/texts: the literal lines the trd cases name as texts.<key>, kept under contracts/fixtures/
+# because lint reads an assumption marker anywhere else in the PRD folder as one the PRD must index.
+language_line: "- Language: Python 3.12 [ASSUMPTION A-01: one] [ASSUMPTION A-02: two] today"
+architecture_line: "The importer stores orders; the report command reads them. [ASSUMPTION A-03: open"
+marker_a01: "[ASSUMPTION A-01"
+marker_a02: "[ASSUMPTION A-02"

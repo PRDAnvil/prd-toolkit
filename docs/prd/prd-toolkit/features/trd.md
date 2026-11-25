@@ -27,10 +27,21 @@ Words used below.
   when the glob holds `*` and no `**` and the path, split at `/`, has as many parts as the glob, each part
   matching its glob part, where a `*` stands for any run of characters, none included.
 - A block's **status word** is the first word of its `Status:` value, so `live (since 1.0.0)` is `live`.
+- A block's **Source refs** are found by splitting its `Source:` value and each of its continuation lines at
+  every comma: each part, with the white space around it removed, is one ref when it is not empty, in the order
+  the lines and parts come. A ref **holds at HEAD** when the text before its first `:` is a file at HEAD whose
+  text at HEAD has at least as many lines as the number after that `:`.
+- An **assumption marker** is a run of text on one line that starts with `[ASSUMPTION ` and ends at the first
+  `]` after it on that line.
+- The **test roots** are the backticked paths after `Test roots:` on the line of `testing.md` that starts with
+  `- **Layout.**`, or the one root `tests/` when that line names none; a path lies **under** a root when it
+  starts with the root, a `/` added first to a root that does not end in one.
+- The **generated CI files** are `.github/workflows/prd-toolkit.yml` and `.gitlab/prd-toolkit.yml`, the paths
+  `prd hooks ci` writes.
 
 ### FR-265 Print the technical view
 Status: verified
-Source: prd-toolkit/scripts/prdlint/trd.py:189 @37949c3
+Source: prd-toolkit/scripts/prdlint/trd.py:209 @689bed4
 Flow: 1. find the repository and HEAD → 2. read the PRD folder → 3. build the header and the eight sections →
       4. print them, or write them to the `--out` file
 Acceptance (EARS):
@@ -43,8 +54,9 @@ Acceptance (EARS):
   section's `From:` line, an empty line and the section's body; shall end stdout with the newline of the last
   body line, and no empty line after it; and shall exit 0.
 - AC-265.2 The trd command shall write as the bodies of Stack, Architecture, Standards and Skills the bodies of
-  `prd.md` sections 1, 4, 5 and 6, line for line, after the `From:` lines `From: prd.md section 1.`,
-  `From: prd.md section 4.`, `From: prd.md section 5.` and `From: prd.md section 6.`.
+  `prd.md` sections 1, 4, 5 and 6, line for line, with each assumption marker removed together with the white
+  space directly before it, after the `From:` lines `From: prd.md section 1.`, `From: prd.md section 4.`,
+  `From: prd.md section 5.` and `From: prd.md section 6.`.
 - AC-265.3 The trd command shall write as the `From:` line of Contracts `From: prd.md section 7.`, and as its
   body the line `These stay in the PRD: the black-box tester writes its tests from them.`, an empty line, the
   line `| Type | Files (glob) |`, the line `|---|---|` and one line `| <type> | <files> |` per row of the
@@ -58,16 +70,18 @@ Acceptance (EARS):
   argument gives it; and shall exit 0.
 Errors: -
 Edge cases: a PRD that lint refuses is read as the loader reads it, since the view checks nothing → AC-265.1; a
-section body that is `Not applicable: <reason>` is written as it is → AC-265.2; the PRD folder's files are read
+section body that is `Not applicable: <reason>` is written as it is → AC-265.2; an assumption marker whose `]`
+is on a later line is no marker and is written as it is, and a `[NEEDS CLARIFICATION: …]` marker, which an
+Approved PRD holds none of, is written as it is → AC-265.2; the PRD folder's files are read
 from the working tree, so an uncommitted edit to `prd.md` shows in the view while the header still names HEAD →
 AC-265.1; a `--out` file in the repository but outside the PRD folder is allowed, and the view does not change
 when it is committed, since it is no part of the PRD folder → AC-265.4, AC-265.5
-Tests: T-265.1 [integration], T-265.2 [integration], T-265.3 [integration], T-265.4 [integration], T-265.5 [integration]  (test-cases/trd.yaml)
+Tests: T-265.1 [integration], T-265.2 [integration], T-265.3 [integration], T-265.4 [integration], T-265.5 [integration], T-265.6 [integration]  (test-cases/trd.yaml)
 Traces: cli:prd_trd
 
 ### FR-266 Map the areas and the requirements to the code
 Status: verified
-Source: prd-toolkit/scripts/prdlint/trd.py:130 @37949c3
+Source: prd-toolkit/scripts/prdlint/trd.py:141 @689bed4
 Flow: 1. read the adoption map, the features files and each block's `Source:` line → 2. list the files at HEAD →
       3. count each area's files, check each `Source:` path and list the files no area covers
 Acceptance (EARS):
@@ -89,14 +103,14 @@ Acceptance (EARS):
   `| ID | Status | Source | At HEAD |`, the line `|---|---|---|---|` and one line
   `| <ID> | <status word> | <source> | <at HEAD> |` per UJ, FR and NFR block that has a `Source:` line, in the
   order of the `features/*.md` file names and then `nfr.md`, each file's blocks in its order, `<source>` being
-  the block's `Source:` value with the white space around it removed and each continuation line joined to it by
-  one space, and `<at HEAD>` being `yes` when the text before the value's first `:` is a file at HEAD whose text
-  at HEAD has at least as many lines as the number after that `:`, else `no`; and when no block has a `Source:`
-  line, the one line `No requirement block has a Source: line.` as the body.
+  the block's Source refs joined by `, `, and `<at HEAD>` being `yes` when every one of its Source refs holds at
+  HEAD, else `no`; and when no block has a `Source:` line, the one line
+  `No requirement block has a Source: line.` as the body.
 - AC-266.4 When the PRD folder holds `adoption.md`, the trd command shall write as the `From:` line of Uncovered
   code `From: the files at <sha7> that no Boundary glob of adoption.md matches.`, and as its body one line
-  ``- `<path>` `` per file at HEAD that lies outside `<folder>/` and outside `.prd-toolkit/` and that no Boundary
-  glob of any row matches, whatever the row's state, in Python's string order; or, when there is no such file,
+  ``- `<path>` `` per file at HEAD that lies outside `<folder>/`, outside `.prd-toolkit/` and under no test root,
+  that is not a generated CI file, and that no Boundary glob of any row matches, whatever the row's state, in
+  Python's string order; or, when there is no such file,
   the one line `Every file is in an area's Boundary.`; and when the folder holds no `adoption.md`, the `From:`
   line `From: prd.md section 8.` and the one body line
   `No adoption map: every path outside the PRD folder and .prd-toolkit/ is covered.`
@@ -105,8 +119,10 @@ Edge cases: a Boundary glob that matches no file counts 0 → AC-266.1; a file t
 both rows and is not uncovered → AC-266.1, AC-266.4; a file in the working tree that HEAD does not hold is not
 counted, listed or checked → AC-266.1, AC-266.3, AC-266.4; a path that only starts with `.prd-toolkit`, such as
 `.prd-toolkit-notes.md`, is not inside `.prd-toolkit/` → AC-266.4; a `Source:` line whose number is past the
-file's last line is `no`, as is one whose path HEAD does not hold → AC-266.3
-Tests: T-266.1 [integration], T-266.2 [integration], T-266.3 [integration], T-266.4 [integration]  (test-cases/trd.yaml)
+file's last line is `no`, as is one whose path HEAD does not hold, and one ref of several that does not hold
+makes the row `no` → AC-266.3; a workflow file other than the generated CI files, such as
+`.github/workflows/release.yml`, is listed like any other file → AC-266.4
+Tests: T-266.1 [integration], T-266.2 [integration], T-266.3 [integration], T-266.4 [integration], T-266.5 [integration]  (test-cases/trd.yaml)
 Traces: cli:prd_trd
 
 ### FR-267 Keep the view out of the PRD

@@ -28,13 +28,26 @@
 #         `| Area | State | Boundary |`, `|---|---|---|`, ``| import | adopted | `src/importer.py`, `src/lib/**` |``,
 #         ``| reports | not started | `src/reports.py` |`` and ``| billing | not started | `src/billing/*.py` |``;
 #         write each of `src/importer.py`, `src/lib/a.py`, `src/lib/sub/b.py`, `src/reports.py`,
-#         `src/billing/pay.py`, `src/billing/deep/x.py`, `notes/readme.md`, `.prd-toolkit/x.py` and
-#         `.prd-toolkit-notes.md` with the one line `x = 1`; commit `map`. No `features/billing.md` is written
+#         `src/billing/pay.py`, `src/billing/deep/x.py`, `notes/readme.md`, `.prd-toolkit/x.py`,
+#         `.prd-toolkit-notes.md`, `.github/workflows/prd-toolkit.yml` and `.github/workflows/release.yml` with the
+#         one line `x = 1`; commit `map`. No `features/billing.md` is written
 #     VS  in ORDERS/features/import.md insert directly after the line `Status: built` the line
 #         `Source: src/importer.py:1 @abc1234`, after the line `Status: verified` the line
 #         `Source: src/gone.py:4 @abc1234`, and after the line `Status: live (since 1.0.0)` the line
 #         `Source: src/importer.py:5 @abc1234`; commit `sources`. `src/importer.py` holds one line and HEAD holds
 #         no `src/gone.py`
+#     VC  in ORDERS/features/import.md insert directly after the line `Status: built` the two lines
+#         `Source: src/importer.py:1 @abc1234, src/lib/a.py:1 @abc1234` and `  src/reports.py:1 @abc1234` (two
+#         leading spaces: a continuation line), and directly after the line `Status: verified` the two lines
+#         `Source: src/importer.py:1 @abc1234` and `  src/gone.py:2 @abc1234`; nothing is committed. Each of
+#         `src/importer.py`, `src/lib/a.py` and `src/reports.py` holds one line at HEAD (VA), and HEAD holds no
+#         `src/gone.py`
+#     VM  in ORDERS/prd.md the line `- Language: Python 3.12` becomes `texts.language_line`, and the line
+#         `The importer stores orders; the report command reads them.` becomes `texts.architecture_line`;
+#         nothing is committed. `texts.<key>`, in a step or an expected value, is the text at that key of
+#         fixture trd/texts, read with `yaml.safe_load`: `texts.language_line` holds two assumption markers on
+#         one line, with text after them, and `texts.architecture_line` ends with a marker's start whose `]`
+#         never comes
 #     VW  write `src/untracked.py` with the one line `x = 1`; nothing is committed
 #     VO  write `view.md` with the one line `old text`; nothing is committed
 #     VL  create the symbolic link `link` whose target is the absolute path of ORDERS
@@ -134,6 +147,37 @@ T-265.2:
         - "From: prd.md section 6."
         - ""
         - "Not applicable: the fixture requires no skill."
+        - ""
+    effects: []
+    errors: []
+    leaks: none
+
+T-265.6:
+  ac: AC-265.2
+  level: integration
+  target: "cli:prd_trd"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  - trd/texts
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [V0, VM]
+    command: "python TRD docs/prd/orders"
+  expect:
+    output:
+      exit: 0
+      stdout_contains_line: "- Language: Python 3.12 today"
+      stdout_not_contains: [texts.marker_a01, texts.marker_a02]
+      pack_part_lines:
+        Architecture:
+        - "## Architecture"
+        - ""
+        - "From: prd.md section 4."
+        - ""
+        - texts.architecture_line
         - ""
     effects: []
     errors: []
@@ -356,10 +400,41 @@ T-266.4:
         - ""
         - "From: the files at <sha7> that no Boundary glob of adoption.md matches."
         - ""
+        - "- `.github/workflows/release.yml`"
         - "- `.prd-toolkit-notes.md`"
         - "- `notes/readme.md`"
         - "- `src/billing/deep/x.py`"
-        - "- `tests/test_orders.py`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-266.5:
+  ac: AC-266.3
+  level: integration
+  target: "cli:prd_trd"
+  environment: local
+  identity: none
+  preconditions:
+  - status-next/base
+  refs:
+  - "testing.md#Setup steps"
+  input:
+    setup: [V0, VA, VC]
+    command: "python TRD docs/prd/orders"
+  expect:
+    output:
+      exit: 0
+      pack_part_lines:
+        Requirements to code:
+        - "## Requirements to code"
+        - ""
+        - "From: the Source: lines of the requirement blocks, checked at <sha7>."
+        - ""
+        - "| ID | Status | Source | At HEAD |"
+        - "|---|---|---|---|"
+        - "| FR-002 | built | src/importer.py:1 @abc1234, src/lib/a.py:1 @abc1234, src/reports.py:1 @abc1234 | yes |"
+        - "| FR-003 | verified | src/importer.py:1 @abc1234, src/gone.py:2 @abc1234 | no |"
+        - ""
     effects: []
     errors: []
     leaks: none

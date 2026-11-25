@@ -2,8 +2,8 @@
 
 Everything here comes from docs/prd/prd-toolkit/testing.md and the header of test-cases/trd.yaml: the scratch
 repository the steps V0 to VR build in a test's tmp_path, the environment every run, every step's command and the
-test's own git commands use, the way a run's text becomes an argument list, and the assertion keys
-`stdout_first_line`, `pack_part_titles` and `pack_part_lines`.
+test's own git commands use, the way a run's text becomes an argument list, fixture trd/texts, and the assertion
+keys `stdout_first_line`, `stdout_contains_line`, `stdout_not_contains`, `pack_part_titles` and `pack_part_lines`.
 
 The borrowed steps N0 and N0X are imported from status_next_support (testing.md, Borrowed steps and helpers);
 every other helper is defined here. A step that cannot be applied (a command that exits other than 0, a line it
@@ -20,12 +20,19 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+import yaml
 
 from status_next_support import N0, N0X
 
 REPO = Path(__file__).resolve().parents[3]  # tests/prd/<file> -> tests -> prd-toolkit -> the repository root
 TRD = REPO / "prd-toolkit" / "scripts" / "prd_trd.py"
 ORDERS_REL = Path("docs") / "prd" / "orders"
+TEXTS_FILE = REPO / "docs" / "prd" / "prd-toolkit" / "contracts" / "fixtures" / "trd" / "texts.yaml"
+
+
+def texts() -> dict:
+    """Fixture trd/texts, read with yaml.safe_load (testing.md, Fixtures)."""
+    return yaml.safe_load(TEXTS_FILE.read_text(encoding="utf-8"))
 
 # testing.md, Subprocess environment; test-cases/trd.yaml header: the variables a run never inherits.
 _DROPPED_ENV = (
@@ -131,6 +138,17 @@ def with_sha7(lines: list[str], tmp: Path) -> list[str]:
     return [line.replace("<sha7>", value) for line in lines]
 
 
+def stdout_contains_line(stdout: str, line: str) -> None:
+    """`stdout_contains_line`: one whole stdout line equals `line`."""
+    assert line in stdout.splitlines(), f"stdout holds no line {line!r}:\n{stdout}"
+
+
+def stdout_not_contains(stdout: str, texts_: list[str]) -> None:
+    """`stdout_not_contains`: no listed string appears anywhere in stdout."""
+    for text in texts_:
+        assert text not in stdout, f"stdout holds {text!r}:\n{stdout}"
+
+
 def stderr_single_line_starts(stderr: str, text: str) -> None:
     lines = stderr.splitlines()
     assert len(lines) == 1, f"stderr does not hold exactly one line: {stderr!r}"
@@ -211,7 +229,8 @@ def VA(tmp: Path) -> None:
         "| billing | not started | `src/billing/*.py` |",
     ])
     for rel in ("src/importer.py", "src/lib/a.py", "src/lib/sub/b.py", "src/reports.py", "src/billing/pay.py",
-                "src/billing/deep/x.py", "notes/readme.md", ".prd-toolkit/x.py", ".prd-toolkit-notes.md"):
+                "src/billing/deep/x.py", "notes/readme.md", ".prd-toolkit/x.py", ".prd-toolkit-notes.md",
+                ".github/workflows/prd-toolkit.yml", ".github/workflows/release.yml"):
         _write(tmp / rel, ["x = 1"])
     _commit(tmp, "map")
 
@@ -226,6 +245,29 @@ def VS(tmp: Path) -> None:
         lines.insert(i + 1, new)
         _write_lines(path, lines)
     _commit(tmp, "sources")
+
+
+def VC(tmp: Path) -> None:
+    path = orders(tmp) / "features" / "import.md"
+    for after, new in (("Status: built", ["Source: src/importer.py:1 @abc1234, src/lib/a.py:1 @abc1234",
+                                          "  src/reports.py:1 @abc1234"]),
+                       ("Status: verified", ["Source: src/importer.py:1 @abc1234",
+                                             "  src/gone.py:2 @abc1234"])):
+        lines = _read_lines(path)
+        i = _one(lines, 0, len(lines), after, path)
+        lines[i + 1:i + 1] = new
+        _write_lines(path, lines)
+
+
+def VM(tmp: Path) -> None:
+    prd_md = orders(tmp) / "prd.md"
+    t = texts()
+    for old, new in (("- Language: Python 3.12", t["language_line"]),
+                     ("The importer stores orders; the report command reads them.", t["architecture_line"])):
+        lines = _read_lines(prd_md)
+        i = _one(lines, 0, len(lines), old, prd_md)
+        lines[i] = new
+        _write_lines(prd_md, lines)
 
 
 def VW(tmp: Path) -> None:
@@ -262,7 +304,7 @@ def VR(tmp: Path) -> None:
     V0(folder)
 
 
-STEPS = {"V0": V0, "VA": VA, "VS": VS, "VW": VW, "VO": VO, "VL": VL, "VE": VE, "VX": VX, "VN": VN, "VR": VR}
+STEPS = {"V0": V0, "VA": VA, "VS": VS, "VC": VC, "VM": VM, "VW": VW, "VO": VO, "VL": VL, "VE": VE, "VX": VX, "VN": VN, "VR": VR}
 
 
 @pytest.fixture

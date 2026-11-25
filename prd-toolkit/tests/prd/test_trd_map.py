@@ -92,8 +92,8 @@ def test_trd_uncovered_code(trd_repo):
         "",
         "From: the files at <sha7> that no Boundary glob of adoption.md matches.",
         "",
+        "- `.github/workflows/release.yml`",
         "- `.prd-toolkit-notes.md`",
         "- `notes/readme.md`",
         "- `src/billing/deep/x.py`",
-        "- `tests/test_orders.py`",
     ], tmp)
