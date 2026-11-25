@@ -40,8 +40,8 @@ Words used below.
   `prd hooks ci` writes.
 
 ### FR-265 Print the technical view
-Status: approved
-Source: prd-toolkit/scripts/prdlint/trd.py:189 @37949c3
+Status: verified
+Source: prd-toolkit/scripts/prdlint/trd.py:209 @689bed4
 Flow: 1. find the repository and HEAD → 2. read the PRD folder → 3. build the header and the eight sections →
       4. print them, or write them to the `--out` file
 Acceptance (EARS):
@@ -80,8 +80,8 @@ Tests: T-265.1 [integration], T-265.2 [integration], T-265.3 [integration], T-26
 Traces: cli:prd_trd
 
 ### FR-266 Map the areas and the requirements to the code
-Status: approved
-Source: prd-toolkit/scripts/prdlint/trd.py:130 @37949c3
+Status: verified
+Source: prd-toolkit/scripts/prdlint/trd.py:141 @689bed4
 Flow: 1. read the adoption map, the features files and each block's `Source:` line → 2. list the files at HEAD →
       3. count each area's files, check each `Source:` path and list the files no area covers
 Acceptance (EARS):
