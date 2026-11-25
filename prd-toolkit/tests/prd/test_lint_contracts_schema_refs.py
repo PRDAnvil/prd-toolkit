@@ -46,3 +46,23 @@ def test_t183_3_no_schema_sql_no_finding(tmp_path, monkeypatch):
     r = run_lint(tmp_path)
     assert_not_contains(r.stdout, "schema-refs:")
     assert r.stderr == ""
+
+
+TRACES_EXTENSIONS = (
+    "Traces: `orders.parquet`, `orders.avro`, `orders.orc`, `orders.ndjson`, `orders.jsonl`, "
+    "`orders.xml`, `orders.xlsx`, `orders.gz`, `orders.zip`, `orders.html`, `orders.log`, "
+    "`orders.toml`, `orders.ini`, `orders.py`, `orders.ts`, `orders.js` and `orders.order_kee` UNIQUE"
+)
+
+
+def test_t183_4_file_extension_spans_are_not_columns(tmp_path, monkeypatch):
+    """@prd T-183.4"""
+    p = S0(tmp_path, monkeypatch)
+    p.replace("features/import.md", 17, TRACES_EXTENSIONS)
+    r = run_lint(tmp_path)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert_exact_lines(
+        r.stdout,
+        ["docs/prd/orders/features/import.md:17: schema-refs: `orders.order_kee`: table orders has no column order_kee"],
+    )
+    assert r.stderr == ""
