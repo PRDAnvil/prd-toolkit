@@ -2037,7 +2037,7 @@ T-119.2:
     output:
       exit: 2
       stdout: ""
-      stderr: "prd: unknown command 'nope'\ncommands: block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace\n"
+      stderr: "prd: unknown command 'nope'\ncommands: block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace, trd\n"
     effects: []
     errors: []
     leaks: none
@@ -2118,8 +2118,8 @@ T-120.1:
         stdout_first_line: "usage: prd <command> [arguments]"
         stdout_contains_line: "hooks        Vendor the toolkit into a repo and manage its git hooks: install | check | uninstall | vendor <prd-folder> (vendor refreshes .prd-toolkit/ alone, from the plugin); ci --gitlab|--github [--force] <prd-folder> writes the merge-gate CI include file. Exit 0 clean, 1 findings, 2 usage, dependency or internal error."
       relations:
-      - "in each run, stdout holds 21 lines, and the first word of lines 2 to 21 is, in order: block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace"
-      - "in each run, each of lines 2 to 21 has its first non-space character after its command name at index 13 (11, the length of build-check, plus two spaces)"
+      - "in each run, stdout holds 22 lines, and the first word of lines 2 to 22 is, in order: block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, judge, links, lint, pack, practices, publish, status, trace, trd"
+      - "in each run, each of lines 2 to 22 has its first non-space character after its command name at index 13 (11, the length of build-check, plus two spaces)"
       - "the three runs' stdout are equal"
     effects: []
     errors: []

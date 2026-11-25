@@ -53,7 +53,7 @@ Acceptance (EARS):
   - from `scripts/`, each at its own name (`.prd-toolkit/prd_lint.py`): `prd_lint.py`, `prd_trace.py`, `prd_status.py`, `prd_context.py`, `prd_build_check.py`,
     `prd_hooks.py`, `prd_git_hook.py`, `prd_deploy.py`, `prd_drift.py`, `prd_block.py`, `prd_error.py`,
     `prd_links.py`, `prd_confirm.py`, `prd_judge.py`, `prd_change.py`, `prd_gates.py`, `prd_dispatch.py`,
-    `prd_help.py`, `prd_practices.py`, `prd_pack.py`, `requirements.txt` and `prd`;
+    `prd_help.py`, `prd_practices.py`, `prd_pack.py`, `prd_trd.py`, `requirements.txt` and `prd`;
   - every file under `scripts/prdlint/` outside a `__pycache__` folder and not ending `.pyc`, at `prdlint/<path>`;
   - `templates/hooks/commit-msg` and `templates/hooks/pre-commit`, at `hooks/`;
   - `templates/claude-block.md`, `templates/readme-prd.md` and `templates/readme-prds.md`, at `templates/`;
@@ -480,16 +480,16 @@ Tests: T-118.1 [integration], T-118.2 [integration]  (test-cases/hooks-install.y
 Traces: cli:prd_hooks
 
 ### FR-119 The dispatcher runs one script by its command name
-Status: live (since 9.2.0)
-Source: prd-toolkit/scripts/prd_dispatch.py:47 @07f77b1
+Status: verified
+Source: prd-toolkit/scripts/prd_dispatch.py:48 @0ff7b2f
 Acceptance (EARS):
 - AC-119.1 When `prd_dispatch.py <command> [arguments]` runs with one of the commands `block`, `build-check`, `change`,
   `confirm`, `context`, `deploy`, `drift`, `error`, `gates`, `git-hook`, `help`, `hooks`, `judge`, `links`, `lint`,
-  `pack`, `practices`, `publish`, `status` and `trace`, the dispatcher shall run the script
+  `pack`, `practices`, `publish`, `status`, `trace` and `trd`, the dispatcher shall run the script
   `prd_<command, each - written as _>.py` from its own folder with its own Python interpreter and the remaining
   arguments, so that stdout, stderr and the exit code are that script's.
 - AC-119.2 If the first argument is not one of those commands and is none of `-h`, `--help` and `--version`, the
-  dispatcher shall print `prd: unknown command '<command>'` and then `commands: <the twenty commands in name order, joined by , >`
+  dispatcher shall print `prd: unknown command '<command>'` and then `commands: <the twenty-one commands in name order, joined by , >`
   on stderr, and exit 2.
 - AC-119.3 If the command's script is absent from the dispatcher's folder, the dispatcher shall print
   `prd: <script> is not in <folder>; run prd_hooks.py install` on stderr, `<folder>` the absolute path of the
@@ -502,9 +502,9 @@ Tests: T-119.1 [integration], T-119.2 [integration], T-119.3 [integration], T-11
 Traces: cli:prd_dispatch; cli:prd_launcher
 
 ### FR-120 The dispatcher's help and version
-Status: live (since 9.2.0)
-Source: prd-toolkit/scripts/prd_dispatch.py:37 @07f77b1
-  prd-toolkit/scripts/prd_dispatch.py:30 @07f77b1
+Status: verified
+Source: prd-toolkit/scripts/prd_dispatch.py:38 @0ff7b2f
+  prd-toolkit/scripts/prd_dispatch.py:31 @0ff7b2f
 Acceptance (EARS):
 - AC-120.1 When `prd_dispatch.py` runs with no argument, or with `-h` or `--help` first, it shall print on stdout the
   line `usage: prd <command> [arguments]`. One line shall follow for each command of AC-119.1 whose script is in the

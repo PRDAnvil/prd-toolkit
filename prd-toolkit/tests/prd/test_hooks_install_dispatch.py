@@ -12,9 +12,9 @@ from pathlib import Path
 
 from hooks_install_support import SCRIPTS, V, hi_tmp, run, write  # noqa: F401  (hi_tmp: fixture)
 
-# AC-119.1 / AC-119.2: the twenty commands, in name order.
+# T-120.1 (AC-120.1): the twenty-one commands, in name order, the first words of help lines 2 to 22.
 COMMANDS = ["block", "build-check", "change", "confirm", "context", "deploy", "drift", "error", "gates", "git-hook",
-            "help", "hooks", "judge", "links", "lint", "pack", "practices", "publish", "status", "trace"]
+            "help", "hooks", "judge", "links", "lint", "pack", "practices", "publish", "status", "trace", "trd"]
 
 
 def copy_script(name: str, folder: Path) -> None:
@@ -54,8 +54,8 @@ def test_dispatcher_unknown_command(hi_tmp):
     assert r.stderr == (
         "prd: unknown command 'nope'\n"
         "commands: block, build-check, change, confirm, context, deploy, drift, error, gates, git-hook, help, hooks, "
-        "judge, links, lint, pack, practices, publish, status, trace\n"
-    )
+        "judge, links, lint, pack, practices, publish, status, trace, trd\n"
+    ), r.stderr
 
 
 def test_dispatcher_script_absent(hi_tmp):
@@ -115,13 +115,17 @@ def test_dispatcher_help(hi_tmp):
         assert r.exit == 0, r.stderr
         assert r.stderr == ""
         lines = r.stdout.splitlines()
+        # stdout_first_line
         assert lines[:1] == ["usage: prd <command> [arguments]"], r.stdout
+        # stdout_contains_line
         assert HOOKS_LINE in lines, r.stdout
-        # relations
-        assert len(lines) == 21, r.stdout
-        assert [line.split()[0] if line.split() else "" for line in lines[1:21]] == COMMANDS, r.stdout
-        for line in lines[1:21]:
+        # relation: stdout holds 22 lines, and the first word of lines 2 to 22 is, in order, the 21 commands
+        assert len(lines) == 22, r.stdout
+        assert [line.split()[0] if line.split() else "" for line in lines[1:22]] == COMMANDS, r.stdout
+        # relation: each of lines 2 to 22 has its first non-space character after its command name at index 13
+        for line in lines[1:22]:
             assert first_non_space_after_name(line) == 13, line
+    # relation: the three runs' stdout are equal
     assert runs[0].stdout == runs[1].stdout == runs[2].stdout
 
 

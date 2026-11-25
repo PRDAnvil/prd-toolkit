@@ -1,6 +1,6 @@
 ---
 prd: prd-toolkit
-version: 11.0.0
+version: 12.0.0
 status: Approved
 owner: Ivan Histand
 updated: 2026-11-25
@@ -263,8 +263,8 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-116 | The GitLab include file | verified | features/hooks-install.md |  |
 | FR-117 | The GitHub workflow file | verified | features/hooks-install.md |  |
 | FR-118 | The CI file names the secrets the manual jobs may need | live | features/hooks-install.md | 9.2.0 |
-| FR-119 | The dispatcher runs one script by its command name | live | features/hooks-install.md | 9.2.0 |
-| FR-120 | The dispatcher's help and version | live | features/hooks-install.md | 9.2.0 |
+| FR-119 | The dispatcher runs one script by its command name | verified | features/hooks-install.md |  |
+| FR-120 | The dispatcher's help and version | verified | features/hooks-install.md |  |
 | FR-121 | Check the form of every ID | verified | features/lint-ids.md |  |
 | FR-122 | Define each ID once | verified | features/lint-ids.md |  |
 | FR-123 | Mark a removal in both the index and the block | live | features/lint-ids.md | 9.3.0 |
@@ -409,6 +409,9 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-262 | The checks before an approval | approved | features/change.md |  |
 | FR-263 | The approval commit | live | features/change.md | 10.2.0 |
 | FR-264 | A standards row says how its command takes files | verified | features/standards-run.md |  |
+| FR-265 | Print the technical view | verified | features/trd.md |  |
+| FR-266 | Map the areas and the requirements to the code | verified | features/trd.md |  |
+| FR-267 | Keep the view out of the PRD | verified | features/trd.md |  |
 
 ## 12. Assumptions index
 
@@ -473,3 +476,5 @@ None.
 | 10.3.1 | 2026-11-23 | regression test for E-043; no dry run (status only; T-107.5 already carries known-failing E-043) | FR-107 |
 | 10.4.0 | 2026-11-24 | a section 5 row says how its command takes files (appended, none, changed) for E-074; dry run T-264.1 to T-264.9, T-133.6, T-133.7, 0 open questions, 0 dismissed by quote | FR-068, FR-133, FR-264, AC-068.1, AC-068.4, AC-133.5, AC-264.1, AC-264.2, AC-264.3, AC-264.4, AC-264.5, AC-264.6, T-133.6, T-133.7, T-264.1, T-264.2, T-264.3, T-264.4, T-264.5, T-264.6, T-264.7, T-264.8, T-264.9 |
 | 11.0.0 | 2026-11-25 | schema-refs skips sixteen more file extensions (parquet, avro, orc, ndjson, jsonl, xml, xlsx, gz, zip, html, log, toml, ini, py, ts, js) for E-084; dry run T-183.4, 0 open questions, 0 dismissed by quote | FR-183, AC-183.1, T-183.4 |
+| 11.1.0 | 2026-11-25 | a new adopted area written before its code: trd (prd trd prints the technical view, a generated Markdown document that sets the PRD stack, architecture, standards, skills and contract types beside each area files and requirements, each Source: line checked at HEAD and the files no area covers; it is never part of the PRD, never checked and never read by the black-box tester, and --out is refused inside the PRD folder and .prd-toolkit/); contracts/cli.yaml gains prd_trd, testing.md the trd paragraph and the borrowed-steps entry, adoption.md the row; minor because nothing existing changes; dry run T-265.1, T-265.2, T-265.3, T-265.4, T-265.5, T-266.1, T-266.2, T-266.3, T-266.4, T-267.1, T-267.2, T-267.3, 0 open questions, 1 dismissed by quote (two rounds: 3 wording gaps fixed after the first, over all 12: the no-date check of T-265.4, prd.md unchanged in T-267.1 and the git status order in T-267.3; the second, over the 3 T-ids they touch, clean) | FR-265, FR-266, FR-267, AC-265.1, AC-265.2, AC-265.3, AC-265.4, AC-265.5, AC-266.1, AC-266.2, AC-266.3, AC-266.4, AC-267.1, AC-267.2, AC-267.3, T-265.1, T-265.2, T-265.3, T-265.4, T-265.5, T-266.1, T-266.2, T-266.3, T-266.4, T-267.1, T-267.2, T-267.3 |
+| 12.0.0 | 2026-11-25 | the dispatcher runs prd trd and install vendors prd_trd.py, a gap the trd build found (prd trd printed unknown command): hooks-install AC-119.1 gains trd, AC-119.2 lists twenty-one commands, AC-098.1 vendors prd_trd.py, T-119.2 and T-120.1 list trd, contracts/cli.yaml prd_dispatch gains trd, and the trd area notes name AC-119.1 and AC-098.1 in place of a claim that the launcher runs every script; FR-098, FR-119 and FR-120 return to approved; major because the unknown-command message, the help listing and the vendored file set change; dry run T-119.2, T-120.1, 0 open questions, 0 dismissed by quote | FR-098, FR-119, FR-120, AC-098.1, AC-119.1, AC-119.2, T-119.2, T-120.1 |
