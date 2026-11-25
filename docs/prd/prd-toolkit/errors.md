@@ -1076,3 +1076,21 @@ Explanation: I ran the failing test file on its own, and checked which Python th
 Diagnosis: Run 1 (the build's step 7): `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd` printed `FAILED tests/test_py311_syntax.py::test_the_checker_flags_reused_quotes` (`assert [] == [1]`, line 42), `1 failed, 4049 passed`. Run 2: `uv run --directory prd-toolkit pytest -q -n auto tests/test_py311_syntax.py` printed the same failure, `1 failed, 77 passed`. Probe: `uv run --directory prd-toolkit python -c "import sys, tokenize; print(sys.version.split()[0], hasattr(tokenize, 'FSTRING_START'))"` printed `3.11.15 False`. Root cause: `reused_quotes` in prd-toolkit/tests/test_py311_syntax.py returns `[]` when `tokenize.FSTRING_START` is absent (Python 3.11), so `test_the_checker_flags_reused_quotes` asserting `== [1]` holds only on 3.12+; on 3.11 the same source fails `ast.parse(..., feature_version=(3, 11))`, which `test_parses_as_python_311` checks. The faulty code is the test, outside every adopted Boundary of adoption.md. Account: the file's docstring, “The scripts declare requires-python >= 3.11: none may use syntax that only parses on 3.12 or later.”, and prd.md §1: “Language: Python 3.11 or later.”
 Resolution: fixed in 1b678329f699b70f111690fb6bbec1b2aac4e2cc, red run prd-toolkit/tests/test_py311_syntax.py::test_the_checker_flags_reused_quotes [unit]
 Recurrence of: -
+
+### E-086 lint-contracts and lint-ids tests capture the lint output in text mode, against the testing.md Assertions slot
+Detected: 2026-11-25, user report (/prd-toolkit:prd-error), PRDAnvil/prd-toolkit#68
+Classification: unclassified
+URL: https://github.com/PRDAnvil/prd-toolkit/issues/68
+Evidence: Reported in PRDAnvil/prd-toolkit#68 (user report via /prd-toolkit:prd-error):
+  run_lint in prd-toolkit/tests/prd/lint_contracts_support.py calls subprocess.run with
+  capture_output=True, text=True, encoding="utf-8", errors="replace".
+  run_lint in prd-toolkit/tests/prd/lint_ids_support.py calls subprocess.run with
+  capture_output=True, encoding="utf-8", errors="replace" (encoding alone selects text mode).
+  The lint-contracts tests (12 files, 85 calls) and the lint-ids tests (2 files, 62 calls) use them.
+  testing.md Harness, Assertions: "a test captures a command's stdout and stderr as bytes, never in
+  text mode (whose newline translation turns a \r into \n), and compares them with the expected text
+  encoded as UTF-8".
+  Only the T-183 tests (test_lint_contracts_schema_refs.py) use the bytes-mode run_lint_bytes.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
