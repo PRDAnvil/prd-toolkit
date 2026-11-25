@@ -1062,7 +1062,7 @@ Recurrence of: -
 
 ### E-085 test_the_checker_flags_reused_quotes fails: reused_quotes finds no reused quote in a nested f-string on Python 3.11.15
 Detected: 2026-11-25, build lint-contracts FR-183 --fixes E-084
-Classification: unclassified
+Classification: code bug
 Evidence: Step 7 full run of the unit level, `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd`, on fix/e084-schema-refs-file-extensions at b6f4463:
   FAILED tests/test_py311_syntax.py::test_the_checker_flags_reused_quotes - ass...
   >       assert reused_quotes('x = f"a {d["k"]} b"\n') == [1]
@@ -1071,6 +1071,7 @@ Evidence: Step 7 full run of the unit level, `uv run --directory prd-toolkit pyt
   [gw0] darwin -- Python 3.11.15 /Users/ivan/projects-ivan/prdanvil/prd-toolkit/prd-toolkit/.venv/bin/python
   1 failed, 4049 passed, 1 skipped in 291.00s (0:04:51)
   The test cites no T-id. The builder of round 1 reported the same failure on the unit harness before its change (base 1271c17).
-Diagnosis: -
+Explanation: I ran the failing test file on its own, and checked which Python the test environment uses. It is Python 3.11.15, and the run failed the same way: the self-check of the quote checker expects it to flag a nested f-string that reuses its own quote, and the checker returned nothing. The checker is written to do nothing on 3.11 (it needs a tokenizer feature that only exists from 3.12), so its self-check can only pass on 3.12 or later. The PRD says the toolkit runs on "Python 3.11 or later", so 3.11 is a supported environment and every test should pass on it. The test is what is wrong, not the scripts it checks, and not the environment: on 3.11 such a line is already a syntax error, which the other test in the file catches. That makes it a code bug in code no PRD area covers, fixed by correcting the test so it checks the right guard on each Python version. It has nothing to do with E-084.
+Diagnosis: Run 1 (the build's step 7): `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd` printed `FAILED tests/test_py311_syntax.py::test_the_checker_flags_reused_quotes` (`assert [] == [1]`, line 42), `1 failed, 4049 passed`. Run 2: `uv run --directory prd-toolkit pytest -q -n auto tests/test_py311_syntax.py` printed the same failure, `1 failed, 77 passed`. Probe: `uv run --directory prd-toolkit python -c "import sys, tokenize; print(sys.version.split()[0], hasattr(tokenize, 'FSTRING_START'))"` printed `3.11.15 False`. Root cause: `reused_quotes` in prd-toolkit/tests/test_py311_syntax.py returns `[]` when `tokenize.FSTRING_START` is absent (Python 3.11), so `test_the_checker_flags_reused_quotes` asserting `== [1]` holds only on 3.12+; on 3.11 the same source fails `ast.parse(..., feature_version=(3, 11))`, which `test_parses_as_python_311` checks. The faulty code is the test, outside every adopted Boundary of adoption.md. Account: the file's docstring, “The scripts declare requires-python >= 3.11: none may use syntax that only parses on 3.12 or later.”, and prd.md §1: “Language: Python 3.11 or later.”
 Resolution: -
 Recurrence of: -
