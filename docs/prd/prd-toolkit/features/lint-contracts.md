@@ -196,8 +196,8 @@ Tests: T-182.1 [integration], T-182.2 [integration], T-182.3 [integration], T-18
 Traces: UJ-01; cli:prd_lint
 
 ### FR-183 Check each backticked table.column against schema.sql
-Status: built
-Source: prd-toolkit/scripts/prdlint/rules/contracts.py:576 @92d98fb
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/contracts.py:580 @701d5e7
   prd-toolkit/scripts/prdlint/rules/contracts.py:44 @9961c9e
 Acceptance (EARS):
 - AC-183.1 Where `contracts/schema.sql` parses and holds at least one `CREATE TABLE`, if a code span on a line outside fenced code blocks of a Markdown file of the PRD folder other than errors.md holds exactly `<a>.<b>` once white space is removed from its ends (each name a letter or underscore followed by letters, digits or underscores), `<a>` is a table of schema.sql, and `<b>` is neither one of its columns, both compared as schema.sql writes them, case included, nor one of the file extensions `csv`, `tsv`, `sql`, `yaml`, `yml`, `json`, `md`, `txt`, `lkml`, `parquet`, `avro`, `orc`, `ndjson`, `jsonl`, `xml`, `xlsx`, `gz`, `zip`, `html`, `log`, `toml`, `ini`, `py`, `ts` and `js`, compared case included, the lint command shall report `schema-refs` at that line with `` `<a>.<b>`: table <a> has no column <b> ``, once for each such span.
