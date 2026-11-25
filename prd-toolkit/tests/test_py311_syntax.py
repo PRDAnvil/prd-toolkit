@@ -39,7 +39,13 @@ def reused_quotes(source: str) -> list[int]:
 
 
 def test_the_checker_flags_reused_quotes():
-    assert reused_quotes('x = f"a {d["k"]} b"\n') == [1]
+    reused = 'x = f"a {d["k"]} b"\n'
+    if hasattr(tokenize, "FSTRING_START"):
+        assert reused_quotes(reused) == [1]
+    else:
+        # Python 3.11 has no f-string tokens, so reused_quotes sees nothing; the parser itself rejects the line.
+        with pytest.raises(SyntaxError):
+            ast.parse(reused, feature_version=(3, 11))
     assert reused_quotes("x = f\"a {d['k']} b\"\n") == []
 
 
