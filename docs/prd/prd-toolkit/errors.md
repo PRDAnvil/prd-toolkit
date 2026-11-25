@@ -1059,3 +1059,18 @@ Explanation: I built a small PRD whose schema declares a table named orders, wro
 Diagnosis: Probe in a scratch clone at e66be0d: the lint-cli/orders fixture with line 17 of features/import.md replaced by a Traces line citing `orders.parquet`, `orders.jsonl` and `orders.csv`, run as `.prd-toolkit/prd lint docs/prd/orders`. Expected (issue #65): no schema-refs finding for a file name. Printed: `exit 1`, `docs/prd/orders/features/import.md:17: schema-refs: `orders.parquet`: table orders has no column parquet` and the same line for `orders.jsonl`; `orders.csv` passed. Root cause: `_FILE_EXTENSIONS` in prd-toolkit/scripts/prdlint/rules/contracts.py:571 holds exactly the nine names AC-183.1 lists. AC-183.1: “nor one of `csv`, `tsv`, `sql`, `yaml`, `yml`, `json`, `md`, `txt` and `lkml`, the lint command shall report `schema-refs`”. The code matches the AC; the AC's list is too short.
 Resolution: -
 Recurrence of: -
+
+### E-085 test_the_checker_flags_reused_quotes fails: reused_quotes finds no reused quote in a nested f-string on Python 3.11.15
+Detected: 2026-11-25, build lint-contracts FR-183 --fixes E-084
+Classification: unclassified
+Evidence: Step 7 full run of the unit level, `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd`, on fix/e084-schema-refs-file-extensions at b6f4463:
+  FAILED tests/test_py311_syntax.py::test_the_checker_flags_reused_quotes - ass...
+  >       assert reused_quotes('x = f"a {d["k"]} b"\n') == [1]
+  E       assert [] == [1]
+  tests/test_py311_syntax.py:42: AssertionError
+  [gw0] darwin -- Python 3.11.15 /Users/ivan/projects-ivan/prdanvil/prd-toolkit/prd-toolkit/.venv/bin/python
+  1 failed, 4049 passed, 1 skipped in 291.00s (0:04:51)
+  The test cites no T-id. The builder of round 1 reported the same failure on the unit harness before its change (base 1271c17).
+Diagnosis: -
+Resolution: -
+Recurrence of: -

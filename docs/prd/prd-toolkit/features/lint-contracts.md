@@ -196,7 +196,7 @@ Tests: T-182.1 [integration], T-182.2 [integration], T-182.3 [integration], T-18
 Traces: UJ-01; cli:prd_lint
 
 ### FR-183 Check each backticked table.column against schema.sql
-Status: approved
+Status: built
 Source: prd-toolkit/scripts/prdlint/rules/contracts.py:576 @92d98fb
   prd-toolkit/scripts/prdlint/rules/contracts.py:44 @9961c9e
 Acceptance (EARS):

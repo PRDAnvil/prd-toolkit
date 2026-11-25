@@ -327,7 +327,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-180 | Check the shape of each dependency file | live | features/lint-contracts.md | 9.6.0 |
 | FR-181 | Resolve each section 7 custom type to its files and validator | verified | features/lint-contracts.md |  |
 | FR-182 | Run each custom type's validator and report its failure | verified | features/lint-contracts.md |  |
-| FR-183 | Check each backticked table.column against schema.sql | approved | features/lint-contracts.md |  |
+| FR-183 | Check each backticked table.column against schema.sql | built | features/lint-contracts.md |  |
 | FR-184 | Report a cited error code the catalogue lacks | verified | features/lint-contracts.md |  |
 | FR-185 | Report a catalogued error code cited nowhere | verified | features/lint-contracts.md |  |
 | FR-186 | Refuse a call that does not name exactly one check | live | features/build-check.md | 9.7.0 |
