@@ -174,18 +174,27 @@ def test_install_writes_requirements_and_no_publish(built):
     assert not (tmp / ".prd-toolkit/requirements-publish.txt").exists()
 
 
-@given(write_empty_no_git)
+def _empty_outside_git_setup(tmp):
+    # T-098.6 setup: write each entry of fixture status-next/empty to <tmp>/<key>, run no git init; check that
+    # `git rev-parse --show-toplevel` exits other than 0 in <tmp>, and otherwise end the test as an error.
+    write_empty_no_git(tmp)
+
+
+@given(_empty_outside_git_setup)
 def test_install_outside_a_git_checkout(built):
     """@prd T-098.6"""
     tmp = built
-    r = run(tmp, tmp, INSTALL)
-    orders = tmp / ORDERS_REL
+    r = run(tmp, tmp, "python HOOKS install docs/prd/orders")
+    expected_stderr = (
+        "prd_hooks: " + os.path.realpath(tmp) + "/docs/prd/orders is not inside a git checkout\n"
+    )
     assert r.exit == 2, r
     assert r.stdout == "", r
-    assert r.stderr == f"prd_hooks: {os.path.realpath(tmp)}/docs/prd/orders is not inside a git checkout\n", r
-    assert not (tmp / ".prd-toolkit").exists()
-    assert not (orders / ".prd-toolkit").exists()
-    assert not (orders / ".gitignore").exists()
+    assert r.stderr == expected_stderr, r
+    # effect: none of <tmp>/.prd-toolkit, <tmp>/docs/prd/orders/.prd-toolkit and
+    # <tmp>/docs/prd/orders/.gitignore exists
+    for path in (tmp / ".prd-toolkit", tmp / "docs/prd/orders/.prd-toolkit", tmp / "docs/prd/orders/.gitignore"):
+        assert not os.path.lexists(path), path
 
 
 def _pack_line(tmp, line):
