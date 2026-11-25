@@ -1063,6 +1063,7 @@ Recurrence of: -
 ### E-085 test_the_checker_flags_reused_quotes fails: reused_quotes finds no reused quote in a nested f-string on Python 3.11.15
 Detected: 2026-11-25, build lint-contracts FR-183 --fixes E-084
 Classification: code bug
+Confirmed: 2026-11-25, "Confirm the class (form)"
 Evidence: Step 7 full run of the unit level, `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd`, on fix/e084-schema-refs-file-extensions at b6f4463:
   FAILED tests/test_py311_syntax.py::test_the_checker_flags_reused_quotes - ass...
   >       assert reused_quotes('x = f"a {d["k"]} b"\n') == [1]
