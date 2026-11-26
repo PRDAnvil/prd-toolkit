@@ -32,7 +32,7 @@ def test_versions():
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
     assert re.search(r"Version \d+\.\d+\.\d+\.", README)
-    assert f"(../{SPEC_REL})" in README and (REPO / SPEC_REL).is_file()
+    assert f"`{SPEC_REL}`" in README and (REPO / SPEC_REL).is_file()
     assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
 
 
@@ -60,7 +60,7 @@ def test_guard_list_names_the_checked_grep():
 
 def test_changelog_entry():
     e = entry()
-    assert f"[design spec](../{SPEC_REL})" in e
+    assert f"design spec, `{SPEC_REL}`" in e
     for needle in (
         "docs/prd/README.md", "docs/prd/<slug>/README.md", "Overview", "Principles:", "Getting started:",
         "`check --ci`", "stale", "hand-edited", "two branches", "FR-015", "5.1.0",

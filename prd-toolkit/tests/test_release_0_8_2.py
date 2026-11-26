@@ -34,7 +34,7 @@ def test_versions():
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
     assert re.search(r"Version \d+\.\d+\.\d+\.", README)
-    assert f"(../{SPEC_REL})" in README
+    assert f"`{SPEC_REL}`" in README
 
 
 def test_readme_commands_and_exit_codes():
@@ -105,8 +105,8 @@ def test_tester_description_matches_the_round_branch_build():
 def test_the_changelog_links_the_spec_its_sections_name():
     e = entry()
     assert "(section 13)" in e
-    assert f"[design spec](../{SPEC_REL})" in e
-    assert e.index(f"[design spec](../{SPEC_REL})") < e.index("(section 13)")
+    assert f"design spec, `{SPEC_REL}`" in e
+    assert e.index(f"design spec, `{SPEC_REL}`") < e.index("(section 13)")
 
 
 def test_wait_says_exit_0_always_names_the_choice():

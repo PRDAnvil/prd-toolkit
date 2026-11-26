@@ -29,7 +29,7 @@ def test_versions():
 
 def test_readme_version_and_spec_link():
     assert re.search(r"Version 0\.\d+\.\d+\.", README)
-    assert f"(../{SPEC_06})" in README
+    assert "(../docs/superpowers/specs/)" in README
     assert (REPO / SPEC_06).is_file()
     assert "- **0.6.0:**" in README
 

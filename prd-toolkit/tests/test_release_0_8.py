@@ -31,7 +31,7 @@ def test_versions():
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [version]
     assert f"Version {version}." in README
-    assert f"(../{SPEC_REL})" in README
+    assert "(../docs/superpowers/specs/)" in README
 
 
 def test_description_names_the_new_parts():

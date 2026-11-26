@@ -32,7 +32,7 @@ def test_versions():
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
     assert re.search(r"Version \d+\.\d+\.\d+\.", README)
-    assert f"(../{SPEC_REL})" in README and (REPO / SPEC_REL).is_file()
+    assert f"`{SPEC_REL}`" in README and (REPO / SPEC_REL).is_file()
     assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
 
 
@@ -40,7 +40,7 @@ def test_changelog_entry():
     c = section(README, "Changelog")
     assert c.index("- **0.8.5:**") < c.index("- **0.8.4:**")
     e = entry("0.8.5", "0.8.4")
-    assert f"[design spec](../{SPEC_REL})" in e
+    assert f"design spec, `{SPEC_REL}`" in e
     for needle in (
         "prd_deploy.py confirm", "`--step N --reply TEXT`",                      # 1
         "`prd_error.py new`", "uncommitted",                         # 2
