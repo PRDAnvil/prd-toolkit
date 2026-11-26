@@ -107,12 +107,14 @@ read it. Read it every time: at step 0 for the project-wide sections, and at ste
 
 - **Where.** Look in the memory directory your system prompt names (Claude Code's auto-memory),
   in `~/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/` when that is
-  another directory and exists, and in a directory the user names. Read `MEMORY.md` (the index)
+  another directory and exists, and in a directory the user names. List each place in a call of
+  its own: one that cannot be read or does not exist stops none of the others, and a denied
+  command takes everything chained with it down too. Read `MEMORY.md` (the index)
   first, then the whole of each note whose name, description or body names the repository, its
   slug, its packages or domains, or a path in the area's Boundary. A memory directory often holds
   notes for many repositories: a note that names none of these stays out.
-- **None.** No memory directory, or no note that bears on the area: say so in one line and go on.
-  Memory is never a gate.
+- **None.** No memory directory, or no note that bears on the area: say so in one line and go on,
+  and say which places could not be read. Memory is never a gate.
 - **The digest.** Per note: its file name, its date (the `modified` frontmatter, else the file's
   modification time), its type, and the claims that bear on the area, quoted. The digest lives
   in this conversation, never in the repository and never in the PRD folder.

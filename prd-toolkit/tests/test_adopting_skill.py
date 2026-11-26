@@ -493,3 +493,10 @@ def test_0820_memory_red_flags_and_rationalizations():
         assert needle in flags, needle
     rationalizations = section(SKILL, "## Common Rationalizations")
     assert rationalizations.count("memory") >= 3
+
+
+def test_0820_each_memory_place_is_read_on_its_own():
+    m = section(SKILL, "## Memory")
+    assert "each place in a call of its own" in m
+    assert "one that cannot be read or does not exist stops none of the others" in m
+    assert "say which places could not be read" in m
