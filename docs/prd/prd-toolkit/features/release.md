@@ -56,7 +56,7 @@ Tests: T-270.1 [integration], T-270.2 [integration], T-270.3 [integration]  (tes
 Traces: `code:prd-toolkit/.claude-plugin/plugin.json`; `code:.claude-plugin/marketplace.json`
 
 ### FR-271 One description in both manifests names every command of the plugin
-Status: approved
+Status: verified
 Source: prd-toolkit/.claude-plugin/plugin.json:4 @05ae956
 Acceptance (EARS):
 - AC-271.1 The marketplace manifest's one plugin entry's `description` shall equal the plugin manifest's
@@ -86,7 +86,7 @@ Tests: T-272.1 [integration]  (test-cases/release.yaml)
 Traces: `cli:prd_lint`; FR-003
 
 ### FR-273 The READMEs install and update the plugin by the manifests' names and describe its commands as they are
-Status: approved
+Status: verified
 Source: README.md:26 @05ae956
 Acceptance (EARS):
 - AC-273.1 The `## Install` section of `README.md` and the `## Install` section of `prd-toolkit/README.md` shall each
@@ -115,7 +115,7 @@ Tests: T-273.1 [integration], T-273.2 [integration], T-273.3 [integration], T-27
 Traces: `code:README.md`; FR-268; E-088, E-089, E-091
 
 ### FR-274 The root README's prd shell function picks the vendored launcher or the newest installed plugin's
-Status: approved
+Status: verified
 Source: README.md:40 @05ae956
 Acceptance (EARS):
 - AC-274.1 When the `prd` function of `README.md` (the lines from `prd() {` to the next line `}`) runs in sh with a
@@ -154,8 +154,8 @@ Tests: T-275.1 [integration], T-275.2 [integration], T-275.3 [integration]  (tes
 Traces: `code:prd-toolkit/LICENSE`; FR-269
 
 ### FR-276 Every relative link in the two READMEs names a file the repository tracks
-Status: approved
-Source: prd-toolkit/README.md:11 @05ae956
+Status: verified
+Source: prd-toolkit/README.md:11 @07792ba
 Acceptance (EARS):
 - AC-276.1 The target of every Markdown link `](<target>)` in `README.md` and `prd-toolkit/README.md` that does not
   start with `http`, with any `#` fragment removed and resolved against the folder of the file that holds it, shall

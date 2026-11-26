@@ -415,12 +415,12 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-268 | The marketplace manifest lists one plugin, prd-toolkit, from ./prd-toolkit | live | features/release.md | 13.1.0 |
 | FR-269 | The plugin manifest names the plugin, its license and its skills and commands folders | live | features/release.md | 13.1.0 |
 | FR-270 | The release version agrees in both manifests and the plugin README | live | features/release.md | 13.1.0 |
-| FR-271 | One description in both manifests names every command of the plugin | approved | features/release.md |  |
+| FR-271 | One description in both manifests names every command of the plugin | verified | features/release.md |  |
 | FR-272 | The rule count the manifests and READMEs name is the number of registered lint rules | live | features/release.md | 13.1.0 |
-| FR-273 | The READMEs install and update the plugin by the manifests' names and describe its commands as they are | approved | features/release.md |  |
-| FR-274 | The root README's prd shell function picks the vendored launcher or the newest installed plugin's | approved | features/release.md |  |
+| FR-273 | The READMEs install and update the plugin by the manifests' names and describe its commands as they are | verified | features/release.md |  |
+| FR-274 | The root README's prd shell function picks the vendored launcher or the newest installed plugin's | verified | features/release.md |  |
 | FR-275 | The plugin ships the MIT license and a notice of the projects it adapts | live | features/release.md | 13.1.0 |
-| FR-276 | Every relative link in the two READMEs names a file the repository tracks | approved | features/release.md |  |
+| FR-276 | Every relative link in the two READMEs names a file the repository tracks | verified | features/release.md |  |
 | FR-277 | pyproject.toml and uv.lock define the test environment | live | features/release.md | 13.1.0 |
 
 ## 12. Assumptions index

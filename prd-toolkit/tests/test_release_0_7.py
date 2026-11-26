@@ -34,7 +34,7 @@ def test_versions():
 
 def test_readme_version_spec_link_and_rules():
     assert re.search(r"Version \d+\.\d+\.\d+\.", README)
-    assert f"(../{SPEC_07})" in README and (REPO / SPEC_07).is_file()
+    assert "(../docs/superpowers/specs/)" in README and (REPO / SPEC_07).is_file()
     import prdlint.rules  # noqa: F401
     from prdlint.registry import RULES
 

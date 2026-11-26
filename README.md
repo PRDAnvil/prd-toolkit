@@ -2,7 +2,7 @@
 
 A living PRD as the single authority agents build, test and deploy from: a PRD folder in the repo with contracts and black-box test cases, a 41-rule linter, standards and skills registries, and skills to author and change it, plus a builder that takes an approved change to verified code and a deploy script that takes it live.
 
-**Features:**
+**Features:** the main skills; the plugin README lists all eleven ([prd-toolkit/README.md](./prd-toolkit/README.md)).
 - **authoring-prds skill** - Interviews to `docs/prd/<project>/`, lints it, dry-runs it with prd-tester, and approves it
 - **changing-prds skill** - Changes the PRD first, with new IDs and a version bump, before any code
 - **building-from-prds skill** - Takes approved requirements to verified code: a builder in its own worktree, tests written by prd-tester, statuses approved, built, verified
@@ -10,7 +10,7 @@ A living PRD as the single authority agents build, test and deploy from: a PRD f
 - **handling-errors skill** - Records any error in `errors.md` with `prd_error.py`, proposes its class for the user to confirm, and fixes it from a failing test through `/prd-toolkit:prd-change` and `/prd-toolkit:prd-build`
 - **publishing-prds skill** - Renders the PRD with `prd_publish.py` as one self-contained HTML page with per-area summaries that cite their IDs, outside the PRD folder and never committed, offered as a private Artifact
 - **coordinating-prds skill** - Links PRDs across repositories (`links.md`, a pinned snapshot of the cited upstream items, `prd_links.py`) and runs a change that crosses them as one change set: one record, one approval, a build per repository in dependency order
-- **Slash commands**: `/prd-toolkit:prd-new`, `/prd-toolkit:prd-adopt`, `/prd-toolkit:prd-change`, `/prd-toolkit:prd-change-set`, `/prd-toolkit:prd-context`, `/prd-toolkit:prd-build`, `/prd-toolkit:prd-status`, `/prd-toolkit:prd-deploy`, `/prd-toolkit:prd-error` and `/prd-toolkit:prd-publish`
+- **Slash commands**: `/prd-toolkit:prd-new`, `/prd-toolkit:prd-adopt`, `/prd-toolkit:prd-change`, `/prd-toolkit:prd-change-set`, `/prd-toolkit:prd-context`, `/prd-toolkit:prd-build`, `/prd-toolkit:prd-status`, `/prd-toolkit:prd-deploy`, `/prd-toolkit:prd-error`, `/prd-toolkit:prd-publish`, `/prd-toolkit:prd-practices` and `/prd-toolkit:prd-pack`
 - **Lint CLI**: `prd_lint.py` checks 41 rules; `prd_block.py` writes the CLAUDE.md block
 
 **For full documentation:** See [prd-toolkit/README.md](./prd-toolkit/README.md)
@@ -34,7 +34,7 @@ The plugin adds no `prd` command to your shell, so typing `prd` in a terminal gi
 - `.prd-toolkit/prd <command>` in a repository whose hooks are installed (the copy vendored there);
 - `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd <command>` anywhere else, where `<version>` is the installed version (`claude plugin list` shows it).
 
-To type plain `prd`, add this function to your shell profile (`~/.zshrc`, `~/.bashrc`). It runs the repository's vendored copy when there is one, and the newest installed plugin's otherwise; `publish` always runs from the plugin, the only copy that has it:
+To type plain `prd`, add this function to your shell profile (`~/.zshrc`, `~/.bashrc`). It runs the repository's vendored copy when there is one, and the newest installed plugin's otherwise; `publish` always runs from the plugin, the only copy that has it. With no plugin installed it prints `prd-toolkit is not installed` and returns 127:
 
 ```
 prd() {
@@ -42,7 +42,12 @@ prd() {
   if [ "$1" != publish ] && [ -n "$top" ] && [ -f "$top/.prd-toolkit/prd" ]; then
     sh "$top/.prd-toolkit/prd" "$@"
   else
-    sh "$(ls -d ~/.claude/plugins/cache/prdanvil/prd-toolkit/*/ | sort -V | tail -1)scripts/prd" "$@"
+    v=$(command ls -pL "$HOME/.claude/plugins/cache/prdanvil/prd-toolkit" 2>/dev/null | command grep '/$' | sort -V | tail -1)
+    if [ -z "$v" ]; then
+      echo "prd-toolkit is not installed" >&2
+      return 127
+    fi
+    sh "$HOME/.claude/plugins/cache/prdanvil/prd-toolkit/${v}scripts/prd" "$@"
   fi
 }
 ```

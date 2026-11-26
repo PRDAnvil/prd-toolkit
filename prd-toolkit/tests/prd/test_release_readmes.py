@@ -48,18 +48,13 @@ def test_changelog_versions_descend():
     assert ".".join(map(str, versions[-1])) == "0.1.0"
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_root_readme_slash_commands():
-    """@prd T-271.3 known-failing E-087"""
+    """@prd T-271.3"""
     # The one line of RREADME that starts with `- **Slash commands**` ("starts with" on the
     # line as written); no such line, or more than one, is a test failure.
     lines = [l for l in rreadme().splitlines() if l.startswith("- **Slash commands**")]
     assert len(lines) == 1, f"lines of README.md starting with '- **Slash commands**': {len(lines)}"
     names = set(re.findall(r"/prd-toolkit:([a-z-]+)", lines[0]))
-    # Symptom (E-087): the set holds ten distinct names, and neither
-    # `prd-practices` nor `prd-pack` is among them.
-    if len(names) == 10 and "prd-practices" not in names and "prd-pack" not in names:
-        pytest.xfail("E-087: the Slash commands line holds ten names, neither prd-practices nor prd-pack")
     # The set of stems of <repo>/prd-toolkit/commands/*.md, the glob matched as the shell
     # matches it, only regular files counting (testing.md, the release cases' paragraph).
     stems = command_stems()
@@ -204,15 +199,9 @@ def test_commands_table():
     assert names == stems, f"only in the table: {sorted(names - stems)}; only in commands/: {sorted(stems - names)}"
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_update_order():
-    """@prd T-273.5 known-failing E-089"""
+    """@prd T-273.5"""
     text = flat(section(preadme(), "Install"))
-    # Symptom (E-089): the section gives `claude plugin update prd-toolkit@prdanvil`
-    # with no `claude plugin marketplace update prdanvil`.
-    if ("claude plugin update prd-toolkit@prdanvil" in text
-            and "claude plugin marketplace update prdanvil" not in text):
-        pytest.xfail("E-089: Install gives the plugin update with no marketplace update")
     pos = 0
     for s in ["claude plugin marketplace update prdanvil", "claude plugin update prd-toolkit@prdanvil", "/reload-plugins"]:
         i = text.find(s, pos)
@@ -220,20 +209,15 @@ def test_update_order():
         pos = i + len(s)
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_tests_and_evals_no_bare_command():
-    """@prd T-273.6 known-failing E-088"""
+    """@prd T-273.6"""
     text = flat(section(preadme(), "Tests and evals"))
-    # Symptom (E-088): the flat section holds this text, with straight quotes.
-    if "the skills' text still prints gets \"Unknown command\"" in text:
-        pytest.xfail("E-088: Tests and evals holds 'the skills' text still prints gets \"Unknown command\"'")
     for s in ["that the skills' text still prints", "the skills' text prints"]:
         assert s not in text, s
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_features_list():
-    """@prd T-273.7 known-failing E-091"""
+    """@prd T-273.7"""
     # The lines of RREADME from the first line that starts with `**Features:**` ("starts with"
     # on the line as written), that line included, up to and not including the first later
     # line that starts with `**` or `## `, or to the end of the file when no such line follows.
@@ -248,9 +232,6 @@ def test_features_list():
             end = j
             break
     text = flat("".join(lines[start:end]))
-    # Symptom (E-091): the root README's Features list does not hold `the main skills`.
-    if "the main skills" not in text:
-        pytest.xfail("E-091: the Features list does not hold 'the main skills'")
     # holds: each listed string is a substring of the flattened text.
     for s in ["the main skills", "the plugin README lists all eleven", "](./prd-toolkit/README.md"]:
         assert s in text, f"the Features list does not hold {s!r}"
@@ -289,13 +270,8 @@ def test_relative_links_resolve():
     assert unresolved == []
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_one_spec_link():
-    """@prd T-276.2 known-failing E-092"""
+    """@prd T-276.2"""
     folder = "../docs/superpowers/specs/"
     targets = [t for t in markdown_targets(preadme()) if t.startswith(folder)]
-    # Symptom (E-092): 28 links whose target starts with the folder, 19 of them
-    # distinct, and none whose target is the folder itself.
-    if len(targets) == 28 and len(set(targets)) == 19 and folder not in targets:
-        pytest.xfail("E-092: 28 links under the specs folder (19 distinct), none to the folder")
     assert targets == ["../docs/superpowers/specs/"]

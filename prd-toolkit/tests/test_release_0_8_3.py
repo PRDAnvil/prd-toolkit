@@ -31,7 +31,7 @@ def test_versions():
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
     assert re.search(r"Version \d+\.\d+\.\d+\.", README)
-    assert f"(../{SPEC_REL})" in README
+    assert f"`{SPEC_REL}`" in README
     assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
 
 
@@ -50,7 +50,7 @@ def test_changelog_entry():
         "written before the upgrade still makes a gate",
     ):
         assert needle in e, needle
-    assert f"[design spec](../{SPEC_REL})" in e
+    assert f"design spec, `{SPEC_REL}`" in e
 
 
 def test_script_table_and_upgrade_name_vendor():

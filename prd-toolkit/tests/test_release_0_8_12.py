@@ -29,7 +29,7 @@ def test_versions():
         (plugin["version"], d)]
     assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
     assert f"Version {plugin['version']}." in README
-    assert "and for 0.8.12 [docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.12-pack-authoring-design.md]" in README
+    assert "design spec, `docs/superpowers/specs/2026-11-15-prd-toolkit-0.8.12-pack-authoring-design.md`" in README
 
 
 def test_readme_counts_what_the_plugin_holds():

@@ -192,8 +192,6 @@ T-271.3:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-087
-  symptom: "the set the case's read builds from the root README's Slash commands line holds ten distinct names, and neither `prd-practices` nor `prd-pack` is among them"
   input:
     read: "the one line of RREADME that starts with `- **Slash commands**` (no such line, or more than one, is a test failure): set(re.findall(r\"/prd-toolkit:([a-z-]+)\", line)); and the set of stems of <repo>/prd-toolkit/commands/*.md"
   expect:
@@ -306,8 +304,6 @@ T-273.5:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-089
-  symptom: "the plugin README's Install section gives `claude plugin update prd-toolkit@prdanvil` with no `claude plugin marketplace update prdanvil`"
   input:
     read: "flat(section Install of PREADME)"
   expect:
@@ -325,8 +321,6 @@ T-273.6:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-088
-  symptom: "flat(section Tests and evals of PREADME) holds the text `the skills' text still prints gets \"Unknown command\"`, with straight quotes, as the README writes it"
   input:
     read: "flat(section Tests and evals of PREADME)"
   expect:
@@ -343,8 +337,6 @@ T-273.7:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-091
-  symptom: "the root README's Features list does not hold `the main skills`"
   input:
     read: "flat(the lines of RREADME from the first line that starts with `**Features:**`, that line included, up to and not including the first later line that starts with `**` or `## `, or to the end of the file when no such line follows)"
   expect:
@@ -423,8 +415,6 @@ T-274.3:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-090
-  symptom: "the function runs `sh scripts/prd` in the working directory, so the run exits 0 and its stdout lines (`str.splitlines()`) are exactly `wrong-launcher` and `status`, in that order"
   input:
     setup:
     - "FUNC = the lines of RREADME from the first line that equals `prd() {` once its line ending is removed to the next line that equals `}` once its line ending is removed, both included, joined with newlines"
@@ -527,8 +517,6 @@ T-276.2:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-092
-  symptom: "the plugin README holds 28 links whose target starts with `../docs/superpowers/specs/`, 19 of them distinct, and none whose target is `../docs/superpowers/specs/` itself"
   input:
     read: "every match of \\]\\(([^)\\s]+)\\) in PREADME whose target starts with ../docs/superpowers/specs/"
   expect:

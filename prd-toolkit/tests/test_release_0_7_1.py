@@ -26,7 +26,7 @@ def test_versions():
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [p["version"] for p in market["plugins"] if p["name"] == "prd-toolkit"] == [plugin["version"]]
     assert re.search(r"Version \d+\.\d+\.\d+\.", README)
-    assert f"(../{SPEC_REL})" in README and (REPO / SPEC_REL).is_file()
+    assert "(../docs/superpowers/specs/)" in README and (REPO / SPEC_REL).is_file()
 
 
 def test_form_part_under_adopting():

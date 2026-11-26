@@ -70,9 +70,8 @@ def test_plugin_launcher_newest(tmp_path):
     assert snapshot(tmp) == before, "a file under <tmp> changed"
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_not_installed(tmp_path):
-    """@prd T-274.3 known-failing E-090"""
+    """@prd T-274.3"""
     tmp = tmp_path.resolve()
     func = prd_function()
     home = tmp / "emptyhome"
@@ -81,10 +80,6 @@ def test_not_installed(tmp_path):
     write_line(tmp / "plain/scripts/prd", WRONG)
     before = snapshot(tmp)
     r = run(_command(func, "status"), cwd=tmp / "plain", env=_env(tmp, home))
-    # Symptom (E-090): the function runs `sh scripts/prd` in the working directory, so the run
-    # exits 0 and its stdout lines are exactly `wrong-launcher` and `status`, in that order.
-    if r.returncode == 0 and r.stdout.decode("utf-8", "replace").splitlines() == ["wrong-launcher", "status"]:
-        pytest.xfail("E-090: the function ran scripts/prd in the working directory")
     assert r.returncode == 127, (r.returncode, r.stdout, r.stderr)
     assert r.stdout == b"", r.stdout
     assert "prd-toolkit is not installed".encode("utf-8") in r.stderr, r.stderr
