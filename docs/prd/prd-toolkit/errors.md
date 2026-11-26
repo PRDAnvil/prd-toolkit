@@ -1160,6 +1160,7 @@ Recurrence of: -
 ### E-093 a PRD change that adds an enforced section 5 standards row leaves the generated CI workflow stale, and neither the change procedure nor `prd change approve` catches it before the push
 Detected: 2026-11-26, user report (/prd-toolkit:prd-error), PR #80
 Classification: spec gap
+Confirmed: 2026-11-26, "Confirm the class (form)"
 Touches: FR-262, FR-263
 URL: https://github.com/PRDAnvil/prd-toolkit/actions/runs/45910377365/job/140217032152
 Evidence: Owner's report (2026-11-26), after PR #80 (PRD 13.3.0, release-area practices):
