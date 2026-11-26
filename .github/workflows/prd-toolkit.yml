@@ -35,6 +35,15 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: "if [ -n \"$(git ls-files -- ':(glob)prd-toolkit/**' ':(exclude).prd-toolkit')\" ]; then npx -y @anthropic-ai/claude-code plugin validate ./prd-toolkit; fi"
 
+  standards-2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+      - run: "if [ -n \"$(git ls-files -- ':(glob).claude-plugin/marketplace.json' ':(exclude).prd-toolkit')\" ]; then npx -y @anthropic-ai/claude-code plugin validate .; fi"
+
   test-unit:
     runs-on: ubuntu-latest
     steps:
