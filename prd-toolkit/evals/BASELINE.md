@@ -30,6 +30,12 @@ the note and the owner, which the skill's Memory section allows. The three grade
 Write, Edit or Bash call were replaced by `owner-stays-a-marker`, a check on the `owner:` field, and that grader
 passes on the run's kept output. Every other grader passed in the run itself.
 
+**The final review's grader fixes** were checked against the kept output, not re-run. `says-no-note-applies` no
+longer matches the fixture's "in-memory" or run 3's "memory digest is `none`" and still matches run 6's report;
+run 1's report still fails it. `no-requirement-names-memory` now matches only a memory note, auto-memory or
+`MEMORY.md`, and run 6's `features/notes.md` passes it. The new `owner-is-a-marker` and the reworked
+`owner-stays-a-marker` (the name only beside its memory note) both pass on run 7's `prd.md`.
+
 ## 0.8.20: `adopting-memory-conflict`, memory in adoption
 
 Recorded 2026-11-25 on `feat/memory-in-adoption`, model `sonnet`, Claude Code 2.1.332, one run per row, from a clean
