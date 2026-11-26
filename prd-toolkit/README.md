@@ -262,8 +262,8 @@ note as an open `E-nnn` naming the note, and turns a note the code does not show
 At bootstrap a note may propose the answer to a `[NEEDS CLARIFICATION]` marker or a human runbook
 step, written only on the owner's yes, and at confirmation each requirement is shown with the notes
 that touch it. A note never confirms a requirement and is never a `Source:`. Nothing from a note
-is committed except what the owner confirmed, in plain words, and an `E-nnn` Diagnosis that
-paraphrases it. With no memory, adoption says so and goes on.
+is committed except what the owner confirmed, in plain words, and an `E-nnn` Diagnosis or a §13
+question that paraphrases it. With no memory, adoption says so and goes on.
 
 ### Confirming through the form
 

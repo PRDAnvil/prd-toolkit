@@ -645,3 +645,12 @@ def test_0821_every_memory_case_checks_the_home_place_was_listed(case):
     assert g.exists()
     head = g.read_text(encoding="utf-8").split("---")[1]
     assert "target: trace" in head and r"home/\.claude/projects/-" in head
+
+
+def test_0821_the_headless_owner_case_grades_the_owner_field_not_the_question():
+    g = ROOT / "evals/adopting-memory-headless-owner/graders"
+    head = (g / "owner-stays-a-marker.md").read_text(encoding="utf-8").split("---")[1]
+    assert "'^owner:[^\\n]*Quillon'" in head and "flags: m" in head and "match: not_contains" in head
+    assert not list(g.glob("no-*-owner.md"))  # a §13 question may name the note's claim (Memory section)
+    assert "an `E-nnn` Diagnosis or a §13 question that paraphrases it" in " ".join(
+        (ROOT / "README.md").read_text(encoding="utf-8").split())
