@@ -2,6 +2,34 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.20: `adopting-memory-conflict`, memory in adoption
+
+Recorded 2026-11-25 on `feat/memory-in-adoption`, model `sonnet`, Claude Code 2.1.332, one run per row, from a clean
+copy of the plugin (`git archive HEAD prd-toolkit`):
+
+```
+claude plugin eval ./prd-toolkit --model sonnet --scaffold --trust-plugin --no-publish --runs 1 --keep-temp \
+  --case adopting-memory-conflict --allow-tools Write Edit Bash Agent [--ablation none]
+```
+
+The case: the bare notes repo, a prompt that never mentions memory, and two notes in the session's auto-memory. One
+says note ids start at 0 (the code starts at 1, and nothing in the repository says otherwise); the other is another
+project's and holds a token. Cost of every run below: $5.32.
+
+| Run | Skill | Scaffold | Score | `errors-name-memory-note` |
+|---|---|---|---|---|
+| 1 | 0.8.19 | prompt names `.claude-memory/` | 1.00 | pass: told where memory is, it read it. Not the gap; the prompt was changed |
+| 2 | 0.8.19 | notes in the runner's config memory dir | 0.80 | **fail**: FR-001 says "shall return the id 1"; the trace never touches memory |
+| 3 | 69970f7 | same | 0.80 | fail: the agent read the system prompt's memory path, and the runner's sandbox denied it |
+| 4 | 0.8.19 | 5a02255: notes also under `$HOME/.claude/projects/` | 0.83 | **fail** (RED): no memory read |
+| 5 | 69970f7 | same | 0.83 | fail: the second place was chained onto the denied first in one Bash call |
+| 6 | 57b3bea | same | **1.00** | pass (GREEN): E-001 names `memory note project_notes_ids.md (2026-09-12)`, FR-001 states no first id, Q-02 asks 0 or 1 |
+
+Runs 4 to 6 ran with `--ablation none`; runs 1 to 3 also ran the no-plugin arm (0.40, 0.00 on a `uv lock` scaffold
+failure, 0.40). **The runner denies the session reads of its own config dir**, which holds the auto-memory the system
+prompt names; a real session reads it. The scaffold therefore also writes the notes to
+`$HOME/.claude/projects/<encoded cwd>/memory/`, a place the skill names. No run wrote the other project's token.
+
 ## After 0.8.16: the `link_repo.py` cases run in the runner again (E-083)
 
 Recorded 2026-11-24 on `evals/link-repo-runner`, model `sonnet`, Claude Code 2.1.331, one run per arm, from a clean
