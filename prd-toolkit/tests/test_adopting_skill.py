@@ -629,3 +629,19 @@ def test_0821_the_new_memory_scaffolds_put_the_notes_in_both_places(case, tmp_pa
     for place in (sandbox / "config/projects" / enc / "memory", sandbox / "home/.claude/projects" / enc / "memory"):
         assert {p.name for p in place.iterdir()} == MEMORY_CASES[case], place
     assert not (cwd / "docs/prd").exists()  # bare: no PRD yet
+
+
+def test_0821_every_memory_place_is_tried_before_memory_is_called_unreadable():
+    m = section(SKILL, "## Memory")
+    assert "all three, every time" in m
+    assert "compare the two full paths" in m
+    assert "until every place has been tried" in m
+    assert "Memory is unreadable, so the digest is `none`" in section(SKILL, "## Red Flags - STOP")
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES) + ["adopting-memory-conflict"])
+def test_0821_every_memory_case_checks_the_home_place_was_listed(case):
+    g = ROOT / "evals" / case / "graders" / "lists-the-home-memory-place.md"
+    assert g.exists()
+    head = g.read_text(encoding="utf-8").split("---")[1]
+    assert "target: trace" in head and r"home/\.claude/projects/-" in head
