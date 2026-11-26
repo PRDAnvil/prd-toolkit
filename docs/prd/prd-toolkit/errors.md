@@ -1080,6 +1080,7 @@ Recurrence of: -
 ### E-086 lint-contracts and lint-ids tests capture the lint output in text mode, against the testing.md Assertions slot
 Detected: 2026-11-25, user report (/prd-toolkit:prd-error), PRDAnvil/prd-toolkit#68
 Classification: code bug
+Confirmed: 2026-11-25, "Confirm the class (form)"
 URL: https://github.com/PRDAnvil/prd-toolkit/issues/68
 Evidence: Reported in PRDAnvil/prd-toolkit#68 (user report via /prd-toolkit:prd-error):
   run_lint in prd-toolkit/tests/prd/lint_contracts_support.py calls subprocess.run with
