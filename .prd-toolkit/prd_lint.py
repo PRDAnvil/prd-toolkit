@@ -111,7 +111,11 @@ def _main(argv: list[str]) -> int:
     if args.ci:
         os.environ["PRD_LINT_CI"] = "1"
     try:
-        findings = registry.run(prd, warnings=True)
+        from prdlint.rules import structure
+
+        # a newer grammar ends the lint with its one finding (AC-020.8)
+        newer = structure.newer_format(prd)
+        findings = [newer] if newer is not None else registry.run(prd, warnings=True)
     except registry.RuleCrash as e:
         print(f"prd_lint: {e}", file=sys.stderr)
         return 2

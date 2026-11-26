@@ -31,6 +31,7 @@ HARNESS_SLOTS = ["Lifecycle", "Environment switch", "Database access", "Tools on
                  "Clean state", "Persistent environments", "Layout", "HTTP requests", "Fixtures",
                  "Browser identity", "Assertions", "Waits", "Effects", "Leaks", "Acceptance"]
 STATUSES = ("Draft", "In review", "Approved")
+FORMAT = 1  # the version of the PRD grammar this toolkit reads; a folder with no `format` key is format 1
 
 
 def prose(prd: Prd) -> Iterator[tuple[str, int, str]]:
@@ -104,6 +105,18 @@ def _fm_line(prd: Prd, key: str) -> int:
     return 1
 
 
+def newer_format(prd: Prd) -> Finding | None:
+    """The frontmatter finding for a `format` newer than FORMAT, the one this toolkit reads, or None.
+
+    A folder with that finding gets no other: an older toolkit cannot tell a fault from grammar it does not know."""
+    value = prd.frontmatter.get("format")
+    if value is None or not re.fullmatch(r"[1-9][0-9]*", value) or int(value) <= FORMAT:
+        return None
+    return Finding("prd.md", _fm_line(prd, "format"), "frontmatter",
+                   f"'format: {value}' is newer than this toolkit, which reads format {FORMAT}; "
+                   "update prd-toolkit, then run prd hooks install to refresh .prd-toolkit/")
+
+
 def _exists(prd: Prd, path: str) -> bool:
     p = prd.root / path
     if path.endswith("/"):
@@ -115,7 +128,7 @@ def _exists(prd: Prd, path: str) -> bool:
     return p.is_file()
 
 
-@rule("frontmatter", description="Checks prd.md's frontmatter keys: prd a lowercase slug equal to the folder name, version X.Y.Z, status Draft, In review or Approved, a non-empty owner, updated YYYY-MM-DD, an optional language of two or three lowercase letters, and a valid sql-dialect when contracts/schema.sql exists. Correct the key the message names.")
+@rule("frontmatter", description="Checks prd.md's frontmatter keys: prd a lowercase slug equal to the folder name, version X.Y.Z, status Draft, In review or Approved, a non-empty owner, updated YYYY-MM-DD, an optional language of two or three lowercase letters, an optional format, a whole number from 1 no newer than the format this toolkit reads, and a valid sql-dialect when contracts/schema.sql exists. Correct the key the message names.")
 def frontmatter(prd: Prd):
     fm = prd.frontmatter
     f = lambda key, msg: Finding("prd.md", _fm_line(prd, key), "frontmatter", msg)  # noqa: E731
@@ -133,6 +146,11 @@ def frontmatter(prd: Prd):
             yield f(key, f"missing key '{key}'")
         elif not ok(fm[key]):
             yield f(key, f"'{key}: {fm[key]}' {msg}")
+    if "format" in fm and not re.fullmatch(r"[1-9][0-9]*", fm["format"]):
+        yield f("format", f"'format: {fm['format']}' must be a whole number from 1")
+    newer = newer_format(prd)
+    if newer is not None:
+        yield newer
     if (prd.root / "contracts/schema.sql").is_file():
         dialect = fm.get("sql-dialect")
         if not dialect:
