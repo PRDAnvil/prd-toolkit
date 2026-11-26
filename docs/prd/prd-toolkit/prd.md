@@ -423,9 +423,9 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-275 | The plugin ships the MIT license and a notice of the projects it adapts | live | features/release.md | 13.1.0 |
 | FR-276 | Every relative link in the two READMEs names a file the repository tracks | verified | features/release.md |  |
 | FR-277 | pyproject.toml and uv.lock define the test environment | live | features/release.md | 13.1.0 |
-| FR-278 | Remind once per session when an edit lands where nothing is approved | approved | features/edit-hook.md |  |
-| FR-279 | Report lint's new findings at Stop for the PRD folders the session edited | approved | features/edit-hook.md |  |
-| FR-280 | The plugin wires the edit hook in both tiers | approved | features/edit-hook.md |  |
+| FR-278 | Remind once per session when an edit lands where nothing is approved | verified | features/edit-hook.md |  |
+| FR-279 | Report lint's new findings at Stop for the PRD folders the session edited | verified | features/edit-hook.md |  |
+| FR-280 | The plugin wires the edit hook in both tiers | verified | features/edit-hook.md |  |
 
 ## 12. Assumptions index
 

@@ -16,7 +16,8 @@ what the branch has committed, so a `Status: approved` written into the working 
 approval commit, approves nothing.
 
 ### FR-278 Remind once per session when an edit lands where nothing is approved
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_edit_hook.py:272 @a48661c
 Flow: 1. read the hook input → 2. find the repository of the edited path and the PRD folders its `HEAD` holds
       → 3. find the area whose Boundary holds the path → 4. no block of it approved at `HEAD`: remind, once per session and area
 Acceptance (EARS):
@@ -64,7 +65,8 @@ Tests: T-278.1 [integration], T-278.2 [integration], T-278.3 [integration], T-27
 Traces: cli:prd_edit_hook; the commit rule's Boundary (trace)
 
 ### FR-279 Report lint's new findings at Stop for the PRD folders the session edited
-Status: approved
+Status: verified
+Source: prd-toolkit/scripts/prd_edit_hook.py:373 @a48661c
 Flow: 1. the edit tier notes each PRD folder an edit lands in → 2. at Stop, lint runs on each noted folder
       → 3. the error findings the session has not been told of go back to the agent; a clean lint says nothing
 Acceptance (EARS):
@@ -106,7 +108,8 @@ Tests: T-279.1 [integration], T-279.2 [integration], T-279.3 [integration], T-27
 Traces: cli:prd_edit_hook; cli:prd_lint
 
 ### FR-280 The plugin wires the edit hook in both tiers
-Status: approved
+Status: verified
+Source: prd-toolkit/hooks/hooks.json:14 @a48661c
 Acceptance (EARS):
 - AC-280.1 The plugin's `prd-toolkit/hooks/hooks.json` shall hold, under `hooks`, the `PreToolUse` entry of the tester
   guard as it stands, a `PostToolUse` entry whose `matcher` is `Edit|Write|MultiEdit|NotebookEdit` and whose one hook
