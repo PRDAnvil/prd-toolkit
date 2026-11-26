@@ -134,6 +134,39 @@ def test_missing_owner_despite_later_line(tmp_path, monkeypatch):
     check(r, exit=1, contains_line=f"{P}:1: frontmatter: missing key 'owner'", stderr="")
 
 
+def test_format_malformed(tmp_path, monkeypatch):
+    """@prd T-020.15"""
+    o = Orders(tmp_path, monkeypatch)
+    edit = o.lines("prd.md")
+    assert edit.line(2) == "prd: orders", f"setup: line 2 of prd.md is {edit.line(2)!r}"
+    edit.insert_before(3, "format: 01")
+    check(o.run(), exit=1, contains_line=f"{P}:3: frontmatter: 'format: 01' must be a whole number from 1", stderr="")
+
+
+def test_format_newer_is_the_only_finding(tmp_path, monkeypatch):
+    """@prd T-020.16"""
+    o = Orders(tmp_path, monkeypatch)
+    o.lines("prd.md").replace(2, "prd: Orders").insert_before(3, "format: 2")
+    check(
+        o.run(),
+        exit=1,
+        exact_lines=[
+            f"{P}:3: frontmatter: 'format: 2' is newer than this toolkit, which reads format 1; "
+            "update prd-toolkit, then run prd hooks install to refresh .prd-toolkit/"
+        ],
+        stderr="",
+    )
+
+
+def test_format_one_lints_clean(tmp_path, monkeypatch):
+    """@prd T-020.17"""
+    o = Orders(tmp_path, monkeypatch)
+    edit = o.lines("prd.md")
+    assert edit.line(2) == "prd: orders", f"setup: line 2 of prd.md is {edit.line(2)!r}"
+    edit.insert_before(3, "format: 1")
+    check(o.run(), exit=0, stdout_exact="", stderr="")
+
+
 def test_language_without_table(tmp_path, monkeypatch):
     """@prd T-021.1"""
     o = Orders(tmp_path, monkeypatch)

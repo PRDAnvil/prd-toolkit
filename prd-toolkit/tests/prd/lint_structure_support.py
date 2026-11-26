@@ -192,6 +192,7 @@ def check(
     in_order: list[str] | None = None,
     count_of_line: tuple[str, int] | None = None,
     stdout_exact: str | None = None,
+    exact_lines: list[str] | None = None,
     stderr: str | None = None,
 ) -> None:
     """Assert a case's expect.output keys, as testing.md's Assertions slot defines them."""
@@ -219,5 +220,7 @@ def check(
         assert got == count, f"{got} stdout lines equal {line!r}, expected {count}" + _show(r)
     if stdout_exact is not None:
         assert r.stdout == stdout_exact, f"stdout is not {stdout_exact!r}" + _show(r)
+    if exact_lines is not None:
+        assert lines == exact_lines, f"stdout lines are not exactly {exact_lines!r}" + _show(r)
     if stderr is not None:
         assert r.stderr == stderr, f"stderr is not {stderr!r}" + _show(r)

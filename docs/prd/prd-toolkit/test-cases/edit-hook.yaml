@@ -1,0 +1,418 @@
+# Format: references/prd-format.md, "Test cases". Setup steps H0 to HB: testing.md, Setup steps (edit-hook).
+T-278.1:
+  ac: AC-278.1
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HA, HL]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_edit_hook.py post
+    stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: PostToolUse, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json: {hookSpecificOutput: {hookEventName: PostToolUse, additionalContext: "prd-toolkit: src/orders/importer.py is in area import of docs/prd/orders, and no block of that area is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change)."}}
+    effects: []
+    errors: []
+    leaks: none
+T-278.2:
+  ac: AC-278.2
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HL]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_edit_hook.py post
+    stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: PostToolUse, tool_name: NotebookEdit, tool_input: {notebook_path: <tmp>/notebooks/report.ipynb}}
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json: {hookSpecificOutput: {hookEventName: PostToolUse, additionalContext: "prd-toolkit: notebooks/report.ipynb is in the Boundary of docs/prd/orders, and no block of that PRD is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change)."}}
+    effects: []
+    errors: []
+    leaks: none
+T-278.3:
+  ac: AC-278.3
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HA]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_edit_hook.py post
+    stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: PostToolUse, tool_name: Write, tool_input: {file_path: <tmp>/src/orders/importer.py, content: "x = 1\n"}}
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-278.4:
+  ac: AC-278.3
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HA, HL, HW]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_edit_hook.py post
+    stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: PostToolUse, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json: {hookSpecificOutput: {hookEventName: PostToolUse, additionalContext: "prd-toolkit: src/orders/importer.py is in area import of docs/prd/orders, and no block of that area is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change)."}}
+    effects: []
+    errors: []
+    leaks: none
+T-278.5:
+  ac: AC-278.4
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HA, HL]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/export.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid2>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: "not a session id", cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: "not a session id", cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout_json_at: {hookSpecificOutput.additionalContext: "prd-toolkit: src/orders/importer.py is in area import of docs/prd/orders, and no block of that area is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change)."}}
+      run_2: {stdout: ""}
+      run_3: {stdout_json_at: {hookSpecificOutput.additionalContext: "prd-toolkit: src/orders/importer.py is in area import of docs/prd/orders, and no block of that area is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change)."}}
+      run_4: {stdout_json_at: {hookSpecificOutput.hookEventName: PostToolUse}}
+      run_5: {stdout_json_at: {hookSpecificOutput.hookEventName: PostToolUse}}
+    effects: []
+    errors: []
+    leaks: none
+T-278.6:
+  ac: AC-278.5
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HA, HL]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: "not json"}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Read, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: src/orders/importer.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: ""}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/reports/monthly.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/features/import.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Write, tool_input: {file_path: <tmp>/.prd-toolkit/VERSION, content: "0.0.0\n"}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, agent_type: "prd-toolkit:prd-tester", tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+      - {env: {PRD_TOOLKIT_EDIT_HOOK: "off"}, command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <outside>, tool_name: Edit, tool_input: {file_path: <outside>/x.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: ""}
+      run_2: {stdout: ""}
+      run_3: {stdout: ""}
+      run_4: {stdout: ""}
+      run_5: {stdout: ""}
+      run_6: {stdout: ""}
+      run_7: {stdout: ""}
+      run_8: {stdout: ""}
+      run_9: {stdout: ""}
+      run_10: {stdout: ""}
+      run_11: {stdout_json_at: {hookSpecificOutput.additionalContext: "prd-toolkit: src/orders/importer.py is in area import of docs/prd/orders, and no block of that area is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change)."}}
+    effects: []
+    errors: []
+    leaks: none
+T-278.7:
+  ac: AC-278.6
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HX]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_edit_hook.py post
+    stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}
+  expect:
+    output: {exit: 0, stdout: "", stderr_single_line_starts: "prd-toolkit edit hook: "}
+    effects: []
+    errors: []
+    leaks: none
+T-278.8:
+  ac: AC-278.7
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts]
+  input:
+    setup: [H0, HA, HL]
+    cwd: <tmp>
+    command: python -S <repo>/prd-toolkit/scripts/prd_edit_hook.py post
+    stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/orders/importer.py}}
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json: {hookSpecificOutput: {hookEventName: PostToolUse, additionalContext: "prd-toolkit: src/orders/importer.py is in area import of docs/prd/orders, and no block of that area is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change)."}}
+    effects: []
+    errors: []
+    leaks: none
+T-279.1:
+  ac: AC-279.2
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0, NL1]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/contracts/errors.yaml}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop, stop_hook_active: false}}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: ""}
+      run_2: {stdout_json_at: {hookSpecificOutput.hookEventName: Stop}}
+      relations:
+        - "run_2's hookSpecificOutput.additionalContext, split into lines, has the first line `prd-toolkit: prd lint fails on docs/prd/orders after this session's edits:` and the last line `Finish the PRD edit through /prd-toolkit:prd-change, which runs lint itself.`"
+        - "every line of run_2's additionalContext between its first and last line starts with `docs/prd/orders/`, none of them holds `: warn: `, and one of them starts with `docs/prd/orders/contracts/errors.yaml:9: `"
+    effects: []
+    errors: []
+    leaks: none
+T-279.2:
+  ac: AC-279.1
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0, NL1]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/src/app.py}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: MultiEdit, tool_input: {file_path: <tmp>/docs/prd/orders/prd.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_1: {stdout: ""}
+      run_2: {stdout: ""}
+      run_3: {stdout: ""}
+      run_4: {stdout_json_at: {hookSpecificOutput.hookEventName: Stop}}
+      relations:
+        - "the first line (`str.splitlines()`) of run_4's hookSpecificOutput.additionalContext, read from the parsed JSON, is `prd-toolkit: prd lint fails on docs/prd/orders after this session's edits:`"
+    effects: []
+    errors: []
+    leaks: none
+T-279.3:
+  ac: AC-279.3
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0, NL1, H2]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders2/prd.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/prd.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_3: {stdout_json_at: {hookSpecificOutput.hookEventName: Stop}}
+      relations:
+        - "run_3's hookSpecificOutput.additionalContext holds exactly one empty line; the lines before it start with the line `prd-toolkit: prd lint fails on docs/prd/orders after this session's edits:` and the lines after it with `prd-toolkit: prd lint fails on docs/prd/orders2 after this session's edits:`"
+        - "the part after the empty line holds a line that starts with `docs/prd/orders2/prd.md:2: frontmatter: `, and each part ends with the line `Finish the PRD edit through /prd-toolkit:prd-change, which runs lint itself.`"
+    effects: []
+    errors: []
+    leaks: none
+T-279.4:
+  ac: AC-279.4
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0, NL1]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/contracts/errors.yaml}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/contracts/errors.yaml}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid2>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/contracts/errors.yaml}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid2>, cwd: <tmp>, hook_event_name: Stop}}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_2: {stdout_json_at: {hookSpecificOutput.hookEventName: Stop}}
+      run_4: {stdout: ""}
+      run_6: {stdout_json_at: {hookSpecificOutput.hookEventName: Stop}}
+      relations:
+        - "run_6's stdout equals run_2's: another session is told the same findings again"
+    effects: []
+    errors: []
+    leaks: none
+T-279.5:
+  ac: AC-279.4
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/prd.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-279.6:
+  ac: AC-279.5
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0, HB]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/prd.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/prd.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+  expect:
+    output:
+      each_run: {exit: 0, stderr: ""}
+      run_2: {stdout_json: {hookSpecificOutput: {hookEventName: Stop, additionalContext: "prd-toolkit: prd lint could not run on docs/prd/orders: stub lint broke"}}}
+      run_4: {stdout: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-279.7:
+  ac: AC-279.6
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0, HG]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/prd.md}}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "", stderr: ""}
+    effects:
+      - "<tmp>/.prd-toolkit/lint.log holds exactly the one line `lint docs/prd/orders`: the second Stop run ran no lint"
+    errors: []
+    leaks: none
+T-279.8:
+  ac: AC-279.7
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: [status-next/base, edit-hook/texts, lint-cli/plugins_superpowers]
+  input:
+    setup: [H0, HG]
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py post", stdin: {session_id: <sid>, cwd: <tmp>, tool_name: Edit, tool_input: {file_path: <tmp>/docs/prd/orders/prd.md}}}
+      - {env: {PRD_TOOLKIT_EDIT_HOOK: "off"}, command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {session_id: <sid>, cwd: <tmp>, hook_event_name: Stop}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: "not json"}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py stop", stdin: {cwd: <tmp>, hook_event_name: Stop}}
+  expect:
+    output:
+      each_run: {exit: 0, stdout: "", stderr: ""}
+    effects:
+      - "no file <tmp>/.prd-toolkit/lint.log exists: no Stop run ran lint"
+    errors: []
+    leaks: none
+T-280.1:
+  ac: AC-280.1
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <repo>
+    command: python -c "import json, sys; print(json.dumps(json.load(open(sys.argv[1], encoding='utf-8'))))" prd-toolkit/hooks/hooks.json
+  expect:
+    output:
+      exit: 0
+      stderr: ""
+      stdout_json:
+        hooks:
+          PreToolUse:
+            - matcher: Read|Glob|Grep|Write|Edit|NotebookEdit|Bash
+              hooks:
+                - {type: command, command: 'python3 "${CLAUDE_PLUGIN_ROOT}/scripts/prd_tester_guard.py"'}
+          PostToolUse:
+            - matcher: Edit|Write|MultiEdit|NotebookEdit
+              hooks:
+                - {type: command, command: 'python3 "${CLAUDE_PLUGIN_ROOT}/scripts/prd_edit_hook.py" post', timeout: 5}
+          Stop:
+            - hooks:
+                - {type: command, command: 'python3 "${CLAUDE_PLUGIN_ROOT}/scripts/prd_edit_hook.py" stop', timeout: 60}
+      stdout_json_keys_at: {"": [hooks], hooks: [PreToolUse, PostToolUse, Stop]}
+    effects: []
+    errors: []
+    leaks: none
+T-280.2:
+  ac: AC-280.2
+  level: integration
+  target: cli:prd_edit_hook
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    cwd: <tmp>
+    runs:
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py", stdin: {session_id: <sid>}}
+      - {command: "python <repo>/prd-toolkit/scripts/prd_edit_hook.py pre", stdin: {session_id: <sid>}}
+  expect:
+    output:
+      each_run: {exit: 2, stdout: "", stderr: "usage: prd_edit_hook.py post|stop\n"}
+    effects: []
+    errors: []
+    leaks: none

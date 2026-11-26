@@ -41,7 +41,7 @@ def header_deps(path):
 
 
 def test_dispatch_table_covers_every_script():
-    have = {p.name for p in SCRIPTS.glob("prd_*.py")} - {"prd_dispatch.py", "prd_tester_guard.py"}
+    have = {p.name for p in SCRIPTS.glob("prd_*.py")} - {"prd_dispatch.py", "prd_tester_guard.py", "prd_edit_hook.py"}
     assert set(prd_dispatch.COMMANDS.values()) == have
     assert all(cmd == f[4:-3].replace("_", "-") for cmd, f in prd_dispatch.COMMANDS.items())
 

@@ -252,6 +252,54 @@ T-020.14:
     effects: []
     errors: []
     leaks: none
+T-020.15:
+  ac: AC-020.7
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert the line `format: 01` after line 2 of prd.md (prd: orders), so it becomes line 3"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_contains_line: "docs/prd/orders/prd.md:3: frontmatter: 'format: 01' must be a whole number from 1", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-020.16:
+  ac: AC-020.8
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "replace line 2 of prd.md with `prd: Orders`", "insert the line `format: 2` after line 2 of prd.md, so it becomes line 3"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 1, stdout_exact_lines: ["docs/prd/orders/prd.md:3: frontmatter: 'format: 2' is newer than this toolkit, which reads format 1; update prd-toolkit, then run prd hooks install to refresh .prd-toolkit/"], stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
+T-020.17:
+  ac: AC-020.9
+  level: integration
+  target: cli:prd_lint
+  environment: local
+  identity: none
+  preconditions: [lint-cli/orders, lint-cli/plugins_superpowers]
+  input:
+    setup: [S0, "insert the line `format: 1` after line 2 of prd.md (prd: orders), so it becomes line 3"]
+    cwd: <tmp>
+    command: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders
+  expect:
+    output: {exit: 0, stdout: "", stderr: ""}
+    effects: []
+    errors: []
+    leaks: none
 T-021.1:
   ac: AC-021.1
   level: integration
