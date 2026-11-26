@@ -1,0 +1,598 @@
+# Format: references/prd-format.md, "Test cases". One entry per T-id.
+# Conventions for every case below:
+#   <repo> is the repository root, an absolute path; <tmp> is the test's own tmp_path.
+#   A file is read from the checkout at <repo> as UTF-8; JSON is parsed with json.loads, TOML with tomllib.
+#   MARKET = <repo>/.claude-plugin/marketplace.json parsed; ENTRY = the one element of MARKET["plugins"].
+#   PLUGIN = <repo>/prd-toolkit/.claude-plugin/plugin.json parsed. <v> = PLUGIN["version"].
+#   PREADME = <repo>/prd-toolkit/README.md; RREADME = <repo>/README.md.
+#   "intro" of a README = its text before the first line that starts with "## ".
+#   "section <T>" of a README = the lines from the first line that equals "## <T>" once its line ending is
+#   removed, that line included, up to and not including the next line that starts with "## ", or to the
+#   end of the file when no later "## " line follows.
+#   A fenced block = the lines between an opening fence and its closing fence, a fence being a line whose
+#   text, with its leading white space removed, starts with three backticks; fences pair in file order,
+#   the first opening a block and the second closing it, the third opening the next, and so on, so the
+#   lines between one block's closing fence and the next opening fence are no block; fences pair over
+#   the whole file, and a block belongs to a section only when both its fences lie inside that section;
+#   a block's lines are compared with their leading and trailing white space removed.
+#   The testing.md paragraph on the release cases says how <repo> is found and what each expect.output key means.
+#   "flat" = every run of white space replaced by one space.
+#   These cases run nothing but file reads, except T-272.1 (prd_lint.py), T-274.x (sh and git init)
+#   and T-276.1 (git ls-files).
+
+T-268.1:
+  ac: AC-268.1
+  level: integration
+  target: "code:.claude-plugin/marketplace.json"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "MARKET"
+  expect:
+    output:
+      keys: [name, owner, description, plugins]
+      name: prdanvil
+      owner_name: PRDAnvil
+      owner_url: "https://github.com/PRDAnvil"
+      plugins_length: 1
+      entry_keys: [name, source, version, description]
+      entry_name: prd-toolkit
+      entry_source: "./prd-toolkit"
+      note: "keys and entry_keys are each compared as a set, with their count: the AC says exactly the keys, and JSON key order carries no meaning"
+    effects: []
+    errors: []
+    leaks: none
+
+T-268.2:
+  ac: AC-268.2
+  level: integration
+  target: "code:.claude-plugin/marketplace.json"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "MARKET[\"description\"]"
+  expect:
+    output:
+      description: "prd-toolkit: a living PRD as the single authority Claude Code agents build, test and deploy from"
+    effects: []
+    errors: []
+    leaks: none
+
+T-269.1:
+  ac: AC-269.1
+  level: integration
+  target: "code:prd-toolkit/.claude-plugin/plugin.json"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "PLUGIN"
+  expect:
+    output:
+      keys: [name, version, description, author, homepage, license, skills, commands]
+      name: prd-toolkit
+      author_name: Ivan Histand
+      author_url: "https://github.com/PRDAnvil"
+      homepage: "https://github.com/PRDAnvil/prd-toolkit/tree/main/prd-toolkit"
+      license: MIT
+      skills: "./skills"
+      commands: "./commands"
+      note: "keys is compared as a set, with its count: the AC says exactly the keys, and JSON key order carries no meaning"
+    effects: []
+    errors: []
+    leaks: none
+
+T-269.2:
+  ac: AC-269.2
+  level: integration
+  target: "code:prd-toolkit/.claude-plugin/plugin.json"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "PLUGIN and ENTRY; then <repo>/prd-toolkit/<PLUGIN[skills]> and <repo>/prd-toolkit/<PLUGIN[commands]>"
+  expect:
+    output:
+      name_equal: "PLUGIN[\"name\"] == ENTRY[\"name\"]"
+      skills_is_dir: true
+      commands_is_dir: true
+    effects: []
+    errors: []
+    leaks: none
+
+T-270.1:
+  ac: AC-270.1
+  level: integration
+  target: "code:prd-toolkit/.claude-plugin/plugin.json"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "PLUGIN[\"version\"] and ENTRY[\"version\"]"
+  expect:
+    output:
+      equal: "PLUGIN[\"version\"] == ENTRY[\"version\"]"
+      fullmatch: "re.fullmatch(r\"[0-9]+\\.[0-9]+\\.[0-9]+\", PLUGIN[\"version\"]) is not None"
+    effects: []
+    errors: []
+    leaks: none
+
+T-270.2:
+  ac: AC-270.2
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "flat(intro of PREADME) and <v>"
+  expect:
+    output:
+      holds: "Version <v>."
+    effects: []
+    errors: []
+    leaks: none
+
+T-270.3:
+  ac: AC-270.3
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "the lines of section Changelog of PREADME that match ^- \\*\\*([0-9]+)\\.([0-9]+)\\.([0-9]+):\\*\\*, in file order, and <v>"
+  expect:
+    output:
+      first_version: "<v>"
+      order: "each line's version tuple is greater than the next line's"
+      last_version: "0.1.0"
+    effects: []
+    errors: []
+    leaks: none
+
+T-271.1:
+  ac: AC-271.1
+  level: integration
+  target: "code:.claude-plugin/marketplace.json"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "ENTRY[\"description\"] and PLUGIN[\"description\"]"
+  expect:
+    output:
+      equal: true
+    effects: []
+    errors: []
+    leaks: none
+
+T-271.2:
+  ac: AC-271.2
+  level: integration
+  target: "code:prd-toolkit/.claude-plugin/plugin.json"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "set(re.findall(r\"/prd-toolkit:([a-z-]+)\", PLUGIN[\"description\"])) and the set of stems of <repo>/prd-toolkit/commands/*.md"
+  expect:
+    output:
+      sets_equal: true
+    effects: []
+    errors: []
+    leaks: none
+
+T-271.3:
+  ac: AC-271.3
+  level: integration
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  known-failing: E-087
+  symptom: "the set the case's read builds from the root README's Slash commands line holds ten distinct names, and neither `prd-practices` nor `prd-pack` is among them"
+  input:
+    read: "the one line of RREADME that starts with `- **Slash commands**` (no such line, or more than one, is a test failure): set(re.findall(r\"/prd-toolkit:([a-z-]+)\", line)); and the set of stems of <repo>/prd-toolkit/commands/*.md"
+  expect:
+    output:
+      sets_equal: true
+    effects: []
+    errors: []
+    leaks: none
+
+T-272.1:
+  ac: AC-272.1
+  level: integration
+  refs: ["testing.md#Harness"]
+  target: "cli:prd_lint"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    command: "python <repo>/prd-toolkit/scripts/prd_lint.py --list-rules"
+    cwd: "<tmp>"
+    read: "flat(PLUGIN[\"description\"]), flat(intro of PREADME), flat(intro of RREADME), flat(RREADME), flat(section Lint CLI of PREADME): every text flattened, as AC-272.1 says"
+  expect:
+    output:
+      exit: 0
+      stdout_line_count: 41
+      plugin_description_holds: "a 41-rule linter"
+      preadme_intro_holds: "a 41-rule linter"
+      rreadme_intro_holds: "a 41-rule linter"
+      rreadme_holds: "checks 41 rules"
+      preadme_lint_cli_holds: "prints the 41 rules"
+    effects: []
+    errors: []
+    leaks: none
+
+T-273.1:
+  ac: AC-273.1
+  level: integration
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "section Install of RREADME and section Install of PREADME; MARKET[\"name\"] and ENTRY[\"name\"]"
+  expect:
+    output:
+      each_section: "inside one fenced block, the line /plugin marketplace add PRDAnvil/prd-toolkit, and directly after it the line /plugin install prd-toolkit@prdanvil"
+      market_name: prdanvil
+      entry_name: prd-toolkit
+    effects: []
+    errors: []
+    leaks: none
+
+T-273.2:
+  ac: AC-273.2
+  level: integration
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "flat(section Install of RREADME)"
+  expect:
+    output:
+      holds: ["claude plugin uninstall prd-toolkit@ihistand", "at every scope"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-273.3:
+  ac: AC-273.3
+  level: integration
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "flat(section Install of RREADME)"
+  expect:
+    output:
+      holds:
+      - "The plugin adds no `prd` command to your shell"
+      - "`.prd-toolkit/prd <command>`"
+      - "`~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd <command>`"
+    effects: []
+    errors: []
+    leaks: none
+
+T-273.4:
+  ac: AC-273.4
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "the data rows (the third line on) of the table in section Commands and skills of PREADME, the table being the first run of lines in the section that start with `|`, and the stems of <repo>/prd-toolkit/commands/*.md"
+    note: "a row's first cell is the text between its first and second `|`, with its leading and trailing white space removed; the cell starts with a backtick followed by /prd-toolkit: (the backtick is part of the prefix), and its command name is the run of a-z and - after that prefix"
+  expect:
+    output:
+      row_count_equals_file_count: true
+      names: "the rows' command names, as a set, equal the stems, as a set; every first cell starts with a backtick followed by /prd-toolkit:"
+    effects: []
+    errors: []
+    leaks: none
+
+T-273.5:
+  ac: AC-273.5
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  known-failing: E-089
+  symptom: "the plugin README's Install section gives `claude plugin update prd-toolkit@prdanvil` with no `claude plugin marketplace update prdanvil`"
+  input:
+    read: "flat(section Install of PREADME)"
+  expect:
+    output:
+      holds_in_order: ["claude plugin marketplace update prdanvil", "claude plugin update prd-toolkit@prdanvil", "/reload-plugins"]
+      note: "each text found after the end of the one before it"
+    effects: []
+    errors: []
+    leaks: none
+
+T-273.6:
+  ac: AC-273.6
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  known-failing: E-088
+  symptom: "flat(section Tests and evals of PREADME) holds the text `the skills' text still prints gets \"Unknown command\"`, with straight quotes, as the README writes it"
+  input:
+    read: "flat(section Tests and evals of PREADME)"
+  expect:
+    output:
+      holds_none_of: ["that the skills' text still prints", "the skills' text prints"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-273.7:
+  ac: AC-273.7
+  level: integration
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  known-failing: E-091
+  symptom: "the root README's Features list does not hold `the main skills`"
+  input:
+    read: "flat(the lines of RREADME from the first line that starts with `**Features:**`, that line included, up to and not including the first later line that starts with `**` or `## `, or to the end of the file when no such line follows)"
+  expect:
+    output:
+      holds: ["the main skills", "the plugin README lists all eleven", "](./prd-toolkit/README.md"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-274.1:
+  ac: AC-274.1
+  level: integration
+  refs: ["testing.md#Harness"]
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+    - "FUNC = the lines of RREADME from the first line that equals `prd() {` once its line ending is removed to the next line that equals `}` once its line ending is removed, both included, joined with newlines"
+    - "write <tmp>/home/.claude/plugins/cache/prdanvil/prd-toolkit/0.8.9/scripts/prd: printf '%s\\n' plugin-0.8.9 \"$@\""
+    - "write <tmp>/home/.claude/plugins/cache/prdanvil/prd-toolkit/0.8.19/scripts/prd: printf '%s\\n' plugin-0.8.19 \"$@\""
+    - "git init <tmp>/repo; write <tmp>/repo/.prd-toolkit/prd: printf '%s\\n' vendored \"$@\""
+    env:
+      HOME: "<tmp>/home"
+      GIT_CEILING_DIRECTORIES: "<tmp>"
+      note: "the Subprocess environment (testing.md Harness) minus GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE and GIT_COMMON_DIR"
+    cwd: "<tmp>/repo"
+    command: ["sh", "-c", "FUNC\nprd \"$@\"", "sh", "lint", "docs/prd/a b"]
+  expect:
+    output:
+      exit: 0
+      stdout_exact: "vendored\nlint\ndocs/prd/a b\n"
+      stderr: ""
+    effects:
+    - "no file under <tmp> changes"
+    errors: []
+    leaks: none
+
+T-274.2:
+  ac: AC-274.2
+  level: integration
+  refs: ["testing.md#Harness"]
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    setup:
+    - "the setup of T-274.1"
+    - "git init <tmp>/novendor (no .prd-toolkit/ in it)"
+    - "mkdir <tmp>/plain (in no git working tree; GIT_CEILING_DIRECTORIES stops the search at <tmp>)"
+    env:
+      HOME: "<tmp>/home"
+      GIT_CEILING_DIRECTORIES: "<tmp>"
+      note: "as T-274.1"
+    runs:
+    - {cwd: "<tmp>/repo", command: ["sh", "-c", "FUNC\nprd \"$@\"", "sh", "publish", "docs/prd/a"]}
+    - {cwd: "<tmp>/plain", command: ["sh", "-c", "FUNC\nprd \"$@\"", "sh", "status"]}
+    - {cwd: "<tmp>/novendor", command: ["sh", "-c", "FUNC\nprd \"$@\"", "sh", "lint"]}
+  expect:
+    output:
+      run_1: {exit: 0, stdout_exact: "plugin-0.8.19\npublish\ndocs/prd/a\n"}
+      run_2: {exit: 0, stdout_exact: "plugin-0.8.19\nstatus\n"}
+      run_3: {exit: 0, stdout_exact: "plugin-0.8.19\nlint\n"}
+    effects:
+    - "no file under <tmp> changes"
+    errors: []
+    leaks: none
+
+T-274.3:
+  ac: AC-274.3
+  level: integration
+  refs: ["testing.md#Harness"]
+  target: "code:README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  known-failing: E-090
+  symptom: "the function runs `sh scripts/prd` in the working directory, so the run exits 0 and its stdout lines (`str.splitlines()`) are exactly `wrong-launcher` and `status`, in that order"
+  input:
+    setup:
+    - "FUNC = the lines of RREADME from the first line that equals `prd() {` once its line ending is removed to the next line that equals `}` once its line ending is removed, both included, joined with newlines"
+    - "mkdir <tmp>/emptyhome (no .claude folder in it)"
+    - "mkdir <tmp>/plain; write <tmp>/plain/scripts/prd: printf '%s\\n' wrong-launcher \"$@\""
+    env:
+      HOME: "<tmp>/emptyhome"
+      GIT_CEILING_DIRECTORIES: "<tmp>"
+      note: "as T-274.1"
+    cwd: "<tmp>/plain"
+    command: ["sh", "-c", "FUNC\nprd \"$@\"", "sh", "status"]
+  expect:
+    output:
+      exit: 127
+      stdout_exact: ""
+      stderr_holds: "prd-toolkit is not installed"
+    effects:
+    - "no file under <tmp> changes"
+    errors: []
+    leaks: none
+
+T-275.1:
+  ac: AC-275.1
+  level: integration
+  target: "code:prd-toolkit/LICENSE"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "<repo>/prd-toolkit/LICENSE split by str.splitlines(); flat(section License of PREADME)"
+  expect:
+    output:
+      line_count: 21
+      line_1: "MIT License"
+      line_3: "Copyright (c) 2026 Ivan Histand"
+      license_section_holds: ["MIT; see [LICENSE](./LICENSE).", "A vendored `.prd-toolkit/` carries a copy of it."]
+    effects: []
+    errors: []
+    leaks: none
+
+T-275.2:
+  ac: AC-275.2
+  level: integration
+  target: "code:prd-toolkit/NOTICE"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "flat(<repo>/prd-toolkit/NOTICE)"
+  expect:
+    output:
+      holds:
+      - "GitHub Spec Kit (https://github.com/github/spec-kit) - MIT License"
+      - "cc-sdd (https://github.com/gotalab/cc-sdd) - MIT License"
+      - "BMAD-METHOD (https://github.com/bmad-code-org/BMAD-METHOD) - MIT License"
+      - "(https://github.com/mattpocock/skills, skills/productivity/grilling) - MIT License"
+      - "(https://github.com/anthropics/skills, skills/doc-coauthoring) - Apache License 2.0"
+      - "Nothing is copied from Taskmaster (Commons Clause) or spec-workflow-mcp (GPL-3.0)."
+    effects: []
+    errors: []
+    leaks: none
+
+T-275.3:
+  ac: AC-275.3
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "flat(section Credits of PREADME)"
+  expect:
+    output:
+      holds: ["GitHub Spec Kit", "cc-sdd", "BMAD-METHOD", "mattpocock/skills", "Anthropic's doc-coauthoring skill", "[NOTICE](./NOTICE)"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-276.1:
+  ac: AC-276.1
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "every match of \\]\\(([^)\\s]+)\\) in RREADME and PREADME whose target does not start with http; the target with any #… removed, os.path.normpath-joined to the holding file's folder relative to <repo>; the output of git -C <repo> ls-files"
+  expect:
+    output:
+      unresolved: []
+      note: "each target is compared as written, with no percent-decoding; a target resolves when, after normalising, it is `.` (the repository root, which holds every listed path), a listed path, or a prefix of one followed by /; a target that is only a # fragment normalises to the holding file's folder, `.` for the root README, and so resolves"
+    effects: []
+    errors: []
+    leaks: none
+
+T-276.2:
+  ac: AC-276.2
+  level: integration
+  target: "code:prd-toolkit/README.md"
+  environment: local
+  identity: none
+  preconditions: []
+  known-failing: E-092
+  symptom: "the plugin README holds 28 links whose target starts with `../docs/superpowers/specs/`, 19 of them distinct, and none whose target is `../docs/superpowers/specs/` itself"
+  input:
+    read: "every match of \\]\\(([^)\\s]+)\\) in PREADME whose target starts with ../docs/superpowers/specs/"
+  expect:
+    output:
+      targets: ["../docs/superpowers/specs/"]
+    effects: []
+    errors: []
+    leaks: none
+
+T-277.1:
+  ac: AC-277.1
+  level: integration
+  target: "code:prd-toolkit/pyproject.toml"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "tomllib.loads(<repo>/prd-toolkit/pyproject.toml)"
+  expect:
+    output:
+      project.version: "0.1.0"
+      project.requires-python: ">=3.11"
+      project.dependencies: ["pyyaml>=6.0", "sqlglot>=25", "openapi-spec-validator>=0.7", "markdown-it-py>=3.0"]
+      dependency-groups.dev: ["pytest>=8", "pytest-xdist>=3"]
+      tool.uv.package: false
+    effects: []
+    errors: []
+    leaks: none
+
+T-277.2:
+  ac: AC-277.2
+  level: integration
+  target: "code:prd-toolkit/pyproject.toml"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "tomllib.loads(<repo>/prd-toolkit/pyproject.toml)[\"tool\"][\"pytest\"][\"ini_options\"]"
+  expect:
+    output:
+      testpaths: ["tests"]
+      pythonpath: ["scripts", "tests"]
+      norecursedirs_holds: fixtures
+    effects: []
+    errors: []
+    leaks: none
+
+T-277.3:
+  ac: AC-277.3
+  level: integration
+  target: "code:prd-toolkit/uv.lock"
+  environment: local
+  identity: none
+  preconditions: []
+  input:
+    read: "tomllib.loads(<repo>/prd-toolkit/uv.lock) and tomllib.loads(<repo>/prd-toolkit/pyproject.toml)"
+  expect:
+    output:
+      requires-python: ">=3.11"
+      prd_toolkit_packages: 1
+      source: {virtual: "."}
+      version: "equal to pyproject project.version"
+      requires-dist: "as a set of (name, specifier), each pair read from an entry's `name` and `specifier` keys: (markdown-it-py, >=3.0), (openapi-spec-validator, >=0.7), (pyyaml, >=6.0), (sqlglot, >=25)"
+      requires-dev.dev: "as a set of (name, specifier), each pair read from an entry's `name` and `specifier` keys: (pytest, >=8), (pytest-xdist, >=3)"
+    effects: []
+    errors: []
+    leaks: none

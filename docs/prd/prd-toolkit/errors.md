@@ -1096,3 +1096,51 @@ Explanation: I ran a probe in a scratch copy of the repository. It swapped the l
 Diagnosis: Root cause: `run_lint` in prd-toolkit/tests/prd/lint_contracts_support.py:143 passes `text=True, encoding="utf-8", errors="replace"` to subprocess.run, and `run_lint` in prd-toolkit/tests/prd/lint_ids_support.py:119 passes `encoding="utf-8", errors="replace"`, which selects text mode on its own. Text mode translates `\r\n` and `\r` to `\n`, and `errors="replace"` turns an invalid byte into U+FFFD. The account they break, testing.md Harness, Assertions: `a test captures a command's stdout and stderr as bytes, never in text mode (whose newline translation turns a \r into \n), and compares them with the expected text encoded as UTF-8`. Run: `uv run --project prd-toolkit python -I probe.py`, from a scratch clone at aae7708, with each helper's lint script path pointed at a stub that writes stdout `x.md:1: rule: a\r\nb\xff\n` and stderr `\r`. The account expects the helper to give a test those bytes. It printed `lint_contracts_support.run_lint: stdout 'x.md:1: rule: a\nb�\n' stderr '\n'` and `lint_ids_support.run_lint: stdout 'x.md:1: rule: a\nb�\n' stderr '\n'`, while `lint_contracts_support.run_lint_bytes` printed `stdout b'x.md:1: rule: a\r\nb\xff\n' stderr b'\r'`. Callers: the lint-contracts tests (12 files, 85 calls) and the lint-ids tests (2 files, 62 calls); their whole-output checks today are empty-stderr checks, the rest line and substring checks. The helpers lie outside every adopted Boundary of adoption.md and cite no T-id.
 Resolution: fixed in 7cfb309a9602f65bea6a0a7a960ca8ac1e867284, red run prd-toolkit/tests/test_lint_support_capture.py [unit]
 Recurrence of: -
+
+### E-087 The root README's slash-command list leaves out /prd-toolkit:prd-practices and /prd-toolkit:prd-pack
+Detected: 2026-11-25, adoption extract of release (README.md:13 @05ae956)
+Classification: unclassified
+Touches: FR-271, FR-273
+Diagnosis: read from the code, not reproduced: the **Slash commands** bullet in README.md:13 names ten commands and stops at `/prd-toolkit:prd-publish`, while the plugin manifest's description (plugin.json:4, repeated by the marketplace entry), `prd-toolkit/commands/` (`prd-practices.md`, `prd-pack.md`) and the plugin README's Commands and skills table (prd-toolkit/README.md:61-62) all hold twelve; the two commands arrived in 0.8.11 (b787b0a) and 0.8.12 (2057b59) and the root README was not updated.
+Resolution: open, intended: it should include all, not just 10 (owner, 2026-11-25, adoption confirmation of release)
+Recurrence of: -
+
+### E-088 The plugin README says the skills still print bare /prd-change, which 0.8.7 removed
+Detected: 2026-11-25, adoption extract of release (prd-toolkit/README.md:1738 @05ae956)
+Classification: unclassified
+Touches: FR-273
+Diagnosis: read from the code, not reproduced: `## Tests and evals` (prd-toolkit/README.md:1738-1740) says "The bare `/prd-change` that the skills' text still prints gets "Unknown command"", while the 0.8.7 release commit 3e18605 says every template, skill, command, agent, script message and the format reference now names them in full, and a grep of `prd-toolkit/skills`, `commands` and `agents` finds no bare `/prd-<name>` outside one quoted session transcript (skills/coordinating-prds/SKILL.md:58).
+Resolution: open, intended: it shouldn't describe that behavior anymore, it's gone. (owner, 2026-11-25, adoption confirmation of release)
+Recurrence of: -
+
+### E-089 The plugin README's update instruction leaves out the marketplace refresh that every Upgrade note gives
+Detected: 2026-11-25, adoption extract of release (prd-toolkit/README.md:40 @05ae956)
+Classification: unclassified
+Touches: FR-273
+Diagnosis: read from the code, not reproduced: `## Install` (prd-toolkit/README.md:40-41) says to run `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`, while each changelog **Upgrade:** note in the same file (prd-toolkit/README.md:1395 for 0.8.19, and the 0.8.18 and 0.8.17 notes) says to run `claude plugin marketplace update prdanvil` first; the two instructions for one task disagree (that the shorter one leaves the marketplace copy stale was not verified).
+Resolution: open, intended: claude plugin marketplace update should be done first (owner, 2026-11-25, adoption confirmation of release)
+Recurrence of: -
+
+### E-090 The root README's prd function runs a scripts/prd in the working directory when no plugin is installed
+Detected: 2026-11-25, confirmation of FR-274
+Classification: unclassified
+Touches: FR-274
+Diagnosis: read from the code, not reproduced: with no folder under `$HOME/.claude/plugins/cache/prdanvil/prd-toolkit/`, the `ls -d … | sort -V | tail -1` in the function (README.md:40-48 @05ae956) prints nothing, so the function runs `sh scripts/prd` relative to the working directory, which fails with a shell error or runs an unrelated file, instead of saying prd-toolkit is not installed.
+Resolution: open, intended: print `prd-toolkit is not installed` on stderr and return 127 (owner, 2026-11-25, adoption confirmation of release)
+Recurrence of: -
+
+### E-091 The root README's Features list does not say it names a selection of the skills
+Detected: 2026-11-25, characterization of release (T-273.7)
+Classification: unclassified
+Touches: FR-273
+Diagnosis: read from the run, not classified: the Features list of README.md names seven of the eleven skills and does not hold `the main skills`, nor say that the plugin README lists all eleven; the owner's Q-06 answer (2026-11-25) asks it to say so, with a link.
+Resolution: open, intended: a selection, but say so: add "the main skills; the plugin README lists all eleven" with a link (owner, 2026-11-25, Q-06)
+Recurrence of: -
+
+### E-092 The plugin README links each design spec under docs/superpowers/specs/ instead of the folder
+Detected: 2026-11-25, characterization of release (T-276.2)
+Classification: unclassified
+Touches: FR-276
+Diagnosis: read from the run, not classified: prd-toolkit/README.md holds 28 links whose target starts with `../docs/superpowers/specs/`, each to a single spec file, 19 distinct (four, the 0.8.9 to 0.8.12 specs, linked twice; the first `../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md`), and none to the folder itself, and the list stops at 0.8.12 while later specs are committed; the owner's Q-05 answer (2026-11-25) asks for one link to the folder.
+Resolution: open, intended: replace the per-release list with one link to docs/superpowers/specs/ (owner, 2026-11-25, Q-05)
+Recurrence of: -
