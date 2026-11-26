@@ -2,6 +2,42 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.21: the memory evals, `adopting-memory-unrelated` and `adopting-memory-headless-owner`
+
+Recorded 2026-11-26 on `fix/memory-minors`, model `sonnet`, Claude Code 2.1.332, one run per row, `--ablation none`,
+from a clean copy of the plugin (`git archive`), the command of the 0.8.20 section with `--case <name>`. RED is
+0.8.19 (`5cb2df4`) with the new case directories copied in. Cost of every run below: $6.71.
+The branch was then rebased onto `3e9bd32`: `2b3c94b` is now `4bd51a7` and `bc4a90c` is now `bc0ac25`, with the
+same plugin files apart from main's release-area changes.
+
+| Run | Skill | Case | Score | What decided it |
+|---|---|---|---|---|
+| 1 | 0.8.19 | unrelated | 0.90 | **fail** (RED) `says-no-note-applies`: the report says nothing of memory |
+| 2 | 0.8.19 | headless-owner | 0.91 | **fail** (RED) `proposes-the-owner`: the report never names the owner |
+| 3 | 2b3c94b | unrelated | 1.00 | a false pass: "Memory directory is unreadable here" matched `says-no-note-applies` |
+| 4 | 2b3c94b | headless-owner | 0.91 | fail `proposes-the-owner`: memory called unreadable after the first place |
+| 5 | 2b3c94b | conflict | 0.88 | fail `errors-name-memory-note`: "Memory was unreadable ... the digest is `none`" |
+| 6 | bc4a90c | unrelated | **1.00** | pass: the `$HOME` place listed, the billing-api note left unread |
+| 7 | bc4a90c | headless-owner | 0.92 → **1.00** | a §13 question named the owner, so `no-write-owner` failed; re-graded (below) |
+| 8 | bc4a90c | conflict | **1.00** | pass, with the new Agent and Bash token graders |
+
+**Runs 3 to 5 found a gap in 0.8.20.** Each session listed the system prompt's memory dir, was denied, and stopped
+there: the `$HOME/.claude/projects/<encoded root>/memory/` place has the same folder name whenever the session has its
+own config dir, and "when that is another directory" let it be skipped. 0.8.20's two passing runs had listed it;
+these three did not. bc4a90c makes the places three numbered steps, all three every time, with the full paths
+compared, and every memory case gained `lists-the-home-memory-place`, which runs 3 to 5 fail.
+
+**Run 7 was re-graded, not re-run.** Its `prd.md` held `owner: [NEEDS CLARIFICATION: …]` and a §13 question naming
+the note and the owner, which the skill's Memory section allows. The three graders that forbade the name in any
+Write, Edit or Bash call were replaced by `owner-stays-a-marker`, a check on the `owner:` field, and that grader
+passes on the run's kept output. Every other grader passed in the run itself.
+
+**The final review's grader fixes** were checked against the kept output, not re-run. `says-no-note-applies` no
+longer matches the fixture's "in-memory" or run 3's "memory digest is `none`" and still matches run 6's report;
+run 1's report still fails it. `no-requirement-names-memory` now matches only a memory note, auto-memory or
+`MEMORY.md`, and run 6's `features/notes.md` passes it. The new `owner-is-a-marker` and the reworked
+`owner-stays-a-marker` (the name only beside its memory note) both pass on run 7's `prd.md`.
+
 ## 0.8.20: `adopting-memory-conflict`, memory in adoption
 
 Recorded 2026-11-25 on `feat/memory-in-adoption`, model `sonnet`, Claude Code 2.1.332, one run per row, from a clean

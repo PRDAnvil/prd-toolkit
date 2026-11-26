@@ -64,10 +64,11 @@ The gate is the `prd-lint-exit=` value lint prints: `0` clean, `1` violations, `
    `adopted`. Each step below has a gate; never skip a step or set a state its gate has not
    passed.
 3. **An apparent bug never becomes a requirement.** Code that contradicts its docs, its name,
-   its comments, its commit messages or its siblings becomes an `E-nnn` entry in `errors.md`
-   (`Classification: unclassified`, `Resolution: open`). No requirement text and no test-case
-   `expect` encodes it. Only the user's word turns it into intended behaviour (step 3). It is a
-   hypothesis read from the code, and nothing ran: it is never written or proposed as a `code bug`.
+   its comments, its commit messages, its siblings or an owner's memory note becomes an `E-nnn`
+   entry in `errors.md` (`Classification: unclassified`, `Resolution: open`). No requirement text
+   and no test-case `expect` encodes it. Only the user's word turns it into intended behaviour
+   (step 3). It is a hypothesis read from the code, and nothing ran: it is never written or
+   proposed as a `code bug`.
    Its class comes from a run, in `prd-toolkit:handling-errors` step 2.
 4. **Confirmation is the user's word, requirement by requirement.** Silence, "looks fine
    overall", the code being obvious and "the code clearly intends it" confirm nothing. Never
@@ -107,11 +108,18 @@ read it. Read it every time: at step 0 for the project-wide sections, and at ste
 Resuming past step 1, rebuild the area's digest first. An owner who says not to read their memory
 is obeyed: the digest is `none` for the rest of the adoption, and you say so once.
 
-- **Where.** Look in the memory directory your system prompt names (Claude Code's auto-memory),
-  in `~/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/` when that is
-  another directory and exists, and in a directory the user names. List each place in a call of
-  its own: one that cannot be read or does not exist stops none of the others, and a denied
-  command takes everything chained with it down too.
+- **Where.** Three places; try every one that applies, every time, and list each place in a
+  call of its own:
+  1. the memory directory your system prompt names (Claude Code's auto-memory);
+  2. `$HOME/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/`. Expand
+     `$HOME` and compare the two full paths: the folder names match whenever the session has its
+     own config directory, yet the directories differ. Skip it only when the full paths are
+     identical;
+  3. a directory the user names, if they named one; never ask for one.
+
+  Each place stands alone: one that cannot be read or does not exist stops none of the others,
+  nor does one that is denied, and a denied command takes everything chained with it down too.
+  Say "unreadable" of a place, never of memory, until every place has been tried.
 - **Which notes.** Find the candidates from `MEMORY.md` (the index: each note's name and
   description) and from one Grep of the note bodies for the repository's name or slug, then read
   only those notes whole. A memory directory often holds notes for many repositories: a Boundary
@@ -656,6 +664,8 @@ Quoted from runs without this skill:
 - Citing a memory note as a `Source:`, or writing a note's text, a secret or a token into the
   PRD.
 - Two notes that disagree, settled without the owner by going with the newer note.
+- "Memory is unreadable, so the digest is `none`", said after one place was denied and before
+  `$HOME/.claude/projects/…/memory/` was listed.
 - A `Source:` line without `@<commit>`, or one you did not open.
 - The extract prompt sent to `prd-tester`, or a suite run by anything but `prd-tester`.
 - Editing a test to bring it up to date, or sending `Misread:` for a case you changed. A changed case gets a `Rewrite:` line.

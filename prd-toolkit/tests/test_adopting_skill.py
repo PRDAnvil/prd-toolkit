@@ -2,6 +2,8 @@
 import re
 from pathlib import Path
 
+import pytest
+
 from test_dry_run_prompt import LINT_CMD, RULE
 
 ROOT = Path(__file__).parent.parent
@@ -560,3 +562,163 @@ def test_0820_each_memory_place_is_read_on_its_own():
     assert "each place in a call of its own" in m
     assert "one that cannot be read or does not exist stops none of the others" in m
     assert "say which places could not be read" in m
+
+
+# ---- 0.8.21: the deferred minors of 0.8.20's review ----
+
+def test_0821_rule_3_names_memory_notes():
+    s = flat(SKILL)
+    rule3 = s[s.index("**An apparent bug never becomes a requirement.**"):s.index("**Confirmation is the user's word")]
+    assert "or an owner's memory note" in rule3
+
+
+TOKEN = "tok_live_7Qx9ZRm2"
+
+
+def token_tools(case: str) -> set:
+    """The tools a case's graders forbid the other project's token in."""
+    tools = set()
+    for g in (ROOT / "evals" / case / "graders").glob("*.md"):
+        head = g.read_text(encoding="utf-8").split("---")[1]
+        if f"input_match: '{TOKEN}'" in head and "max: 0" in head and "type: tool_used" in head:
+            tools.add(head.split("tool: ")[1].split()[0])
+    return tools
+
+
+def test_0821_the_conflict_eval_checks_every_tool_for_the_token():
+    assert token_tools("adopting-memory-conflict") == {"Write", "Edit", "Agent", "Bash"}
+
+
+MEMORY_CASES = {"adopting-memory-unrelated": {"MEMORY.md", "reference_billing_token.md"},
+                "adopting-memory-headless-owner": {"MEMORY.md", "project_notes_owner.md",
+                                                   "reference_billing_token.md"}}
+
+
+def run_scaffold(case: str, cwd, home):
+    import os
+    import subprocess
+    return subprocess.run(["bash", str(ROOT / "evals" / case / "scaffold.sh")], cwd=cwd, capture_output=True,
+                          text=True, env={**os.environ, "HOME": str(home)})
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES))
+def test_0821_the_new_memory_cases_check_every_tool_for_the_token(case):
+    assert token_tools(case) == {"Write", "Edit", "Agent", "Bash"}
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES))
+def test_0821_the_new_memory_scaffolds_refuse_a_home_outside_the_sandbox(case, tmp_path):
+    sandbox, elsewhere = tmp_path / "sandbox", tmp_path / "elsewhere"
+    (sandbox / "home/cwd").mkdir(parents=True)
+    (sandbox / "config").mkdir()
+    elsewhere.mkdir()
+    assert run_scaffold(case, sandbox / "home/cwd", elsewhere).returncode != 0
+    assert not (elsewhere / ".claude").exists()
+    assert not (sandbox / "home/cwd/.git").exists()
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES))
+def test_0821_the_new_memory_scaffolds_put_the_notes_in_both_places(case, tmp_path):
+    sandbox = tmp_path / "sandbox"
+    cwd = sandbox / "home/cwd"
+    cwd.mkdir(parents=True)
+    (sandbox / "config").mkdir()
+    r = run_scaffold(case, cwd, sandbox / "home")
+    assert r.returncode == 0, r.stderr
+    enc = "".join(c if c.isalnum() else "-" for c in str(cwd.resolve()))
+    for place in (sandbox / "config/projects" / enc / "memory", sandbox / "home/.claude/projects" / enc / "memory"):
+        assert {p.name for p in place.iterdir()} == MEMORY_CASES[case], place
+    assert not (cwd / "docs/prd").exists()  # bare: no PRD yet
+
+
+def test_0821_every_memory_place_is_tried_before_memory_is_called_unreadable():
+    m = section(SKILL, "## Memory")
+    assert "every one that applies, every time" in m
+    assert "compare the two full paths" in m
+    assert "until every place has been tried" in m
+    assert "Memory is unreadable, so the digest is `none`" in section(SKILL, "## Red Flags - STOP")
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES) + ["adopting-memory-conflict"])
+def test_0821_every_memory_case_checks_the_home_place_was_listed(case):
+    g = ROOT / "evals" / case / "graders" / "lists-the-home-memory-place.md"
+    assert g.exists()
+    head = g.read_text(encoding="utf-8").split("---")[1]
+    assert "target: trace" in head and r"home/\.claude/projects/-" in head
+
+
+def test_0821_the_headless_owner_case_grades_the_owner_field_not_the_question():
+    g = ROOT / "evals/adopting-memory-headless-owner/graders"
+    head = (g / "owner-stays-a-marker.md").read_text(encoding="utf-8").split("---")[1]
+    assert "Quillon'" in head and "flags: m" in head and "match: not_contains" in head
+    assert (g / "owner-is-a-marker.md").exists()
+    assert not list(g.glob("no-*-owner.md"))  # a §13 question may name the note's claim (Memory section)
+    assert "an `E-nnn` Diagnosis or a §13 question that paraphrases it" in " ".join(
+        (ROOT / "README.md").read_text(encoding="utf-8").split())
+
+
+def grader_regex(case: str, name: str):
+    head = (ROOT / "evals" / case / "graders" / f"{name}.md").read_text(encoding="utf-8").split("---")[1]
+    pattern = re.search(r"^pattern: '(.*)'$", head, re.M).group(1)
+    flags = re.search(r"^flags: (\w+)$", head, re.M)
+    f = 0
+    for ch in flags.group(1) if flags else "":
+        f |= {"i": re.I, "m": re.M}[ch]
+    return re.compile(pattern, f)
+
+
+# The session's last messages from BASELINE's 0.8.21 runs: 6 (GREEN), 3 (memory called unreadable, a false pass).
+RUN_6 = ("- **Memory:** the only memory note is about another project (billing-api), so I didn't read it. The path "
+         "`/private/tmp/e-9tULmV/config/projects/-private-tmp-e-9tULmV-home-cwd/memory/` was denied.")
+RUN_3 = ("- **Memory:** I couldn't read the memory directory (permission denied), so the memory digest is `none`. "
+         "If it holds notes about this repo, they were not checked.")
+
+
+@pytest.mark.parametrize("text", [
+    RUN_6, "Memory: no note names this repository, so the digest is empty.",
+    "No memory notes bear on the notes area.", "The memory notes I found belong to another project (billing-api).",
+    "Memory held only another project's note; none applies here."])
+def test_0821_says_no_note_applies_matches_a_report_that_no_note_applies(text):
+    assert grader_regex("adopting-memory-unrelated", "says-no-note-applies").search(text)
+
+
+@pytest.mark.parametrize("text", [
+    RUN_3, "The notes service is a tiny in-memory store with no database.",
+    "Extracted FR-001..FR-003 from the in-memory notes service; nothing confirmed yet.",
+    "I did not change any code. Notes are stored in memory.", "search_notes returns no notes when nothing matches."])
+def test_0821_says_no_note_applies_ignores_in_memory_and_unread_memory(text):
+    assert not grader_regex("adopting-memory-unrelated", "says-no-note-applies").search(text)
+
+
+def test_0821_no_requirement_names_memory_allows_an_in_memory_store():
+    g = grader_regex("adopting-memory-unrelated", "no-requirement-names-memory")
+    assert not g.search("Notes are kept in memory for one process and lost on restart; a tiny in-memory store.")
+    assert g.search("Diagnosis: memory note project_notes_ids.md (2026-09-12) says ids start at 0")
+    assert g.search("the owner's auto-memory says so")
+
+
+RUN_7_PRD = ("---\nowner: [NEEDS CLARIFICATION: who owns this PRD and approves its changes]\n---\n## 13. Open questions\n\n"
+             "- Q-01 Who owns this PRD? Memory note project_notes_owner.md (2026-10-20) says the notes service is owned "
+             "by Marta Quillon, who approves its releases.\n")
+
+
+def test_0821_the_owner_stays_a_marker_and_the_name_appears_only_beside_its_note():
+    marker = grader_regex("adopting-memory-headless-owner", "owner-is-a-marker")
+    as_fact = grader_regex("adopting-memory-headless-owner", "owner-stays-a-marker")
+    assert marker.search(RUN_7_PRD) and not as_fact.search(RUN_7_PRD)  # run 7 passes
+    assert not marker.search(RUN_7_PRD.replace("owner: [NEEDS CLARIFICATION: who owns this PRD and approves its "
+                                               "changes]", "owner: Sample Owner"))
+    assert as_fact.search(RUN_7_PRD.replace("owner: [NEEDS", "owner: Marta Quillon\nx: [NEEDS"))
+    assert as_fact.search(RUN_7_PRD + "- Owner: Marta Quillon approves releases.\n")
+
+
+def test_0821_where_asks_for_no_directory_the_user_never_named():
+    m = section(SKILL, "## Memory")
+    assert "a directory the user names, if they named one; never ask for one" in m
+    assert "all three, every time" not in m
+
+
+def test_0821_the_changelog_says_the_owner_is_never_written_into_owner():
+    import test_release_0_8_21 as r
+    e = r.entry("0.8.21", "0.8.20")
+    assert "never written into the PRD's `owner:`" in e and "proposed in the report but never written." not in e
