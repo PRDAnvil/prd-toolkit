@@ -117,16 +117,14 @@ class Folder:
 
 
 def run_lint(tmp: Path) -> subprocess.CompletedProcess:
-    """`python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders` with <tmp> as the working directory."""
+    """`python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders` with <tmp> as the working directory.
+
+    stdout and stderr are captured as bytes (testing.md, Assertions) and decoded as strict UTF-8 with no
+    newline translation, so every \\r stays and output that is not UTF-8 raises, never passes.
+    """
     env = {k: v for k, v in os.environ.items() if k not in DROPPED_ENV}
-    return subprocess.run(
-        [sys.executable, str(LINT), PRD_REL],
-        cwd=tmp,
-        env=env,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    r = subprocess.run([sys.executable, str(LINT), PRD_REL], cwd=tmp, env=env, capture_output=True)
+    return subprocess.CompletedProcess(r.args, r.returncode, r.stdout.decode("utf-8"), r.stderr.decode("utf-8"))
 
 
 def _show(r: subprocess.CompletedProcess) -> str:

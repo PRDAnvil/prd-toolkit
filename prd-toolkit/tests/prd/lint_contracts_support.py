@@ -144,19 +144,11 @@ def run_lint(tmp: Path, env: dict[str, str] | None = None) -> subprocess.Complet
     """LINT: python <repo>/prd-toolkit/scripts/prd_lint.py docs/prd/orders, cwd <tmp>.
 
     `env` is a run's own env ({env: ..., command: LINT}), added for that run only.
+    stdout and stderr are captured as bytes (testing.md, Assertions) and decoded as strict UTF-8 with no
+    newline translation, so every \\r stays and output that is not UTF-8 raises, never passes.
     """
-    run_env = lint_env()
-    if env:
-        run_env.update(env)
-    return subprocess.run(
-        [sys.executable, str(LINT_SCRIPT), PRD_REL],
-        cwd=tmp,
-        env=run_env,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    r = run_lint_bytes(tmp, env)
+    return subprocess.CompletedProcess(r.args, r.returncode, r.stdout.decode("utf-8"), r.stderr.decode("utf-8"))
 
 
 def run_lint_bytes(tmp: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
