@@ -451,3 +451,112 @@ def test_0815_step_3_settles_intent_and_hands_the_class_to_prd_error():
     s = flat(SKILL)
     assert "The answer settles intent, not the class" in s
     assert "`/prd-toolkit:prd-error <E-nnn>`" in s
+
+
+# ---- 0.8.20: the owner's Claude Code memory proposes, flags and asks; it never confirms ----
+
+def test_0820_the_extract_prompt_takes_the_memory_digest():
+    text = flat(EXTRACT)
+    assert "<MEMORY>" in text
+    assert "Memory (the owner's notes, possibly stale): <MEMORY>" in text
+    rules = section(EXTRACT, "## Rules")
+    assert "an owner's memory note" in rules  # rule 2's list of what code may contradict
+    assert "never evidence of behaviour" in rules and "never a `Source:`" in rules
+    assert "memory note <file> (<date>)" in rules
+    assert "a note the code does not show is a QUESTION" in rules
+
+
+def test_0820_the_memory_section_says_where_what_and_what_never():
+    m = section(SKILL, "## Memory")
+    for needle in ("the memory directory your system prompt names", "`MEMORY.md`", "a directory the user names",
+                   "say so in one line and go on", "never in the repository", "never picks one",
+                   "never a note's text", "a secret"):
+        assert needle in m, needle
+
+
+def test_0820_extraction_sends_the_digest_and_nothing_else():
+    s = step(SKILL.read_text(encoding="utf-8"), 2)
+    assert "`<MEMORY>`" in s and "nothing else but the memory digest" in s
+    assert "Send nothing else:" not in s
+
+
+def test_0820_bootstrap_proposes_from_memory_and_confirm_shows_it():
+    text = SKILL.read_text(encoding="utf-8")
+    boot, confirm = step(text, 0), step(text, 3)
+    assert "a memory note answers" in boot and "the marker stays" in boot
+    assert "digest entries that touch it" in confirm and "A note confirms nothing" in confirm
+
+
+def test_0820_memory_red_flags_and_rationalizations():
+    flags = section(SKILL, "## Red Flags - STOP")
+    for needle in ("The memory note says so", "a memory note as a `Source:`", "the newer note"):
+        assert needle in flags, needle
+    rationalizations = section(SKILL, "## Common Rationalizations")
+    assert rationalizations.count("memory") >= 3
+
+
+def test_0820_review_confirm_shows_notes_in_the_chat_never_in_a_file():
+    confirm = step(SKILL.read_text(encoding="utf-8"), 3)
+    assert "before the form, the questions or the checklist" in confirm
+    assert "in one chat message" in confirm
+    assert "never in the summaries file or the checklist file" in confirm
+
+
+def test_0820_review_a_conflict_is_one_question_never_a_bug():
+    rules = section(EXTRACT, "## Rules")
+    assert "A conflict in the digest is one QUESTION naming both notes and their dates" in rules
+    assert "never an APPARENT BUGS entry on its own" in rules
+    assert "worded the same way" in rules
+    assert "one §13 bullet naming both notes and their dates" in section(SKILL, "## Memory")
+
+
+def test_0820_review_the_extractor_opens_no_memory_file():
+    assert "Memory: only the digest above; never open a memory file." in section(EXTRACT, "## What you read")
+    assert "No memory note: you read none." in flat(EXTRACT)
+
+
+def test_0820_review_a_confirmed_value_may_be_written_but_never_a_secret():
+    m = section(SKILL, "## Memory")
+    assert "A value the owner confirmed (a name, a login, an order) is written in plain words" in m
+    assert "a secret or a token stays a marker" in m
+
+
+def test_0820_review_resuming_rebuilds_the_digest_and_a_new_entry_rewrites_its_block():
+    m = section(SKILL, "## Memory")
+    assert "Resuming past step 1, rebuild the area's digest first." in m
+    extract = step(SKILL.read_text(encoding="utf-8"), 2)
+    assert "and the block or `expect` that encodes it is rewritten or dropped, as the bullet above says" in extract
+
+
+def test_0820_review_candidates_come_from_the_index_and_one_grep():
+    m = section(SKILL, "## Memory")
+    assert "one Grep of the note bodies for the repository's name or slug" in m
+    assert "a Boundary path or a package name counts only beside the repository's name" in m
+
+
+def test_0820_review_the_owner_may_opt_out():
+    m = section(SKILL, "## Memory")
+    assert "An owner who says not to read their memory is obeyed" in m
+    assert "\"Don't read my memory\"" in section(SKILL, "## When the user pushes")
+
+
+def test_0820_review_the_memory_scaffold_refuses_a_home_outside_the_sandbox(tmp_path):
+    import os
+    import subprocess
+    sandbox, elsewhere = tmp_path / "sandbox", tmp_path / "elsewhere"
+    (sandbox / "home/cwd").mkdir(parents=True)
+    (sandbox / "config").mkdir()
+    elsewhere.mkdir()
+    script = ROOT / "evals/adopting-memory-conflict/scaffold.sh"
+    r = subprocess.run(["bash", str(script)], cwd=sandbox / "home/cwd", capture_output=True, text=True,
+                       env={**os.environ, "HOME": str(elsewhere)})
+    assert r.returncode != 0
+    assert not (elsewhere / ".claude").exists()
+    assert not (sandbox / "home/cwd/.git").exists()  # refused before building anything
+
+
+def test_0820_each_memory_place_is_read_on_its_own():
+    m = section(SKILL, "## Memory")
+    assert "each place in a call of its own" in m
+    assert "one that cannot be read or does not exist stops none of the others" in m
+    assert "say which places could not be read" in m

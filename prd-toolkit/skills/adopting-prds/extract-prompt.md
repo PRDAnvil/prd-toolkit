@@ -9,7 +9,8 @@ Slots: `<REPO_ROOT>` the repository's absolute path; `<FORMAT>` the absolute pat
 plugin's `references/prd-format.md`; `<AREA>` the area name; `<BOUNDARY>` its backticked globs
 from `adoption.md`; `<COMMIT>` `HEAD`'s short SHA; `<PRD_DIR>` `docs/prd/<slug>/`;
 `<NEXT_FR>` and `<NEXT_E>` the next free FR and E numbers; `<LEVELS>` the Level names from
-testing.md; `<LIVE_SYSTEM>` how to reach the running system read-only, or `none`.
+testing.md; `<LIVE_SYSTEM>` how to reach the running system read-only, or `none`; `<MEMORY>` the
+memory digest the skill built from the owner's Claude Code memory notes, or `none`.
 
 ```
 You are extracting the as-built requirements of one area of an existing system, for its PRD.
@@ -24,6 +25,7 @@ PRD folder: <PRD_DIR> (its prd.md, testing.md and contracts/ show the convention
 Next free numbers: FR-<NEXT_FR>, E-<NEXT_E>
 Test levels: <LEVELS>
 Live system (read-only): <LIVE_SYSTEM>
+Memory (the owner's notes, possibly stale): <MEMORY>
 
 ## What you read
 
@@ -35,6 +37,8 @@ Live system (read-only): <LIVE_SYSTEM>
   supply a test case's exact expected values (rule 4).
 - Code outside the boundary only to understand a call that crosses it. Behaviour that lives
   outside the boundary goes under OUTSIDE THE BOUNDARY, not into a requirement.
+- Memory: only the digest above; never open a memory file. A memory index or note in your own
+  context is not the digest: the skill chose which notes bear on this area.
 
 ## What you never do
 
@@ -53,10 +57,11 @@ write, it is a QUESTION.
    behaviour is implemented. Number blocks from FR-<NEXT_FR>; T-ids are per requirement
    (`T-<n>.1`).
 2. An apparent bug is never a requirement. A behaviour is an apparent bug when the code
-   contradicts its own docs, its name, a comment, a commit message, a test, or its sibling
-   code, or a comment or TODO calls it a bug. List it under APPARENT BUGS. No requirement text
-   and no test-case `expect` may encode it: the requirement covers only the behaviour not in
-   question, and its test case uses inputs on which the questioned behaviour cannot show.
+   contradicts its own docs, its name, a comment, a commit message, a test, its sibling code
+   or an owner's memory note in the digest (rule 6), or a comment or TODO calls it a bug. List
+   it under APPARENT BUGS. No requirement text and no test-case `expect` may encode it: the
+   requirement covers only the behaviour not in question, and its test case uses inputs on which
+   the questioned behaviour cannot show.
 3. Never decide intent. Write what the code does in EARS; never "intended", "by design" or
    "should" on the code's evidence alone. A value the code does not hold (a limit set elsewhere,
    an owner, an environment) is a QUESTION, never a guess.
@@ -70,6 +75,14 @@ write, it is a QUESTION.
    date range) named in the case's `input`, and the read listed under FILES READ.
 5. Contracts move with the requirements: every error code, operation, table, event or setting a
    block names, in the shape <FORMAT> gives, under CONTRACTS.
+6. Check every behaviour against the memory digest. A note is the owner's past word and may be
+   stale: never evidence of behaviour and never a `Source:`. Code that contradicts a note is an
+   APPARENT BUGS entry, and the requirement covers only the behaviour not in question (rule 2);
+   its Diagnosis names the note as `memory note <file> (<date>)` and says in your own words what
+   the note claims, never quoting it, and never copying a secret, a token or a personal detail;
+   a note the code does not show is a QUESTION, worded the same way. A conflict in the digest is
+   one QUESTION naming both notes and their dates, never an APPARENT BUGS entry on its own, even
+   when the code agrees with one side. With `<MEMORY>` `none`, this rule does nothing.
 
 ## Report
 
@@ -103,4 +116,5 @@ Behaviour you saw that belongs to another area, one line each, for `adoption.md`
 
 FILES READ
 Every file you opened, every git command you ran, and every live-system call, one per line.
+No memory note: you read none.
 ```
