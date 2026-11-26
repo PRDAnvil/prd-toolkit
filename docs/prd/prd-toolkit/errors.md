@@ -1156,3 +1156,19 @@ Explanation: I ran the release test for the plugin README's links to the design 
 Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-276.2 (`test_one_spec_link`) expected the link targets that start with `../docs/superpowers/specs/` to be `[../docs/superpowers/specs/]` and printed `assert [../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md, ...] == [../docs/superpowers/specs/]` with `Left contains 27 more items`. AC-276.2: `The plugin README prd-toolkit/README.md shall hold exactly one Markdown link whose target starts with ../docs/superpowers/specs/, and that target shall be ../docs/superpowers/specs/`. Root cause: `prd-toolkit/README.md:11` to 31 and the changelog entries link each release's spec file (`grep -c` of the prefix prints 28); unit tests such as `tests/test_release_0_5.py` pin some of those links.
 Resolution: T-276.2 [integration], PRD 13.1.0, fixed in 07792ba
 Recurrence of: -
+
+### E-093 a PRD change that adds an enforced section 5 standards row leaves the generated CI workflow stale, and neither the change procedure nor `prd change approve` catches it before the push
+Detected: 2026-11-26, user report (/prd-toolkit:prd-error), PR #80
+Classification: unclassified
+URL: https://github.com/PRDAnvil/prd-toolkit/actions/runs/45910377365/job/140217032152
+Evidence: Owner's report (2026-11-26), after PR #80 (PRD 13.3.0, release-area practices):
+  The change added an enforced section 5 standards row for .claude-plugin/marketplace.json.
+  prd change approve committed c4b77f9 (docs(prd): approve prd-toolkit 13.3.0) with lint exit 0.
+  On PR #80, CI job prd-lint failed on its second step, sh .prd-toolkit/prd hooks check --ci docs/prd/prd-toolkit:
+  stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force
+  Regenerating added a standards-2 job (plugin validate . on .claude-plugin/marketplace.json); fixed by b76a27b.
+  changing-prds step 5's close says a generated CI include is stale when the change touched testing.md or operations.md;
+  it does not name a section 5 standards row, and neither lint nor approve reported the stale workflow before the push.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
