@@ -560,3 +560,11 @@ def test_0820_each_memory_place_is_read_on_its_own():
     assert "each place in a call of its own" in m
     assert "one that cannot be read or does not exist stops none of the others" in m
     assert "say which places could not be read" in m
+
+
+# ---- 0.8.21: the deferred minors of 0.8.20's review ----
+
+def test_0821_rule_3_names_memory_notes():
+    s = flat(SKILL)
+    rule3 = s[s.index("**An apparent bug never becomes a requirement.**"):s.index("**Confirmation is the user's word")]
+    assert "or an owner's memory note" in rule3

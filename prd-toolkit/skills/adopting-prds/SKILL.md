@@ -64,8 +64,8 @@ The gate is the `prd-lint-exit=` value lint prints: `0` clean, `1` violations, `
    `adopted`. Each step below has a gate; never skip a step or set a state its gate has not
    passed.
 3. **An apparent bug never becomes a requirement.** Code that contradicts its docs, its name,
-   its comments, its commit messages or its siblings becomes an `E-nnn` entry in `errors.md`
-   (`Classification: unclassified`, `Resolution: open`). No requirement text and no test-case
+   its comments, its commit messages, its siblings or an owner's memory note becomes an `E-nnn`
+   entry in `errors.md` (`Classification: unclassified`, `Resolution: open`). No requirement text and no test-case
    `expect` encodes it. Only the user's word turns it into intended behaviour (step 3). It is a
    hypothesis read from the code, and nothing ran: it is never written or proposed as a `code bug`.
    Its class comes from a run, in `prd-toolkit:handling-errors` step 2.
