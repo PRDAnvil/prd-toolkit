@@ -3,10 +3,11 @@
 # lint-structure: the structure lint rules
 
 ### FR-020 Check the prd.md frontmatter
-Status: verified
+Status: approved
 Source: prd-toolkit/scripts/prdlint/rules/structure.py:119 @c060204
-Flow: 1. read the frontmatter the loader parsed → 2. check `prd`, `version`, `status`, `owner`, `updated`, and `language` when present
-      → 3. while `contracts/schema.sql` is a file, check `sql-dialect` against sqlglot
+Flow: 1. read the frontmatter the loader parsed → 2. a `format` newer than the toolkit's ends the lint with that one finding
+      → 3. check `prd`, `version`, `status`, `owner`, `updated`, and `language` and `format` when present
+      → 4. while `contracts/schema.sql` is a file, check `sql-dialect` against sqlglot
 Acceptance (EARS):
 - AC-020.1 If a key among `prd`, `version`, `status`, `owner` and `updated` is absent from prd.md's frontmatter, the lint command shall report `prd.md:1: frontmatter: missing key '<key>'`, whatever lines below the frontmatter start with `<key>:`.
 - AC-020.2 When the frontmatter's `prd` value does not fully match `[a-z][a-z0-9-]*` or differs from the PRD folder's name, the lint command shall report `frontmatter` at the `prd:` line with `'prd: <value>' must be a lowercase slug equal to the folder name '<folder name>'`.
@@ -14,9 +15,12 @@ Acceptance (EARS):
 - AC-020.4 When the frontmatter has a `language` key whose value does not fully match `[a-z]{2,3}`, the lint command shall report `frontmatter` at its line with `'language: <value>' must match ^[a-z]{2,3}$`, and with no `language` key it shall make no language check in this rule.
 - AC-020.5 While `contracts/schema.sql` is a regular file in the PRD folder, the lint command shall report `frontmatter` with `missing key 'sql-dialect' (required because contracts/schema.sql exists)` when `sql-dialect` is absent or empty (at its frontmatter line, or at line 1 when the frontmatter has no `sql-dialect:` line), and with `'sql-dialect: <value>' is not a sqlglot dialect (<sqlglot's error text>)` at its line when sqlglot knows no such dialect.
 - AC-020.6 While `contracts/schema.sql` is not a regular file, the lint command shall not check `sql-dialect`.
+- AC-020.7 When the frontmatter has a `format` key whose value does not fully match `[1-9][0-9]*`, the lint command shall report `frontmatter` at its line with `'format: <value>' must be a whole number from 1`.
+- AC-020.8 When the frontmatter's `format` value is a whole number above 1, the format this toolkit reads, the lint command shall report `frontmatter` at the `format:` line with `'format: <n>' is newer than this toolkit, which reads format 1; update prd-toolkit, then run prd hooks install to refresh .prd-toolkit/`, report no finding of any other rule, and exit 1.
+- AC-020.9 Where the frontmatter has no `format` key, or its value is `1`, the lint command shall report no `format` finding and run every other rule as it does for a frontmatter without the key.
 Errors: -
-Edge cases: a prd.md with no frontmatter, or one with no closing `---`, has every key absent (the loader's frontmatter parser, lint-cli) → AC-020.1; a key's line is looked up only inside the frontmatter block, so a present key is reported at its own frontmatter line → AC-020.2, AC-020.3; a value keeps any quotes, so `status: "Approved"` is malformed → AC-020.3; `updated` is checked for its shape only (`2026-13-45` passes) → AC-020.3; a missing key whose name starts a later line of prd.md is still reported at line 1 (E-012) → AC-020.1
-Tests: T-020.1 [integration], T-020.2 [integration], T-020.3 [integration], T-020.4 [integration], T-020.5 [integration], T-020.6 [integration], T-020.7 [integration], T-020.8 [integration], T-020.9 [integration], T-020.10 [integration], T-020.11 [integration], T-020.12 [integration], T-020.13 [integration], T-020.14 [integration]  (test-cases/lint-structure.yaml)
+Edge cases: a prd.md with no frontmatter, or one with no closing `---`, has every key absent (the loader's frontmatter parser, lint-cli) → AC-020.1; a key's line is looked up only inside the frontmatter block, so a present key is reported at its own frontmatter line → AC-020.2, AC-020.3; a value keeps any quotes, so `status: "Approved"` is malformed → AC-020.3; `updated` is checked for its shape only (`2026-13-45` passes) → AC-020.3; a missing key whose name starts a later line of prd.md is still reported at line 1 (E-012) → AC-020.1; `format` records which version of the PRD grammar the folder was written to, and a folder written before the key existed has none, so a missing key is no finding and is read as format 1 → AC-020.9; `format: 0`, `format: 01` and `format: "1"` are malformed → AC-020.7; a newer format is the only finding even where other keys are malformed, because an older toolkit cannot tell a fault from grammar it does not know → AC-020.8; `--sample-tids`, `--list-rules`, `--list-packs` and `--interface` do not read the format → AC-020.8
+Tests: T-020.1 [integration], T-020.2 [integration], T-020.3 [integration], T-020.4 [integration], T-020.5 [integration], T-020.6 [integration], T-020.7 [integration], T-020.8 [integration], T-020.9 [integration], T-020.10 [integration], T-020.11 [integration], T-020.12 [integration], T-020.13 [integration], T-020.14 [integration], T-020.15 [integration], T-020.16 [integration], T-020.17 [integration]  (test-cases/lint-structure.yaml)
 Traces: UJ-01; cli:prd_lint; `prdlint/markdown.py` frontmatter
 
 ### FR-021 Report a PRD language with no table

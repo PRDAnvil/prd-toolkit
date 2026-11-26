@@ -39,3 +39,4 @@
 | error-replay | adopted | `prd-toolkit/scripts/prdlint/errorreplay.py` |
 | error-reopen | adopted | `prd-toolkit/scripts/prdlint/errorreopen.py` |
 | trd | adopted | `prd-toolkit/scripts/prd_trd.py`, `prd-toolkit/scripts/prdlint/trd.py` |
+| edit-hook | adopted | `prd-toolkit/scripts/prd_edit_hook.py` |

@@ -1,0 +1,20 @@
+# Fixture edit-hook/texts: the texts the edit-hook setup steps write into the scratch repository of
+# status-next/base, one key per text. adoption: an adoption map whose area import, adopted, covers src/orders/**,
+# and whose area reports, not started, lists src/reports/**. stub_broken: a launcher that stands in for
+# .prd-toolkit/prd, prints `stub lint broke` on stderr and exits 2. stub_logging: a launcher that appends its
+# arguments, as one line, to .prd-toolkit/lint.log under the working directory it runs in, and exits 0.
+adoption: |
+  # Adoption map
+
+  | Area | State | Boundary |
+  |---|---|---|
+  | import | adopted | `src/orders/**` |
+  | reports | not started | `src/reports/**` |
+stub_broken: |
+  #!/bin/sh
+  echo "stub lint broke" >&2
+  exit 2
+stub_logging: |
+  #!/bin/sh
+  echo "$*" >> .prd-toolkit/lint.log
+  exit 0

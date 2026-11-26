@@ -36,7 +36,7 @@ prd_lint:
     1: "one or more error findings, or --sample-tids with no non-unit test case"
     2: "usage error, an unsupported --json=N without --interface, folder without prd.md, missing dependency, or internal error (load or rule)"
   structure_findings:
-    frontmatter: "prd.md: missing key '<key>' | '<key>: <value>' <reason> | missing key 'sql-dialect' (required because contracts/schema.sql exists) | 'sql-dialect: <value>' is not a sqlglot dialect (<sqlglot error>) (FR-020)"
+    frontmatter: "prd.md: missing key '<key>' | '<key>: <value>' <reason> | missing key 'sql-dialect' (required because contracts/schema.sql exists) | 'sql-dialect: <value>' is not a sqlglot dialect (<sqlglot error>) | 'format: <value>' must be a whole number from 1 | 'format: <n>' is newer than this toolkit, which reads format 1; update prd-toolkit, then run prd hooks install to refresh .prd-toolkit/, the one finding lint prints for that folder (FR-020)"
     language-table: "prd.md: language '<code>' has no table, or the language loader's reason (FR-021)"
     sections_headings: "prd.md: missing section '## <n>. <title>' | sections are out of order | unexpected section '## <n>. <title>' (FR-022)"
     sections_files: "<entry>:0 mandatory '<entry>' is missing | mandatory '<entry>' cannot be marked not applicable | '<slot>' is absent and section 1 has no 'Not applicable: `<slot>` — reason' line (FR-023)"
@@ -778,3 +778,21 @@ prd_trd:
     0: "the view printed or written, or --help (FR-265)"
     1: "an --out path refused (FR-267)"
     2: "no prd.md, no git work tree, no commit, an --out file that cannot be written, or a usage error (FR-267)"
+prd_edit_hook:
+  # The Claude Code plugin hook in two tiers, prd-toolkit/scripts/prd_edit_hook.py, run from the plugin only (edit-hook, FR-278 to FR-280).
+  invocation: "python3 prd-toolkit/scripts/prd_edit_hook.py post|stop, with Claude Code's hook input, one JSON object, on stdin; wired in prd-toolkit/hooks/hooks.json as PostToolUse (matcher Edit|Write|MultiEdit|NotebookEdit, timeout 5) and Stop (timeout 60) (FR-280)"
+  input:
+    post: "tool_name, tool_input.file_path (tool_input.notebook_path for NotebookEdit), session_id, agent_type (FR-278, FR-279)"
+    stop: "session_id (FR-279)"
+  environment:
+    PRD_TOOLKIT_EDIT_HOOK: "off turns both tiers off (FR-278, FR-279)"
+  output:
+    reminder: "stdout, post: {\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"prd-toolkit: <path> is in area <area> of docs/prd/<slug>, and no block of that area is approved at HEAD; a behaviour change there starts with /prd-toolkit:prd-change before any code, and a change of no behaviour cites Refs: none (no behaviour change).\"}}, once per session and area (FR-278)"
+    reminder_new_project: "the same, with <path> is in the Boundary of docs/prd/<slug>, and no block of that PRD is approved at HEAD; … for a PRD folder with no adoption.md at HEAD (FR-278)"
+    report: "stdout, stop: {\"hookSpecificOutput\": {\"hookEventName\": \"Stop\", \"additionalContext\": <reports>}}; a report is prd-toolkit: prd lint fails on <folder> after this session's edits:, the new error finding lines (at most 20, then and <k> more), then Finish the PRD edit through /prd-toolkit:prd-change, which runs lint itself.; reports joined by an empty line (FR-279)"
+    lint_failed: "a report line: prd-toolkit: prd lint could not run on <folder>: <first stderr line | exit <code> | timed out after 50 s> (FR-279)"
+    failure: "stderr: prd-toolkit edit hook: <type>: <message>, stdout empty (FR-278, FR-279)"
+    usage: "stderr: usage: prd_edit_hook.py post|stop (FR-280)"
+  exit_codes:
+    0: "every run with post or stop, whatever it printed (FR-278, FR-279)"
+    2: "no argument, or one other than post and stop (FR-280)"

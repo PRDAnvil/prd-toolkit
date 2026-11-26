@@ -5,7 +5,7 @@ This folder is the living PRD for **prd-toolkit**: the requirements that say wha
 step with the code. The code implements this PRD, and a change in behaviour starts here, not in
 the code. It is maintained with prd-toolkit, a Claude Code plugin (see [../README.md](../README.md) to set it up).
 
-Version 13.1.0 · Approved · Owner: Ivan Histand · Updated 2026-11-25
+Version 13.2.0 · Approved · Owner: Ivan Histand · Updated 2026-11-26
 
 ## What this PRD covers
 
@@ -22,6 +22,7 @@ Version 13.1.0 · Approved · Owner: Ivan Histand · Updated 2026-11-25
 | change | adopted | [features/change.md](features/change.md) |
 | context-notes | adopted | [features/context-notes.md](features/context-notes.md) |
 | context | adopted | [features/context.md](features/context.md) |
+| edit-hook | adopted | [features/edit-hook.md](features/edit-hook.md) |
 | error-reopen | adopted | [features/error-reopen.md](features/error-reopen.md) |
 | error-replay | adopted | [features/error-replay.md](features/error-replay.md) |
 | eval-scaffolds | adopted | [features/eval-scaffolds.md](features/eval-scaffolds.md) |
