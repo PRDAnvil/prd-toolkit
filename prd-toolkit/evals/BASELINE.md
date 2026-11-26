@@ -2,6 +2,17 @@
 
 Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier repository, which the plugin README's Changelog names.
 
+## 0.8.22: `adopting-memory-conflict`, a regression run after the memory wording
+
+Recorded 2026-11-26 on `fix/memory-wording` at `4f95d8e`, model `sonnet`, Claude Code 2.1.332, one run,
+`--ablation none`, from a clean copy of the plugin (`git archive`), the command of the 0.8.20 section. The Memory
+section's second place changed wording only, so one run of the conflict case checks that nothing regressed. Cost:
+$0.94.
+
+| Run | Skill | Case | Score |
+|---|---|---|---|
+| 1 | 4f95d8e | conflict | **1.00** |
+
 ## 0.8.21: the memory evals, `adopting-memory-unrelated` and `adopting-memory-headless-owner`
 
 Recorded 2026-11-26 on `fix/memory-minors`, model `sonnet`, Claude Code 2.1.332, one run per row, `--ablation none`,
