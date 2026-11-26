@@ -737,7 +737,8 @@ def memory_paragraph() -> str:
 
 def test_0822_where_says_the_folder_names_can_match_not_always():
     m = section(SKILL, "## Memory")
-    assert "the folder names can match while the directories differ" in m
+    assert "the directories differ whenever the session has its own config directory, even when the folder names match" in m
+    assert "as they do when" not in m  # read as "the names match", it restated M4
     assert "match whenever" not in m
     assert "Skip it only when the full paths are identical" in m
 
