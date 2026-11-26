@@ -7,6 +7,8 @@ Commit SHAs in sections dated before 2026-11-10 resolve in the toolkit's earlier
 Recorded 2026-11-26 on `fix/memory-minors`, model `sonnet`, Claude Code 2.1.332, one run per row, `--ablation none`,
 from a clean copy of the plugin (`git archive`), the command of the 0.8.20 section with `--case <name>`. RED is
 0.8.19 (`5cb2df4`) with the new case directories copied in. Cost of every run below: $6.71.
+The branch was then rebased onto `3e9bd32`: `2b3c94b` is now `4bd51a7` and `bc4a90c` is now `bc0ac25`, with the
+same plugin files apart from main's release-area changes.
 
 | Run | Skill | Case | Score | What decided it |
 |---|---|---|---|---|
