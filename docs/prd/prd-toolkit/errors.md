@@ -1099,48 +1099,54 @@ Recurrence of: -
 
 ### E-087 The root README's slash-command list leaves out /prd-toolkit:prd-practices and /prd-toolkit:prd-pack
 Detected: 2026-11-25, adoption extract of release (README.md:13 @05ae956)
-Classification: unclassified
+Classification: code bug
 Touches: FR-271, FR-273
-Diagnosis: read from the code, not reproduced: the **Slash commands** bullet in README.md:13 names ten commands and stops at `/prd-toolkit:prd-publish`, while the plugin manifest's description (plugin.json:4, repeated by the marketplace entry), `prd-toolkit/commands/` (`prd-practices.md`, `prd-pack.md`) and the plugin README's Commands and skills table (prd-toolkit/README.md:61-62) all hold twelve; the two commands arrived in 0.8.11 (b787b0a) and 0.8.12 (2057b59) and the root README was not updated.
+Explanation: I ran the release test for the root README's slash-command list with its expected-failure mark turned off. It failed: the list names ten commands, and the plugin ships twelve; prd-practices and prd-pack are missing. The PRD says the list shall name exactly the commands the plugin ships. That makes it a code bug: the PRD is right and the README is wrong. It is not an invalid requirement, since at adoption you said the list should include all of them.
+Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-271.3 (`test_root_readme_slash_commands`) expected the line's names to equal the stems of `prd-toolkit/commands/*.md` and printed `only on the line: []; only in commands/: ['prd-pack', 'prd-practices']`. AC-271.3: `The set of names <name> that the **Slash commands** line of README.md holds as /prd-toolkit:<name> shall equal the set of stems of the files prd-toolkit/commands/*.md`. Root cause: `README.md:13` lists ten commands and was not updated when 0.8.11 and 0.8.12 added `prd-practices` and `prd-pack`.
 Resolution: open, intended: it should include all, not just 10 (owner, 2026-11-25, adoption confirmation of release)
 Recurrence of: -
 
 ### E-088 The plugin README says the skills still print bare /prd-change, which 0.8.7 removed
 Detected: 2026-11-25, adoption extract of release (prd-toolkit/README.md:1738 @05ae956)
-Classification: unclassified
+Classification: code bug
 Touches: FR-273
-Diagnosis: read from the code, not reproduced: `## Tests and evals` (prd-toolkit/README.md:1738-1740) says "The bare `/prd-change` that the skills' text still prints gets "Unknown command"", while the 0.8.7 release commit 3e18605 says every template, skill, command, agent, script message and the format reference now names them in full, and a grep of `prd-toolkit/skills`, `commands` and `agents` finds no bare `/prd-<name>` outside one quoted session transcript (skills/coordinating-prds/SKILL.md:58).
+Explanation: I ran the release test for the plugin README's Tests and evals section with its expected-failure mark turned off. It failed: the section still says the skills print the bare /prd-change command. That stopped being true in 0.8.7, when every skill began printing the namespaced /prd-toolkit:prd-change. The PRD says the section shall not say that. It is a code bug, the PRD right and the README wrong, not an invalid requirement: at adoption you said that behaviour is gone and the README should not describe it.
+Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-273.6 (`test_tests_and_evals_no_bare_command`) expected the section not to hold `that the skills' text still prints` and printed `AssertionError: that the skills' text still prints`. AC-273.6: `The ## Tests and evals section of prd-toolkit/README.md shall not say that the skills' text prints a bare /prd-<name> command`. Root cause: `prd-toolkit/README.md:1751` to 1753 still says `The bare /prd-change that the skills' text still prints gets "Unknown command"`; 0.8.7 namespaced every command the skills print and kept the sentence.
 Resolution: open, intended: it shouldn't describe that behavior anymore, it's gone. (owner, 2026-11-25, adoption confirmation of release)
 Recurrence of: -
 
 ### E-089 The plugin README's update instruction leaves out the marketplace refresh that every Upgrade note gives
 Detected: 2026-11-25, adoption extract of release (prd-toolkit/README.md:40 @05ae956)
-Classification: unclassified
+Classification: code bug
 Touches: FR-273
-Diagnosis: read from the code, not reproduced: `## Install` (prd-toolkit/README.md:40-41) says to run `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`, while each changelog **Upgrade:** note in the same file (prd-toolkit/README.md:1395 for 0.8.19, and the 0.8.18 and 0.8.17 notes) says to run `claude plugin marketplace update prdanvil` first; the two instructions for one task disagree (that the shorter one leaves the marketplace copy stale was not verified).
+Explanation: I ran the release test for the plugin README's update instructions with its expected-failure mark turned off. It failed: the README says to run claude plugin update and then /reload-plugins, and never says to refresh the marketplace first, so an update can find no newer version. The PRD says the README shall give three steps in order, starting with claude plugin marketplace update prdanvil, as every changelog Upgrade note does. Code bug: the PRD is right and the README is wrong; at adoption you said the marketplace refresh comes first.
+Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-273.5 (`test_update_order`) expected `claude plugin marketplace update prdanvil` in the Install section and printed `AssertionError: 'claude plugin marketplace update prdanvil' not found after offset 0`. AC-273.5: `The ## Install section of prd-toolkit/README.md shall give the update of an installed copy as claude plugin marketplace update prdanvil, then claude plugin update prd-toolkit@prdanvil, then /reload-plugins, in that order`. Root cause: `prd-toolkit/README.md:40` to 41 give only `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`; the changelog Upgrade notes (such as line 1405) give all three.
 Resolution: open, intended: claude plugin marketplace update should be done first (owner, 2026-11-25, adoption confirmation of release)
 Recurrence of: -
 
 ### E-090 The root README's prd function runs a scripts/prd in the working directory when no plugin is installed
 Detected: 2026-11-25, confirmation of FR-274
-Classification: unclassified
+Classification: code bug
 Touches: FR-274
-Diagnosis: read from the code, not reproduced: with no folder under `$HOME/.claude/plugins/cache/prdanvil/prd-toolkit/`, the `ls -d … | sort -V | tail -1` in the function (README.md:40-48 @05ae956) prints nothing, so the function runs `sh scripts/prd` relative to the working directory, which fails with a shell error or runs an unrelated file, instead of saying prd-toolkit is not installed.
+Explanation: I ran the release test that runs the README's prd shell function with no prd-toolkit installed, with its expected-failure mark turned off. It printed the ls command's own No such file or directory error, then ran a scripts/prd it found in the current folder, and returned 0. The PRD says that in this case the function shall print prd-toolkit is not installed, run nothing and return 127. Code bug: the PRD is right and the function is wrong. You corrected FR-274 to say this at adoption.
+Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-274.3 (`test_not_installed`) expected exit 127 with `prd-toolkit is not installed` on stderr and printed exit 0, stdout `wrong-launcher` and stderr `ls: .../emptyhome/.claude/plugins/cache/prdanvil/prd-toolkit/*/: No such file or directory`. AC-274.3: `If no folder matches $HOME/.claude/plugins/cache/prdanvil/prd-toolkit/*/ when the function would run the plugin's launcher (AC-274.2), the function shall print prd-toolkit is not installed on stderr, run nothing, and return 127`. Root cause: `README.md:45` runs `sh "$(ls -d ~/.claude/plugins/cache/prdanvil/prd-toolkit/*/ | sort -V | tail -1)scripts/prd" "$@"`; when ls matches nothing the substitution is empty, so it runs `sh scripts/prd` relative to the working directory.
 Resolution: open, intended: print `prd-toolkit is not installed` on stderr and return 127 (owner, 2026-11-25, adoption confirmation of release)
 Recurrence of: -
 
 ### E-091 The root README's Features list does not say it names a selection of the skills
 Detected: 2026-11-25, characterization of release (T-273.7)
-Classification: unclassified
+Classification: code bug
 Touches: FR-273
-Diagnosis: read from the run, not classified: the Features list of README.md names seven of the eleven skills and does not hold `the main skills`, nor say that the plugin README lists all eleven; the owner's Q-06 answer (2026-11-25) asks it to say so, with a link.
+Explanation: I ran the release test for the root README's Features list with its expected-failure mark turned off. It failed: the list names some of the skills and does not say it is a selection, so a reader takes it for all of them. The PRD says the list shall say it names the main skills, and that the plugin README lists all eleven, with a link to it. Code bug: the PRD is right and the README is wrong. That wording is your answer to Q-06 at adoption.
+Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-273.7 (`test_features_list`) expected the flattened Features list to hold `the main skills` and printed `AssertionError: the Features list does not hold 'the main skills'`. AC-273.7: `The **Features:** list of README.md shall say that it names the main skills and that the plugin README lists all eleven, with a link to ./prd-toolkit/README.md`. Root cause: `README.md:5` opens the list with `**Features:**` and no sentence saying it is a selection of the eleven skills, and gives no link to the plugin README there.
 Resolution: open, intended: a selection, but say so: add "the main skills; the plugin README lists all eleven" with a link (owner, 2026-11-25, Q-06)
 Recurrence of: -
 
 ### E-092 The plugin README links each design spec under docs/superpowers/specs/ instead of the folder
 Detected: 2026-11-25, characterization of release (T-276.2)
-Classification: unclassified
+Classification: code bug
 Touches: FR-276
-Diagnosis: read from the run, not classified: prd-toolkit/README.md holds 28 links whose target starts with `../docs/superpowers/specs/`, each to a single spec file, 19 distinct (four, the 0.8.9 to 0.8.12 specs, linked twice; the first `../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md`), and none to the folder itself, and the list stops at 0.8.12 while later specs are committed; the owner's Q-05 answer (2026-11-25) asks for one link to the folder.
+Explanation: I ran the release test for the plugin README's links to the design specs with its expected-failure mark turned off. It failed: the README links each release's spec, 28 links in all, where the PRD says it shall hold exactly one, to the specs folder. Code bug: the PRD is right and the README is wrong; the single folder link is your answer to Q-05 at adoption. The fix also changes the unit tests that pin those spec links, which the build does.
+Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-276.2 (`test_one_spec_link`) expected the link targets that start with `../docs/superpowers/specs/` to be `[../docs/superpowers/specs/]` and printed `assert [../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md, ...] == [../docs/superpowers/specs/]` with `Left contains 27 more items`. AC-276.2: `The plugin README prd-toolkit/README.md shall hold exactly one Markdown link whose target starts with ../docs/superpowers/specs/, and that target shall be ../docs/superpowers/specs/`. Root cause: `prd-toolkit/README.md:11` to 31 and the changelog entries link each release's spec file (`grep -c` of the prefix prints 28); unit tests such as `tests/test_release_0_5.py` pin some of those links.
 Resolution: open, intended: replace the per-release list with one link to docs/superpowers/specs/ (owner, 2026-11-25, Q-05)
 Recurrence of: -
