@@ -1,6 +1,7 @@
 """Pins for the 0.8.20 release, memory in adoption: the version, the README's adoption section and the
 changelog entry."""
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
@@ -24,13 +25,13 @@ def entry(version: str, before: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.20"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     d = plugin["description"]
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.20", d)]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.20"
-    assert "Version 0.8.20." in flat(README[:README.index("\n## ")])
+        (plugin["version"], d)]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in flat(README[:README.index("\n## ")])
 
 
 def test_the_plugin_holds_what_it_held():
