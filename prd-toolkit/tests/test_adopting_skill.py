@@ -2,6 +2,8 @@
 import re
 from pathlib import Path
 
+import pytest
+
 from test_dry_run_prompt import LINT_CMD, RULE
 
 ROOT = Path(__file__).parent.parent
@@ -585,3 +587,45 @@ def token_tools(case: str) -> set:
 
 def test_0821_the_conflict_eval_checks_every_tool_for_the_token():
     assert token_tools("adopting-memory-conflict") == {"Write", "Edit", "Agent", "Bash"}
+
+
+MEMORY_CASES = {"adopting-memory-unrelated": {"MEMORY.md", "reference_billing_token.md"},
+                "adopting-memory-headless-owner": {"MEMORY.md", "project_notes_owner.md",
+                                                   "reference_billing_token.md"}}
+
+
+def run_scaffold(case: str, cwd, home):
+    import os
+    import subprocess
+    return subprocess.run(["bash", str(ROOT / "evals" / case / "scaffold.sh")], cwd=cwd, capture_output=True,
+                          text=True, env={**os.environ, "HOME": str(home)})
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES))
+def test_0821_the_new_memory_cases_check_every_tool_for_the_token(case):
+    assert token_tools(case) == {"Write", "Edit", "Agent", "Bash"}
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES))
+def test_0821_the_new_memory_scaffolds_refuse_a_home_outside_the_sandbox(case, tmp_path):
+    sandbox, elsewhere = tmp_path / "sandbox", tmp_path / "elsewhere"
+    (sandbox / "home/cwd").mkdir(parents=True)
+    (sandbox / "config").mkdir()
+    elsewhere.mkdir()
+    assert run_scaffold(case, sandbox / "home/cwd", elsewhere).returncode != 0
+    assert not (elsewhere / ".claude").exists()
+    assert not (sandbox / "home/cwd/.git").exists()
+
+
+@pytest.mark.parametrize("case", sorted(MEMORY_CASES))
+def test_0821_the_new_memory_scaffolds_put_the_notes_in_both_places(case, tmp_path):
+    sandbox = tmp_path / "sandbox"
+    cwd = sandbox / "home/cwd"
+    cwd.mkdir(parents=True)
+    (sandbox / "config").mkdir()
+    r = run_scaffold(case, cwd, sandbox / "home")
+    assert r.returncode == 0, r.stderr
+    enc = "".join(c if c.isalnum() else "-" for c in str(cwd.resolve()))
+    for place in (sandbox / "config/projects" / enc / "memory", sandbox / "home/.claude/projects" / enc / "memory"):
+        assert {p.name for p in place.iterdir()} == MEMORY_CASES[case], place
+    assert not (cwd / "docs/prd").exists()  # bare: no PRD yet
