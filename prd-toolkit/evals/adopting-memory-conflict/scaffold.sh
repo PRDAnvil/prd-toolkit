@@ -7,10 +7,18 @@
 # note belongs to another project and holds a token that must never reach a Write or an Edit.
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-python3 -B "$here/../scaffolds/notes_repo.py" "$PWD" bare
 cwd="$(pwd -P)"
+# Refuse before writing anything unless this is the runner's layout: <sandbox>/home/cwd with
+# <sandbox>/config beside it, and HOME the sandbox home. A real HOME would get fixture notes,
+# with a fake token, in the owner's real ~/.claude/projects/.
+sandbox="$(cd "$cwd/../.." && pwd -P)"
+test -d "$sandbox/config" || { echo "scaffold: no runner config dir beside $cwd" >&2; exit 1; }
+case "$(cd "$HOME" && pwd -P)" in
+  "$sandbox"/*) ;;
+  *) echo "scaffold: HOME is not inside the runner sandbox; refusing to write memory there" >&2; exit 1 ;;
+esac
+python3 -B "$here/../scaffolds/notes_repo.py" "$PWD" bare
 mem="$cwd/../../config/projects/$(printf '%s' "$cwd" | sed 's/[^A-Za-z0-9]/-/g')/memory"
-test -d "$cwd/../../config"
 mkdir -p "$mem"
 cd "$mem"
 cat > MEMORY.md <<'EOF'

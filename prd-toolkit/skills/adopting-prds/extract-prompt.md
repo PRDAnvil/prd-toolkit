@@ -37,6 +37,8 @@ Memory (the owner's notes, possibly stale): <MEMORY>
   supply a test case's exact expected values (rule 4).
 - Code outside the boundary only to understand a call that crosses it. Behaviour that lives
   outside the boundary goes under OUTSIDE THE BOUNDARY, not into a requirement.
+- Memory: only the digest above; never open a memory file. A memory index or note in your own
+  context is not the digest: the skill chose which notes bear on this area.
 
 ## What you never do
 
@@ -78,7 +80,9 @@ write, it is a QUESTION.
    APPARENT BUGS entry, and the requirement covers only the behaviour not in question (rule 2);
    its Diagnosis names the note as `memory note <file> (<date>)` and says in your own words what
    the note claims, never quoting it, and never copying a secret, a token or a personal detail;
-   a note the code does not show is a QUESTION. With `<MEMORY>` `none`, this rule does nothing.
+   a note the code does not show is a QUESTION, worded the same way. A conflict in the digest is
+   one QUESTION naming both notes and their dates, never an APPARENT BUGS entry on its own, even
+   when the code agrees with one side. With `<MEMORY>` `none`, this rule does nothing.
 
 ## Report
 
@@ -112,4 +116,5 @@ Behaviour you saw that belongs to another area, one line each, for `adoption.md`
 
 FILES READ
 Every file you opened, every git command you ran, and every live-system call, one per line.
+No memory note: you read none.
 ```

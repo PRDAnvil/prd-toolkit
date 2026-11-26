@@ -495,6 +495,66 @@ def test_0820_memory_red_flags_and_rationalizations():
     assert rationalizations.count("memory") >= 3
 
 
+def test_0820_review_confirm_shows_notes_in_the_chat_never_in_a_file():
+    confirm = step(SKILL.read_text(encoding="utf-8"), 3)
+    assert "before the form, the questions or the checklist" in confirm
+    assert "in one chat message" in confirm
+    assert "never in the summaries file or the checklist file" in confirm
+
+
+def test_0820_review_a_conflict_is_one_question_never_a_bug():
+    rules = section(EXTRACT, "## Rules")
+    assert "A conflict in the digest is one QUESTION naming both notes and their dates" in rules
+    assert "never an APPARENT BUGS entry on its own" in rules
+    assert "worded the same way" in rules
+    assert "one §13 bullet naming both notes and their dates" in section(SKILL, "## Memory")
+
+
+def test_0820_review_the_extractor_opens_no_memory_file():
+    assert "Memory: only the digest above; never open a memory file." in section(EXTRACT, "## What you read")
+    assert "No memory note: you read none." in flat(EXTRACT)
+
+
+def test_0820_review_a_confirmed_value_may_be_written_but_never_a_secret():
+    m = section(SKILL, "## Memory")
+    assert "A value the owner confirmed (a name, a login, an order) is written in plain words" in m
+    assert "a secret or a token stays a marker" in m
+
+
+def test_0820_review_resuming_rebuilds_the_digest_and_a_new_entry_rewrites_its_block():
+    m = section(SKILL, "## Memory")
+    assert "Resuming past step 1, rebuild the area's digest first." in m
+    extract = step(SKILL.read_text(encoding="utf-8"), 2)
+    assert "and the block or `expect` that encodes it is rewritten or dropped, as the bullet above says" in extract
+
+
+def test_0820_review_candidates_come_from_the_index_and_one_grep():
+    m = section(SKILL, "## Memory")
+    assert "one Grep of the note bodies for the repository's name or slug" in m
+    assert "a Boundary path or a package name counts only beside the repository's name" in m
+
+
+def test_0820_review_the_owner_may_opt_out():
+    m = section(SKILL, "## Memory")
+    assert "An owner who says not to read their memory is obeyed" in m
+    assert "\"Don't read my memory\"" in section(SKILL, "## When the user pushes")
+
+
+def test_0820_review_the_memory_scaffold_refuses_a_home_outside_the_sandbox(tmp_path):
+    import os
+    import subprocess
+    sandbox, elsewhere = tmp_path / "sandbox", tmp_path / "elsewhere"
+    (sandbox / "home/cwd").mkdir(parents=True)
+    (sandbox / "config").mkdir()
+    elsewhere.mkdir()
+    script = ROOT / "evals/adopting-memory-conflict/scaffold.sh"
+    r = subprocess.run(["bash", str(script)], cwd=sandbox / "home/cwd", capture_output=True, text=True,
+                       env={**os.environ, "HOME": str(elsewhere)})
+    assert r.returncode != 0
+    assert not (elsewhere / ".claude").exists()
+    assert not (sandbox / "home/cwd/.git").exists()  # refused before building anything
+
+
 def test_0820_each_memory_place_is_read_on_its_own():
     m = section(SKILL, "## Memory")
     assert "each place in a call of its own" in m

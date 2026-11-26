@@ -104,31 +104,37 @@ The gate is the `prd-lint-exit=` value lint prints: `0` clean, `1` violations, `
 The owner's Claude Code memory holds what the repository cannot show: which login publishes, the
 order of a release, a step that needs a browser, a rule a client relies on. Nobody will ask you to
 read it. Read it every time: at step 0 for the project-wide sections, and at step 1 for the area.
+Resuming past step 1, rebuild the area's digest first. An owner who says not to read their memory
+is obeyed: the digest is `none` for the rest of the adoption, and you say so once.
 
 - **Where.** Look in the memory directory your system prompt names (Claude Code's auto-memory),
   in `~/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/` when that is
   another directory and exists, and in a directory the user names. List each place in a call of
   its own: one that cannot be read or does not exist stops none of the others, and a denied
-  command takes everything chained with it down too. Read `MEMORY.md` (the index)
-  first, then the whole of each note whose name, description or body names the repository, its
-  slug, its packages or domains, or a path in the area's Boundary. A memory directory often holds
-  notes for many repositories: a note that names none of these stays out.
+  command takes everything chained with it down too.
+- **Which notes.** Find the candidates from `MEMORY.md` (the index: each note's name and
+  description) and from one Grep of the note bodies for the repository's name or slug, then read
+  only those notes whole. A memory directory often holds notes for many repositories: a Boundary
+  path or a package name counts only beside the repository's name, since `src/` or `cli` names
+  every repository. A note that names none of these stays out, unread.
 - **None.** No memory directory, or no note that bears on the area: say so in one line and go on,
   and say which places could not be read. Memory is never a gate.
 - **The digest.** Per note: its file name, its date (the `modified` frontmatter, else the file's
   modification time), its type, and the claims that bear on the area, quoted. The digest lives
-  in this conversation, never in the repository and never in the PRD folder.
+  in this conversation and the extractor's prompt, never in the repository and never in the PRD
+  folder.
 - **Conflicts.** Two notes that disagree go into the digest as one conflict, both sides with their
-  dates, and reach the owner as one question. The adopter never picks one: not the newer, not the
-  longer.
+  dates, and reach the owner as one §13 bullet naming both notes and their dates (a marker's
+  proposal at step 0). The adopter never picks one: not the newer, not the longer.
 - **What a note may do.** Propose an answer the owner confirms (step 0), flag code that
   contradicts it (step 2, through the extractor) and sit beside the requirement it touches (step
   3). A note confirms nothing and is never a `Source:`: it is the owner's past word, and it may be
   stale.
-- **What reaches a committed file.** Only what the owner confirmed, in plain words, and an
-  `E-nnn` Diagnosis that says in your own words what a note claims, naming it as
-  `memory note <file> (<date>)`: never a note's text verbatim, never a secret, a token or a
-  personal detail, and nothing from a note about another project.
+- **What reaches a committed file.** A value the owner confirmed (a name, a login, an order) is
+  written in plain words, except that a secret or a token stays a marker. An `E-nnn` Diagnosis or
+  a §13 bullet says in your own words what a note claims, naming it as
+  `memory note <file> (<date>)`: never a note's text verbatim, and nothing from a note about
+  another project.
 
 ## The flow
 
@@ -271,8 +277,9 @@ Then write what it returns, yourself:
 - Check that no block or `expect` encodes an APPARENT BUGS entry. One that does is rewritten to
   the behaviour not in question, or dropped.
 - Check every block, case and entry against the digest yourself: code that contradicts a note and
-  has no `E-nnn` gets one (Diagnosis `memory note <file> (<date>)`), and nothing you write carries
-  a note's text, a secret or a token.
+  has no `E-nnn` gets one (Diagnosis `memory note <file> (<date>)`), and the block or `expect`
+  that encodes it is rewritten or dropped, as the bullet above says; nothing you write carries a
+  note's text, a secret or a token.
 
 Set the area's row to `extracted` and run lint.
 
@@ -291,8 +298,11 @@ Show the user every `as-built` requirement of the area, one by one: its ID, its 
   a user who names nobody has not answered.
 
 Show each requirement with the digest entries that touch it, each with its note's name and date,
-beside its `Source:`. A note confirms nothing: a requirement a note agrees with is still asked
-about, and an answer the note gives is still the user's to give.
+beside its `Source:`. Do it before the form, the questions or the checklist, in one chat message:
+per requirement ID, each note's name, its date and what it claims in your own words. The notes go
+in that message only, never in the summaries file or the checklist file, which sit in the
+repository. A note confirms nothing: a requirement a note agrees with is still asked about, and an
+answer the note gives is still the user's to give.
 
 A test case whose exact expected values came from a live read of a closed window (its `input`
 names the query and the date range) is shown with those values: the user confirms them like any
@@ -584,6 +594,8 @@ The rules:
 | "Skip the characterization tests, the code is the proof" | The area stays `confirmed`. Only a `prd-tester` suite moves it to `adopted`; say so, and offer to run it. |
 | "Adopt the whole repo in one go" | Bootstrap the PRD and map every candidate area `not started`. Then one area: the user's pick, or your recommendation shown and the pick awaited. |
 | "Fix the bug while you're at it" | No code changes during adoption. Record the `E-nnn` and the `known-failing` case; the fix is a later change through `prd-toolkit:changing-prds`. |
+| "The memory note says it, mark it confirmed" | Show the requirement with the note beside it and ask for it by ID. A note is the owner's past word; only the answer confirms. |
+| "Don't read my memory" | Obey it: the digest is `none` for the rest of the adoption, and you say so once. Every other step runs as before. |
 
 ## WRONG vs CORRECT
 
@@ -665,7 +677,7 @@ the user.**
 | "One pass over the whole repo is faster." | Each area needs the user's word on every requirement and its own suite. Several areas at once means confirmations nobody gave. |
 | "The fix is one line; I'll make it while I'm here." | Adoption records the system as it runs. A fix during adoption makes the suite test your change, and the change skipped the PRD. |
 | "The code plainly gets it wrong, so it's a code bug." | Reading it is a hypothesis; nothing ran. The entry is `unclassified` until handling-errors step 2's run shows it. |
-| "Nobody asked me to read memory." | Nobody will. The owner wrote it for exactly this: read it at step 0 and step 1, every time. |
+| "Nobody asked me to read memory." | Nobody will. The owner wrote it for exactly this: read it at step 0 and step 1, every time, unless the owner says not to. |
 | "The memory note is the owner's word, so it confirms the requirement." | It is the owner's past word, and it may be stale. It proposes; the owner confirms, requirement by requirement. |
 | "The note is clearer than the code, so cite it as the Source." | A `Source:` shows what the system does, at a commit. A memory note shows what someone once said; it goes in a Diagnosis or a question. |
 | "The newer memory note supersedes the older one." | Maybe. Both go to the owner as one question; settling it is their call. |
