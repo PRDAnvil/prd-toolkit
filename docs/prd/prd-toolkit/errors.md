@@ -1159,7 +1159,8 @@ Recurrence of: -
 
 ### E-093 a PRD change that adds an enforced section 5 standards row leaves the generated CI workflow stale, and neither the change procedure nor `prd change approve` catches it before the push
 Detected: 2026-11-26, user report (/prd-toolkit:prd-error), PR #80
-Classification: unclassified
+Classification: spec gap
+Touches: FR-262, FR-263
 URL: https://github.com/PRDAnvil/prd-toolkit/actions/runs/45910377365/job/140217032152
 Evidence: Owner's report (2026-11-26), after PR #80 (PRD 13.3.0, release-area practices):
   The change added an enforced section 5 standards row for .claude-plugin/marketplace.json.
@@ -1169,6 +1170,7 @@ Evidence: Owner's report (2026-11-26), after PR #80 (PRD 13.3.0, release-area pr
   Regenerating added a standards-2 job (plugin validate . on .claude-plugin/marketplace.json); fixed by b76a27b.
   changing-prds step 5's close says a generated CI include is stale when the change touched testing.md or operations.md;
   it does not name a section 5 standards row, and neither lint nor approve reported the stale workflow before the push.
-Diagnosis: -
+Explanation: In a copy of the repository at the approval commit of PRD 13.3.0, the PRD lint CI runs passed, but the CI staleness check CI also runs said the generated workflow was stale and failed. On that same tree the approval command had approved the change without a word, and the change procedure only says to regenerate the workflow when testing.md or operations.md changed, so the stale file reached the pull request and failed its merge gate. The PRD lists every check the approval makes (the reply, the review, lint, the dry-run record, the pending row and CLAUDE.md) and says nothing about the generated CI files, so the code does what the PRD says and the PRD is silent: a spec gap, not a code bug. The question for you: do you want the approval to bring the generated CI files up to date itself and commit them with the approval, as it already does for the CLAUDE.md block, or to refuse while they are stale and name the command that regenerates them, or only the change skill told to run the staleness check before asking for approval? The first two are a PRD change to FR-262 or FR-263, built in the change area; the third changes only the skill text, which no adopted area covers.
+Diagnosis: Probe in a scratch clone at c4b77f9 (docs(prd): approve prd-toolkit 13.3.0): `sh .prd-toolkit/prd lint --ci docs/prd/prd-toolkit` printed nothing, `lint-exit=0`; `sh .prd-toolkit/prd hooks check --ci docs/prd/prd-toolkit` printed `stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force`, `check-ci-exit=1`. On the same tree, uncommitted, `prd change approve docs/prd/prd-toolkit --reply Approved --dry-run no dry run (wording only)` printed `approved prd-toolkit 13.3.0 c4b77f9` and exit 0. Root cause: the 13.3.0 change added the enforced section 5 row for `.claude-plugin/marketplace.json`, and `prd_hooks.py ci` writes one standards-N job per enforced row, so the workflow needed a standards-2 job (b76a27b added it). FR-262 lists the checks approve makes, AC-262.1 to AC-262.7 and AC-262.8 `shall run the checks of AC-262.1 to AC-262.7 in that order before it writes anything`; none names the generated CI files, and FR-263 AC-263.3 stages the PRD folder, the README, CLAUDE.md and vendored packs but no CI file. Sections searched and silent on CI staleness at approval: FR-262, FR-263 (change area). The skill text changing-prds SKILL.md step 5 says `when the change touched testing.md or operations.md, a generated CI include is stale`, which leaves out a section 5 standards row; that file is in the skills area (not started), outside every adopted Boundary.
 Resolution: -
 Recurrence of: -
