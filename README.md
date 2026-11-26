@@ -29,6 +29,24 @@ In Claude Code:
 
 Restart Claude Code, then check that `claude plugin list` shows `prd-toolkit@prdanvil`. Its commands are typed under the plugin's name, as `/prd-toolkit:prd-new`. The scripts need [uv](https://docs.astral.sh/uv/).
 
+The plugin adds no `prd` command to your shell, so typing `prd` in a terminal gives `command not found`. Where the docs write `prd <command>`, run one of two launchers:
+
+- `.prd-toolkit/prd <command>` in a repository whose hooks are installed (the copy vendored there);
+- `~/.claude/plugins/cache/prdanvil/prd-toolkit/<version>/scripts/prd <command>` anywhere else, where `<version>` is the installed version (`claude plugin list` shows it).
+
+To type plain `prd`, add this function to your shell profile (`~/.zshrc`, `~/.bashrc`). It runs the repository's vendored copy when there is one, and the newest installed plugin's otherwise; `publish` always runs from the plugin, the only copy that has it:
+
+```
+prd() {
+  top=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [ "$1" != publish ] && [ -n "$top" ] && [ -f "$top/.prd-toolkit/prd" ]; then
+    sh "$top/.prd-toolkit/prd" "$@"
+  else
+    sh "$(ls -d ~/.claude/plugins/cache/prdanvil/prd-toolkit/*/ | sort -V | tail -1)scripts/prd" "$@"
+  fi
+}
+```
+
 ## License
 
 MIT; see [LICENSE](./LICENSE).

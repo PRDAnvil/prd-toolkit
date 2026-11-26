@@ -75,7 +75,8 @@ Claude Code lists a plugin's commands under the plugin's name, so type each in f
 - It runs the scripts in one uv environment per requirements list, shared by every clone and worktree,
   instead of one per script path. The scripts keep their uv headers and still run by their file.
 - The vendored copy has it as `.prd-toolkit/prd`, the plugin as `scripts/prd` (which one to run: see
-  Lint CLI). `publish` runs only from the plugin.
+  Lint CLI). `publish` runs only from the plugin. Neither is on your shell's PATH: bare `prd` in this
+  README is short for one of them (the root README's Install section has a shell function that picks).
 - Since 0.8.13 it asks uv for a system Python first, with `uv python find --system ">=3.11"`, and runs on the path it prints; when uv
   finds none it runs on `>=3.11` as before. A `.venv` in the working directory whose interpreter cannot be read
   (a sandboxed session) no longer stops it.
