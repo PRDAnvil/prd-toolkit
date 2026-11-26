@@ -3,8 +3,8 @@
 # lint-structure: the structure lint rules
 
 ### FR-020 Check the prd.md frontmatter
-Status: approved
-Source: prd-toolkit/scripts/prdlint/rules/structure.py:119 @c060204
+Status: verified
+Source: prd-toolkit/scripts/prdlint/rules/structure.py:132 @a35518b
 Flow: 1. read the frontmatter the loader parsed → 2. a `format` newer than the toolkit's ends the lint with that one finding
       → 3. check `prd`, `version`, `status`, `owner`, `updated`, and `language` and `format` when present
       → 4. while `contracts/schema.sql` is a file, check `sql-dialect` against sqlglot
