@@ -451,3 +451,45 @@ def test_0815_step_3_settles_intent_and_hands_the_class_to_prd_error():
     s = flat(SKILL)
     assert "The answer settles intent, not the class" in s
     assert "`/prd-toolkit:prd-error <E-nnn>`" in s
+
+
+# ---- 0.8.20: the owner's Claude Code memory proposes, flags and asks; it never confirms ----
+
+def test_0820_the_extract_prompt_takes_the_memory_digest():
+    text = flat(EXTRACT)
+    assert "<MEMORY>" in text
+    assert "Memory (the owner's notes, possibly stale): <MEMORY>" in text
+    rules = section(EXTRACT, "## Rules")
+    assert "an owner's memory note" in rules  # rule 2's list of what code may contradict
+    assert "never evidence of behaviour" in rules and "never a `Source:`" in rules
+    assert "memory note <file> (<date>)" in rules
+    assert "a note the code does not show is a QUESTION" in rules
+
+
+def test_0820_the_memory_section_says_where_what_and_what_never():
+    m = section(SKILL, "## Memory")
+    for needle in ("the memory directory your system prompt names", "`MEMORY.md`", "a directory the user names",
+                   "say so in one line and go on", "never in the repository", "never picks one",
+                   "never a note's text", "a secret"):
+        assert needle in m, needle
+
+
+def test_0820_extraction_sends_the_digest_and_nothing_else():
+    s = step(SKILL.read_text(encoding="utf-8"), 2)
+    assert "`<MEMORY>`" in s and "nothing else but the memory digest" in s
+    assert "Send nothing else:" not in s
+
+
+def test_0820_bootstrap_proposes_from_memory_and_confirm_shows_it():
+    text = SKILL.read_text(encoding="utf-8")
+    boot, confirm = step(text, 0), step(text, 3)
+    assert "a memory note answers" in boot and "the marker stays" in boot
+    assert "digest entries that touch it" in confirm and "A note confirms nothing" in confirm
+
+
+def test_0820_memory_red_flags_and_rationalizations():
+    flags = section(SKILL, "## Red Flags - STOP")
+    for needle in ("The memory note says so", "a memory note as a `Source:`", "the newer note"):
+        assert needle in flags, needle
+    rationalizations = section(SKILL, "## Common Rationalizations")
+    assert rationalizations.count("memory") >= 3
