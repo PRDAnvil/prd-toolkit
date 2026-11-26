@@ -43,7 +43,7 @@ def test_the_plugin_holds_what_it_held():
 def test_the_adoption_section_names_the_three_memory_places():
     s = flat(section("Adopting an existing repo"))
     for needle in ("the auto-memory directory the session's system prompt names",
-                   "`~/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/`",
+                   "`$HOME/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/`",
                    "a directory you name"):
         assert needle in s, needle
 

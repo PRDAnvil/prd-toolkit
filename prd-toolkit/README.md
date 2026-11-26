@@ -255,15 +255,16 @@ map in `adoption.md`, and each area moves forward one state at a time:
 
 Adoption also reads the owner's Claude Code memory in three places, each on its own: the
 auto-memory directory the session's system prompt names,
-`~/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/` when that is another
-directory, and a directory you name. It starts from each place's `MEMORY.md` index and keeps the
-notes that name the repository or the area. Their digest goes to the extractor, which records code that contradicts a
-note as an open `E-nnn` naming the note, and turns a note the code does not show into a question.
-At bootstrap a note may propose the answer to a `[NEEDS CLARIFICATION]` marker or a human runbook
-step, written only on the owner's yes, and at confirmation each requirement is shown with the notes
-that touch it. A note never confirms a requirement and is never a `Source:`. Nothing from a note
-is committed except what the owner confirmed, in plain words, and an `E-nnn` Diagnosis or a §13
-question that paraphrases it. With no memory, adoption says so and goes on.
+`$HOME/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/` unless it is the
+same directory, and a directory you name. It starts from each place's `MEMORY.md` index and keeps
+the notes that name the repository or the area. Their digest goes to the extractor, which records
+code that contradicts a note as an open `E-nnn` naming the note, and turns a note the code does not
+show into a question. At bootstrap a note may propose the answer to a `[NEEDS CLARIFICATION]`
+marker or a human runbook step, written only on the owner's yes, and at confirmation each
+requirement is shown with the notes that touch it. A note never confirms a requirement and is never
+a `Source:`. Nothing from a note is committed except what the owner confirmed, in plain words, and
+an `E-nnn` Diagnosis or a §13 question that paraphrases it. With no memory, adoption says so and
+goes on.
 
 ### Confirming through the form
 
