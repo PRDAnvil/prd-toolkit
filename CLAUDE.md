@@ -75,7 +75,7 @@ Omit needless words, use the active voice, and be specific.
 <!-- prd-toolkit:start -->
 ## Product requirements (by prd_block.py; do not edit)
 
-The PRD at `docs/prd/prd-toolkit` (version 13.0.0) is the authority.
+The PRD at `docs/prd/prd-toolkit` (version 13.1.0) is the authority.
 
 - To learn what an area does, run `/prd-toolkit:prd-context <area>` and work from its pack; read
   whole PRD files only to edit them. Build an approved change with
@@ -101,5 +101,5 @@ Required skills:
 - `superpowers:verification-before-completion` for a claim that work is done
 - `superpowers:writing-plans` for planning a change
 
-Adopted areas: lint-cli, lint-structure, lint-ids, lint-testcases, lint-contracts, lint-registries, trace, hooks-install, context, status, build-check, change, help, status-next, practices, pack-authoring, card-context, standards-run, launcher, hook-shims, inbox-cards, context-notes, eval-scaffolds, tester-paths, error-replay, error-reopen, trd
+Adopted areas: lint-cli, lint-structure, lint-ids, lint-testcases, lint-contracts, lint-registries, trace, hooks-install, context, status, build-check, change, release, help, status-next, practices, pack-authoring, card-context, standards-run, launcher, hook-shims, inbox-cards, context-notes, eval-scaffolds, tester-paths, error-replay, error-reopen, trd
 <!-- prd-toolkit:end -->
