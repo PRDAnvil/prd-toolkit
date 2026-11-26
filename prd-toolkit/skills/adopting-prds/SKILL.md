@@ -112,8 +112,8 @@ is obeyed: the digest is `none` for the rest of the adoption, and you say so onc
   call of its own:
   1. the memory directory your system prompt names (Claude Code's auto-memory);
   2. `$HOME/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/`. Expand
-     `$HOME` and compare the two full paths: the folder names match whenever the session has its
-     own config directory, yet the directories differ. Skip it only when the full paths are
+     `$HOME` and compare the two full paths: the directories differ whenever the session has its
+     own config directory, even when the folder names match. Skip it only when the full paths are
      identical;
   3. a directory the user names, if they named one; never ask for one.
 

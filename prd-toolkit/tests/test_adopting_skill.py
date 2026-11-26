@@ -722,3 +722,39 @@ def test_0821_the_changelog_says_the_owner_is_never_written_into_owner():
     import test_release_0_8_21 as r
     e = r.entry("0.8.21", "0.8.20")
     assert "never written into the PRD's `owner:`" in e and "proposed in the report but never written." not in e
+
+
+# ---- 0.8.22: the last deferred minors of 0.8.21's review ----
+
+HOME_PLACE = "`$HOME/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/`"
+
+
+def memory_paragraph() -> str:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    a = readme.index("Adoption also reads the owner's Claude Code memory")
+    return readme[a:readme.index("\n\n", a)]
+
+
+def test_0822_where_says_the_folder_names_can_match_not_always():
+    m = section(SKILL, "## Memory")
+    assert "the directories differ whenever the session has its own config directory, even when the folder names match" in m
+    assert "as they do when" not in m  # read as "the names match", it restated M4
+    assert "match whenever" not in m
+    assert "Skip it only when the full paths are identical" in m
+
+
+def test_0822_the_readme_names_the_second_place_as_the_skill_does():
+    assert HOME_PLACE in SKILL.read_text(encoding="utf-8")
+    p = memory_paragraph()
+    assert HOME_PLACE in p
+    assert "when that is another directory" not in " ".join(p.split())
+    assert "unless it is the same directory" in " ".join(p.split())
+    assert max(len(line) for line in p.splitlines()) <= 100
+
+
+def test_0822_the_home_place_grader_says_what_it_cannot_see():
+    for case in ("adopting-memory-conflict", "adopting-memory-unrelated", "adopting-memory-headless-owner"):
+        body = " ".join((ROOT / "evals" / case / "graders/lists-the-home-memory-place.md").read_text(
+            encoding="utf-8").split("---", 2)[2].split())
+        for needle in ("a mention", "`$HOME` or `~`", "named `home`"):
+            assert needle in body, (case, needle)

@@ -25,13 +25,13 @@ def entry(version: str, before: str) -> str:
 
 def test_versions():
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    assert plugin["version"] == "0.8.21"
+    assert re.fullmatch(r"\d+\.\d+\.\d+", plugin["version"])  # the current release is pinned in the newest test_release_*.py
     d = plugin["description"]
     market = json.loads((REPO / ".claude-plugin/marketplace.json").read_text())
     assert [(p["version"], p["description"]) for p in market["plugins"] if p["name"] == "prd-toolkit"] == [
-        ("0.8.21", d)]
-    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == "0.8.21"
-    assert "Version 0.8.21." in flat(README[:README.index("\n## ")])
+        (plugin["version"], d)]
+    assert (REPO / ".prd-toolkit/VERSION").read_text().strip() == plugin["version"]
+    assert f"Version {plugin['version']}." in flat(README[:README.index("\n## ")])
 
 
 def test_the_plugin_holds_what_it_held():
@@ -43,7 +43,7 @@ def test_the_plugin_holds_what_it_held():
 def test_the_adoption_section_names_the_three_memory_places():
     s = flat(section("Adopting an existing repo"))
     for needle in ("the auto-memory directory the session's system prompt names",
-                   "`~/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/`",
+                   "`$HOME/.claude/projects/<the repository root, each non-alphanumeric as ->/memory/`",
                    "a directory you name"):
         assert needle in s, needle
 
