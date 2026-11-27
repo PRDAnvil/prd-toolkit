@@ -237,8 +237,6 @@ T-283.4:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-095
-  symptom: "flat(STEP(prd-status, 4)) holds `the call was wrong and nothing printed: fix the path`"
   input:
     read: "flat(STEP(prd-status, 4))"
   expect:
