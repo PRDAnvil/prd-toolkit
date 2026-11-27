@@ -34,4 +34,6 @@ together.
    Matrix. A vendored copy older than 0.8.10 prints no Next part. The script
    changes nothing itself; to find the Next items it runs lint, which runs the PRD's section 7
    validator commands.
-4. On `prd-status-exit=2`, the call was wrong and nothing printed: fix the path.
+4. On `prd-status-exit=2`, read what the script printed (under `--json`, the error document on
+   stdout) and act on its cause: a wrong path (fix the path), an unmigrated PRD (the message says
+   what to move) or an internal error.
