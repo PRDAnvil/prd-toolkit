@@ -430,11 +430,11 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-281 | The commands folder holds twelve command files of one shape | live | features/commands.md | 14.1.0 |
 | FR-282 | The prd-status and prd-context commands share one Which script paragraph | live | features/commands.md | 14.1.0 |
 | FR-283 | The prd-status command runs prd status once, unfiltered, and prints the report as it is | verified | features/commands.md |  |
-| FR-284 | The prd-context command maps its arguments to prd context options and prints the pack as it is | built | features/commands.md |  |
+| FR-284 | The prd-context command maps its arguments to prd context options and prints the pack as it is | verified | features/commands.md |  |
 | FR-285 | The prd-new command hands the run to authoring-prds with the project slug | live | features/commands.md | 14.1.0 |
 | FR-286 | The prd-adopt command hands the run to adopting-prds with the area | live | features/commands.md | 14.1.0 |
 | FR-287 | The prd-change command runs changing-prds, or review mode on --review | live | features/commands.md | 14.1.0 |
-| FR-288 | The prd-build command reads the build procedure first and maps its arguments to one --req | approved | features/commands.md |  |
+| FR-288 | The prd-build command reads the build procedure first and maps its arguments to one --req | verified | features/commands.md |  |
 | FR-289 | The prd-change-set command reads the change-set procedure first and enters a record by its Status | live | features/commands.md | 14.1.0 |
 | FR-290 | The prd-deploy command reads the deploy procedure first and passes --until or a run id | live | features/commands.md | 14.1.0 |
 | FR-291 | The prd-error command reads the error procedure first and enters an entry by its state | live | features/commands.md | 14.1.0 |
