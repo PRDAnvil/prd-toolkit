@@ -1188,6 +1188,6 @@ Evidence: Seen 2026-11-27 on branch fix/ci-stale-standards (the 0.8.23 release t
   uv run --directory prd-toolkit pytest -q "tests/test_diagrams.py::test_a_raw_quote_in_a_label_never_stops_the_publish_for_real"
     1 passed in 2.13s
   The failure's own traceback was not kept (the run's output was cut to its last lines).
-Diagnosis: -
+Diagnosis: not reproduced: on HEAD 7f38c23 (0.8.24), `uv run --directory prd-toolkit pytest -q -n auto tests/test_diagrams.py` printed `106 passed in 16.79s`, and the full unit Levels command `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd` printed `4132 passed, 1 skipped in 290.34s`, the test passing in both; the one failure (run 2 of 2026-11-27) kept no traceback, so which of its two assertions failed (the publish exit and stderr, or the count of drawn diagrams) is unknown; what would reproduce it is the failure output of the next run where it fails, kept whole (the run written to a file, never cut to its tail)
 Resolution: -
 Recurrence of: -

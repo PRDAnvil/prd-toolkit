@@ -6,7 +6,7 @@ that cannot read your code, skills to author, adopt and change it, and a builder
 approved change to verified code, a deploy script that takes verified code to a running
 environment, an error ledger that carries every failure from record to a checked fix, and a
 publisher that renders the PRD as one page to share, and change sets that link PRDs across
-repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. `/prd-toolkit:prd-pack` writes a pack from what two adopted PRDs share, and every card in the decision inbox names its area and links to where the trouble is. `prd error replay` shows whether the commit an error entry names turned its test from failing to passing, and an error in code no adopted area covers closes with that proof. A proposed error class rests on a run, the inbox's error card explains it in plain words and takes a question, and `prd error reopen` takes back a confirmation that a reply doubts or a later run shows wrong. `prd trd` prints a technical view that sets what the PRD says about how the system is built beside what the repository holds. Version 0.8.24.
+repositories. Packs, languages and judged test cases extend it to documents and to PRDs written in other languages, and a machine interface (JSON output, the change bookkeeping as scripts, one list of pending decisions) lets clients other than Claude Code drive it, and a local decision inbox puts every pending decision in one browser page. Each PRD folder has a README that says what it is, and the published page opens on an Overview. `prd help` says what each field of a PRD and each lint rule means, and `prd status` starts with what the PRD needs next. `practices.md` records where a platform's good practice comes from, and the builder is given the practices that apply. `/prd-toolkit:prd-pack` writes a pack from what two adopted PRDs share, and every card in the decision inbox names its area and links to where the trouble is. `prd error replay` shows whether the commit an error entry names turned its test from failing to passing, and an error in code no adopted area covers closes with that proof. A proposed error class rests on a run, the inbox's error card explains it in plain words and takes a question, and `prd error reopen` takes back a confirmation that a reply doubts or a later run shows wrong. `prd trd` prints a technical view that sets what the PRD says about how the system is built beside what the repository holds. Version 0.8.25.
 
 Design: the design specs are in [docs/superpowers/specs/](../docs/superpowers/specs/), and the plans in [docs/superpowers/plans/](../docs/superpowers/plans/).
 
@@ -436,6 +436,32 @@ Known limits:
   bug is open.
 - A `commit --amend` that only rewrites the message stages no file, so the `commit-msg` hook lets
   it through; CI's `commit-refs` (trace with `--range`) catches it.
+
+## Edit hook
+
+Since 0.8.23 the plugin's `hooks/hooks.json` runs `scripts/prd_edit_hook.py` in two places, beside the
+tester guard. It runs from the plugin, never from `.prd-toolkit/`, so `prd hooks install` does not
+vendor it. It needs only `python3` and the standard library, and it never blocks a tool call or a
+stop: any failure prints one stderr line starting `prd-toolkit edit hook: ` and exits 0.
+
+**After an edit** (PostToolUse on Edit, Write, MultiEdit and NotebookEdit). When the edited file lies in
+an `adopted` area's Boundary and no block of that area is `approved` at `HEAD`, the agent gets one
+reminder: the edit is in area `<area>`, a behaviour change there starts with `/prd-toolkit:prd-change`
+before any code, and a change of no behaviour cites `Refs: none (no behaviour change)`. It reminds once
+per area and session. A PRD with no `adoption.md` treats the whole working tree, outside the PRD folder
+and `.prd-toolkit/`, as one Boundary. It stays silent for an edit inside a PRD folder or `.prd-toolkit/`,
+for a path no adopted area covers, for an area with an approved block (a build's edits), and for
+`prd-tester`.
+
+**At Stop.** For each PRD folder the session edited since the last Stop, the hook runs `prd lint` (the
+repository's `.prd-toolkit/prd` when it exists, otherwise the plugin's launcher) and hands back the
+error findings the session has not yet been told of, at most 20 per folder, ending
+`Finish the PRD edit through /prd-toolkit:prd-change, which runs lint itself.` A clean lint, or
+findings it already reported, say nothing; warnings are never reported. A lint that cannot run, or
+runs past 50 seconds, is reported once as `prd-toolkit: prd lint could not run on <folder>: <reason>`.
+Claude Code gives the agent one more turn to read the report.
+
+Set `PRD_TOOLKIT_EDIT_HOOK=off` in the environment to turn both off.
 
 ## Deploying
 
@@ -1385,6 +1411,8 @@ the user cannot state.
 
 Commit SHAs in entries dated before 2026-11-10 resolve in `ihistand/claude-plugins`, where the toolkit lived before 0.8.6.
 
+- **0.8.25:** the plugin README gains an `## Edit hook` section: what the edit hook that 0.8.23 shipped does after an edit and at Stop, when it stays silent, and that `PRD_TOOLKIT_EDIT_HOOK=off` turns it off. The `changing-prds` skill's close now says what `prd change approve` has done since 0.8.23: it rewrites a stale generated CI file and commits it with the approval, and refuses while that file has uncommitted changes. The close also names a new enforced standards row, beside `testing.md` and `operations.md`, as a change that makes the file stale, and keeps the hand regeneration for a change set, where `approve` is not run. The lint rule count stays 41.
+  - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.25 plugin and commit `.prd-toolkit/`: only its `VERSION` changes. A PRD needs no change.
 - **0.8.24:** the PRD template writes `format: 1` (#82). A new PRD written from the template now starts with the format marker lint reads, and `references/prd-format.md` documents the `format` frontmatter key: optional, a whole number from 1, default `1`. A malformed value is a `frontmatter` violation, and a value above 1 is lint's only finding, because an older toolkit cannot tell a fault from grammar it does not know. #82 merged without the version bump P-05 asks for, so it ships here. 0.8.23 also carried #79 with no entry of its own: lint's check of the `format` key, and the edit hook, which reminds once per area in a session when an edit lands where nothing is approved and, at Stop, reports lint's new findings for the PRD folders the session edited. The lint rule count stays 41.
   - **Upgrade:** update the plugin (`claude plugin marketplace update prdanvil`, `claude plugin update prd-toolkit@prdanvil`, then `/reload-plugins`). Then re-run `<plugin>/scripts/prd hooks install docs/prd/<slug>` from the 0.8.24 plugin and commit `.prd-toolkit/`: only its `VERSION` changes. A PRD needs no change: one without `format:` is read as format 1.
 

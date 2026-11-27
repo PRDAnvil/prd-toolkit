@@ -150,7 +150,12 @@ def flat(path):
 
 def test_changing_prds_close_reruns_ci():
     text = flat(SKILL)
-    assert "touched `testing.md` or `operations.md`" in text
+    assert "touches `testing.md` or `operations.md`" in text
+    assert "adds an enforced §5 standards row (a new `standards-<n>` job)" in text
+    # since 0.8.23 approve rewrites a stale CI file and refuses one with uncommitted changes (AC-263.6, AC-262.11)
+    assert "`approve` rewrites each one present that is stale and commits it with the approval" in text
+    assert "`<file> has uncommitted changes; commit or set them aside first`" in text
+    assert "**Inside a change set**, where `approve` is not run, regenerate each one present yourself" in text
     assert re.search(r"`\.prd-toolkit/prd hooks ci --<forge> --force docs/prd/<slug>`", text)
     assert "check --ci" in text
 

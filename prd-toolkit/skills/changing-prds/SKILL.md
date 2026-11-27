@@ -418,11 +418,16 @@ so you count instead of it.
    run the implement pack again (its own Bash call, the same gate), then rewrite each STALE
    `Source:` of a changed block as `<path>:<line> @<new short sha>` and commit the PRD. A `Source:`
    refresh is provenance, not behaviour: it takes no version bump and no §14 row, and the status
-   stays Approved with no re-approval. Close: when the change touched `testing.md` or
-   `operations.md`, a generated CI include is stale (a new level, an environment, a `tests` step or
-   a Drift row changes it). If `.gitlab/prd-toolkit.yml` or `.github/workflows/prd-toolkit.yml`
-   exists, regenerate each one present, one command per Bash call, and commit the file:
-   `.prd-toolkit/prd hooks ci --<forge> --force docs/prd/<slug>`. Then confirm
+   stays Approved with no re-approval. Close: a generated CI file (`.github/workflows/prd-toolkit.yml`,
+   `.gitlab/prd-toolkit.yml`) goes stale when the change touches `testing.md` or `operations.md` (a
+   new level, an environment, a `tests` step or a Drift row) or adds an enforced §5 standards row (a
+   new `standards-<n>` job). `approve` rewrites each one present that is stale and commits it with
+   the approval, and it refuses while one of them has uncommitted changes
+   (`<file> has uncommitted changes; commit or set them aside first`): commit or set them aside,
+   then run `approve` again. The rewrite replaces a hand edit committed to the file, as `--force`
+   does. **Inside a change set**, where `approve` is not run, regenerate each
+   one present yourself, one command per Bash call, and commit the file:
+   `.prd-toolkit/prd hooks ci --<forge> --force docs/prd/<slug>`. Either way, confirm
    with `.prd-toolkit/prd hooks check --ci docs/prd/<slug>` (it prints nothing
    when the files are current). The merge gate's generated job runs that same `check --ci`, so a
    change merged with the old CI fails there. A change made for an `errors.md` entry cites it in
