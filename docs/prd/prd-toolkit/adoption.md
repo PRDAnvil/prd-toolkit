@@ -22,7 +22,7 @@
 | change | adopted | `prd-toolkit/scripts/prd_change.py`, `prd-toolkit/scripts/prdlint/change.py`, `prd-toolkit/scripts/prdlint/change_approve.py` |
 | judge | not started | `prd-toolkit/scripts/prd_judge.py`, `prd-toolkit/scripts/prdlint/judge.py` |
 | packs | not started | `prd-toolkit/scripts/prdlint/packs.py`, `prd-toolkit/scripts/prdlint/languages.py`, `prd-toolkit/scripts/prdlint/rules/packs.py` |
-| commands | confirmed | `prd-toolkit/commands/**` |
+| commands | adopted | `prd-toolkit/commands/**` |
 | agents | not started | `prd-toolkit/agents/**` |
 | prd-grammar | not started | `prd-toolkit/references/clarify-categories.md`, `prd-toolkit/references/contract-types.md`, `prd-toolkit/references/ears.md`, `prd-toolkit/references/quality-checklist.md`, `prd-toolkit/references/test-levels.md`, `prd-toolkit/references/prd-format.md`, `prd-toolkit/templates/prd/**` |
 | adopting-prds | not started | `prd-toolkit/skills/adopting-prds/**` |
