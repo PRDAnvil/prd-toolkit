@@ -346,8 +346,6 @@ T-284.6:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-097
-  symptom: "flat(STEP(prd-context, 2)) holds `find the area each ID's block lives in from the repo pack, or ask`"
   input:
     read: "flat(STEP(prd-context, 2))"
   expect:
@@ -540,8 +538,6 @@ T-288.7:
   environment: local
   identity: none
   preconditions: []
-  known-failing: E-097
-  symptom: "flat(STEP(prd-build, 4)) holds `find the area each ID's block lives in from the repo pack, or ask`"
   input:
     read: "flat(STEP(prd-build, 4))"
   expect:
