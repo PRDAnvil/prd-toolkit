@@ -39,5 +39,6 @@ def test_status_step_4_reads_exit_2_by_cause():
     text = flat(step("prd-status", 4))
     problems = [f"lacks {m!r}" for m in missing(text, ["prd-status-exit=2", "path", "unmigrated", "internal error"])]
     problems += [f"holds {h!r}" for h in present(text, ["nothing printed"])]
-    symptom = "On prd-status-exit=2, the call was wrong and nothing printed: fix the path."
-    known_failure(problems, symptom in text, symptom)
+    # The case's symptom: flat(STEP(prd-status, 4)) holds this text.
+    symptom = "the call was wrong and nothing printed: fix the path"
+    known_failure(problems, symptom in text, "flat(STEP(prd-status, 4)) holds " + repr(symptom))

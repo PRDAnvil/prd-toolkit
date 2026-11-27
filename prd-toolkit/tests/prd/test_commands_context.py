@@ -5,7 +5,7 @@ import pytest
 
 from commands_support import body, flat, known_failure, missing, present, step
 
-# E-097's symptom, as T-284.6 states it (compared case-insensitively).
+# E-097's symptom, as T-284.6's `symptom:` states it: a substring of flat(STEP(prd-context, 2)).
 E097_SYMPTOM = "find the area each ID's block lives in from the repo pack, or ask"
 
 
@@ -55,8 +55,9 @@ def test_context_step_5_reads_exit_2_by_cause():
     text = flat(step("prd-context", 5))
     problems = [f"lacks {m!r}" for m in missing(text, ["prd-context-exit=2", "arguments", "unmigrated", "internal error"])]
     problems += [f"holds {h!r}" for h in present(text, ["nothing printed"])]
-    seen = "prd-context-exit=2" in text and "the call was wrong and nothing printed: fix the arguments" in text
-    known_failure(problems, seen, "STEP(prd-context, 5): exit 2 means the call was wrong and nothing printed")
+    # The case's symptom: flat(STEP(prd-context, 5)) holds this text.
+    symptom = "the call was wrong and nothing printed: fix the arguments"
+    known_failure(problems, symptom in text, "flat(STEP(prd-context, 5)) holds " + repr(symptom))
 
 
 @pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
@@ -65,4 +66,4 @@ def test_context_step_2_finds_area_from_features_file():
     text = flat(step("prd-context", 2))
     problems = [f"lacks {m!r}" for m in missing(text, ["features/<area>.md", "`### <ID>`"])]
     problems += [f"holds {h!r}" for h in present(text, ["from the repo pack"])]
-    known_failure(problems, E097_SYMPTOM.lower() in text.lower(), "STEP(prd-context, 2): " + E097_SYMPTOM)
+    known_failure(problems, E097_SYMPTOM in text, "flat(STEP(prd-context, 2)) holds " + repr(E097_SYMPTOM))

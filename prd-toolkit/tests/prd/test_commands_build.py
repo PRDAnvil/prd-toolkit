@@ -5,7 +5,7 @@ import pytest
 
 from commands_support import body, flat, known_failure, missing, present, step
 
-# E-097's symptom, as T-288.7 states it (compared case-insensitively).
+# E-097's symptom, as T-288.7's `symptom:` states it: a substring of flat(STEP(prd-build, 4)).
 E097_SYMPTOM = "find the area each ID's block lives in from the repo pack, or ask"
 
 
@@ -70,4 +70,4 @@ def test_build_step_4_finds_area_from_features_file():
     text = flat(step("prd-build", 4))
     problems = [f"lacks {m!r}" for m in missing(text, ["features/<area>.md", "`### <ID>`"])]
     problems += [f"holds {h!r}" for h in present(text, ["from the repo pack"])]
-    known_failure(problems, E097_SYMPTOM.lower() in text.lower(), "STEP(prd-build, 4): " + E097_SYMPTOM)
+    known_failure(problems, E097_SYMPTOM in text, "flat(STEP(prd-build, 4)) holds " + repr(E097_SYMPTOM))
