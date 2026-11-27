@@ -259,19 +259,23 @@ Acceptance (EARS):
   is anything other than `HEAD`'s `CLAUDE.md` with the managed block `prd_block.py` renders for the
   working PRD, the change command shall refuse with
   `CLAUDE.md has uncommitted changes; commit or set them aside first`.
-- AC-262.8 The change command shall run the checks of AC-262.1 to AC-262.7 in that order before it
+- AC-262.8 The change command shall run the checks of AC-262.1 to AC-262.7 and AC-262.11 in that order before it
   writes anything, so that a refusal (exit 1) leaves every file, the verdict included, as it was.
 - AC-262.9 The change command shall read a dry-run record that starts `no dry run` in any letter case
   (`No dry run (unit only)`) as AC-262.4's record with no dry run.
 - AC-262.10 If the verdict's `blockers` is a string, the change command shall refuse with
   `the review is not ready: <blockers>`, the string written whole.
+- AC-262.11 If git lists a generated CI file (`.github/workflows/prd-toolkit.yml` or
+  `.gitlab/prd-toolkit.yml` at the repository root) as changed, staged or not, and does not ignore it,
+  the change command shall refuse with `<file> has uncommitted changes; commit or set them aside first`,
+  `<file>` that path, the GitHub file first.
 Errors: -
-Edge cases: a CLAUDE.md that git ignores is neither checked nor staged → AC-262.7, AC-263.3; a deleted CLAUDE.md counts as an uncommitted change → AC-262.7
-Tests: T-262.1 [integration], T-262.2 [integration], T-262.3 [integration], T-262.4 [integration], T-262.5 [integration], T-262.6 [integration], T-262.7 [integration], T-262.8 [integration], T-262.9 [integration], T-262.10 [integration], T-262.11 [integration], T-262.12 [integration]  (test-cases/change.yaml)
+Edge cases: a CLAUDE.md that git ignores is neither checked nor staged → AC-262.7, AC-263.3; a deleted CLAUDE.md counts as an uncommitted change → AC-262.7; a CI file that does not exist is not changed → AC-262.11
+Tests: T-262.1 [integration], T-262.2 [integration], T-262.3 [integration], T-262.4 [integration], T-262.5 [integration], T-262.6 [integration], T-262.7 [integration], T-262.8 [integration], T-262.9 [integration], T-262.10 [integration], T-262.11 [integration], T-262.12 [integration], T-262.13 [integration]  (test-cases/change.yaml)
 Traces: cli:prd_change
 
 ### FR-263 The approval commit
-Status: live (since 10.2.0)
+Status: approved
 Source: prd-toolkit/scripts/prdlint/change_approve.py:206 @169036a
 Acceptance (EARS):
 - AC-263.1 When `prd change approve <prd_dir> --reply <reply> --dry-run <record>` passes every check of
@@ -290,15 +294,21 @@ Acceptance (EARS):
   not ignore it; `CLAUDE.md` when `prd_block.py` changed its bytes or it held only that block's change,
   and git does not ignore it; and, for a change that moved a pack's version, every file under
   `.prd-toolkit/packs/<name>/` and `.prd-toolkit/pack-sources.json` that exists and git does not
-  ignore; and leave no other path staged.
+  ignore; each CI file AC-263.6 rewrote; and leave no other path staged.
 - AC-263.4 If `--refs` holds a newline or a carriage return, the change command shall print the one
   stderr line `approve: --refs must be one line` and exit 2.
 - AC-263.5 If `git add` or `git commit` fails, the change command shall unstage the paths it named, put
-  back `prd.md`, `CLAUDE.md` and the READMEs it wrote as they were, removing each of them that the run
+  back `prd.md`, `CLAUDE.md`, the READMEs and the CI files it wrote as they were, removing each of them that the run
   created, keep `.prd-review.json`, and refuse
   with `git add failed: <git's message>` or `git commit failed: <git's message>`, git's message being its
   stderr stripped, or for `git commit` its stdout stripped when its stderr is empty.
+- AC-263.6 When `prd change approve` passes every check of FR-262 and, after it writes `prd.md`, a
+  generated CI file that exists and git does not ignore (`.github/workflows/prd-toolkit.yml` for
+  `--github`, `.gitlab/prd-toolkit.yml` for `--gitlab`, the GitHub file first) differs from the text
+  `prd_hooks.py ci --<forge> <prd_dir>` would write now (FR-113), the change command shall rewrite that
+  file with that text, as `ci --<forge> --force` does (AC-113.2), before it commits; a CI file that does
+  not exist, or already holds that text, it shall leave as it is. It prints no line for a rewrite.
 Errors: -
-Edge cases: the commit runs the repository's hooks; it never passes `--no-verify` → AC-263.5; the gate inbox's approve runs this same command → AC-263.1
-Tests: T-263.1 [integration], T-263.2 [integration], T-263.3 [integration], T-263.4 [integration], T-263.5 [integration], T-263.6 [integration], T-263.7 [integration]  (test-cases/change.yaml)
+Edge cases: the commit runs the repository's hooks; it never passes `--no-verify` → AC-263.5; the gate inbox's approve runs this same command → AC-263.1; approve never creates a CI file the repository does not have → AC-263.6; a rewritten CI file is what the merge gate's `hooks check --ci` compares (AC-068.5), so the approval commit leaves it current → AC-263.6
+Tests: T-263.1 [integration], T-263.2 [integration], T-263.3 [integration], T-263.4 [integration], T-263.5 [integration], T-263.6 [integration], T-263.7 [integration], T-263.8 [integration], T-263.9 [integration], T-263.10 [integration], T-263.11 [integration]  (test-cases/change.yaml)
 Traces: cli:prd_change

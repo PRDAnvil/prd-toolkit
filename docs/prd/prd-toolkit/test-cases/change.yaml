@@ -41,6 +41,8 @@
 #   G09 prd.md line 3 `version: 1.0.0` becomes `version: 0.9.0`, and the §14 row's first cell `1.0.0` becomes `0.9.0`; then GC
 #   GH  write <tmp>/CLAUDE.md with the line `# Notes`; then GC
 #   GN  delete prd.md's three §14 table lines (header, separator, row)
+#   GY  run `python HOOKS ci --github docs/prd/orders`; end the test as an error when it exits other than 0; then GC
+#   GZ  append the line `# old` to <tmp>/.github/workflows/prd-toolkit.yml; then GC
 #   R   the approval-ready state: G0, GQ, GA, GR, GV
 #   DRY = 'dry run T-008.1, 0 open questions, 0 dismissed by quote'
 
@@ -1213,6 +1215,23 @@ T-262.12:
     errors: []
     leaks: none
 
+T-262.13:
+  ac: AC-262.11
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GY, "append the line `# mine` to <tmp>/.github/workflows/prd-toolkit.yml", GQ, GA, GR, GV]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: .github/workflows/prd-toolkit.yml has uncommitted changes; commit or set them aside first\n"}
+    effects: ["every file under <tmp> is unchanged"]
+    errors: []
+    leaks: none
+
 T-263.1:
   ac: AC-263.1
   level: integration
@@ -1373,5 +1392,98 @@ T-263.7:
       - "docs/prd/orders/.prd-review.json exists, unchanged"
       - "git diff --cached --name-only prints nothing; git log -1 --format=%s prints `base`"
       - "none of `<tmp>/CLAUDE.md`, `<tmp>/docs/prd/README.md` and `<tmp>/docs/prd/orders/README.md` exists, as before the run"
+    errors: []
+    leaks: none
+
+T-263.8:
+  ac: AC-263.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GY, GZ, GQ, GA, GR, GV]
+    runs:
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+      - git show --name-only --format= HEAD
+      - python HOOKS check --ci docs/prd/orders
+  expect:
+    output:
+      run_1: {exit: 0, stderr: ""}
+      run_2: {stdout_contains_line: ".github/workflows/prd-toolkit.yml"}
+      run_3: {stdout_not_contains: "stale: .github/workflows/prd-toolkit.yml"}
+    relations: ["run_1's stdout is one line, starting `approved orders 1.1.0 `"]
+    effects:
+      - "<tmp>/.github/workflows/prd-toolkit.yml holds no line `# old`"
+      - "git status --porcelain --untracked-files=all prints nothing"
+    errors: []
+    leaks: none
+
+T-263.9:
+  ac: AC-263.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GY, GQ, GA, GR, GV]
+    runs:
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+      - git show --name-only --format= HEAD
+    note: "the CI file GY committed already holds the text ci writes, so approve leaves it as it is"
+  expect:
+    output:
+      run_1: {exit: 0, stderr: ""}
+      run_2: {stdout_not_contains: ".github/"}
+    effects:
+      - "<tmp>/.github/workflows/prd-toolkit.yml is byte-identical to the file GY committed"
+      - "<tmp>/.gitlab does not exist"
+    errors: []
+    leaks: none
+
+T-263.10:
+  ac: AC-263.6
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, "run `python HOOKS ci --gitlab docs/prd/orders`; end the test as an error when it exits other than 0", "append the line `# old` to <tmp>/.gitlab/prd-toolkit.yml", GC, GQ, GA, GR, GV]
+    runs:
+      - python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+      - git show --name-only --format= HEAD
+  expect:
+    output:
+      run_1: {exit: 0, stderr: ""}
+      run_2: {stdout_contains_line: ".gitlab/prd-toolkit.yml"}
+    effects:
+      - "<tmp>/.gitlab/prd-toolkit.yml holds no line `# old`"
+      - "<tmp>/.github does not exist"
+      - "git status --porcelain --untracked-files=all prints nothing"
+    errors: []
+    leaks: none
+
+T-263.11:
+  ac: AC-263.5
+  level: integration
+  target: cli:prd_change
+  environment: local
+  identity: none
+  preconditions: [status-next/base]
+  refs: ["testing.md#Setup steps"]
+  input:
+    setup: [G0, GY, GZ, GQ, GA, GR, GV, "write <tmp>/hooks/pre-commit, mode 0755, as the two lines `#!/bin/sh` and `echo 'hook says no' >&2; exit 1`", "git config core.hooksPath <tmp>/hooks"]
+    command: python CHANGE approve docs/prd/orders --reply approved --dry-run DRY
+  expect:
+    output: {exit: 1, stdout: "", stderr: "refused: git commit failed: hook says no\n"}
+    effects:
+      - "<tmp>/.github/workflows/prd-toolkit.yml is byte-identical to the file GZ committed, its last line `# old`"
+      - "git diff --cached --name-only prints nothing; git status --porcelain -- .github prints nothing"
     errors: []
     leaks: none
