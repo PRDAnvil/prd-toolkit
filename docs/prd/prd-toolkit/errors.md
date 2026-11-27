@@ -1225,6 +1225,7 @@ Recurrence of: -
 ### E-098 The unit test test_command_maps_arguments asserts the prd-context exit-2 sentence that E-096 removed, so the fix fails the unit level
 Detected: 2026-11-27, build commands FR-284 --fixes E-096
 Classification: code bug
+Confirmed: 2026-11-27, "Confirm the class (form)"
 Touches: FR-284
 Evidence: Build commands FR-284 --fixes E-096, step 7 full run, unit level:
   uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd
