@@ -7,7 +7,7 @@ and a short body of instructions that hands the run to a skill or a script. The 
 each file instructs the agent to do; what the skill or script then does belongs to its own area.
 
 ### FR-281 The commands folder holds twelve command files of one shape
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-adopt.md:2 @2b082aa
 Acceptance (EARS):
 - AC-281.1 The folder `prd-toolkit/commands/` shall hold exactly twelve tracked files: `prd-adopt.md`, `prd-build.md`,
@@ -28,7 +28,7 @@ Tests: T-281.1 [integration], T-281.2 [integration], T-281.3 [integration], T-28
 Traces: `code:prd-toolkit/commands`; FR-271; FR-273
 
 ### FR-282 The prd-status and prd-context commands share one Which script paragraph
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-status.md:7 @2b082aa
 Acceptance (EARS):
 - AC-282.1 The prd-status and prd-context command files shall each hold exactly one paragraph whose first line starts
@@ -53,11 +53,10 @@ Tests: T-282.1 [integration], T-282.2 [integration], T-282.3 [integration], T-28
 Traces: `code:prd-toolkit/commands/prd-status.md`; `code:prd-toolkit/commands/prd-context.md`; FR-283; FR-284
 
 ### FR-283 The prd-status command runs prd status once, unfiltered, and prints the report as it is
-Status: as-built
+Status: approved
 Source: prd-toolkit/commands/prd-status.md:27 @2b082aa
 Acceptance (EARS):
-- AC-283.1 The prd-status command file's description shall be
-  `Print what the PRD needs next and where every requirement stands (prd-toolkit)`, and its body shall start with
+- AC-283.1 The prd-status command file's body shall start with
   `Print the prd-toolkit status report. Arguments: $ARGUMENTS`.
 - AC-283.2 When the prd-status command runs, its instructions shall tell the agent to run
   `<scripts>/prd status docs/prd/<slug>; echo "prd-status-exit=$?"` in one Bash call with the literal PRD folder, to
@@ -67,17 +66,19 @@ Acceptance (EARS):
   Open errors, Upstreams, Consumers, Change sets, CI, Deployed and Matrix, and say that a vendored copy older than
   0.8.10 prints no Next part and that the script changes nothing itself but runs lint, which runs the PRD's section 7
   validator commands.
+- AC-283.4 When the prd-status command runs, its instructions shall tell the agent, on `prd-status-exit=2`, to read
+  what the script printed and act on its cause: a wrong path (fix the path), an unmigrated PRD or an internal error;
+  and shall not say that nothing was printed (E-095).
 Errors: -
-Edge cases: step 4's instruction for `prd-status-exit=2` is E-095 and is not stated here; the report itself is the status and status-next areas
-Tests: T-283.1 [integration], T-283.2 [integration], T-283.3 [integration]  (test-cases/commands.yaml)
+Edge cases: under `--json` an exit 2 prints the error document on stdout (`cli:prd_status` `json_error`) → AC-283.4; the report itself is the status and status-next areas
+Tests: T-283.1 [integration], T-283.2 [integration], T-283.3 [integration], T-283.4 [integration]  (test-cases/commands.yaml)
 Traces: `code:prd-toolkit/commands/prd-status.md`; FR-282; `cli:prd_status`
 
 ### FR-284 The prd-context command maps its arguments to prd context options and prints the pack as it is
-Status: as-built
+Status: approved
 Source: prd-toolkit/commands/prd-context.md:27 @2b082aa
 Acceptance (EARS):
-- AC-284.1 The prd-context command file's description shall be
-  `Print the focused context pack for one PRD task (prd-toolkit)`, and its body shall start with
+- AC-284.1 The prd-context command file's body shall start with
   `Print the prd-toolkit context pack. Arguments: $ARGUMENTS`.
 - AC-284.2 When the prd-context command runs, its instructions shall tell the agent that a token that starts with
   `UJ-`, `FR-`, `NFR-`, `AC-`, `T-` or `E-` is an ID and never the area; that the first argument that is neither an ID
@@ -91,43 +92,44 @@ Acceptance (EARS):
   `--for implement` both need `--area`; and never to pipe, filter or truncate the pack's output.
 - AC-284.4 When the prd-context command runs, its instructions shall tell the agent to print the output as it is and
   work from it, and, on `prd-context-exit=1`, to re-read the regions marked STALE before relying on them.
+- AC-284.5 When the prd-context command runs, its instructions shall tell the agent, on `prd-context-exit=2`, to read
+  what the script printed and act on its cause: wrong arguments (fix them), an unmigrated PRD or an internal error;
+  and shall not say that nothing was printed (E-096).
+- AC-284.6 When the prd-context command is given IDs and no area, its instructions shall tell the agent to find each
+  ID's area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or to ask; and shall not name
+  the repo pack as that source (E-097).
 Errors: -
-Edge cases: the step 2 sentence for IDs given with no area waits on a question (QUESTIONS); the step 5 instruction for `prd-context-exit=2` is E-096; the script's own argument checks are the context area
-Tests: T-284.1 [integration], T-284.2 [integration], T-284.3 [integration], T-284.4 [integration]  (test-cases/commands.yaml)
+Edge cases: the repo pack lists each area's name, state and Boundary and no requirement ID → AC-284.6; the script's own argument checks are the context area
+Tests: T-284.1 [integration], T-284.2 [integration], T-284.3 [integration], T-284.4 [integration], T-284.5 [integration], T-284.6 [integration]  (test-cases/commands.yaml)
 Traces: `code:prd-toolkit/commands/prd-context.md`; FR-282; `cli:prd_context`
 
 ### FR-285 The prd-new command hands the run to authoring-prds with the project slug
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-new.md:5 @2b082aa
 Acceptance (EARS):
-- AC-285.1 The prd-new command file's description shall be
-  `Start a PRD for a new project, or resume a draft one (prd-toolkit)`.
 - AC-285.2 When the prd-new command runs, its instructions shall tell the agent to invoke the prd-toolkit:authoring-prds
   skill and follow it exactly, and that `$ARGUMENTS`, when given, is the project slug, and shall say nothing else.
 Errors: -
 Edge cases: no argument: the skill asks (the authoring-prds area)
-Tests: T-285.1 [integration], T-285.2 [integration]  (test-cases/commands.yaml)
+Tests: T-285.2 [integration]  (test-cases/commands.yaml)
 Traces: `code:prd-toolkit/commands/prd-new.md`
 
 ### FR-286 The prd-adopt command hands the run to adopting-prds with the area
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-adopt.md:5 @2b082aa
 Acceptance (EARS):
-- AC-286.1 The prd-adopt command file's description shall be
-  `Bring an existing repo, one area at a time, under a living PRD (prd-toolkit)`.
 - AC-286.2 When the prd-adopt command runs, its instructions shall tell the agent to invoke the
   prd-toolkit:adopting-prds skill and follow it exactly, and that `$ARGUMENTS`, when given, is the area to adopt, and
   shall say nothing else.
 Errors: -
 Edge cases: -
-Tests: T-286.1 [integration], T-286.2 [integration]  (test-cases/commands.yaml)
+Tests: T-286.2 [integration]  (test-cases/commands.yaml)
 Traces: `code:prd-toolkit/commands/prd-adopt.md`
 
 ### FR-287 The prd-change command runs changing-prds, or review mode on --review
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-change.md:5 @2b082aa
 Acceptance (EARS):
-- AC-287.1 The prd-change command file's description shall be `Change the PRD before changing behaviour (prd-toolkit)`.
 - AC-287.2 When the prd-change command runs, its instructions shall tell the agent to invoke the
   prd-toolkit:changing-prds skill and follow it exactly, and that arguments that do not begin with `--review <dir>`
   are the change to make.
@@ -138,16 +140,14 @@ Acceptance (EARS):
   an edit, whatever they ask for.
 Errors: -
 Edge cases: the "five steps" are the changing-prds section headed The five steps, numbered 0 to 5 (the changing-prds area)
-Tests: T-287.1 [integration], T-287.2 [integration], T-287.3 [integration]  (test-cases/commands.yaml)
+Tests: T-287.2 [integration], T-287.3 [integration]  (test-cases/commands.yaml)
 Traces: `code:prd-toolkit/commands/prd-change.md`
 
 ### FR-288 The prd-build command reads the build procedure first and maps its arguments to one --req
-Status: as-built
+Status: approved
 Source: prd-toolkit/commands/prd-build.md:7 @2b082aa
 Acceptance (EARS):
-- AC-288.1 The prd-build command file's description shall be
-  `Build an approved PRD change with prd-builder and prd-tester, reconcile each failure by quote, and move its requirements to built and verified (prd-toolkit)`,
-  and its body's first line shall name the arguments as `<area> <IDs> [--fixes E-nnn]` before `$ARGUMENTS`.
+- AC-288.1 The prd-build command file's body's first line shall name the arguments as `<area> <IDs> [--fixes E-nnn]` before `$ARGUMENTS`.
 - AC-288.2 When the prd-build command runs, its first step shall tell the agent, before anything else, to Read
   `${CLAUDE_PLUGIN_ROOT}/skills/building-from-prds/running-a-build.md` whole (no offset, no limit), and to run no test,
   read no code and dispatch no agent before it.
@@ -165,18 +165,19 @@ Acceptance (EARS):
 - AC-288.6 When the prd-build command runs, its instructions shall tell the agent to follow
   `${CLAUDE_PLUGIN_ROOT}/skills/building-from-prds/running-a-build.md` exactly, steps 1 to 8, and report as its close
   says.
+- AC-288.7 When the prd-build command is given IDs and no area, its instructions shall tell the agent to find each ID's
+  area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or to ask; and shall not name the
+  repo pack as that source (E-097).
 Errors: -
-Edge cases: the step 4 sentence for IDs given with no area waits on a question (QUESTIONS); the procedure's own steps and refusal text are the building-from-prds area
-Tests: T-288.1 [integration], T-288.2 [integration], T-288.3 [integration], T-288.4 [integration], T-288.5 [integration], T-288.6 [integration]  (test-cases/commands.yaml)
+Edge cases: the procedure's own steps and refusal text are the building-from-prds area
+Tests: T-288.1 [integration], T-288.2 [integration], T-288.3 [integration], T-288.4 [integration], T-288.5 [integration], T-288.6 [integration], T-288.7 [integration]  (test-cases/commands.yaml)
 Traces: `code:prd-toolkit/commands/prd-build.md`; FR-284
 
 ### FR-289 The prd-change-set command reads the change-set procedure first and enters a record by its Status
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-change-set.md:7 @2b082aa
 Acceptance (EARS):
-- AC-289.1 The prd-change-set command file's description shall be
-  `Coordinate one change across linked PRDs in several repositories - one change-set record, one approval for every PRD diff, and the builds in dependency order (prd-toolkit)`,
-  and its body's first line shall name the arguments as `[<CS-nnn> | <text>]` before `$ARGUMENTS`.
+- AC-289.1 The prd-change-set command file's body's first line shall name the arguments as `[<CS-nnn> | <text>]` before `$ARGUMENTS`.
 - AC-289.2 When the prd-change-set command runs, its first step shall tell the agent to invoke the
   prd-toolkit:coordinating-prds skill first, that the skill's first instruction is a Read of
   `${CLAUDE_PLUGIN_ROOT}/skills/coordinating-prds/running-a-change-set.md` whole (no offset, no limit) to make as its
@@ -195,12 +196,10 @@ Tests: T-289.1 [integration], T-289.2 [integration], T-289.3 [integration], T-28
 Traces: `code:prd-toolkit/commands/prd-change-set.md`
 
 ### FR-290 The prd-deploy command reads the deploy procedure first and passes --until or a run id
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-deploy.md:7 @2b082aa
 Acceptance (EARS):
-- AC-290.1 The prd-deploy command file's description shall be
-  `Deploy a verified PRD through its runbook with prd_deploy.py, stopping for every human step and failure, and record the run as Deployed rows and verified → live (prd-toolkit)`,
-  and its body's first line shall name the arguments as `[--until <env>] [<run id>]` before `$ARGUMENTS`.
+- AC-290.1 The prd-deploy command file's body's first line shall name the arguments as `[--until <env>] [<run id>]` before `$ARGUMENTS`.
 - AC-290.2 When the prd-deploy command runs, its first step shall tell the agent to invoke the
   prd-toolkit:deploying-from-prds skill first, that the skill's first instruction is a Read of
   `${CLAUDE_PLUGIN_ROOT}/skills/deploying-from-prds/running-a-deploy.md` whole (no offset, no limit) to make as its
@@ -218,12 +217,10 @@ Tests: T-290.1 [integration], T-290.2 [integration], T-290.3 [integration], T-29
 Traces: `code:prd-toolkit/commands/prd-deploy.md`
 
 ### FR-291 The prd-error command reads the error procedure first and enters an entry by its state
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-error.md:7 @2b082aa
 Acceptance (EARS):
-- AC-291.1 The prd-error command file's description shall be
-  `Record an error in the PRD's errors.md, diagnose it, propose its class for the user to confirm, and fix it from a failing test through /prd-toolkit:prd-change and /prd-toolkit:prd-build, or with a red run for code no adopted area covers (prd-toolkit)`,
-  and its body's first line shall name the arguments as `[<E-nnn> | <run id> | <text>]` before `$ARGUMENTS`.
+- AC-291.1 The prd-error command file's body's first line shall name the arguments as `[<E-nnn> | <run id> | <text>]` before `$ARGUMENTS`.
 - AC-291.2 When the prd-error command runs, its first step shall tell the agent to invoke the prd-toolkit:handling-errors
   skill first, that the skill's first instruction is a Read of
   `${CLAUDE_PLUGIN_ROOT}/skills/handling-errors/running-an-error.md` whole (no offset, no limit) to make as its next
@@ -244,12 +241,10 @@ Tests: T-291.1 [integration], T-291.2 [integration], T-291.3 [integration], T-29
 Traces: `code:prd-toolkit/commands/prd-error.md`; FR-290
 
 ### FR-292 The prd-publish command loads publishing-prds first and keeps the page out of the PRD folder and git
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-publish.md:7 @2b082aa
 Acceptance (EARS):
-- AC-292.1 The prd-publish command file's description shall be
-  `Publish the PRD as one self-contained HTML page with prd_publish.py, with per-area summaries that cite their IDs, outside the PRD folder and never committed, offered as a private Artifact (prd-toolkit)`,
-  and its body's first line shall name the arguments as `[<out file>] [<request>]` before `$ARGUMENTS`.
+- AC-292.1 The prd-publish command file's body's first line shall name the arguments as `[<out file>] [<request>]` before `$ARGUMENTS`.
 - AC-292.2 When the prd-publish command runs, its first step shall tell the agent to invoke the
   prd-toolkit:publishing-prds skill first, and to read nothing and run nothing before it.
 - AC-292.3 When the prd-publish command runs, its instructions shall tell the agent that a first argument ending in
@@ -267,12 +262,10 @@ Tests: T-292.1 [integration], T-292.2 [integration], T-292.3 [integration], T-29
 Traces: `code:prd-toolkit/commands/prd-publish.md`; `cli:prd_publish`
 
 ### FR-293 The prd-practices command reads the practices procedure first and installs nothing before approval
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-practices.md:7 @2b082aa
 Acceptance (EARS):
-- AC-293.1 The prd-practices command file's description shall be
-  `Propose best-practice sources, practices, standards rows and the skills a PRD needs, read and quoted, for the owner to approve as one PRD change, and install or write an approved skill only after it (prd-toolkit)`,
-  and its body's first line shall name the arguments as `[<PRD folder>] [<what to source>]` before `$ARGUMENTS`.
+- AC-293.1 The prd-practices command file's body's first line shall name the arguments as `[<PRD folder>] [<what to source>]` before `$ARGUMENTS`.
 - AC-293.2 When the prd-practices command runs, its first step shall tell the agent to invoke the
   prd-toolkit:sourcing-practices skill first, that the skill's first instruction is a Read of
   `${CLAUDE_PLUGIN_ROOT}/skills/sourcing-practices/running-practices.md` whole (no offset, no limit) to make as its next
@@ -291,12 +284,10 @@ Tests: T-293.1 [integration], T-293.2 [integration], T-293.3 [integration], T-29
 Traces: `code:prd-toolkit/commands/prd-practices.md`; `cli:prd_practices`
 
 ### FR-294 The prd-pack command reads the pack procedure first and takes two PRD folders
-Status: as-built
+Status: live (since 14.1.0)
 Source: prd-toolkit/commands/prd-pack.md:7 @2b082aa
 Acceptance (EARS):
-- AC-294.1 The prd-pack command file's description shall be
-  `Propose a pack from what two adopted PRDs share, each item with the PRD lines it comes from and each difference with both sides, for the owner to decide; then write it into the plugin the owner names, check it, and commit it on a new branch, pushing and installing nothing (prd-toolkit)`,
-  and its body's first line shall name the arguments as `<PRD folder A> <PRD folder B> [<pack name>]` before
+- AC-294.1 The prd-pack command file's body's first line shall name the arguments as `<PRD folder A> <PRD folder B> [<pack name>]` before
   `$ARGUMENTS`.
 - AC-294.2 When the prd-pack command runs, its first step shall tell the agent to invoke the prd-toolkit:authoring-packs
   skill first, that the skill's first instruction is a Read of

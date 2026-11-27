@@ -1207,3 +1207,11 @@ Touches: FR-284
 Diagnosis: read from the code, not reproduced. Step 5 tells the agent that on `prd-context-exit=2` "the call was wrong and nothing printed: fix the arguments". prd_context.py returns 2 from its catch-all `except Exception` (prd-toolkit/scripts/prd_context.py:67 @2b082aa, message `prd_context: internal error: …`). It also returns 2 for an unmigrated 0.2 PRD, which context.py raises as a ContextError (prd-toolkit/scripts/prdlint/context.py:489 @2b082aa). Neither is fixed by changing the arguments. The sibling code contradicts the command's account of exit 2.
 Resolution: open
 Recurrence of: -
+
+### E-097 The prd-context and prd-build commands send the agent to the repo pack to find an ID's area, but the repo pack lists no requirement IDs
+Detected: 2026-11-27, confirmation of FR-284 (Q-57; prd-toolkit/commands/prd-context.md:32 @2b082aa)
+Classification: unclassified
+Touches: FR-284, FR-288
+Diagnosis: read from the code, not reproduced. Step 2 of prd-context.md and step 4 of prd-build.md (prd-toolkit/commands/prd-build.md:18 @2b082aa) tell the agent, given IDs and no area, to "find the area each ID's block lives in from the repo pack, or ask". The repo pack (`prd context docs/prd/prd-toolkit`, no `--area`) printed 93 lines at 2b082aa, none holding an FR ID: its Areas lines give each area's name, state and Boundary only. `prd context` with `--req` and no `--area` exits 2. An agent that follows the instruction cannot find the area that way.
+Resolution: open, intended: find each ID's area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or ask
+Recurrence of: -

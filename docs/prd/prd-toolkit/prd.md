@@ -427,20 +427,20 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-278 | Remind once per session when an edit lands where nothing is approved | verified | features/edit-hook.md |  |
 | FR-279 | Report lint's new findings at Stop for the PRD folders the session edited | verified | features/edit-hook.md |  |
 | FR-280 | The plugin wires the edit hook in both tiers | verified | features/edit-hook.md |  |
-| FR-281 | The commands folder holds twelve command files of one shape | as-built | features/commands.md |  |
-| FR-282 | The prd-status and prd-context commands share one Which script paragraph | as-built | features/commands.md |  |
-| FR-283 | The prd-status command runs prd status once, unfiltered, and prints the report as it is | as-built | features/commands.md |  |
-| FR-284 | The prd-context command maps its arguments to prd context options and prints the pack as it is | as-built | features/commands.md |  |
-| FR-285 | The prd-new command hands the run to authoring-prds with the project slug | as-built | features/commands.md |  |
-| FR-286 | The prd-adopt command hands the run to adopting-prds with the area | as-built | features/commands.md |  |
-| FR-287 | The prd-change command runs changing-prds, or review mode on --review | as-built | features/commands.md |  |
-| FR-288 | The prd-build command reads the build procedure first and maps its arguments to one --req | as-built | features/commands.md |  |
-| FR-289 | The prd-change-set command reads the change-set procedure first and enters a record by its Status | as-built | features/commands.md |  |
-| FR-290 | The prd-deploy command reads the deploy procedure first and passes --until or a run id | as-built | features/commands.md |  |
-| FR-291 | The prd-error command reads the error procedure first and enters an entry by its state | as-built | features/commands.md |  |
-| FR-292 | The prd-publish command loads publishing-prds first and keeps the page out of the PRD folder and git | as-built | features/commands.md |  |
-| FR-293 | The prd-practices command reads the practices procedure first and installs nothing before approval | as-built | features/commands.md |  |
-| FR-294 | The prd-pack command reads the pack procedure first and takes two PRD folders | as-built | features/commands.md |  |
+| FR-281 | The commands folder holds twelve command files of one shape | live | features/commands.md | 14.1.0 |
+| FR-282 | The prd-status and prd-context commands share one Which script paragraph | live | features/commands.md | 14.1.0 |
+| FR-283 | The prd-status command runs prd status once, unfiltered, and prints the report as it is | approved | features/commands.md |  |
+| FR-284 | The prd-context command maps its arguments to prd context options and prints the pack as it is | approved | features/commands.md |  |
+| FR-285 | The prd-new command hands the run to authoring-prds with the project slug | live | features/commands.md | 14.1.0 |
+| FR-286 | The prd-adopt command hands the run to adopting-prds with the area | live | features/commands.md | 14.1.0 |
+| FR-287 | The prd-change command runs changing-prds, or review mode on --review | live | features/commands.md | 14.1.0 |
+| FR-288 | The prd-build command reads the build procedure first and maps its arguments to one --req | approved | features/commands.md |  |
+| FR-289 | The prd-change-set command reads the change-set procedure first and enters a record by its Status | live | features/commands.md | 14.1.0 |
+| FR-290 | The prd-deploy command reads the deploy procedure first and passes --until or a run id | live | features/commands.md | 14.1.0 |
+| FR-291 | The prd-error command reads the error procedure first and enters an entry by its state | live | features/commands.md | 14.1.0 |
+| FR-292 | The prd-publish command loads publishing-prds first and keeps the page out of the PRD folder and git | live | features/commands.md | 14.1.0 |
+| FR-293 | The prd-practices command reads the practices procedure first and installs nothing before approval | live | features/commands.md | 14.1.0 |
+| FR-294 | The prd-pack command reads the pack procedure first and takes two PRD folders | live | features/commands.md | 14.1.0 |
 
 ## 12. Assumptions index
 
@@ -449,9 +449,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 
 ## 13. Open questions
 
-- Q-57 prd-context.md and prd-build.md tell the agent, given IDs and no area, to find each ID's area "from the repo pack", but the repo pack's Areas lines give each area's name, state and Boundary and no requirement IDs: is that the instruction you want, or should it name another source, such as the `features/<area>.md` that defines the block? The sentence is left out of AC-284.2 and AC-288.4 until answered. (FR-284)
-- Q-58 AC-281.1 pins the exact set of twelve command files, so every new command becomes a PRD change: pin the set here, or only tie it to the manifest description and the README table (FR-271, FR-273)? (FR-281)
-- Q-59 Each command's frontmatter description is pinned word for word (AC-283.1 to AC-294.1), so any rewording becomes a PRD change: pin the descriptions exactly, or only their shape (AC-281.2)? (FR-281)
+None.
 
 ## 14. Changelog
 
