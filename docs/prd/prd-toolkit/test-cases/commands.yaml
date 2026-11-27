@@ -25,6 +25,7 @@ T-281.1:
   environment: local
   identity: none
   preconditions: []
+  refs: ["testing.md#Harness"]
   input:
     read: "the lines `git -C <repo> ls-files prd-toolkit/commands` prints, sorted"
   expect:
