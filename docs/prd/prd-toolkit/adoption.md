@@ -22,7 +22,20 @@
 | change | adopted | `prd-toolkit/scripts/prd_change.py`, `prd-toolkit/scripts/prdlint/change.py`, `prd-toolkit/scripts/prdlint/change_approve.py` |
 | judge | not started | `prd-toolkit/scripts/prd_judge.py`, `prd-toolkit/scripts/prdlint/judge.py` |
 | packs | not started | `prd-toolkit/scripts/prdlint/packs.py`, `prd-toolkit/scripts/prdlint/languages.py`, `prd-toolkit/scripts/prdlint/rules/packs.py` |
-| skills | not started | `prd-toolkit/skills/**`, `prd-toolkit/agents/**`, `prd-toolkit/commands/**`, `prd-toolkit/references/clarify-categories.md`, `prd-toolkit/references/contract-types.md`, `prd-toolkit/references/ears.md`, `prd-toolkit/references/quality-checklist.md`, `prd-toolkit/references/test-levels.md`, `prd-toolkit/references/prd-format.md`, `prd-toolkit/templates/prd/**` |
+| commands | adopted | `prd-toolkit/commands/**` |
+| agents | not started | `prd-toolkit/agents/**` |
+| prd-grammar | not started | `prd-toolkit/references/clarify-categories.md`, `prd-toolkit/references/contract-types.md`, `prd-toolkit/references/ears.md`, `prd-toolkit/references/quality-checklist.md`, `prd-toolkit/references/test-levels.md`, `prd-toolkit/references/prd-format.md`, `prd-toolkit/templates/prd/**` |
+| adopting-prds | not started | `prd-toolkit/skills/adopting-prds/**` |
+| authoring-packs | not started | `prd-toolkit/skills/authoring-packs/**` |
+| authoring-prds | not started | `prd-toolkit/skills/authoring-prds/**` |
+| building-from-prds | not started | `prd-toolkit/skills/building-from-prds/**` |
+| changing-prds | not started | `prd-toolkit/skills/changing-prds/**` |
+| coordinating-prds | not started | `prd-toolkit/skills/coordinating-prds/**` |
+| deploying-from-prds | not started | `prd-toolkit/skills/deploying-from-prds/**` |
+| handling-errors | not started | `prd-toolkit/skills/handling-errors/**` |
+| publishing-prds | not started | `prd-toolkit/skills/publishing-prds/**` |
+| sourcing-practices | not started | `prd-toolkit/skills/sourcing-practices/**` |
+| testing-from-prds | not started | `prd-toolkit/skills/testing-from-prds/**` |
 | release | adopted | `prd-toolkit/.claude-plugin/**`, `prd-toolkit/README.md`, `prd-toolkit/LICENSE`, `prd-toolkit/NOTICE`, `prd-toolkit/pyproject.toml`, `prd-toolkit/uv.lock`, `.claude-plugin/marketplace.json`, `README.md` |
 | help | adopted | `prd-toolkit/scripts/prd_help.py`, `prd-toolkit/scripts/prdlint/helpcat.py`, `prd-toolkit/references/help.yaml` |
 | status-next | adopted | `prd-toolkit/scripts/prdlint/nextpart.py` |

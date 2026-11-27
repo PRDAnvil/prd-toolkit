@@ -1191,3 +1191,27 @@ Evidence: Seen 2026-11-27 on branch fix/ci-stale-standards (the 0.8.23 release t
 Diagnosis: not reproduced: on HEAD 7f38c23 (0.8.24), `uv run --directory prd-toolkit pytest -q -n auto tests/test_diagrams.py` printed `106 passed in 16.79s`, and the full unit Levels command `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd` printed `4132 passed, 1 skipped in 290.34s`, the test passing in both; the one failure (run 2 of 2026-11-27) kept no traceback, so which of its two assertions failed (the publish exit and stderr, or the count of drawn diagrams) is unknown; what would reproduce it is the failure output of the next run where it fails, kept whole (the run written to a file, never cut to its tail)
 Resolution: -
 Recurrence of: -
+
+### E-095 The prd-status command says exit 2 means a wrong path with nothing printed, but prd status also exits 2 with output and for other causes
+Detected: 2026-11-27, adoption extract of commands (prd-toolkit/commands/prd-status.md:37 @2b082aa)
+Classification: unclassified
+Touches: FR-283
+Diagnosis: read from the code, not reproduced. Step 4 tells the agent that on `prd-status-exit=2` "the call was wrong and nothing printed: fix the path". Step 2 of the same file has the agent add `--json` when asked for JSON. Under `--json`, `interface.run` (prd-toolkit/scripts/prdlint/interface.py:67 @2b082aa) writes the error document `{"interface": 1, "kind": "status", "error": …}` to stdout on every exit 2, and contracts/cli.yaml records this as prd_status `json_error`. prd_status.py also exits 2 for an unmigrated 0.2 PRD (prd-toolkit/scripts/prd_status.py:54 @2b082aa) and for an internal error (prd_status.py:63). In both cases the path is right. cli.yaml's prd_status exit code 2 lists both. The command's sentence contradicts the script it runs: output is printed, and the path is not always the cause.
+Resolution: open
+Recurrence of: -
+
+### E-096 The prd-context command says exit 2 means the arguments were wrong, but prd context also exits 2 for an internal error or an unmigrated PRD
+Detected: 2026-11-27, adoption extract of commands (prd-toolkit/commands/prd-context.md:42 @2b082aa)
+Classification: unclassified
+Touches: FR-284
+Diagnosis: read from the code, not reproduced. Step 5 tells the agent that on `prd-context-exit=2` "the call was wrong and nothing printed: fix the arguments". prd_context.py returns 2 from its catch-all `except Exception` (prd-toolkit/scripts/prd_context.py:67 @2b082aa, message `prd_context: internal error: …`). It also returns 2 for an unmigrated 0.2 PRD, which context.py raises as a ContextError (prd-toolkit/scripts/prdlint/context.py:489 @2b082aa). Neither is fixed by changing the arguments. The sibling code contradicts the command's account of exit 2.
+Resolution: open
+Recurrence of: -
+
+### E-097 The prd-context and prd-build commands send the agent to the repo pack to find an ID's area, but the repo pack lists no requirement IDs
+Detected: 2026-11-27, confirmation of FR-284 (Q-57; prd-toolkit/commands/prd-context.md:32 @2b082aa)
+Classification: unclassified
+Touches: FR-284, FR-288
+Diagnosis: read from the code, not reproduced. Step 2 of prd-context.md and step 4 of prd-build.md (prd-toolkit/commands/prd-build.md:18 @2b082aa) tell the agent, given IDs and no area, to "find the area each ID's block lives in from the repo pack, or ask". The repo pack (`prd context docs/prd/prd-toolkit`, no `--area`) printed 93 lines at 2b082aa, none holding an FR ID: its Areas lines give each area's name, state and Boundary only. `prd context` with `--req` and no `--area` exits 2. An agent that follows the instruction cannot find the area that way.
+Resolution: open, intended: find each ID's area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or ask
+Recurrence of: -
