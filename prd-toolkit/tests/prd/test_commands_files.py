@@ -1,11 +1,27 @@
 """FR-281: the commands folder holds twelve command files of one shape (test-cases/commands.yaml)."""
 from __future__ import annotations
 
-from commands_support import NAMES, body, cmd, first_line, flat, fm, ls_files, missing, present
+import subprocess
+
+from commands_support import NAMES, REPO, body, cmd, first_line, flat, fm, git_env, missing, present
 
 
 def test_commands_folder_holds_twelve_tracked_files():
     """@prd T-281.1"""
+    # input.read: the lines `git -C <repo> ls-files prd-toolkit/commands` prints, sorted
+    # (testing.md, the commands paragraph: run as the case writes it, with the Subprocess
+    # environment minus GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE and GIT_COMMON_DIR; its stdout
+    # lines sorted with Python's `sorted`).
+    r = subprocess.run(
+        ["git", "-C", str(REPO), "ls-files", "prd-toolkit/commands"],
+        capture_output=True,
+        env=git_env(),
+    )
+    assert r.returncode == 0, (
+        f"git ls-files exited {r.returncode}: {r.stderr.decode('utf-8', 'replace').strip()}"
+    )
+    read = sorted(r.stdout.decode("utf-8").splitlines())
+    # expect.output.equals
     expected = [
         "prd-toolkit/commands/prd-adopt.md",
         "prd-toolkit/commands/prd-build.md",
@@ -20,7 +36,7 @@ def test_commands_folder_holds_twelve_tracked_files():
         "prd-toolkit/commands/prd-publish.md",
         "prd-toolkit/commands/prd-status.md",
     ]
-    assert ls_files("prd-toolkit/commands") == expected
+    assert read == expected
 
 
 def test_commands_frontmatter_is_one_description_line():
