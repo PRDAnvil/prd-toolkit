@@ -38,5 +38,6 @@ together.
    then reports the filter's status, not the pack's.
 4. Print the output as it is, and work from it.
 5. On `prd-context-exit=1`, at least one source is STALE: re-read the regions marked STALE
-   before relying on them. On `prd-context-exit=2`, the call was wrong and nothing printed:
-   fix the arguments.
+   before relying on them. On `prd-context-exit=2`, read what the script printed and act on its
+   cause: wrong arguments (fix them), an unmigrated PRD (the message says what to move) or an
+   internal error.
