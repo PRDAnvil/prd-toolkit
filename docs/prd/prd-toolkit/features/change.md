@@ -232,7 +232,7 @@ Tests: T-261.1 [integration], T-261.2 [integration], T-261.3 [integration], T-26
 Traces: cli:prd_change
 
 ### FR-262 The checks before an approval
-Status: approved
+Status: verified
 Source: prd-toolkit/scripts/prdlint/change_approve.py:71 @169036a
 Acceptance (EARS):
 - AC-262.1 If `--reply` is empty or white space, the change command shall refuse
@@ -275,8 +275,8 @@ Tests: T-262.1 [integration], T-262.2 [integration], T-262.3 [integration], T-26
 Traces: cli:prd_change
 
 ### FR-263 The approval commit
-Status: approved
-Source: prd-toolkit/scripts/prdlint/change_approve.py:206 @169036a
+Status: verified
+Source: prd-toolkit/scripts/prdlint/change_approve.py:236 @f8340fc
 Acceptance (EARS):
 - AC-263.1 When `prd change approve <prd_dir> --reply <reply> --dry-run <record>` passes every check of
   FR-262, the change command shall replace the last §14 row's trailing `; pending` with

@@ -408,8 +408,8 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-259 | How the bump classifies each changed item | live | features/change.md | 10.2.0 |
 | FR-260 | Record a change in the version, §14 and §11 | approved | features/change.md |  |
 | FR-261 | Move a PRD to a new version of its pack | live | features/change.md | 10.2.0 |
-| FR-262 | The checks before an approval | approved | features/change.md |  |
-| FR-263 | The approval commit | approved | features/change.md |  |
+| FR-262 | The checks before an approval | verified | features/change.md |  |
+| FR-263 | The approval commit | verified | features/change.md |  |
 | FR-264 | A standards row says how its command takes files | verified | features/standards-run.md |  |
 | FR-265 | Print the technical view | verified | features/trd.md |  |
 | FR-266 | Map the areas and the requirements to the code | verified | features/trd.md |  |
