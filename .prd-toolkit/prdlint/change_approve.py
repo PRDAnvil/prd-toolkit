@@ -93,7 +93,37 @@ def _checked(repo_root: Path, prd_root: Path, reply: str, dry_run: str):
         _fail("the last §14 row is not recorded and pending; run record first")
     if _claude_dirty(repo_root) and not _only_the_block(repo_root, prd_root):
         _fail("CLAUDE.md has uncommitted changes; commit or set them aside first")
+    for rel in _ci_files():
+        if not _ignored(repo_root, rel) and _git(repo_root, "status", "--porcelain", "--", rel).stdout.strip():
+            _fail(f"{rel} has uncommitted changes; commit or set them aside first")
     return last
+
+
+def _ci_files() -> list[str]:
+    """The generated CI files' paths, the GitHub file first (AC-262.11)."""
+    from .hooks import CI_FILES
+
+    return [CI_FILES["github"], CI_FILES["gitlab"]]
+
+
+def _refresh_ci(repo_root: Path, prd_root: Path) -> list[str]:
+    """Rewrite each generated CI file that exists, git does not ignore, and differs from what `prd_hooks.py ci` would
+    write now, as `ci --<forge> --force` does; return the paths rewritten."""
+    from . import hooks
+
+    prd = model.load(prd_root)
+    prd_rel = prd_root.relative_to(repo_root).as_posix()
+    jobs = hooks.ci_jobs(prd, prd_rel) + hooks.deploy_jobs(prd, prd_rel)
+    out = []
+    for kind in ("github", "gitlab"):
+        rel = hooks.CI_FILES[kind]
+        path = repo_root / rel
+        if not path.is_file() or _ignored(repo_root, rel):
+            continue
+        if path.read_text(encoding="utf-8") != (hooks.render_gitlab if kind == "gitlab" else hooks.render_github)(jobs, prd.operations.secrets):
+            hooks.write_ci(repo_root, kind, jobs, True, prd.operations.secrets)
+            out.append(rel)
+    return out
 
 
 def _claude_dirty(repo_root: Path) -> bool:
@@ -173,12 +203,12 @@ def _vendored_packs(repo_root: Path, prd_root: Path) -> list[str]:
     return [p for p in out if (repo_root / p).exists() and not _ignored(repo_root, p)]
 
 
-def _commit(repo_root: Path, prd_root: Path, message: str, with_claude: bool) -> str:
-    """Commit the PRD folder (never its verdict), CLAUDE.md when `with_claude` (prd_block changed its bytes), and the
-    re-vendored pack of a change that moved a pack version."""
+def _commit(repo_root: Path, prd_root: Path, message: str, with_claude: bool, ci: list[str]) -> str:
+    """Commit the PRD folder (never its verdict), CLAUDE.md when `with_claude` (prd_block changed its bytes), the
+    re-vendored pack of a change that moved a pack version, and the CI files in `ci` (the ones `_refresh_ci` rewrote)."""
     rel = prd_root.relative_to(repo_root).as_posix()
     review = f"{rel}/{REVIEW_FILE}"
-    paths = [rel, f":(exclude){review}", *_vendored_packs(repo_root, prd_root)]
+    paths = [rel, f":(exclude){review}", *_vendored_packs(repo_root, prd_root), *ci]
     if with_claude and not _ignored(repo_root, "CLAUDE.md"):
         paths.append("CLAUDE.md")
     parent = prd_root.parent / "README.md"  # the parent's block, written beside the PRD's own README (which `rel` covers)
@@ -211,20 +241,22 @@ def approve(repo_root: Path, prd_root: Path, reply: str, dry_run: str, refs: str
     old_md = md_path.read_bytes()
     old_claude = claude.read_bytes() if claude.exists() else None
     readmes = [prd_root / "README.md", prd_root.parent / "README.md"] if prd_root.parent.name == "prd" else [prd_root / "README.md"]
-    old_readmes = {r: r.read_bytes() if r.exists() else None for r in readmes}  # prd_block writes both; a failure puts them back
+    # prd_block writes both READMEs and _refresh_ci the CI files; a failure puts each back
+    old_files = {r: r.read_bytes() if r.exists() else None for r in [*readmes, *(repo_root / p for p in _ci_files())]}
     version = last.cells[0]
     try:
         md_path.write_bytes(_approved_text(old_md.decode("utf-8"), last, dry_run).encode("utf-8"))
         _block(prd_root)
+        ci = _refresh_ci(repo_root, prd_root)
         changed = (claude.read_bytes() if claude.exists() else None) != old_claude or _claude_dirty(repo_root)
-        sha = _commit(repo_root, prd_root, _message(prd_root.name, version, reply, dry_run, refs), changed)
+        sha = _commit(repo_root, prd_root, _message(prd_root.name, version, reply, dry_run, refs), changed, ci)
     except BaseException:
         md_path.write_bytes(old_md)
         if old_claude is None:
             claude.unlink(missing_ok=True)
         else:
             claude.write_bytes(old_claude)
-        for r, old in old_readmes.items():
+        for r, old in old_files.items():
             if old is None:
                 r.unlink(missing_ok=True)
             else:
