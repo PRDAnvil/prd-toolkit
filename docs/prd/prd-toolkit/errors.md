@@ -1221,3 +1221,20 @@ Explanation: I printed the repo pack, which prd-context and prd-build tell the a
 Diagnosis: AC-284.6 says: "When the prd-context command is given IDs and no area, its instructions shall tell the agent to find each ID's area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or to ask; and shall not name the repo pack as that source (E-097)." AC-288.7 says the same of prd-build. Step 2 of prd-toolkit/commands/prd-context.md and step 4 of prd-toolkit/commands/prd-build.md say `find the area each ID's block lives in from the repo pack, or ask`. Runs on HEAD ef6ef52: the pytest run of tests/prd/test_commands_context.py and tests/prd/test_commands_build.py reported T-284.6 and T-288.7 XFAIL `known failure seen: … holds find the area each ID's block lives in from the repo pack, or ask`. In a scratch clone, `.prd-toolkit/prd context docs/prd/prd-toolkit` printed 93 lines with `0` matching `(FR|NFR|UJ)-[0-9]` (its Areas line reads `- commands (adopted; Boundary: prd-toolkit/commands/**)`); `.prd-toolkit/prd context docs/prd/prd-toolkit --req FR-283` printed `prd_context: --req needs --area` and exited `2`; `grep -ln "^### FR-283 " docs/prd/prd-toolkit/features/*.md` printed `docs/prd/prd-toolkit/features/commands.md`. Root cause: the sentence in both command files.
 Resolution: open, intended: find each ID's area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or ask
 Recurrence of: -
+
+### E-098 The unit test test_command_maps_arguments asserts the prd-context exit-2 sentence that E-096 removed, so the fix fails the unit level
+Detected: 2026-11-27, build commands FR-284 --fixes E-096
+Classification: unclassified
+Touches: FR-284
+Evidence: Build commands FR-284 --fixes E-096, step 7 full run, unit level:
+  uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd
+  FAILED tests/test_context_routing.py::test_command_maps_arguments - Assertion...
+  1 failed, 4135 passed, 1 skipped in 398.36s (0:06:38)
+  Run alone, uv run --directory prd-toolkit pytest -q tests/test_context_routing.py::test_command_maps_arguments:
+  >       assert "On `prd-context-exit=2`" in t and "nothing printed" in t
+  E       AssertionError: assert ('On `prd-context-exit=2`' in '--- description: Print the focused context pack for one PRD task (prd-toolkit) --- Print the prd-toolkit context pack... act on its cause: wrong arguments (fix them), an unmigrated PRD (the message says what to move) or an internal error.' and 'nothing printed' in '...')
+  tests/test_context_routing.py:79: AssertionError
+  The test cites no T-id.
+Diagnosis: -
+Resolution: -
+Recurrence of: -

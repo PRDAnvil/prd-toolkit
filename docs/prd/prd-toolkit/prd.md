@@ -430,7 +430,7 @@ Not applicable: command-line scripts and Claude Code skills; the published PRD p
 | FR-281 | The commands folder holds twelve command files of one shape | live | features/commands.md | 14.1.0 |
 | FR-282 | The prd-status and prd-context commands share one Which script paragraph | live | features/commands.md | 14.1.0 |
 | FR-283 | The prd-status command runs prd status once, unfiltered, and prints the report as it is | verified | features/commands.md |  |
-| FR-284 | The prd-context command maps its arguments to prd context options and prints the pack as it is | approved | features/commands.md |  |
+| FR-284 | The prd-context command maps its arguments to prd context options and prints the pack as it is | built | features/commands.md |  |
 | FR-285 | The prd-new command hands the run to authoring-prds with the project slug | live | features/commands.md | 14.1.0 |
 | FR-286 | The prd-adopt command hands the run to adopting-prds with the area | live | features/commands.md | 14.1.0 |
 | FR-287 | The prd-change command runs changing-prds, or review mode on --review | live | features/commands.md | 14.1.0 |

@@ -75,7 +75,7 @@ Tests: T-283.1 [integration], T-283.2 [integration], T-283.3 [integration], T-28
 Traces: `code:prd-toolkit/commands/prd-status.md`; FR-282; `cli:prd_status`
 
 ### FR-284 The prd-context command maps its arguments to prd context options and prints the pack as it is
-Status: approved
+Status: built
 Source: prd-toolkit/commands/prd-context.md:27 @2b082aa
 Acceptance (EARS):
 - AC-284.1 The prd-context command file's body shall start with
