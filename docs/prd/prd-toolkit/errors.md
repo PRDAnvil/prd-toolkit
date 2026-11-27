@@ -1156,3 +1156,38 @@ Explanation: I ran the release test for the plugin README's links to the design 
 Diagnosis: Run at 3e9bd32: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_release_readmes.py tests/prd/test_release_prd_function.py --runxfail --tb=line -rf`. T-276.2 (`test_one_spec_link`) expected the link targets that start with `../docs/superpowers/specs/` to be `[../docs/superpowers/specs/]` and printed `assert [../docs/superpowers/specs/2026-10-29-prd-toolkit-design.md, ...] == [../docs/superpowers/specs/]` with `Left contains 27 more items`. AC-276.2: `The plugin README prd-toolkit/README.md shall hold exactly one Markdown link whose target starts with ../docs/superpowers/specs/, and that target shall be ../docs/superpowers/specs/`. Root cause: `prd-toolkit/README.md:11` to 31 and the changelog entries link each release's spec file (`grep -c` of the prefix prints 28); unit tests such as `tests/test_release_0_5.py` pin some of those links.
 Resolution: T-276.2 [integration], PRD 13.1.0, fixed in 07792ba
 Recurrence of: -
+
+### E-093 a PRD change that adds an enforced section 5 standards row leaves the generated CI workflow stale, and neither the change procedure nor `prd change approve` catches it before the push
+Detected: 2026-11-26, user report (/prd-toolkit:prd-error), PR #80
+Classification: spec gap
+Confirmed: 2026-11-26, "Confirm the class (form)"
+Touches: FR-262, FR-263
+URL: https://github.com/PRDAnvil/prd-toolkit/actions/runs/45910377365/job/140217032152
+Evidence: Owner's report (2026-11-26), after PR #80 (PRD 13.3.0, release-area practices):
+  The change added an enforced section 5 standards row for .claude-plugin/marketplace.json.
+  prd change approve committed c4b77f9 (docs(prd): approve prd-toolkit 13.3.0) with lint exit 0.
+  On PR #80, CI job prd-lint failed on its second step, sh .prd-toolkit/prd hooks check --ci docs/prd/prd-toolkit:
+  stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force
+  Regenerating added a standards-2 job (plugin validate . on .claude-plugin/marketplace.json); fixed by b76a27b.
+  changing-prds step 5's close says a generated CI include is stale when the change touched testing.md or operations.md;
+  it does not name a section 5 standards row, and neither lint nor approve reported the stale workflow before the push.
+Explanation: In a copy of the repository at the approval commit of PRD 13.3.0, the PRD lint CI runs passed, but the CI staleness check CI also runs said the generated workflow was stale and failed. On that same tree the approval command had approved the change without a word, and the change procedure only says to regenerate the workflow when testing.md or operations.md changed, so the stale file reached the pull request and failed its merge gate. The PRD lists every check the approval makes (the reply, the review, lint, the dry-run record, the pending row and CLAUDE.md) and says nothing about the generated CI files, so the code does what the PRD says and the PRD is silent: a spec gap, not a code bug. The question for you: do you want the approval to bring the generated CI files up to date itself and commit them with the approval, as it already does for the CLAUDE.md block, or to refuse while they are stale and name the command that regenerates them, or only the change skill told to run the staleness check before asking for approval? The first two are a PRD change to FR-262 or FR-263, built in the change area; the third changes only the skill text, which no adopted area covers.
+Diagnosis: Probe in a scratch clone at c4b77f9 (docs(prd): approve prd-toolkit 13.3.0): `sh .prd-toolkit/prd lint --ci docs/prd/prd-toolkit` printed nothing, `lint-exit=0`; `sh .prd-toolkit/prd hooks check --ci docs/prd/prd-toolkit` printed `stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force`, `check-ci-exit=1`. On the same tree, uncommitted, `prd change approve docs/prd/prd-toolkit --reply Approved --dry-run no dry run (wording only)` printed `approved prd-toolkit 13.3.0 c4b77f9` and exit 0. Root cause: the 13.3.0 change added the enforced section 5 row for `.claude-plugin/marketplace.json`, and `prd_hooks.py ci` writes one standards-N job per enforced row, so the workflow needed a standards-2 job (b76a27b added it). FR-262 lists the checks approve makes, AC-262.1 to AC-262.7 and AC-262.8 `shall run the checks of AC-262.1 to AC-262.7 in that order before it writes anything`; none names the generated CI files, and FR-263 AC-263.3 stages the PRD folder, the README, CLAUDE.md and vendored packs but no CI file. Sections searched and silent on CI staleness at approval: FR-262, FR-263 (change area). The skill text changing-prds SKILL.md step 5 says `when the change touched testing.md or operations.md, a generated CI include is stale`, which leaves out a section 5 standards row; that file is in the skills area (not started), outside every adopted Boundary.
+Resolution: T-263.8 [integration], PRD 14.0.0, fixed in bbdec9e
+Recurrence of: -
+
+### E-094 test_diagrams.py::test_a_raw_quote_in_a_label_never_stops_the_publish_for_real failed once under the parallel unit run and passed alone
+Detected: 2026-11-26, unit harness run, 0.8.23 release tree (fix/ci-stale-standards)
+Classification: unclassified
+Evidence: Seen 2026-11-27 on branch fix/ci-stale-standards (the 0.8.23 release tree), by the unit Levels harness command:
+  uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd
+    run 1 (before the 0.8.23 edits, at 77c0997): 4123 passed, 1 skipped
+    run 2 (with the 0.8.23 edits): FAILED tests/test_diagrams.py::test_a_raw_quote_in_a_label_never_stops_the_publish_for_real
+        1 failed, 4126 passed, 1 skipped in 302.37s
+  The same test alone, right after run 2:
+  uv run --directory prd-toolkit pytest -q "tests/test_diagrams.py::test_a_raw_quote_in_a_label_never_stops_the_publish_for_real"
+    1 passed in 2.13s
+  The failure's own traceback was not kept (the run's output was cut to its last lines).
+Diagnosis: -
+Resolution: -
+Recurrence of: -
