@@ -237,7 +237,7 @@ T-283.4:
   identity: none
   preconditions: []
   known-failing: E-095
-  symptom: "STEP(prd-status, 4) reads `On prd-status-exit=2, the call was wrong and nothing printed: fix the path.`"
+  symptom: "flat(STEP(prd-status, 4)) holds `the call was wrong and nothing printed: fix the path`"
   input:
     read: "flat(STEP(prd-status, 4))"
   expect:
@@ -331,7 +331,7 @@ T-284.5:
   identity: none
   preconditions: []
   known-failing: E-096
-  symptom: "STEP(prd-context, 5) says that on prd-context-exit=2 the call was wrong and nothing printed: fix the arguments"
+  symptom: "flat(STEP(prd-context, 5)) holds `the call was wrong and nothing printed: fix the arguments`"
   input:
     read: "flat(STEP(prd-context, 5))"
   expect:
@@ -350,7 +350,7 @@ T-284.6:
   identity: none
   preconditions: []
   known-failing: E-097
-  symptom: "STEP(prd-context, 2) says to find the area each ID's block lives in from the repo pack, or ask"
+  symptom: "flat(STEP(prd-context, 2)) holds `find the area each ID's block lives in from the repo pack, or ask`"
   input:
     read: "flat(STEP(prd-context, 2))"
   expect:
@@ -544,7 +544,7 @@ T-288.7:
   identity: none
   preconditions: []
   known-failing: E-097
-  symptom: "STEP(prd-build, 4) says to find the area each ID's block lives in from the repo pack, or ask"
+  symptom: "flat(STEP(prd-build, 4)) holds `find the area each ID's block lives in from the repo pack, or ask`"
   input:
     read: "flat(STEP(prd-build, 4))"
   expect:
