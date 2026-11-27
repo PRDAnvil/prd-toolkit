@@ -1175,3 +1175,19 @@ Explanation: In a copy of the repository at the approval commit of PRD 13.3.0, t
 Diagnosis: Probe in a scratch clone at c4b77f9 (docs(prd): approve prd-toolkit 13.3.0): `sh .prd-toolkit/prd lint --ci docs/prd/prd-toolkit` printed nothing, `lint-exit=0`; `sh .prd-toolkit/prd hooks check --ci docs/prd/prd-toolkit` printed `stale: .github/workflows/prd-toolkit.yml: re-run prd_hooks.py ci --github --force`, `check-ci-exit=1`. On the same tree, uncommitted, `prd change approve docs/prd/prd-toolkit --reply Approved --dry-run no dry run (wording only)` printed `approved prd-toolkit 13.3.0 c4b77f9` and exit 0. Root cause: the 13.3.0 change added the enforced section 5 row for `.claude-plugin/marketplace.json`, and `prd_hooks.py ci` writes one standards-N job per enforced row, so the workflow needed a standards-2 job (b76a27b added it). FR-262 lists the checks approve makes, AC-262.1 to AC-262.7 and AC-262.8 `shall run the checks of AC-262.1 to AC-262.7 in that order before it writes anything`; none names the generated CI files, and FR-263 AC-263.3 stages the PRD folder, the README, CLAUDE.md and vendored packs but no CI file. Sections searched and silent on CI staleness at approval: FR-262, FR-263 (change area). The skill text changing-prds SKILL.md step 5 says `when the change touched testing.md or operations.md, a generated CI include is stale`, which leaves out a section 5 standards row; that file is in the skills area (not started), outside every adopted Boundary.
 Resolution: T-263.8 [integration], PRD 14.0.0, fixed in bbdec9e
 Recurrence of: -
+
+### E-094 test_diagrams.py::test_a_raw_quote_in_a_label_never_stops_the_publish_for_real failed once under the parallel unit run and passed alone
+Detected: 2026-11-26, unit harness run, 0.8.23 release tree (fix/ci-stale-standards)
+Classification: unclassified
+Evidence: Seen 2026-11-27 on branch fix/ci-stale-standards (the 0.8.23 release tree), by the unit Levels harness command:
+  uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd
+    run 1 (before the 0.8.23 edits, at 77c0997): 4123 passed, 1 skipped
+    run 2 (with the 0.8.23 edits): FAILED tests/test_diagrams.py::test_a_raw_quote_in_a_label_never_stops_the_publish_for_real
+        1 failed, 4126 passed, 1 skipped in 302.37s
+  The same test alone, right after run 2:
+  uv run --directory prd-toolkit pytest -q "tests/test_diagrams.py::test_a_raw_quote_in_a_label_never_stops_the_publish_for_real"
+    1 passed in 2.13s
+  The failure's own traceback was not kept (the run's output was cut to its last lines).
+Diagnosis: -
+Resolution: -
+Recurrence of: -
