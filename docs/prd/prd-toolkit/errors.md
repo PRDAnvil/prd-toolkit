@@ -1224,7 +1224,7 @@ Recurrence of: -
 
 ### E-098 The unit test test_command_maps_arguments asserts the prd-context exit-2 sentence that E-096 removed, so the fix fails the unit level
 Detected: 2026-11-27, build commands FR-284 --fixes E-096
-Classification: unclassified
+Classification: code bug
 Touches: FR-284
 Evidence: Build commands FR-284 --fixes E-096, step 7 full run, unit level:
   uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd
@@ -1235,6 +1235,7 @@ Evidence: Build commands FR-284 --fixes E-096, step 7 full run, unit level:
   E       AssertionError: assert ('On `prd-context-exit=2`' in '--- description: Print the focused context pack for one PRD task (prd-toolkit) --- Print the prd-toolkit context pack... act on its cause: wrong arguments (fix them), an unmigrated PRD (the message says what to move) or an internal error.' and 'nothing printed' in '...')
   tests/test_context_routing.py:79: AssertionError
   The test cites no T-id.
-Diagnosis: -
+Explanation: I ran the unit tests after the E-096 fix: one failed, an old unit test that checks the words of the prd-context command. Its last check requires the exit-2 sentence to say "nothing printed", which is the exact wording E-096 removed. The PRD now says the command shall not say that nothing was printed. So the command is right and this one test still pins the old, wrong sentence. It is a code bug in the test, not in the command and not in the PRD. The test sits outside every adopted area, so the fix is mine to make: change that one check to look for the sentence the PRD asks for, with no check dropped, then prove it with a red run.
+Diagnosis: AC-284.5 says the prd-context command shall tell the agent, on `prd-context-exit=2`, to read what the script printed and act on its cause, "and shall not say that nothing was printed (E-096)". prd-toolkit/tests/test_context_routing.py:79 (test_command_maps_arguments, which cites no T-id) asserts `"On \`prd-context-exit=2\`" in t and "nothing printed" in t`. Run on 695c7d9 (the E-096 fix): `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd` printed `1 failed, 4135 passed, 1 skipped`; alone, `uv run --directory prd-toolkit pytest -q tests/test_context_routing.py::test_command_maps_arguments` failed at line 79 with `AssertionError` on `nothing printed`. The file lies under no adopted Boundary of adoption.md (context covers only prd_context.py and prdlint/context.py). Root cause: the test pins the pre-E-096 wording; the faulty code is the test, and its fix replaces `"nothing printed" in t` with checks for the AC-284.5 wording (`read what the script printed`, `an unmigrated PRD`, `an internal error`).
 Resolution: -
 Recurrence of: -
