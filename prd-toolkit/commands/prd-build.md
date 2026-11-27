@@ -15,9 +15,10 @@ Build an approved PRD change. Arguments, `<area> <IDs> [--fixes E-nnn]`: $ARGUME
    `NFR-`, `AC-`, `T-` or `E-` is an ID; the first other token is the area. An AC or T-id maps to
    its FR (`AC-005.2` and `T-005.1` map to `FR-005`); an `E-nnn` passes as it is. The IDs are joined
    with commas for `--req`, as `--req FR-006,FR-001`, never space-separated: a space-separated list
-   is a usage error (exit 2). With no area, find the area each ID's block lives in from the repo
-   pack, or ask. With no IDs, ask: a build never guesses its scope. `--fixes E-nnn` builds the fix
-   for a confirmed entry. The E-nnn also goes to `--req`; step 1 of the procedure runs
-   `prd_error.py list <prd> --open` and refuses unless the entry is `confirmed`.
+   is a usage error (exit 2). With no area, find the area each ID's block lives in from the
+   `features/<area>.md` file that holds the ID's `### <ID>` heading, or ask. With no IDs, ask: a
+   build never guesses its scope. `--fixes E-nnn` builds the fix for a confirmed entry. The E-nnn
+   also goes to `--req`; step 1 of the procedure runs `prd_error.py list <prd> --open` and refuses
+   unless the entry is `confirmed`.
 5. Follow `${CLAUDE_PLUGIN_ROOT}/skills/building-from-prds/running-a-build.md` exactly, steps 1 to
    8, and report as its close says.

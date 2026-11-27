@@ -29,8 +29,9 @@ together.
    it as `--area <area>`. Pass only UJ, FR, NFR and E IDs, together as one `--req <ID>[,<ID>…]`:
    an AC or T id maps to its FR (`AC-005.2` and `T-005.1` map to `FR-005`), and an `E-nnn`
    passes as it is (the pack adds its `errors.md` entry and the blocks it reaches). The word `implement` becomes `--for implement`. Given
-   IDs with no area, find the area each ID's block lives in from the repo pack, or ask. With no
-   area and no IDs, the pack is the repo pack: the stack and one line per area.
+   IDs with no area, find the area each ID's block lives in from the `features/<area>.md` file
+   that holds the ID's `### <ID>` heading, or ask. With no area and no IDs, the pack is the repo
+   pack: the stack and one line per area.
 3. Run the script in one Bash call, with the literal PRD folder:
    `<scripts>/prd context docs/prd/<slug> --area <area> --req <IDs> --for implement; echo "prd-context-exit=$?"`
    Leave out the options the arguments did not give. `--req` and `--for implement` both need `--area`.
