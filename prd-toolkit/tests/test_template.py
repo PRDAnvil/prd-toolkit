@@ -81,3 +81,15 @@ def test_valid_fixture_fills_every_harness_slot():
     section = _harness(fixture.read_text(encoding="utf-8"))
     for slot in HARNESS_SLOTS:
         assert f"- **{slot}.**" in section, f"fixture misses slot {slot}"
+
+
+def test_template_writes_the_current_format():
+    from prdlint.rules.structure import FORMAT
+    front = (TEMPLATE / "prd.md").read_text(encoding="utf-8").split("---\n", 2)[1]
+    assert f"format: {FORMAT}" in front.splitlines()
+
+
+def test_format_reference_documents_the_key():
+    ref = (Path(__file__).parent.parent / "references/prd-format.md").read_text(encoding="utf-8")
+    table = ref.split("## prd.md frontmatter\n", 1)[1].split("\n## ", 1)[0]
+    assert any(line.startswith("| `format` |") for line in table.splitlines())

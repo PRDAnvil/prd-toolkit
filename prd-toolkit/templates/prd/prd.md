@@ -1,4 +1,5 @@
 ---
+format: 1
 prd: {{project}}
 version: 0.1.0
 status: Draft

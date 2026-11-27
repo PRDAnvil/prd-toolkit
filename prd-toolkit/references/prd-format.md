@@ -54,6 +54,7 @@ Every task adds a §14 row. The PRD always describes the system as it is now; gi
 
 ```
 ---
+format: 1
 prd: orders
 version: 1.0.0
 status: Approved
@@ -72,12 +73,21 @@ sql-dialect: postgres
 | `updated` | `YYYY-MM-DD` |
 | `sql-dialect` | a sqlglot dialect; required when `contracts/schema.sql` exists |
 | `language` | optional; a BCP 47 primary language subtag, `^[a-z]{2,3}$`; default `en` |
+| `format` | optional; a whole number from 1, `^[1-9][0-9]*$`; the version of this grammar the folder is written to; default `1` |
 
 `language` is the language of the PRD's prose: requirement text and ACs, the glossary, test-case
 `steps:`, `rubric:` items and published summaries. Field labels (`Status:`, `Acceptance (EARS):`),
 IDs, YAML keys, kinds and section headings stay English. Lint reads a language's EARS openers and
 vague words from its language table (see Language tables); a `language:` with no table is a
 `language-table` violation (`language 'fr' has no table`).
+
+`format` records which version of this grammar the PRD was written to; this toolkit reads format 1.
+A folder written before the key existed has none and is read as format 1, so a short PRD is never
+mistaken for an old one. A malformed value is a `frontmatter` violation
+(`'format: 01' must be a whole number from 1`). A value above 1 means a newer toolkit wrote the
+folder: lint reports it as its only finding and exits 1, because an older toolkit cannot tell a fault
+from grammar it does not know. Update prd-toolkit, then run `prd hooks install` to refresh
+`.prd-toolkit/`.
 
 ## prd.md sections
 
