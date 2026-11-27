@@ -49,15 +49,12 @@ def test_context_steps_4_and_5_print_and_reread_stale():
     ]) == [], step5
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_context_step_5_reads_exit_2_by_cause():
-    """@prd T-284.5 known-failing E-096"""
+    """@prd T-284.5"""
     text = flat(step("prd-context", 5))
     problems = [f"lacks {m!r}" for m in missing(text, ["prd-context-exit=2", "arguments", "unmigrated", "internal error"])]
     problems += [f"holds {h!r}" for h in present(text, ["nothing printed"])]
-    # The case's symptom: flat(STEP(prd-context, 5)) holds this text.
-    symptom = "the call was wrong and nothing printed: fix the arguments"
-    known_failure(problems, symptom in text, "flat(STEP(prd-context, 5)) holds " + repr(symptom))
+    assert problems == [], "; ".join(problems) + " | " + text
 
 
 @pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
