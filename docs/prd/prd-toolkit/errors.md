@@ -1240,3 +1240,15 @@ Explanation: I ran the unit tests after the E-096 fix: one failed, an old unit t
 Diagnosis: AC-284.5 says the prd-context command shall tell the agent, on `prd-context-exit=2`, to read what the script printed and act on its cause, "and shall not say that nothing was printed (E-096)". prd-toolkit/tests/test_context_routing.py:79 (test_command_maps_arguments, which cites no T-id) asserts `"On \`prd-context-exit=2\`" in t and "nothing printed" in t`. Run on 695c7d9 (the E-096 fix): `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd` printed `1 failed, 4135 passed, 1 skipped`; alone, `uv run --directory prd-toolkit pytest -q tests/test_context_routing.py::test_command_maps_arguments` failed at line 79 with `AssertionError` on `nothing printed`. The file lies under no adopted Boundary of adoption.md (context covers only prd_context.py and prdlint/context.py). Root cause: the test pins the pre-E-096 wording; the faulty code is the test, and its fix replaces `"nothing printed" in t` with checks for the AC-284.5 wording (`read what the script printed`, `an unmigrated PRD`, `an internal error`).
 Resolution: fixed in 38d34f9e104efc74eb8d4fcb0646931c076ba358, red run prd-toolkit/tests/test_context_routing.py::test_command_maps_arguments [unit]
 Recurrence of: -
+
+### E-099 prd error replay runs every test of the file that cites the T-id, so an earlier fix cannot be proven once a later entry's regression test in the same file is un-marked
+Detected: 2026-11-27, prd error replay E-096 (/prd-toolkit:prd-error)
+Classification: unclassified
+Evidence: On fix/commands-e095-e097, after the E-096 and E-097 fixes were built and verified:
+  .prd-toolkit/prd error resolve docs/prd/prd-toolkit E-096 --t T-284.5 --version 14.1.0 --commit 695c7d9 -> E-096 resolved code bug
+  .prd-toolkit/prd error replay docs/prd/prd-toolkit E-096 -> E-096: T-284.5 fails on 695c7d9: prd-toolkit/tests/prd/test_commands_context.py (exit 1)
+  At 695c7d9 the E-096 fix is in, so T-284.5's own test passes there; the same file also holds T-284.6 (E-097's regression test, un-marked later), which fails at 695c7d9 because E-097 was fixed afterwards in 6138d21.
+  The E-097 replay over the same file held: E-097: T-284.6 fails on 6138d21^ and passes on 6138d21.
+Diagnosis: -
+Resolution: -
+Recurrence of: -
