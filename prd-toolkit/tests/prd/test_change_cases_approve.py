@@ -6,7 +6,8 @@ import os
 import pytest
 
 from change_support import (
-    G0, G09, G0N, GA, GC, GH, GP, GQ, GR, GV, R, KnownFailure, append, case, command, delete, diff, exit_is,
+    G0, G09, G0N, GA, GC, GH, GITHUB_CI, GP, GQ, GR, GV, GY, GZ, R, KnownFailure, append, case, command, delete,
+    diff, exit_is,
     given, line_becomes, named, one_json_line, snapshot, stderr_is, stdout_contains, stdout_contains_line,
     stdout_is, stdout_lines_in_this_relative_order, stdout_not_contains, write, write_text,
 )
@@ -186,6 +187,17 @@ def test_t262_12_string_blockers_written_whole(case):
     assert prd_bytes(case) == before, "prd.md changed"
 
 
+@given(G0, GY, append(f"<tmp>/{GITHUB_CI}", "# mine"), GQ, GA, GR, GV)
+def test_t262_13_ci_file_with_other_changes(case):
+    """@prd T-262.13"""
+    before = snapshot(case.tmp)
+    r = case.run(f"{APPROVE} --reply approved --dry-run DRY")
+    exit_is(r, 1)
+    stdout_is(r, "")
+    stderr_is(r, "refused: .github/workflows/prd-toolkit.yml has uncommitted changes; commit or set them aside first\n")
+    assert diff(before, snapshot(case.tmp)) == [], "files under <tmp> changed"
+
+
 @given(R)
 def test_t263_1_the_approval(case):
     """@prd T-263.1"""
@@ -300,3 +312,71 @@ def test_t263_7_a_failed_commit_puts_everything_back(case):
     stdout_is(staged, "")
     assert last_subject(case) == "base\n"
     assert [p for p in others if p.exists()] == [], "the run left a README or CLAUDE.md"
+
+
+def ci_lines(case, rel: str) -> list[str]:
+    path = case.tmp / rel
+    assert path.is_file(), f"<tmp>/{rel} does not exist"
+    return path.read_bytes().decode("utf-8").splitlines()
+
+
+@given(G0, GY, GZ, GQ, GA, GR, GV)
+def test_t263_8_a_stale_ci_file_is_rewritten_and_committed(case):
+    """@prd T-263.8"""
+    r1 = case.run(f"{APPROVE} --reply approved --dry-run DRY")
+    r2 = case.run("git show --name-only --format= HEAD")
+    r3 = case.run("python HOOKS check --ci docs/prd/orders")
+    exit_is(r1, 0)
+    stderr_is(r1, "")
+    stdout_contains_line(r2, ".github/workflows/prd-toolkit.yml")
+    stdout_not_contains(r3, "stale: .github/workflows/prd-toolkit.yml")
+    assert len(r1.lines) == 1 and r1.lines[0].startswith("approved orders 1.1.0 "), str(r1)
+    assert "# old" not in ci_lines(case, GITHUB_CI), "<tmp>/.github/workflows/prd-toolkit.yml holds `# old`"
+    status = case.git("status", "--porcelain", "--untracked-files=all")
+    stdout_is(status, "")
+
+
+@given(G0, GY, GQ, GA, GR, GV)
+def test_t263_9_a_current_ci_file_is_left_alone(case):
+    """@prd T-263.9"""
+    r1 = case.run(f"{APPROVE} --reply approved --dry-run DRY")
+    r2 = case.run("git show --name-only --format= HEAD")
+    exit_is(r1, 0)
+    stderr_is(r1, "")
+    stdout_not_contains(r2, ".github/")
+    assert (case.tmp / GITHUB_CI).read_bytes() == case.committed["GY"][GITHUB_CI], \
+        "<tmp>/.github/workflows/prd-toolkit.yml differs from the file GY committed"
+    assert not (case.tmp / ".gitlab").exists(), "<tmp>/.gitlab exists"
+
+
+GITLAB_CI = ".gitlab/prd-toolkit.yml"
+
+
+@given(G0, command("python HOOKS ci --gitlab docs/prd/orders"), append(f"<tmp>/{GITLAB_CI}", "# old"), GC,
+       GQ, GA, GR, GV)
+def test_t263_10_a_stale_gitlab_file_is_rewritten_and_committed(case):
+    """@prd T-263.10"""
+    r1 = case.run(f"{APPROVE} --reply approved --dry-run DRY")
+    r2 = case.run("git show --name-only --format= HEAD")
+    exit_is(r1, 0)
+    stderr_is(r1, "")
+    stdout_contains_line(r2, ".gitlab/prd-toolkit.yml")
+    assert "# old" not in ci_lines(case, GITLAB_CI), "<tmp>/.gitlab/prd-toolkit.yml holds `# old`"
+    assert not (case.tmp / ".github").exists(), "<tmp>/.github exists"
+    status = case.git("status", "--porcelain", "--untracked-files=all")
+    stdout_is(status, "")
+
+
+@given(G0, GY, GZ, GQ, GA, GR, GV, _refusing_hook, command("git config core.hooksPath <tmp>/hooks"))
+def test_t263_11_a_failed_commit_puts_the_ci_file_back(case):
+    """@prd T-263.11"""
+    r = case.run(f"{APPROVE} --reply approved --dry-run DRY")
+    exit_is(r, 1)
+    stdout_is(r, "")
+    stderr_is(r, "refused: git commit failed: hook says no\n")
+    ci = (case.tmp / GITHUB_CI).read_bytes()
+    assert ci == case.committed["GZ"][GITHUB_CI], \
+        "<tmp>/.github/workflows/prd-toolkit.yml differs from the file GZ committed"
+    assert ci.decode("utf-8").splitlines()[-1] == "# old", "the CI file's last line is not `# old`"
+    stdout_is(case.git("diff", "--cached", "--name-only"), "")
+    stdout_is(case.git("status", "--porcelain", "--", ".github"), "")

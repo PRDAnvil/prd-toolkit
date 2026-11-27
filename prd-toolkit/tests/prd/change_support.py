@@ -2,7 +2,7 @@
 
 Everything here comes from docs/prd/prd-toolkit/testing.md and the header of test-cases/change.yaml: the
 scratch repository the steps build in a test's tmp_path, the Subprocess environment of a change case, the way a
-command text becomes an argument list, the header's setup steps (G0 to GN, R) and DRY, and the assertion keys the
+command text becomes an argument list, the header's setup steps (G0 to GZ, R) and DRY, and the assertion keys the
 change cases use.
 
 A step that fails while the case's `setup:` is built (inside the `case` fixture) ends the test as an error; a step
@@ -114,6 +114,8 @@ class Case:
         self.tmp = tmp
         self.orders = tmp / ORDERS_REL
         self.dates: set[str] = set()
+        # The bytes a step committed, by path from <tmp> (GY, GZ): "byte-identical to the file GY committed".
+        self.committed: dict[str, dict[str, bytes]] = {}
         self._note_date()
 
     def _note_date(self) -> None:
@@ -587,6 +589,36 @@ def GN(c: Case) -> None:
     for i in reversed(table):
         del lines[i]
     _write_lines(path, lines)
+
+
+GITHUB_CI = ".github/workflows/prd-toolkit.yml"  # a path from <tmp>, as the change cases name it
+
+
+def _keep_committed(c: Case, name: str, rel: str) -> None:
+    """Record the bytes of `rel` (a path from <tmp>) at HEAD, the commit step `name` just made."""
+    r = c.git("show", f"HEAD:{rel}")
+    if r.exit != 0:
+        raise StepError(f"{name}: git show HEAD:{rel} exited {r.exit}: {r.stderr.strip()}")
+    c.committed.setdefault(name, {})[rel] = r.out
+
+
+@named("GY")
+def GY(c: Case) -> None:
+    r = c.run("python HOOKS ci --github docs/prd/orders")
+    if r.exit != 0:
+        raise StepError(f"GY: ci --github exited {r.exit}: {r.stderr.strip()}")
+    GC(c)
+    _keep_committed(c, "GY", GITHUB_CI)
+
+
+_GZ_APPEND = append(f"<tmp>/{GITHUB_CI}", "# old", name="GZ")
+
+
+@named("GZ")
+def GZ(c: Case) -> None:
+    _GZ_APPEND(c)
+    GC(c)
+    _keep_committed(c, "GZ", GITHUB_CI)
 
 
 @named("R")
