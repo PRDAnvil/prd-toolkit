@@ -437,6 +437,32 @@ Known limits:
 - A `commit --amend` that only rewrites the message stages no file, so the `commit-msg` hook lets
   it through; CI's `commit-refs` (trace with `--range`) catches it.
 
+## Edit hook
+
+Since 0.8.23 the plugin's `hooks/hooks.json` runs `scripts/prd_edit_hook.py` in two places, beside the
+tester guard. It runs from the plugin, never from `.prd-toolkit/`, so `prd hooks install` does not
+vendor it. It needs only `python3` and the standard library, and it never blocks a tool call or a
+stop: any failure prints one stderr line starting `prd-toolkit edit hook: ` and exits 0.
+
+**After an edit** (PostToolUse on Edit, Write, MultiEdit and NotebookEdit). When the edited file lies in
+an `adopted` area's Boundary and no block of that area is `approved` at `HEAD`, the agent gets one
+reminder: the edit is in area `<area>`, a behaviour change there starts with `/prd-toolkit:prd-change`
+before any code, and a change of no behaviour cites `Refs: none (no behaviour change)`. It reminds once
+per area and session. A PRD with no `adoption.md` treats the whole working tree, outside the PRD folder
+and `.prd-toolkit/`, as one Boundary. It stays silent for an edit inside a PRD folder or `.prd-toolkit/`,
+for a path no adopted area covers, for an area with an approved block (a build's edits), and for
+`prd-tester`.
+
+**At Stop.** For each PRD folder the session edited since the last Stop, the hook runs `prd lint` (the
+repository's `.prd-toolkit/prd` when it exists, otherwise the plugin's launcher) and hands back the
+error findings the session has not yet been told of, at most 20 per folder, ending
+`Finish the PRD edit through /prd-toolkit:prd-change, which runs lint itself.` A clean lint, or
+findings it already reported, say nothing; warnings are never reported. A lint that cannot run, or
+runs past 50 seconds, is reported once as `prd-toolkit: prd lint could not run on <folder>: <reason>`.
+Claude Code gives the agent one more turn to read the report.
+
+Set `PRD_TOOLKIT_EDIT_HOOK=off` in the environment to turn both off.
+
 ## Deploying
 
 `/prd-toolkit:prd-deploy [--until <env>] [<run id>]` runs the `deploying-from-prds` skill. It takes `verified`
