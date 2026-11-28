@@ -76,7 +76,8 @@ def test_command_maps_arguments():
     assert "maps to its FR" in t
     assert "`implement` becomes `--for implement`" in t and "`--req <ID>[,<ID>" in t
     assert "On `prd-context-exit=1`" in t and "re-read the regions marked STALE" in t
-    assert "On `prd-context-exit=2`" in t and "nothing printed" in t
+    assert "On `prd-context-exit=2`" in t and "read what the script printed" in t
+    assert "an unmigrated PRD" in t and "an internal error" in t and "nothing printed" not in t
 
 
 def test_changing_pack_ids_are_requirement_ids():

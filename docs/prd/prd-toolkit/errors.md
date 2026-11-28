@@ -1194,24 +1194,61 @@ Recurrence of: -
 
 ### E-095 The prd-status command says exit 2 means a wrong path with nothing printed, but prd status also exits 2 with output and for other causes
 Detected: 2026-11-27, adoption extract of commands (prd-toolkit/commands/prd-status.md:37 @2b082aa)
-Classification: unclassified
+Classification: code bug
+Confirmed: 2026-11-27, "Confirm the class (form)"
 Touches: FR-283
-Diagnosis: read from the code, not reproduced. Step 4 tells the agent that on `prd-status-exit=2` "the call was wrong and nothing printed: fix the path". Step 2 of the same file has the agent add `--json` when asked for JSON. Under `--json`, `interface.run` (prd-toolkit/scripts/prdlint/interface.py:67 @2b082aa) writes the error document `{"interface": 1, "kind": "status", "error": …}` to stdout on every exit 2, and contracts/cli.yaml records this as prd_status `json_error`. prd_status.py also exits 2 for an unmigrated 0.2 PRD (prd-toolkit/scripts/prd_status.py:54 @2b082aa) and for an internal error (prd_status.py:63). In both cases the path is right. cli.yaml's prd_status exit code 2 lists both. The command's sentence contradicts the script it runs: output is printed, and the path is not always the cause.
-Resolution: open
+Explanation: I ran prd status two ways. With --json on a wrong path it exited 2 and still printed a JSON error document; on an unmigrated PRD at the right path it exited 2 with a message to move the adoption map. The PRD says the prd-status command should tell the agent, on exit 2, to read what was printed and act on its cause: a wrong path, an unmigrated PRD or an internal error. The command instead says nothing was printed and the path is wrong, so an agent keeps "fixing" a correct path. This is a code bug, not an invalid requirement: you confirmed the intended sentence at adoption, and the command file is what falls short of it.
+Diagnosis: AC-283.4 says: "When the prd-status command runs, its instructions shall tell the agent, on `prd-status-exit=2`, to read what the script printed and act on its cause: a wrong path (fix the path), an unmigrated PRD or an internal error; and shall not say that nothing was printed (E-095)." Step 4 of prd-toolkit/commands/prd-status.md says `On prd-status-exit=2, the call was wrong and nothing printed: fix the path.` Runs on HEAD ef6ef52: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_commands_status.py` reported T-283.4 XFAIL `known failure seen: flat(STEP(prd-status, 4)) holds the call was wrong and nothing printed: fix the path`. In a scratch clone, `.prd-toolkit/prd status docs/prd/nope --json` printed `{"interface": 1, "kind": "status", "error": "…/docs/prd/nope: no prd.md"}` and exited `2` (expected per AC-283.4: output to read); with adoption.md removed and a table in section 8, `.prd-toolkit/prd status docs/prd/prd-toolkit` printed `prd_status: …/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; …` and exited `2` on the right path. prd_status.py also exits 2 on `internal error` (its catch-all). Root cause: the command file's step 4 sentence; the script is right.
+Resolution: T-283.4 [integration], PRD 14.1.0, fixed in c649a64
 Recurrence of: -
 
 ### E-096 The prd-context command says exit 2 means the arguments were wrong, but prd context also exits 2 for an internal error or an unmigrated PRD
 Detected: 2026-11-27, adoption extract of commands (prd-toolkit/commands/prd-context.md:42 @2b082aa)
-Classification: unclassified
+Classification: code bug
+Confirmed: 2026-11-27, "Confirm the class (form)"
 Touches: FR-284
-Diagnosis: read from the code, not reproduced. Step 5 tells the agent that on `prd-context-exit=2` "the call was wrong and nothing printed: fix the arguments". prd_context.py returns 2 from its catch-all `except Exception` (prd-toolkit/scripts/prd_context.py:67 @2b082aa, message `prd_context: internal error: …`). It also returns 2 for an unmigrated 0.2 PRD, which context.py raises as a ContextError (prd-toolkit/scripts/prdlint/context.py:489 @2b082aa). Neither is fixed by changing the arguments. The sibling code contradicts the command's account of exit 2.
+Explanation: I ran prd context on an unmigrated PRD at the right path, with right arguments: it exited 2 with a message to move the adoption map. The PRD says the prd-context command should tell the agent, on exit 2, to read what was printed and act on its cause: wrong arguments, an unmigrated PRD or an internal error. The command instead says nothing was printed and the arguments are wrong, so an agent changes arguments that were never the problem. This is a code bug, not an invalid requirement: you confirmed the intended sentence at adoption, and the command file falls short of it. It is the same fault as E-095, in the sibling command.
+Diagnosis: AC-284.5 says: "When the prd-context command runs, its instructions shall tell the agent, on `prd-context-exit=2`, to read what the script printed and act on its cause: wrong arguments (fix them), an unmigrated PRD or an internal error; and shall not say that nothing was printed (E-096)." Step 5 of prd-toolkit/commands/prd-context.md says `On prd-context-exit=2, the call was wrong and nothing printed: fix the arguments.` Runs on HEAD ef6ef52: `uv run --directory prd-toolkit pytest -q -n auto tests/prd/test_commands_context.py` reported T-284.5 XFAIL `known failure seen: flat(STEP(prd-context, 5)) holds the call was wrong and nothing printed: fix the arguments`. In a scratch clone with adoption.md removed and a table in section 8, `.prd-toolkit/prd context docs/prd/prd-toolkit --area commands` printed `prd_context: …/prd.md: section 8: the adoption map moved to adoption.md in prd-toolkit 0.3; …` and exited `2`, its arguments right. prd_context.py also exits 2 on `prd_context: internal error: …` (its catch-all). Root cause: the command file's step 5 sentence; the script is right.
 Resolution: open
 Recurrence of: -
 
 ### E-097 The prd-context and prd-build commands send the agent to the repo pack to find an ID's area, but the repo pack lists no requirement IDs
 Detected: 2026-11-27, confirmation of FR-284 (Q-57; prd-toolkit/commands/prd-context.md:32 @2b082aa)
-Classification: unclassified
+Classification: code bug
+Confirmed: 2026-11-27, "Confirm the class (form)"
 Touches: FR-284, FR-288
-Diagnosis: read from the code, not reproduced. Step 2 of prd-context.md and step 4 of prd-build.md (prd-toolkit/commands/prd-build.md:18 @2b082aa) tell the agent, given IDs and no area, to "find the area each ID's block lives in from the repo pack, or ask". The repo pack (`prd context docs/prd/prd-toolkit`, no `--area`) printed 93 lines at 2b082aa, none holding an FR ID: its Areas lines give each area's name, state and Boundary only. `prd context` with `--req` and no `--area` exits 2. An agent that follows the instruction cannot find the area that way.
-Resolution: open, intended: find each ID's area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or ask
+Explanation: I printed the repo pack, which prd-context and prd-build tell the agent to use to find an ID's area when no area is given: its 93 lines hold no requirement ID at all, so the area cannot be found there. Asking prd context for FR-283 with no area exits 2 with "--req needs --area". A search of the features files for the FR-283 heading found its area, commands, at once. The PRD says both commands should tell the agent to find the area from the features file that holds the ID's heading, or ask, and not name the repo pack. This is a code bug, not an invalid requirement: you chose that sentence when you answered Q-57, and the command files still send the agent to the repo pack.
+Diagnosis: AC-284.6 says: "When the prd-context command is given IDs and no area, its instructions shall tell the agent to find each ID's area from the `features/<area>.md` file that holds the ID's `### <ID>` heading, or to ask; and shall not name the repo pack as that source (E-097)." AC-288.7 says the same of prd-build. Step 2 of prd-toolkit/commands/prd-context.md and step 4 of prd-toolkit/commands/prd-build.md say `find the area each ID's block lives in from the repo pack, or ask`. Runs on HEAD ef6ef52: the pytest run of tests/prd/test_commands_context.py and tests/prd/test_commands_build.py reported T-284.6 and T-288.7 XFAIL `known failure seen: … holds find the area each ID's block lives in from the repo pack, or ask`. In a scratch clone, `.prd-toolkit/prd context docs/prd/prd-toolkit` printed 93 lines with `0` matching `(FR|NFR|UJ)-[0-9]` (its Areas line reads `- commands (adopted; Boundary: prd-toolkit/commands/**)`); `.prd-toolkit/prd context docs/prd/prd-toolkit --req FR-283` printed `prd_context: --req needs --area` and exited `2`; `grep -ln "^### FR-283 " docs/prd/prd-toolkit/features/*.md` printed `docs/prd/prd-toolkit/features/commands.md`. Root cause: the sentence in both command files.
+Resolution: T-284.6 [integration], PRD 14.1.0, fixed in 6138d21
+Recurrence of: -
+
+### E-098 The unit test test_command_maps_arguments asserts the prd-context exit-2 sentence that E-096 removed, so the fix fails the unit level
+Detected: 2026-11-27, build commands FR-284 --fixes E-096
+Classification: code bug
+Confirmed: 2026-11-27, "Confirm the class (form)"
+Touches: FR-284
+Evidence: Build commands FR-284 --fixes E-096, step 7 full run, unit level:
+  uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd
+  FAILED tests/test_context_routing.py::test_command_maps_arguments - Assertion...
+  1 failed, 4135 passed, 1 skipped in 398.36s (0:06:38)
+  Run alone, uv run --directory prd-toolkit pytest -q tests/test_context_routing.py::test_command_maps_arguments:
+  >       assert "On `prd-context-exit=2`" in t and "nothing printed" in t
+  E       AssertionError: assert ('On `prd-context-exit=2`' in '--- description: Print the focused context pack for one PRD task (prd-toolkit) --- Print the prd-toolkit context pack... act on its cause: wrong arguments (fix them), an unmigrated PRD (the message says what to move) or an internal error.' and 'nothing printed' in '...')
+  tests/test_context_routing.py:79: AssertionError
+  The test cites no T-id.
+Explanation: I ran the unit tests after the E-096 fix: one failed, an old unit test that checks the words of the prd-context command. Its last check requires the exit-2 sentence to say "nothing printed", which is the exact wording E-096 removed. The PRD now says the command shall not say that nothing was printed. So the command is right and this one test still pins the old, wrong sentence. It is a code bug in the test, not in the command and not in the PRD. The test sits outside every adopted area, so the fix is mine to make: change that one check to look for the sentence the PRD asks for, with no check dropped, then prove it with a red run.
+Diagnosis: AC-284.5 says the prd-context command shall tell the agent, on `prd-context-exit=2`, to read what the script printed and act on its cause, "and shall not say that nothing was printed (E-096)". prd-toolkit/tests/test_context_routing.py:79 (test_command_maps_arguments, which cites no T-id) asserts `"On \`prd-context-exit=2\`" in t and "nothing printed" in t`. Run on 695c7d9 (the E-096 fix): `uv run --directory prd-toolkit pytest -q -n auto tests --ignore tests/prd` printed `1 failed, 4135 passed, 1 skipped`; alone, `uv run --directory prd-toolkit pytest -q tests/test_context_routing.py::test_command_maps_arguments` failed at line 79 with `AssertionError` on `nothing printed`. The file lies under no adopted Boundary of adoption.md (context covers only prd_context.py and prdlint/context.py). Root cause: the test pins the pre-E-096 wording; the faulty code is the test, and its fix replaces `"nothing printed" in t` with checks for the AC-284.5 wording (`read what the script printed`, `an unmigrated PRD`, `an internal error`).
+Resolution: fixed in 38d34f9e104efc74eb8d4fcb0646931c076ba358, red run prd-toolkit/tests/test_context_routing.py::test_command_maps_arguments [unit]
+Recurrence of: -
+
+### E-099 prd error replay runs every test of the file that cites the T-id, so an earlier fix cannot be proven once a later entry's regression test in the same file is un-marked
+Detected: 2026-11-27, prd error replay E-096 (/prd-toolkit:prd-error)
+Classification: unclassified
+Evidence: On fix/commands-e095-e097, after the E-096 and E-097 fixes were built and verified:
+  .prd-toolkit/prd error resolve docs/prd/prd-toolkit E-096 --t T-284.5 --version 14.1.0 --commit 695c7d9 -> E-096 resolved code bug
+  .prd-toolkit/prd error replay docs/prd/prd-toolkit E-096 -> E-096: T-284.5 fails on 695c7d9: prd-toolkit/tests/prd/test_commands_context.py (exit 1)
+  At 695c7d9 the E-096 fix is in, so T-284.5's own test passes there; the same file also holds T-284.6 (E-097's regression test, un-marked later), which fails at 695c7d9 because E-097 was fixed afterwards in 6138d21.
+  The E-097 replay over the same file held: E-097: T-284.6 fails on 6138d21^ and passes on 6138d21.
+Diagnosis: -
+Resolution: -
 Recurrence of: -

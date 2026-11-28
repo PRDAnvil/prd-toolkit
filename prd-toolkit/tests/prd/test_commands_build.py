@@ -1,12 +1,7 @@
 """FR-288: the prd-build command reads the build procedure first and maps its arguments (test-cases/commands.yaml)."""
 from __future__ import annotations
 
-import pytest
-
-from commands_support import body, flat, known_failure, missing, present, step
-
-# E-097's symptom, as T-288.7's `symptom:` states it: a substring of flat(STEP(prd-build, 4)).
-E097_SYMPTOM = "find the area each ID's block lives in from the repo pack, or ask"
+from commands_support import body, flat, missing, present, step
 
 
 def test_build_body_names_arguments():
@@ -64,10 +59,9 @@ def test_build_step_5_follows_procedure():
     ]) == [], text
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_build_step_4_finds_area_from_features_file():
-    """@prd T-288.7 known-failing E-097"""
+    """@prd T-288.7"""
     text = flat(step("prd-build", 4))
     problems = [f"lacks {m!r}" for m in missing(text, ["features/<area>.md", "`### <ID>`"])]
     problems += [f"holds {h!r}" for h in present(text, ["from the repo pack"])]
-    known_failure(problems, E097_SYMPTOM in text, "flat(STEP(prd-build, 4)) holds " + repr(E097_SYMPTOM))
+    assert problems == [], "; ".join(problems) + " | " + text

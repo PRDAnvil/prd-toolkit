@@ -1,12 +1,7 @@
 """FR-284: the prd-context command maps its arguments and prints the pack (test-cases/commands.yaml)."""
 from __future__ import annotations
 
-import pytest
-
-from commands_support import body, flat, known_failure, missing, present, step
-
-# E-097's symptom, as T-284.6's `symptom:` states it: a substring of flat(STEP(prd-context, 2)).
-E097_SYMPTOM = "find the area each ID's block lives in from the repo pack, or ask"
+from commands_support import body, flat, missing, present, step
 
 
 def test_context_body_starts_with_arguments():
@@ -49,21 +44,17 @@ def test_context_steps_4_and_5_print_and_reread_stale():
     ]) == [], step5
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_context_step_5_reads_exit_2_by_cause():
-    """@prd T-284.5 known-failing E-096"""
+    """@prd T-284.5"""
     text = flat(step("prd-context", 5))
     problems = [f"lacks {m!r}" for m in missing(text, ["prd-context-exit=2", "arguments", "unmigrated", "internal error"])]
     problems += [f"holds {h!r}" for h in present(text, ["nothing printed"])]
-    # The case's symptom: flat(STEP(prd-context, 5)) holds this text.
-    symptom = "the call was wrong and nothing printed: fix the arguments"
-    known_failure(problems, symptom in text, "flat(STEP(prd-context, 5)) holds " + repr(symptom))
+    assert problems == [], "; ".join(problems) + " | " + text
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_context_step_2_finds_area_from_features_file():
-    """@prd T-284.6 known-failing E-097"""
+    """@prd T-284.6"""
     text = flat(step("prd-context", 2))
     problems = [f"lacks {m!r}" for m in missing(text, ["features/<area>.md", "`### <ID>`"])]
     problems += [f"holds {h!r}" for h in present(text, ["from the repo pack"])]
-    known_failure(problems, E097_SYMPTOM in text, "flat(STEP(prd-context, 2)) holds " + repr(E097_SYMPTOM))
+    assert problems == [], "; ".join(problems) + " | " + text

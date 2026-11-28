@@ -53,7 +53,7 @@ Tests: T-282.1 [integration], T-282.2 [integration], T-282.3 [integration], T-28
 Traces: `code:prd-toolkit/commands/prd-status.md`; `code:prd-toolkit/commands/prd-context.md`; FR-283; FR-284
 
 ### FR-283 The prd-status command runs prd status once, unfiltered, and prints the report as it is
-Status: approved
+Status: verified
 Source: prd-toolkit/commands/prd-status.md:27 @2b082aa
 Acceptance (EARS):
 - AC-283.1 The prd-status command file's body shall start with
@@ -75,7 +75,7 @@ Tests: T-283.1 [integration], T-283.2 [integration], T-283.3 [integration], T-28
 Traces: `code:prd-toolkit/commands/prd-status.md`; FR-282; `cli:prd_status`
 
 ### FR-284 The prd-context command maps its arguments to prd context options and prints the pack as it is
-Status: approved
+Status: verified
 Source: prd-toolkit/commands/prd-context.md:27 @2b082aa
 Acceptance (EARS):
 - AC-284.1 The prd-context command file's body shall start with
@@ -144,7 +144,7 @@ Tests: T-287.2 [integration], T-287.3 [integration]  (test-cases/commands.yaml)
 Traces: `code:prd-toolkit/commands/prd-change.md`
 
 ### FR-288 The prd-build command reads the build procedure first and maps its arguments to one --req
-Status: approved
+Status: verified
 Source: prd-toolkit/commands/prd-build.md:7 @2b082aa
 Acceptance (EARS):
 - AC-288.1 The prd-build command file's body's first line shall name the arguments as `<area> <IDs> [--fixes E-nnn]` before `$ARGUMENTS`.

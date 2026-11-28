@@ -1,9 +1,7 @@
 """FR-283: the prd-status command runs prd status once and prints the report (test-cases/commands.yaml)."""
 from __future__ import annotations
 
-import pytest
-
-from commands_support import body, flat, known_failure, missing, present, step
+from commands_support import body, flat, missing, present, step
 
 
 def test_status_body_starts_with_arguments():
@@ -33,12 +31,9 @@ def test_status_step_3_prints_report_and_names_parts():
     ]) == [], text
 
 
-@pytest.mark.xfail(strict=True, raises=pytest.xfail.Exception)
 def test_status_step_4_reads_exit_2_by_cause():
-    """@prd T-283.4 known-failing E-095"""
+    """@prd T-283.4"""
     text = flat(step("prd-status", 4))
     problems = [f"lacks {m!r}" for m in missing(text, ["prd-status-exit=2", "path", "unmigrated", "internal error"])]
     problems += [f"holds {h!r}" for h in present(text, ["nothing printed"])]
-    # The case's symptom: flat(STEP(prd-status, 4)) holds this text.
-    symptom = "the call was wrong and nothing printed: fix the path"
-    known_failure(problems, symptom in text, "flat(STEP(prd-status, 4)) holds " + repr(symptom))
+    assert problems == [], text
